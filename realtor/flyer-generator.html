@@ -416,7 +416,6 @@ select.scen-sel:focus { outline:none; border-color:#2491EB; }
 </style>
 </head>
 <body>
-<a href="/" id="hws-hub-btn" style="position:fixed;top:14px;right:16px;z-index:9999;background:#1c2b3a;color:rgba(255,255,255,0.9);text-decoration:none;font-size:12px;font-weight:700;padding:6px 14px;border-radius:8px;font-family:-apple-system,BlinkMacSystemFont,sans-serif;letter-spacing:0.2px;box-shadow:0 2px 8px rgba(0,0,0,0.25);">← Hub</a>
 <div class="app">
 
   <!-- ══ TOOL PANEL ══ -->
@@ -521,6 +520,7 @@ select.scen-sel:focus { outline:none; border-color:#2491EB; }
             <option value="conv15">Conv 15%</option>
             <option value="conv20">Conv 20%</option>
             <option value="conv25">Conv 25%</option>
+            <option value="usda">USDA (0%)</option>
           </select>
           <select class="scen-sel" id="strat1" onchange="onStratChange(1);render()" style="margin-top:6px;">
             <option value="Lower Cash-to-Close"  selected>Lower Cash-to-Close</option>
@@ -542,6 +542,7 @@ select.scen-sel:focus { outline:none; border-color:#2491EB; }
             <option value="conv15">Conv 15%</option>
             <option value="conv20">Conv 20%</option>
             <option value="conv25">Conv 25%</option>
+            <option value="usda">USDA (0%)</option>
           </select>
           <select class="scen-sel" id="strat2" onchange="onStratChange(2);render()" style="margin-top:6px;">
             <option value="Lower Cash-to-Close">Lower Cash-to-Close</option>
@@ -563,6 +564,7 @@ select.scen-sel:focus { outline:none; border-color:#2491EB; }
             <option value="conv15">Conv 15%</option>
             <option value="conv20" selected>Conv 20%</option>
             <option value="conv25">Conv 25%</option>
+            <option value="usda">USDA (0%)</option>
           </select>
           <select class="scen-sel" id="strat3" onchange="onStratChange(3);render()" style="margin-top:6px;">
             <option value="Lower Cash-to-Close">Lower Cash-to-Close</option>
@@ -860,6 +862,7 @@ const PROGRAMS = {
   conv15: { lbl:'CONV 15%',   pct:.15,  type:'conv', annPMI:.0033 },
   conv20: { lbl:'CONV 20%',   pct:.20,  type:'conv', annPMI:0 },
   conv25: { lbl:'CONV 25%',   pct:.25,  type:'conv', annPMI:0 },
+  usda:   { lbl:'USDA',       pct:0,    type:'usda', annFee:.0035 },
 };
 function calcScenario(progKey, price, convRate, vaRate, vaFee, taxMo, hoiMo) {
   const prog = PROGRAMS[progKey] || PROGRAMS[Object.keys(PROGRAMS)[0]];
@@ -877,6 +880,11 @@ function calcScenario(progKey, price, convRate, vaRate, vaFee, taxMo, hoiMo) {
     pi = pmt(totalLoan, convRate);
     monthlyMI = baseLoan * prog.mmip / 12;
     feeNote = '+1.75% UFMIP financed · ' + (prog.mmip*100).toFixed(2) + '% MIP/yr';
+  } else if (prog.type === 'usda') {
+    totalLoan  = baseLoan + baseLoan * 0.01;  // 1% upfront guarantee fee financed
+    pi         = pmt(totalLoan, convRate);
+    monthlyMI  = baseLoan * (prog.annFee || 0.0035) / 12;  // 0.35% annual fee
+    feeNote    = '+1% guarantee fee financed · 0.35% annual fee';
   } else {
     totalLoan = baseLoan;
     pi = pmt(totalLoan, convRate);

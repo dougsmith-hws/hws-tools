@@ -53,6 +53,24 @@
   </header>
 
   <div class="card" id="inputs">
+    <div class="row">
+      <div>
+        <label>Realtor (who this is for)</label>
+        <input id="realtor" type="text" placeholder="e.g. Jane Smith">
+      </div>
+      <div>
+        <label>Deal (buyer or property)</label>
+        <input id="deal" type="text" placeholder="e.g. 123 Main St / Garcia">
+      </div>
+    </div>
+
+    <label>Engagement</label>
+    <div class="chips" data-group="tier">
+      <div class="chip on" data-v="illustrative">Illustrative options</div>
+      <div class="chip" data-v="preapproval">Based on my pre-approval</div>
+    </div>
+    <div class="hint">Pre-approval shows estimated PITI as your numbers; illustrative is framed as general options.</div>
+
     <label>List / target price</label>
     <input id="price" type="text" inputmode="numeric" placeholder="$450,000" oninput="commafy(this)">
 
@@ -146,6 +164,7 @@ function commafy(el){
   el.value = raw ? '$'+(+raw).toLocaleString() : '';
 }
 const numVal=id=>+document.getElementById(id).value.replace(/[^0-9.]/g,'')||0;
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 function stripPct(el){el.value=el.value.replace(/[^0-9.]/g,'');}
 function pctify(el){const v=el.value.replace(/[^0-9.]/g,'');el.value=v?v+'%':'';}
 
@@ -174,7 +193,35 @@ function buildShareURL(){
   p.set('escrow', pick('escrow'));
   p.set('bac', pick('bac'));
   if(pick('bac')==='buyer') p.set('bacPct', numVal('bacPct'));
+  const realtor=document.getElementById('realtor').value.trim();
+  const deal=document.getElementById('deal').value.trim();
+  if(realtor) p.set('realtor', realtor);
+  if(deal) p.set('deal', deal);
+  p.set('tier', pick('tier'));
   return location.origin + location.pathname + '?' + p.toString();
+}
+
+// client-facing (realtor) link: static view, no Hub, no editing
+function buildClientURL(){ return buildShareURL() + '&view=1'; }
+
+// ---- deal logging (Google Apps Script web app) ----
+// Paste your deployed Apps Script /exec URL between the quotes to enable logging.
+const LOG_URL='';
+function logDeal(){
+  if(!LOG_URL) return;
+  try{
+    fetch(LOG_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body:JSON.stringify({
+        ts:new Date().toISOString(),
+        realtor:document.getElementById('realtor').value.trim(),
+        deal:document.getElementById('deal').value.trim(),
+        tier:pick('tier'),
+        price:numVal('price'),
+        cash:numVal('cash'),
+        rate:document.getElementById('rate').value,
+        link:buildClientURL()
+      })});
+  }catch(e){}
 }
 
 // programmatically select a chip in a group (used when loading from a URL)
@@ -199,7 +246,18 @@ function applyParamsAndRun(){
   if(p.has('escrow'))  setChip('escrow',  p.get('escrow'));
   if(p.has('bac'))     setChip('bac',     p.get('bac'));
   if(p.has('bacPct')){ const el=document.getElementById('bacPct'); el.value=p.get('bacPct'); pctify(el); }
+  if(p.has('realtor')) document.getElementById('realtor').value=p.get('realtor');
+  if(p.has('deal'))    document.getElementById('deal').value=p.get('deal');
+  if(p.has('tier'))    setChip('tier', p.get('tier'));
   run();
+  if(p.get('view')==='1') enterClientView();
+}
+
+// strip the page down to a static, realtor-facing view
+function enterClientView(){
+  const inputs=document.getElementById('inputs'); if(inputs) inputs.style.display='none';
+  const hub=document.getElementById('hws-hub-btn'); if(hub) hub.style.display='none';
+  const reset=document.getElementById('resetBtn'); if(reset) reset.style.display='none';
 }
 
 const fmt=n=>'$'+Math.round(n).toLocaleString();
@@ -295,12 +353,28 @@ function run(){
   const escrowOn=pick('escrow')==='yes';
   const bacPct=pick('bac')==='buyer' ? numVal('bacPct')/100 : 0;
   const profile=pick('profile');
+  const tier=pick('tier');
+  const realtor=document.getElementById('realtor').value.trim();
+  const deal=document.getElementById('deal').value.trim();
+  const isView=new URLSearchParams(location.search).get('view')==='1';
 
-  // reflect current inputs in the URL (shareable) without reloading
-  history.replaceState(null,'',buildShareURL());
+  // reflect current inputs in the URL (shareable) without reloading — never in client view
+  if(!isView) history.replaceState(null,'',buildShareURL());
 
   const out=document.getElementById('out');
   let html='';
+
+  // "Prepared for" stamp
+  if(realtor||deal){
+    html+=`<div class="rec" style="background:#fff;border-color:var(--line)"><b>Prepared for ${esc(realtor)||'—'}</b>${deal?` · ${esc(deal)}`:''}<br><span style="font-size:11px;color:var(--gray)">Doug Smith · HomeWealth Solutions</span></div>`;
+  }
+
+  // engagement-tier framing
+  if(tier==='preapproval'){
+    html+=`<div class="rec" style="background:#EAF4FD;border-color:var(--blue)"><b>Based on your pre-approval.</b> Monthly figures are estimated PITI for this scenario, subject to final terms.</div>`;
+  }else{
+    html+=`<div class="rec" style="background:#EAF4FD;border-color:var(--blue)"><b>Illustrative options.</b> General estimates to frame the offer — not based on a completed approval.</div>`;
+  }
 
   // Build candidate scenarios
   const s5=scenario(price,5,rate,taxYr,hoiYr,'conv',escrowOn,bacPct);
@@ -414,13 +488,15 @@ function run(){
     </div>`;
   });
 
-  // realtor copy block
-  const copyText=
+  // realtor copy block — only in the working tool, never in the client view
+  if(!isView){
+    const copyText=
 `Quick scenarios for ${fmt(price)} — from Doug Smith, HomeWealth Solutions (813-733-7371):
 ${strats.map(st=>`• ${st.title}: ~${fmt(st.s.total)}/mo, ${fmt(st.s.cashToClose)} to close`).join('\n')}
 These are illustrative — happy to tighten once we know your buyer's down payment. Which direction fits?`;
-  html+=`<button class="copy" onclick="copyToClipboard(${JSON.stringify(copyText)});this.textContent='✓ Copied — paste to your agent'">Copy summary to text the agent</button>`;
-  html+=`<button class="copy" style="color:var(--green);border-color:var(--green)" onclick="copyToClipboard(buildShareURL());this.textContent='✓ Link copied — paste to your agent'">Copy link to share</button>`;
+    html+=`<button class="copy" onclick="copyToClipboard(${JSON.stringify(copyText)});this.textContent='✓ Copied — paste to your agent'">Copy summary to text the agent</button>`;
+    html+=`<button class="copy" style="color:var(--green);border-color:var(--green)" onclick="copyToClipboard(buildClientURL());logDeal();this.textContent='✓ Link copied — paste to your agent'">Copy link to share</button>`;
+  }
 
   html+=`<div class="footer">This communication is for informational and educational purposes only and does not constitute an offer to lend or a commitment to make a loan. All loans are subject to credit approval, underwriting guidelines, and property approval. Interest rates, payment examples, programs, and terms are illustrative, vary by borrower qualification, and are subject to change without notice. Not all applicants will qualify. Examples shown do not reflect all costs of a mortgage transaction. Consult a licensed tax or legal advisor regarding your individual situation. HomeWealth Solutions LLC is licensed by the Florida Office of Financial Regulation, Mortgage Broker License #MBR8082. Verify our licensure at www.nmlsconsumeraccess.org. Equal Housing Opportunity.</div>`;
 
