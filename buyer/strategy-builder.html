@@ -148,6 +148,59 @@ const numVal=id=>+document.getElementById(id).value.replace(/[^0-9.]/g,'')||0;
 function stripPct(el){el.value=el.value.replace(/[^0-9.]/g,'');}
 function pctify(el){const v=el.value.replace(/[^0-9.]/g,'');el.value=v?v+'%':'';}
 
+// ---- clipboard (textarea fallback — works on HTTP + Safari) ----
+function copyToClipboard(text){
+  const ta=document.createElement('textarea');
+  ta.value=text;
+  ta.style.position='fixed'; ta.style.top='-1000px'; ta.style.opacity='0';
+  document.body.appendChild(ta);
+  ta.focus(); ta.select();
+  try{ document.execCommand('copy'); }catch(e){}
+  document.body.removeChild(ta);
+}
+
+// ---- shareable link: encode all inputs into the URL ----
+function buildShareURL(){
+  const p=new URLSearchParams();
+  p.set('price', numVal('price'));
+  if(numVal('cash')) p.set('cash', numVal('cash'));
+  if(document.getElementById('rate').value) p.set('rate', document.getElementById('rate').value);
+  p.set('hold', pick('hold'));
+  p.set('goal', pick('goal'));
+  p.set('profile', pick('profile'));
+  if(numVal('tax')) p.set('tax', numVal('tax'));
+  if(numVal('hoi')) p.set('hoi', numVal('hoi'));
+  p.set('escrow', pick('escrow'));
+  p.set('bac', pick('bac'));
+  if(pick('bac')==='buyer') p.set('bacPct', numVal('bacPct'));
+  return location.origin + location.pathname + '?' + p.toString();
+}
+
+// programmatically select a chip in a group (used when loading from a URL)
+function setChip(group, v){
+  document.querySelectorAll(`[data-group="${group}"] .chip`)
+    .forEach(c=>c.classList.toggle('on', c.dataset.v===v));
+  if(group==='bac'){
+    document.getElementById('bacPctWrap').style.display = v==='buyer'?'block':'none';
+  }
+}
+
+// on load: if the URL carries params, populate inputs and auto-run
+function applyParamsAndRun(){
+  const p=new URLSearchParams(location.search);
+  if(![...p.keys()].length) return;
+  const setCur=(id,key)=>{ if(p.has(key)){ const el=document.getElementById(id); el.value=p.get(key); commafy(el); } };
+  setCur('price','price'); setCur('cash','cash'); setCur('tax','tax'); setCur('hoi','hoi');
+  if(p.has('rate')) document.getElementById('rate').value=p.get('rate');
+  if(p.has('hold'))    setChip('hold',    p.get('hold'));
+  if(p.has('goal'))    setChip('goal',    p.get('goal'));
+  if(p.has('profile')) setChip('profile', p.get('profile'));
+  if(p.has('escrow'))  setChip('escrow',  p.get('escrow'));
+  if(p.has('bac'))     setChip('bac',     p.get('bac'));
+  if(p.has('bacPct')){ const el=document.getElementById('bacPct'); el.value=p.get('bacPct'); pctify(el); }
+  run();
+}
+
 const fmt=n=>'$'+Math.round(n).toLocaleString();
 const fmt0=n=>'$'+Math.round(n).toLocaleString();
 
@@ -241,6 +294,9 @@ function run(){
   const escrowOn=pick('escrow')==='yes';
   const bacPct=pick('bac')==='buyer' ? numVal('bacPct')/100 : 0;
   const profile=pick('profile');
+
+  // reflect current inputs in the URL (shareable) without reloading
+  history.replaceState(null,'',buildShareURL());
 
   const out=document.getElementById('out');
   let html='';
@@ -362,7 +418,8 @@ function run(){
 `Quick scenarios for ${fmt(price)} — from Doug Smith, HomeWealth Solutions (813-733-7371):
 ${strats.map(st=>`• ${st.title}: ~${fmt(st.s.total)}/mo, ${fmt(st.s.cashToClose)} to close`).join('\n')}
 These are illustrative — happy to tighten once we know your buyer's down payment. Which direction fits?`;
-  html+=`<button class="copy" onclick="navigator.clipboard.writeText(${JSON.stringify(copyText)});this.textContent='✓ Copied — paste to your agent'">Copy summary to text the agent</button>`;
+  html+=`<button class="copy" onclick="copyToClipboard(${JSON.stringify(copyText)});this.textContent='✓ Copied — paste to your agent'">Copy summary to text the agent</button>`;
+  html+=`<button class="copy" style="color:var(--green);border-color:var(--green)" onclick="copyToClipboard(buildShareURL());this.textContent='✓ Link copied — paste to your agent'">Copy link to share</button>`;
 
   html+=`<div class="footer">This communication is for informational and educational purposes only and does not constitute an offer to lend or a commitment to make a loan. All loans are subject to credit approval, underwriting guidelines, and property approval. Interest rates, payment examples, programs, and terms are illustrative, vary by borrower qualification, and are subject to change without notice. Not all applicants will qualify. Examples shown do not reflect all costs of a mortgage transaction. Consult a licensed tax or legal advisor regarding your individual situation. HomeWealth Solutions LLC is licensed by the Florida Office of Financial Regulation, Mortgage Broker License #MBR8082. Verify our licensure at www.nmlsconsumeraccess.org. Equal Housing Opportunity.</div>`;
 
@@ -371,6 +428,9 @@ These are illustrative — happy to tighten once we know your buyer's down payme
   document.getElementById('resetBtn').style.display='block';
   out.scrollIntoView({behavior:'smooth'});
 }
+
+// if opened via a shared link, populate inputs and show results immediately
+applyParamsAndRun();
 </script>
 </body>
 </html>
