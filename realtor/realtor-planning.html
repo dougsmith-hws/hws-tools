@@ -200,7 +200,7 @@
     <p>HomeWealth Solutions LLC &nbsp;·&nbsp; Doug Smith, CMA® &nbsp;·&nbsp; NMLS #2609118</p>
   </div>
   <div class="header-right">
-    <a href="/" class="back-link-rp">← Hub</a>
+    <a href="/" id="hws-hub-btn" style="position:fixed;top:14px;right:16px;z-index:9999;background:#1c2b3a;color:rgba(255,255,255,0.9);text-decoration:none;font-size:12px;font-weight:700;padding:6px 14px;border-radius:8px;font-family:-apple-system,BlinkMacSystemFont,sans-serif;letter-spacing:0.2px;box-shadow:0 2px 8px rgba(0,0,0,0.25);">← Hub</a>
     <button class="reset-btn" onclick="resetForm()">↺ New / Reset</button>
     <span class="header-badge">Discovery Meeting Tool</span>
   </div>
@@ -896,26 +896,5 @@ function val(id) { return parseFloat((document.getElementById(id).value||'').rep
 </script>
 
 
-<!-- HWS Hub back button -->
-<div id="hws-back-btn" style="position:fixed;bottom:20px;right:20px;z-index:99999;">
-  <button onclick="window.close()" style="
-    background:#1a2332;
-    color:white;
-    border:none;
-    border-radius:8px;
-    padding:9px 16px;
-    font-size:13px;
-    font-weight:600;
-    cursor:pointer;
-    display:flex;
-    align-items:center;
-    gap:7px;
-    box-shadow:0 2px 12px rgba(0,0,0,0.25);
-    opacity:0.85;
-    transition:opacity .15s;
-  " onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.85'">
-    ← Hub
-  </button>
-</div>
 </body>
 </html>
