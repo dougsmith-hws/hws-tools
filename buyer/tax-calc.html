@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>After-Tax Rate & Gross-Up Calculator — HomeWealth Solutions</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --blue:#2491EB; --blue-light:#e8f4fd; --blue-mid:#c5e1fa;
+      --green:#8EC73F; --green-light:#f0f8e6; --green-dark:#6aaa1f;
+      --amber:#f59e0b; --amber-light:#fffbeb;
+      --gray-100:#f7f8fa; --gray-200:#edf0f4; --gray-300:#d1d8e0;
+      --gray-500:#8892a0; --gray-700:#4a5568; --gray-900:#1a2332;
+      --radius:10px; --shadow:0 2px 12px rgba(0,0,0,0.08);
+    }
+    body { font-family:'Segoe UI',Arial,sans-serif; background:var(--gray-100); color:var(--gray-900); min-height:100vh; }
+
+    /* Header */
+    .header { background:white; border-bottom:3px solid var(--blue); padding:16px 32px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:100; box-shadow:0 2px 8px rgba(0,0,0,0.06); }
+    .header-left h1 { font-size:1.2rem; font-weight:700; color:var(--blue); }
+    .header-left p { font-size:0.78rem; color:var(--gray-500); margin-top:1px; }
+    .header-right { display:flex; align-items:center; gap:10px; }
+    .header-badge { background:var(--green); color:white; font-size:0.72rem; font-weight:600; padding:4px 12px; border-radius:20px; letter-spacing:0.04em; }
+    .back-link { color:var(--gray-500); text-decoration:none; font-size:0.8rem; font-weight:600; padding:6px 12px; border:1.5px solid var(--gray-300); border-radius:6px; transition:all 0.15s; }
+    .back-link:hover { border-color:var(--blue); color:var(--blue); }
+
+    /* Tabs */
+    .tabs-wrapper { background:white; border-bottom:1px solid var(--gray-200); padding:0 32px; }
+    .tabs { display:flex; }
+    .tab { padding:13px 22px; font-size:0.88rem; font-weight:600; color:var(--gray-500); cursor:pointer; border-bottom:3px solid transparent; transition:all 0.2s; white-space:nowrap; user-select:none; }
+    .tab:hover { color:var(--blue); }
+    .tab.active { color:var(--blue); border-bottom-color:var(--blue); }
+
+    /* Main */
+    .main { max-width:760px; margin:28px auto; padding:0 24px 60px; }
+    .panel { display:none; }
+    .panel.active { display:block; }
+
+    /* Cards */
+    .card { background:white; border-radius:var(--radius); box-shadow:var(--shadow); margin-bottom:20px; overflow:hidden; }
+    .card-header { background:var(--blue); color:white; padding:12px 20px; font-size:0.88rem; font-weight:700; letter-spacing:0.04em; text-transform:uppercase; }
+    .card-body { padding:20px; }
+
+    /* Field rows */
+    .field-row { display:flex; align-items:center; padding:9px 0; border-bottom:1px solid var(--gray-200); gap:12px; }
+    .field-row:last-child { border-bottom:none; }
+    .field-label { flex:1; font-size:0.875rem; color:var(--gray-700); line-height:1.3; }
+    .field-label small { display:block; font-size:0.76rem; color:var(--gray-500); margin-top:2px; }
+    .field-input-wrap { display:flex; align-items:center; gap:6px; flex-shrink:0; }
+    .unit { font-size:0.8rem; color:var(--gray-500); min-width:30px; }
+
+    /* Inputs */
+    input[type="number"], input[type="text"] {
+      width:110px; padding:7px 10px; border:1.5px solid var(--blue-mid); border-radius:6px;
+      font-size:0.9rem; font-weight:600; color:var(--blue); text-align:right;
+      background:var(--blue-light); outline:none; transition:border-color 0.15s;
+      -moz-appearance:textfield;
+    }
+    input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance:none; }
+    input:focus { border-color:var(--blue); background:white; }
+
+    /* Select */
+    select {
+      padding:7px 10px; border:1.5px solid var(--blue-mid); border-radius:6px;
+      font-size:0.88rem; font-weight:600; color:var(--blue); background:var(--blue-light);
+      outline:none; cursor:pointer;
+    }
+    select:focus { border-color:var(--blue); background:white; }
+
+    /* Calc values */
+    .calc-value { width:110px; padding:7px 10px; border-radius:6px; font-size:0.95rem; font-weight:700; text-align:right; background:var(--green-light); color:var(--green-dark); border:1.5px solid #c3e69a; }
+    .calc-value.highlight { background:var(--green); color:white; border-color:var(--green-dark); font-size:1.05rem; }
+    .calc-value.blue { background:var(--blue-light); color:var(--blue); border-color:var(--blue-mid); }
+    .calc-value.amber { background:var(--amber-light); color:var(--amber); border-color:#fde68a; }
+
+    /* Result banner */
+    .result-banner { border-radius:var(--radius); padding:20px 24px; display:flex; align-items:center; justify-content:space-between; margin-top:8px; }
+    .result-banner.green { background:linear-gradient(135deg,var(--green) 0%,var(--green-dark) 100%); color:white; }
+    .result-banner.blue { background:linear-gradient(135deg,var(--blue) 0%,#1a78cc 100%); color:white; }
+    .result-banner.amber { background:linear-gradient(135deg,#f59e0b 0%,#d97706 100%); color:white; }
+    .rb-label { font-size:0.88rem; font-weight:600; opacity:0.9; }
+    .rb-sub { font-size:0.76rem; opacity:0.75; margin-top:3px; }
+    .rb-value { font-size:2.2rem; font-weight:800; line-height:1; }
+    .rb-unit { font-size:0.82rem; opacity:0.8; margin-top:4px; text-align:right; }
+
+    /* Two-col grid */
+    .two-col { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+    @media(max-width:580px) { .two-col { grid-template-columns:1fr; } }
+
+    /* Info box */
+    .info-box { background:var(--blue-light); border-left:4px solid var(--blue); border-radius:6px; padding:14px 16px; font-size:0.83rem; color:var(--gray-700); line-height:1.6; margin-bottom:20px; }
+    .info-box strong { color:var(--blue); }
+
+    /* Formula chip */
+    .formula { display:inline-block; background:var(--gray-200); border-radius:6px; padding:8px 14px; font-family:monospace; font-size:0.82rem; color:var(--gray-700); margin:8px 0 16px; }
+
+    /* Toggle group */
+    .toggle-group { display:flex; border:1.5px solid var(--blue-mid); border-radius:6px; overflow:hidden; }
+    .toggle-btn { padding:6px 14px; font-size:0.82rem; font-weight:600; border:none; background:var(--blue-light); color:var(--blue); cursor:pointer; transition:all 0.15s; }
+    .toggle-btn + .toggle-btn { border-left:1px solid var(--blue-mid); }
+    .toggle-btn.active { background:var(--blue); color:white; }
+    .toggle-btn:hover:not(.active) { background:var(--blue-mid); }
+
+    /* Section divider */
+    .section-divider { font-size:0.78rem; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:var(--gray-500); padding:10px 0 4px; }
+
+    /* Warning row */
+    .warn-row { background:#fff8e1; border-radius:6px; padding:8px 12px; font-size:0.8rem; color:#b45309; margin-top:8px; border:1px solid #fde68a; }
+
+    /* Page footer */
+    .page-footer { text-align:center; font-size:0.72rem; color:var(--gray-500); padding-top:20px; line-height:1.6; }
+  </style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-left">
+    <h1>After-Tax Rate &amp; Gross-Up Calculator</h1>
+    <p>HomeWealth Solutions LLC &nbsp;·&nbsp; Doug Smith, CMA® &nbsp;·&nbsp; NMLS #2609118</p>
+  </div>
+  <div class="header-right">
+    <a href="javascript:window.close()" class="back-link">← Hub</a>
+    <span class="header-badge">CMPS Advisory Tool</span>
+  </div>
+</div>
+
+<!-- TABS -->
+<div class="tabs-wrapper">
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab(0)">After-Tax Rate</div>
+    <div class="tab" onclick="switchTab(1)">Gross-Up Calculator</div>
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- ══════════════════════════════
+       PANEL 1: After-Tax Rate
+  ══════════════════════════════ -->
+  <div class="panel active" id="panel-0">
+
+    <div class="info-box">
+      <strong>The concept:</strong> A tax deduction doesn't eliminate the cost — it reduces it by your marginal rate.
+      A 7% mortgage in the 24% bracket effectively costs <strong>5.32%</strong> after-tax. This is how you compare
+      mortgage debt to other investments on an apples-to-apples basis.
+      <div class="formula">After-Tax Rate = Mortgage Rate × (1 − Tax Bracket)</div>
+      <em>Only applicable when the client is itemizing and their mortgage interest qualifies for the deduction. Always refer to a CPA.</em>
+    </div>
+
+    <div class="two-col">
+      <div class="card">
+        <div class="card-header">Your Inputs</div>
+        <div class="card-body">
+          <div class="field-row">
+            <div class="field-label">Mortgage Interest Rate</div>
+            <div class="field-input-wrap">
+              <input type="number" id="atr_rate" value="7.00" step="0.125" min="0" max="20" oninput="calcATR()">
+              <span class="unit">%</span>
+            </div>
+          </div>
+          <div class="field-row">
+            <div class="field-label">Marginal Tax Bracket
+              <small>Federal income tax bracket (2025)</small>
+            </div>
+            <div class="field-input-wrap">
+              <select id="atr_bracket" onchange="calcATR()">
+                <option value="10">10%</option>
+                <option value="12">12%</option>
+                <option value="22" selected>22%</option>
+                <option value="24">24%</option>
+                <option value="32">32%</option>
+                <option value="35">35%</option>
+                <option value="37">37%</option>
+              </select>
+            </div>
+          </div>
+          <div class="field-row">
+            <div class="field-label">Loan Balance <small>For monthly savings display</small></div>
+            <div class="field-input-wrap">
+              <span class="unit">$</span>
+              <input type="text" inputmode="decimal" id="atr_balance" value="$400,000" oninput="calcATR()" onblur="fmtInput(this)" onfocus="clearFmt(this)">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex; flex-direction:column; gap:16px;">
+        <div class="card">
+          <div class="card-header">Results</div>
+          <div class="card-body">
+            <div class="field-row">
+              <div class="field-label">Tax Rate Multiplier</div>
+              <div class="field-input-wrap">
+                <div class="calc-value blue" id="atr_multiplier">0.78</div>
+              </div>
+            </div>
+            <div class="field-row">
+              <div class="field-label">After-Tax Rate</div>
+              <div class="field-input-wrap">
+                <div class="calc-value highlight" id="atr_result">5.46</div>
+                <span class="unit">%</span>
+              </div>
+            </div>
+            <div class="field-row">
+              <div class="field-label">Annual Interest (gross)</div>
+              <div class="field-input-wrap">
+                <span class="unit">$</span>
+                <div class="calc-value blue" id="atr_annual_gross">28,000</div>
+              </div>
+            </div>
+            <div class="field-row">
+              <div class="field-label">Annual Tax Savings</div>
+              <div class="field-input-wrap">
+                <span class="unit">$</span>
+                <div class="calc-value" id="atr_tax_savings">6,160</div>
+              </div>
+            </div>
+            <div class="field-row">
+              <div class="field-label">True Monthly Cost (after-tax)</div>
+              <div class="field-input-wrap">
+                <span class="unit">$</span>
+                <div class="calc-value" id="atr_monthly_aftertax">1,820</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="result-banner green">
+      <div>
+        <div class="rb-label">After-Tax Cost of This Mortgage</div>
+        <div class="rb-sub" id="atr_banner_sub">7.00% rate × 0.78 = 5.46% after-tax (22% bracket)</div>
+      </div>
+      <div>
+        <div class="rb-value" id="atr_banner_val">5.46%</div>
+        <div class="rb-unit">effective annual cost</div>
+      </div>
+    </div>
+
+    <div class="warn-row" id="atr_standard_warn">
+      ⚠ <strong>Standard deduction check:</strong> With a $400,000 balance at 7%, annual mortgage interest is ~$28,000. If property taxes + mortgage interest < $30,000 (MFJ), the client may be taking the standard deduction — meaning <em>no itemized benefit</em>. Confirm with their CPA before presenting the after-tax rate.
+    </div>
+
+  </div><!-- /panel-0 -->
+
+
+  <!-- ══════════════════════════════
+       PANEL 2: Gross-Up Calculator
+  ══════════════════════════════ -->
+  <div class="panel" id="panel-1">
+
+    <div class="info-box">
+      <strong>The concept:</strong> When a client needs cash from a retirement account, they can't just pull the net
+      amount — the withdrawal is taxed as income. To net $100,000 in the 22% bracket, they must withdraw
+      <strong>$128,205</strong>. If they're under 59½, add the 10% penalty on top.
+      <div class="formula">Gross Withdrawal = Net Needed ÷ (1 − Tax Bracket)</div>
+    </div>
+
+    <div class="two-col">
+      <div class="card">
+        <div class="card-header">Your Inputs</div>
+        <div class="card-body">
+          <div class="field-row">
+            <div class="field-label">Net Amount Needed <small>What the client actually wants to receive</small></div>
+            <div class="field-input-wrap">
+              <span class="unit">$</span>
+              <input type="text" inputmode="decimal" id="gu_net" value="$100,000" oninput="calcGU()" onblur="fmtInput(this)" onfocus="clearFmt(this)">
+            </div>
+          </div>
+          <div class="field-row">
+            <div class="field-label">Marginal Tax Bracket</div>
+            <div class="field-input-wrap">
+              <select id="gu_bracket" onchange="calcGU()">
+                <option value="10">10%</option>
+                <option value="12">12%</option>
+                <option value="22" selected>22%</option>
+                <option value="24">24%</option>
+                <option value="32">32%</option>
+                <option value="35">35%</option>
+                <option value="37">37%</option>
+              </select>
+            </div>
+          </div>
+          <div class="field-row">
+            <div class="field-label">Client Age</div>
+            <div class="field-input-wrap">
+              <div class="toggle-group" id="gu_age_toggle">
+                <button class="toggle-btn" onclick="setAge('under',this)">Under 59½</button>
+                <button class="toggle-btn active" onclick="setAge('over',this)">59½ or older</button>
+              </div>
+            </div>
+          </div>
+          <div class="field-row">
+            <div class="field-label">Account Type</div>
+            <div class="field-input-wrap">
+              <select id="gu_acct_type" onchange="calcGU()">
+                <option value="traditional">Traditional IRA / 401(k)</option>
+                <option value="roth">Roth (distributions tax-free)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex; flex-direction:column; gap:16px;">
+        <div class="card">
+          <div class="card-header">Withdrawal Math</div>
+          <div class="card-body">
+            <div class="field-row">
+              <div class="field-label">Income Tax Rate Applied</div>
+              <div class="field-input-wrap">
+                <div class="calc-value blue" id="gu_tax_rate">22%</div>
+              </div>
+            </div>
+            <div class="field-row">
+              <div class="field-label">Early Withdrawal Penalty</div>
+              <div class="field-input-wrap">
+                <div class="calc-value amber" id="gu_penalty_rate">None</div>
+              </div>
+            </div>
+            <div class="field-row">
+              <div class="field-label">Combined Rate (tax + penalty)</div>
+              <div class="field-input-wrap">
+                <div class="calc-value blue" id="gu_combined_rate">22%</div>
+              </div>
+            </div>
+            <div class="field-row">
+              <div class="field-label">Effective Multiplier</div>
+              <div class="field-input-wrap">
+                <div class="calc-value blue" id="gu_multiplier">0.78</div>
+              </div>
+            </div>
+            <div class="field-row">
+              <div class="field-label">Taxes &amp; Penalties Paid</div>
+              <div class="field-input-wrap">
+                <span class="unit">$</span>
+                <div class="calc-value amber" id="gu_taxes_paid">28,205</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="result-banner blue" id="gu_result_banner">
+      <div>
+        <div class="rb-label">Gross Withdrawal Required</div>
+        <div class="rb-sub" id="gu_banner_sub">To net $100,000 in the 22% bracket (no penalty)</div>
+      </div>
+      <div>
+        <div class="rb-value" id="gu_banner_val">$128,205</div>
+        <div class="rb-unit">must withdraw from account</div>
+      </div>
+    </div>
+
+    <div id="gu_roth_note" style="display:none;" class="info-box" style="margin-top:12px;">
+      <strong>Roth account:</strong> Qualified distributions from a Roth IRA/401(k) are tax-free — no gross-up needed.
+      The client receives 100% of what they withdraw (assuming the account has been open ≥5 years and they are 59½+).
+      Earnings withdrawn early may still be subject to taxes and penalty.
+    </div>
+
+    <div class="card" style="margin-top:20px;">
+      <div class="card-header">IRA First-Time Homebuyer Exception</div>
+      <div class="card-body">
+        <div class="field-row">
+          <div class="field-label">Up to $10,000 from a Traditional IRA may be withdrawn penalty-free for a first-time home purchase.
+            <small>No penalty (10%) applies, but income tax still applies. Applies to buyer, spouse, children, grandchildren, or parents. Client must not have owned a principal residence in the prior 2 years.</small>
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field-label">401(k) note: No first-time buyer exception, but client may take a loan up to $50,000 and repay with interest — to themselves.</div>
+        </div>
+        <div class="section-divider">Quick Calc — $10k IRA Exception</div>
+        <div class="field-row">
+          <div class="field-label">Gross withdrawal to net $10,000 (tax only, no penalty)</div>
+          <div class="field-input-wrap">
+            <span class="unit">$</span>
+            <div class="calc-value" id="gu_exception_amt">12,821</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /panel-1 -->
+
+  <div class="page-footer">
+    HomeWealth Solutions LLC &nbsp;|&nbsp; NMLS #2609118 &nbsp;|&nbsp; FL OFR License #MBR8082 &nbsp;|&nbsp; homewealthsolutions.com<br>
+    This tool is for educational and planning purposes only. Consult a licensed CPA or tax advisor for individual guidance.
+  </div>
+
+</div><!-- /main -->
+
+<script>
+  let guAge = 'over';
+
+  function switchTab(i) {
+    document.querySelectorAll('.tab').forEach((t,j) => t.classList.toggle('active', i===j));
+    document.querySelectorAll('.panel').forEach((p,j) => p.classList.toggle('active', i===j));
+  }
+
+  function setAge(age, btn) {
+    guAge = age;
+    document.querySelectorAll('#gu_age_toggle .toggle-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    calcGU();
+  }
+
+  function fmt(n, dec=2) { return n.toLocaleString('en-US',{minimumFractionDigits:dec, maximumFractionDigits:dec}); }
+  function fmtD(n) { return '$' + n.toLocaleString('en-US',{minimumFractionDigits:0, maximumFractionDigits:0}); }
+  function set(id, v) { document.getElementById(id).textContent = v; }
+  function val(id) { return parseFloat((document.getElementById(id).value||'').replace(/[$,]/g,'')) || 0; }
+  function fmtInput(el) {
+    const raw = parseFloat((el.value||'').replace(/[$,]/g,''));
+    if (!isNaN(raw) && el.value.trim() !== '') el.value = '$' + raw.toLocaleString('en-US',{maximumFractionDigits:0});
+  }
+  function clearFmt(el) {
+    const raw = parseFloat((el.value||'').replace(/[$,]/g,''));
+    if (!isNaN(raw) && raw >= 0) el.value = raw;
+  }
+
+  function calcATR() {
+    const rate    = val('atr_rate');
+    const bracket = val('atr_bracket') / 100;
+    const balance = val('atr_balance');
+
+    const multiplier  = 1 - bracket;
+    const afterTax    = rate * multiplier;
+    const annualGross = balance * (rate / 100);
+    const taxSavings  = annualGross * bracket;
+    const monthlyAT   = (annualGross - taxSavings) / 12;
+
+    set('atr_multiplier', fmt(multiplier, 2));
+    set('atr_result', fmt(afterTax, 2));
+    set('atr_annual_gross', fmt(annualGross, 0));
+    set('atr_tax_savings', fmt(taxSavings, 0));
+    set('atr_monthly_aftertax', fmt(monthlyAT, 0));
+    set('atr_banner_val', fmt(afterTax, 2) + '%');
+    set('atr_banner_sub', `${fmt(rate,3)}% rate × ${fmt(multiplier,2)} = ${fmt(afterTax,2)}% after-tax (${val('atr_bracket')}% bracket)`);
+
+    // Standard deduction warning
+    const stdWarn = document.getElementById('atr_standard_warn');
+    const mfj = 30000;
+    const warnText = `⚠ Standard deduction check: With a $${fmt(balance,0)} balance at ${fmt(rate,2)}%, annual mortgage interest is ~$${fmt(annualGross,0)}. If property taxes + mortgage interest < $30,000 (MFJ), the client may be taking the standard deduction — meaning no itemized benefit. Confirm with their CPA before presenting the after-tax rate.`;
+    stdWarn.innerHTML = warnText;
+    stdWarn.style.display = annualGross < mfj ? 'block' : 'none';
+  }
+
+  function calcGU() {
+    const net      = val('gu_net');
+    const bracket  = val('gu_bracket') / 100;
+    const acctType = document.getElementById('gu_acct_type').value;
+    const isRoth   = acctType === 'roth';
+    const penalty  = (guAge === 'under' && !isRoth) ? 0.10 : 0;
+    const combined = isRoth ? 0 : bracket + penalty;
+    const multiplier = 1 - combined;
+    const gross = isRoth ? net : net / multiplier;
+    const taxes = gross - net;
+
+    set('gu_tax_rate', isRoth ? 'N/A (Roth)' : (bracket*100).toFixed(0) + '%');
+    set('gu_penalty_rate', penalty > 0 ? '10% (early)' : 'None');
+    set('gu_combined_rate', isRoth ? '0%' : (combined*100).toFixed(0) + '%');
+    set('gu_multiplier', isRoth ? '1.00' : fmt(multiplier, 2));
+    set('gu_taxes_paid', fmt(taxes, 0));
+    set('gu_banner_val', fmtD(gross));
+
+    let sub = '';
+    if (isRoth) {
+      sub = `Roth distributions are tax-free — no gross-up needed`;
+    } else {
+      sub = `To net ${fmtD(net)} in the ${(bracket*100).toFixed(0)}% bracket` + (penalty > 0 ? ' + 10% early penalty' : '');
+    }
+    set('gu_banner_sub', sub);
+
+    const bannerEl = document.getElementById('gu_result_banner');
+    bannerEl.className = 'result-banner ' + (isRoth ? 'green' : penalty > 0 ? 'amber' : 'blue');
+
+    document.getElementById('gu_roth_note').style.display = isRoth ? 'block' : 'none';
+
+    // $10k exception calc
+    const exceptionGross = bracket > 0 ? 10000 / (1 - bracket) : 10000;
+    set('gu_exception_amt', fmt(exceptionGross, 0));
+  }
+
+  calcATR();
+  calcGU();
+</script>
+
+<!-- HWS Hub back button -->
+<div id="hws-back-btn" style="position:fixed;bottom:20px;right:20px;z-index:99999;">
+  <button onclick="window.close()" style="
+    background:#1a2332;
+    color:white;
+    border:none;
+    border-radius:8px;
+    padding:9px 16px;
+    font-size:13px;
+    font-weight:600;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    gap:7px;
+    box-shadow:0 2px 12px rgba(0,0,0,0.25);
+    opacity:0.85;
+    transition:opacity .15s;
+  " onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.85'">
+    ← Hub
+  </button>
+</div>
+</body>
+</html>

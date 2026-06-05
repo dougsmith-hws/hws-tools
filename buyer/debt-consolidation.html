@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Debt Consolidation Strategy — HomeWealth Solutions</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root {
+  --blue: #2491EB;
+  --green: #8EC73F;
+  --dark: #1c2b3a;
+  --mid: #3a4f62;
+  --light: #f0f4f8;
+  --border: #dde3ea;
+  --white: #ffffff;
+  --red: #dc3545;
+  --amber: #e8900a;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--light); color: var(--dark); font-size: 14px; }
+
+/* HEADER */
+.hdr { background: var(--dark); color: #fff; padding: 14px 24px; display: flex; align-items: center; justify-content: space-between; }
+.hdr-left { display: flex; align-items: center; gap: 14px; }
+.logo-bar { width: 4px; height: 36px; background: linear-gradient(to bottom, var(--blue), var(--green)); border-radius: 2px; }
+.hdr-brand { font-size: 13px; font-weight: 700; color: #fff; letter-spacing: 0.5px; }
+.hdr-sub { font-size: 11px; color: #8fa3bc; margin-top: 2px; }
+.hdr-nmls { font-size: 10px; color: #6a85a0; margin-top: 1px; }
+.btn-print { background: rgba(255,255,255,0.12); color: #fff; border: 1px solid rgba(255,255,255,0.25); padding: 7px 16px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600; }
+.btn-print:hover { background: rgba(255,255,255,0.22); }
+
+/* PRINT HEADER */
+.print-header { display: none; padding: 0 0 12px; border-bottom: 2px solid var(--blue); margin-bottom: 16px; }
+.print-header .ph-name { font-size: 18px; font-weight: 800; color: var(--blue); }
+.print-header .ph-meta { font-size: 12px; color: #666; margin-top: 4px; display: flex; gap: 20px; }
+
+/* MODE TOGGLE */
+.mode-bar { background: var(--white); border-bottom: 2px solid var(--border); padding: 10px 24px; display: flex; align-items: center; gap: 12px; }
+.mode-bar span { font-size: 12px; font-weight: 700; color: var(--mid); text-transform: uppercase; letter-spacing: 0.05em; }
+.mode-btn { padding: 7px 18px; border-radius: 6px; border: 2px solid var(--border); background: #f7f9fb; color: var(--mid); font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.15s; }
+.mode-btn.active { background: var(--blue); color: #fff; border-color: var(--blue); }
+
+/* LAYOUT */
+.main { max-width: 1200px; margin: 0 auto; padding: 20px 20px 40px; }
+.two-col { display: grid; grid-template-columns: 340px 1fr; gap: 20px; align-items: start; }
+
+/* PANELS */
+.panel { background: var(--white); border-radius: 10px; border: 1px solid var(--border); padding: 20px 22px; margin-bottom: 16px; }
+.panel-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: var(--blue); margin-bottom: 14px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+.field { margin-bottom: 12px; }
+.field label { display: block; font-size: 11px; font-weight: 700; color: var(--mid); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 4px; }
+.field input, .field select { width: 100%; padding: 8px 10px; border: 1.5px solid var(--border); border-radius: 6px; font-size: 13px; color: var(--dark); background: #fafbfc; }
+.field input:focus, .field select:focus { outline: none; border-color: var(--blue); }
+.field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.section-hide { display: none; }
+
+/* SUMMARY CARDS */
+.cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px; }
+.card { background: var(--white); border-radius: 10px; border: 2px solid var(--border); padding: 16px 14px; text-align: center; }
+.card.blue  { border-color: var(--blue); }
+.card.green { border-color: var(--green); }
+.card.amber { border-color: var(--amber); }
+.card.red   { border-color: var(--red); }
+.card-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #888; margin-bottom: 4px; }
+.card-val { font-size: 24px; font-weight: 800; color: var(--dark); line-height: 1; }
+.card-val.blue  { color: var(--blue); }
+.card-val.green { color: var(--green); }
+.card-val.amber { color: var(--amber); }
+.card-val.red   { color: var(--red); }
+.card-sub { font-size: 11px; color: #888; margin-top: 4px; }
+
+/* WARNING BOX */
+.warn-box { background: #fff8ed; border: 1px solid var(--amber); border-left: 4px solid var(--amber); border-radius: 0 8px 8px 0; padding: 14px 16px; margin-bottom: 16px; font-size: 13px; line-height: 1.7; }
+.warn-box .warn-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--amber); margin-bottom: 6px; }
+
+/* DEBT TABLE */
+.debt-table-wrap { background: var(--white); border-radius: 10px; border: 1px solid var(--border); overflow: hidden; margin-bottom: 16px; }
+.debt-table-header { background: var(--dark); color: #fff; padding: 10px 16px; font-size: 12px; font-weight: 700; display: flex; justify-content: space-between; align-items: center; }
+table.debt-tbl { width: 100%; border-collapse: collapse; }
+table.debt-tbl th { background: var(--light); font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--mid); padding: 8px 10px; border-bottom: 1px solid var(--border); text-align: left; }
+table.debt-tbl td { padding: 6px 8px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+table.debt-tbl tr:last-child td { border-bottom: none; }
+table.debt-tbl input[type=text] { width: 100%; padding: 5px 7px; border: 1.5px solid var(--border); border-radius: 5px; font-size: 12.5px; background: #fafbfc; }
+table.debt-tbl input[type=text]:focus { outline: none; border-color: var(--blue); }
+.toggle-btn { padding: 4px 10px; border-radius: 5px; border: 1.5px solid var(--border); font-size: 11px; font-weight: 700; cursor: pointer; transition: all 0.15s; background: #f7f9fb; color: var(--mid); white-space: nowrap; }
+.toggle-btn.payoff { background: var(--red); color: #fff; border-color: var(--red); }
+.btn-remove { background: none; border: none; color: #aaa; font-size: 16px; cursor: pointer; padding: 0 4px; line-height: 1; }
+.btn-remove:hover { color: var(--red); }
+.btn-add { background: var(--white); color: var(--blue); border: 1.5px solid var(--blue); padding: 7px 14px; border-radius: 6px; font-size: 12px; font-weight: 700; cursor: pointer; margin: 10px 14px 12px; display: block; transition: background 0.15s; }
+.btn-add:hover { background: #eef6ff; }
+
+/* TABS */
+.tabs { display: flex; gap: 0; margin-bottom: 0; }
+.tab-btn { flex: 1; padding: 10px; background: var(--light); color: var(--mid); border: 1px solid var(--border); font-size: 13px; font-weight: 700; cursor: pointer; transition: background 0.15s; }
+.tab-btn:first-child { border-radius: 8px 0 0 0; }
+.tab-btn:last-child  { border-radius: 0 8px 0 0; }
+.tab-btn.active { background: var(--white); color: var(--blue); border-bottom-color: var(--white); z-index: 1; }
+.tab-panel { background: var(--white); border: 1px solid var(--border); border-top: none; border-radius: 0 0 10px 10px; padding: 18px 20px; margin-bottom: 16px; }
+.tab-panel.hidden { display: none; }
+.analysis-row { display: flex; justify-content: space-between; align-items: baseline; padding: 6px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+.analysis-row:last-child { border-bottom: none; }
+.analysis-row .lbl { color: var(--mid); }
+.analysis-row .val { font-weight: 700; font-variant-numeric: tabular-nums; }
+.analysis-section { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #888; margin: 12px 0 4px; }
+
+/* CHART */
+.chart-wrap { background: var(--white); border-radius: 10px; border: 1px solid var(--border); padding: 18px 20px; margin-bottom: 16px; }
+.chart-title { font-size: 13px; font-weight: 700; color: var(--mid); margin-bottom: 14px; }
+.chart-canvas-wrap { position: relative; height: 260px; }
+
+/* COMPLIANCE */
+.compliance { font-size: 10.5px; color: #888; line-height: 1.6; border-top: 1px solid var(--border); padding-top: 14px; margin-top: 24px; }
+
+/* PRINT FIELDS */
+.print-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border); }
+.print-fields label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--mid); display: block; margin-bottom: 3px; }
+.print-fields input { width: 100%; padding: 7px 10px; border: 1.5px solid var(--border); border-radius: 5px; font-size: 13px; }
+
+/* PRINT */
+@media print {
+  body { background: #fff; }
+  .hdr { display: none; }
+  .print-header { display: block !important; }
+  .mode-bar, .btn-print, .print-fields { display: none !important; }
+  .two-col { grid-template-columns: 1fr !important; }
+  .left-col { display: none !important; }
+  .cards { grid-template-columns: repeat(3,1fr); }
+  .panel, .card, .chart-wrap, .debt-table-wrap, .warn-box { break-inside: avoid; }
+  @page { margin: 0.6in; }
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="hdr">
+  <div class="hdr-left">
+    <div class="logo-bar"></div>
+    <div>
+      <div class="hdr-brand">HOMEWEALTH SOLUTIONS</div>
+      <div class="hdr-sub">Debt Consolidation Strategy</div>
+      <div class="hdr-nmls">NMLS #2742458</div>
+    </div>
+  </div>
+  <button class="btn-print" onclick="printView()">&#9113; Print / Save PDF</button>
+</div>
+
+<!-- PRINT HEADER -->
+<div class="print-header" id="printHdr">
+  <div class="ph-name">HomeWealth Solutions — Debt Consolidation Strategy</div>
+  <div class="ph-meta">
+    <span id="ph_client"></span><span id="ph_agent"></span><span id="ph_date"></span>
+  </div>
+</div>
+
+<!-- MODE TOGGLE -->
+<div class="mode-bar">
+  <span>Analysis Mode:</span>
+  <button class="mode-btn active" id="modeRefi" onclick="setMode('refi')">Refinance</button>
+  <button class="mode-btn" id="modePurchase" onclick="setMode('purchase')">New Purchase</button>
+</div>
+
+<div class="main">
+<div class="two-col">
+
+<!-- LEFT COL -->
+<div class="left-col">
+
+  <!-- MORTGAGE / PROPERTY SECTION -->
+  <div class="panel">
+    <div class="panel-title" id="loanPanelTitle">Current Loan (Refi)</div>
+
+    <!-- REFI SECTION -->
+    <div id="refiSection">
+      <div class="field">
+        <label>Current Home Value ($)</label>
+        <input type="text" id="r_homeVal" value="$450,000" oninput="fmtDollarLive(this);calc()">
+      </div>
+      <div class="field">
+        <label>Current Loan Balance ($)</label>
+        <input type="text" id="r_balance" value="$320,000" oninput="fmtDollarLive(this);calc()">
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Current Rate (%)</label>
+          <input type="text" id="r_rate" value="4.500%" oninput="fmtPctLive(this);calc()">
+        </div>
+        <div class="field">
+          <label>Remaining Term (yrs)</label>
+          <input type="text" id="r_term" value="24" oninput="calc()">
+        </div>
+      </div>
+    </div>
+
+    <!-- PURCHASE SECTION -->
+    <div id="purchaseSection" class="section-hide">
+      <div class="field">
+        <label>Purchase Price ($)</label>
+        <input type="text" id="p_price" value="$400,000" oninput="fmtDollarLive(this);calc()">
+      </div>
+      <div class="field">
+        <label>Down Payment ($)</label>
+        <input type="text" id="p_down" value="$80,000" oninput="fmtDollarLive(this);calc()">
+      </div>
+    </div>
+  </div>
+
+  <!-- NEW LOAN TERMS -->
+  <div class="panel">
+    <div class="panel-title">New Loan Terms</div>
+    <div class="field">
+      <label>New Interest Rate (%)</label>
+      <input type="text" id="n_rate" value="7.000%" oninput="fmtPctLive(this);calc()">
+    </div>
+    <div class="field">
+      <label>New Loan Term (yrs)</label>
+      <select id="n_term" onchange="calc()">
+        <option value="30" selected>30 Years</option>
+        <option value="20">20 Years</option>
+        <option value="15">15 Years</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Closing Costs ($)</label>
+      <input type="text" id="n_closing" value="$6,000" oninput="fmtDollarLive(this);calc()">
+    </div>
+    <div class="field">
+      <label>Monthly Taxes + HOI ($)</label>
+      <input type="text" id="n_escrow" value="$520" oninput="fmtDollarLive(this);calc()">
+    </div>
+    <div class="field">
+      <label>Reinvestment Rate on Savings (%)</label>
+      <input type="text" id="n_reinvest" value="6%" oninput="fmtPctLive(this);calc()">
+    </div>
+    <div class="print-fields">
+      <div>
+        <label>Prepared For</label>
+        <input type="text" id="print_client" placeholder="Client name">
+      </div>
+      <div>
+        <label>Prepared By</label>
+        <input type="text" id="print_agent" value="Doug Smith, CMA&#174;">
+      </div>
+    </div>
+  </div>
+
+</div><!-- /left-col -->
+
+<!-- RIGHT COL -->
+<div class="right-col">
+
+  <!-- DEBT TABLE -->
+  <div class="debt-table-wrap">
+    <div class="debt-table-header">
+      <span>Debts to Consolidate</span>
+      <span style="font-size:10px;color:#8fa3bc;">Toggle each debt: Pay Off = included in new loan</span>
+    </div>
+    <table class="debt-tbl" id="debtTable">
+      <thead>
+        <tr>
+          <th style="width:28%">Creditor</th>
+          <th style="width:22%">Balance</th>
+          <th style="width:18%">Pmt/mo</th>
+          <th style="width:14%">Rate %</th>
+          <th style="width:12%">Action</th>
+          <th style="width:6%"></th>
+        </tr>
+      </thead>
+      <tbody id="debtTbody"></tbody>
+    </table>
+    <button class="btn-add" onclick="addDebt()">+ Add Debt</button>
+  </div>
+
+  <!-- SUMMARY CARDS -->
+  <div class="cards">
+    <div class="card blue">
+      <div class="card-label">Monthly Cash Flow Improvement</div>
+      <div class="card-val blue" id="c_cashflow">—</div>
+      <div class="card-sub">total monthly relief</div>
+    </div>
+    <div class="card green">
+      <div class="card-label">Total Debt Eliminated</div>
+      <div class="card-val green" id="c_debtElim">—</div>
+      <div class="card-sub">debts paid off</div>
+    </div>
+    <div class="card amber">
+      <div class="card-label">New Monthly PITI</div>
+      <div class="card-val amber" id="c_newPITI">—</div>
+      <div class="card-sub">all-in payment</div>
+    </div>
+  </div>
+
+  <!-- WARNING BOX -->
+  <div class="warn-box" id="warnBox">
+    <div class="warn-title">&#9888; Net Worth Consideration</div>
+    <div id="warnText">Enter details to see net worth analysis.</div>
+  </div>
+
+  <!-- TABS -->
+  <div class="tabs">
+    <button class="tab-btn active" id="tab60btn" onclick="switchTab(60)">Short-Term (60 Months)</button>
+    <button class="tab-btn" id="tab120btn" onclick="switchTab(120)">Long-Term (120 Months)</button>
+  </div>
+  <div class="tab-panel" id="tab60panel">
+    <div id="analysis60"></div>
+  </div>
+  <div class="tab-panel hidden" id="tab120panel">
+    <div id="analysis120"></div>
+  </div>
+
+  <!-- CHART -->
+  <div class="chart-wrap">
+    <div class="chart-title">Total Cost Comparison — Keep Debts vs. Consolidate</div>
+    <div class="chart-canvas-wrap">
+      <canvas id="costChart"></canvas>
+    </div>
+  </div>
+
+  <p class="compliance">
+    This communication is for informational and educational purposes only and does not constitute an offer to lend or a commitment to make a loan. All loans are subject to credit approval, underwriting guidelines, and property approval. Interest rates, payment examples, programs, and terms are illustrative, vary by borrower qualification, and are subject to change without notice. Not all applicants will qualify. Examples shown do not reflect all costs of a mortgage transaction. Consult a licensed tax or legal advisor regarding your individual situation. HomeWealth Solutions LLC is licensed by the Florida Office of Financial Regulation, Mortgage Broker License #MBR8082. Verify our licensure at www.nmlsconsumeraccess.org. Equal Housing Opportunity.
+  </p>
+
+</div><!-- /right-col -->
+</div><!-- /two-col -->
+</div><!-- /main -->
+
+<script>
+// ── STATE ──
+let _mode = 'refi';
+let _debts = [];
+let _costChart = null;
+let _activeTab = 60;
+let _debtIdSeq = 0;
+
+function setMode(m) {
+  _mode = m;
+  document.getElementById('modeRefi').classList.toggle('active', m === 'refi');
+  document.getElementById('modePurchase').classList.toggle('active', m === 'purchase');
+  document.getElementById('refiSection').classList.toggle('section-hide', m !== 'refi');
+  document.getElementById('purchaseSection').classList.toggle('section-hide', m !== 'purchase');
+  document.getElementById('loanPanelTitle').textContent = m === 'refi' ? 'Current Loan (Refi)' : 'Purchase Info';
+  calc();
+}
+
+function switchTab(mo) {
+  _activeTab = mo;
+  document.getElementById('tab60btn').classList.toggle('active', mo === 60);
+  document.getElementById('tab120btn').classList.toggle('active', mo === 120);
+  document.getElementById('tab60panel').classList.toggle('hidden', mo !== 60);
+  document.getElementById('tab120panel').classList.toggle('hidden', mo !== 120);
+}
+
+// ── FORMAT HELPERS ──
+function stripDollar(v) { return parseFloat((v||'').toString().replace(/[$,\s]/g,'')) || 0; }
+function stripPct(v)    { return parseFloat((v||'').toString().replace(/[%\s]/g,''))   || 0; }
+function fmtDollarLive(el) {
+  const raw = (el.value||'').replace(/[$,]/g,'');
+  const n = parseFloat(raw);
+  if (!isNaN(n) && raw.trim() !== '') {
+    const c = el.selectionStart, ol = el.value.length;
+    el.value = '$' + Math.round(n).toLocaleString('en-US');
+    const nl = el.value.length;
+    el.setSelectionRange(c+(nl-ol), c+(nl-ol));
+  }
+}
+function fmtPctLive(el) {
+  // allow user to type freely; parse on calc
+}
+function fmt$(v) { return isNaN(v)||v===null ? '—' : '$' + Math.round(v).toLocaleString(); }
+
+// ── MORTGAGE MATH ──
+function calcPI(loan, annRate, termYrs) {
+  const n = termYrs * 12;
+  const r = annRate / 100 / 12;
+  if (r === 0) return loan / n;
+  return loan * r * Math.pow(1+r,n) / (Math.pow(1+r,n) - 1);
+}
+function totalInterestPaid(balance, annRate, termYrs, months) {
+  // total interest paid over 'months' on an amortizing loan
+  const n = termYrs * 12;
+  const r = annRate / 100 / 12;
+  if (r === 0) return 0;
+  const pi = calcPI(balance, annRate, termYrs);
+  let bal = balance, totInt = 0;
+  for (let m = 0; m < months && m < n; m++) {
+    const intPmt = bal * r;
+    totInt += intPmt;
+    bal -= (pi - intPmt);
+    if (bal <= 0) break;
+  }
+  return totInt;
+}
+function debtInterestOver(balance, annRate, monthlyPmt, months) {
+  // total interest paid on a simple debt over N months
+  const r = annRate / 100 / 12;
+  let bal = balance, totInt = 0;
+  for (let m = 0; m < months; m++) {
+    if (bal <= 0) break;
+    const intPmt = bal * r;
+    totInt += intPmt;
+    const prin = Math.min(bal, monthlyPmt - intPmt);
+    bal -= Math.max(0, prin);
+  }
+  return totInt;
+}
+function futureValueSavings(mthSav, annRate, months) {
+  // FV of monthly savings compounded at annRate
+  const r = annRate / 100 / 12;
+  if (r === 0) return mthSav * months;
+  return mthSav * (Math.pow(1+r,months) - 1) / r;
+}
+
+// ── DEBT TABLE ──
+function addDebt(name='', balance='', payment='', rate='', action='keep') {
+  const id = ++_debtIdSeq;
+  _debts.push({ id, name, balance, payment, rate, action });
+  renderDebtTable();
+}
+
+function removeDebt(id) {
+  _debts = _debts.filter(d => d.id !== id);
+  renderDebtTable();
+  calc();
+}
+
+function toggleDebt(id) {
+  const d = _debts.find(x => x.id === id);
+  if (d) {
+    d.action = d.action === 'payoff' ? 'keep' : 'payoff';
+    renderDebtTable();
+    calc();
+  }
+}
+
+function getDebtInput(id, field) {
+  const el = document.getElementById(`debt_${field}_${id}`);
+  return el ? el.value : '';
+}
+
+function syncDebtsFromDOM() {
+  _debts.forEach(d => {
+    d.name    = getDebtInput(d.id, 'name');
+    d.balance = getDebtInput(d.id, 'balance');
+    d.payment = getDebtInput(d.id, 'payment');
+    d.rate    = getDebtInput(d.id, 'rate');
+  });
+}
+
+function renderDebtTable() {
+  const tbody = document.getElementById('debtTbody');
+  tbody.innerHTML = _debts.map(d => `
+    <tr>
+      <td><input type="text" id="debt_name_${d.id}" value="${d.name}" placeholder="Credit Card..." oninput="syncDebtsFromDOM();calc()"></td>
+      <td><input type="text" id="debt_balance_${d.id}" value="${d.balance}" placeholder="$0" oninput="fmtDebtDollar(this);syncDebtsFromDOM();calc()"></td>
+      <td><input type="text" id="debt_payment_${d.id}" value="${d.payment}" placeholder="$0" oninput="fmtDebtDollar(this);syncDebtsFromDOM();calc()"></td>
+      <td><input type="text" id="debt_rate_${d.id}" value="${d.rate}" placeholder="0%" oninput="fmtDebtPct(this);syncDebtsFromDOM();calc()"></td>
+      <td><button class="toggle-btn ${d.action === 'payoff' ? 'payoff' : ''}" onclick="toggleDebt(${d.id})">${d.action === 'payoff' ? 'Pay Off' : 'Keep'}</button></td>
+      <td><button class="btn-remove" onclick="removeDebt(${d.id})" title="Remove">&#215;</button></td>
+    </tr>
+  `).join('');
+}
+
+function fmtDebtDollar(el) {
+  const raw = (el.value||'').replace(/[$,]/g,'');
+  const n = parseFloat(raw);
+  if (!isNaN(n) && raw.trim() !== '') el.value = '$' + Math.round(n).toLocaleString('en-US');
+}
+function fmtDebtPct(el) {
+  const raw = (el.value||'').replace(/[%]/g,'');
+  const n = parseFloat(raw);
+  if (!isNaN(n) && raw.trim() !== '') el.value = n + '%';
+}
+
+// ── MAIN CALC ──
+function calc() {
+  syncDebtsFromDOM();
+
+  const nRate    = stripPct(document.getElementById('n_rate').value);
+  const nTerm    = parseInt(document.getElementById('n_term').value);
+  const nClosing = stripDollar(document.getElementById('n_closing').value);
+  const nEscrow  = stripDollar(document.getElementById('n_escrow').value);
+  const reinvest = stripPct(document.getElementById('n_reinvest').value);
+
+  if (!nRate || !nTerm) return;
+
+  // Current mortgage payment
+  let currPmt = 0, currBalance = 0, currRate = 0, currTerm = 0, currPITI = 0;
+  if (_mode === 'refi') {
+    currBalance = stripDollar(document.getElementById('r_balance').value);
+    currRate    = stripPct(document.getElementById('r_rate').value);
+    currTerm    = parseFloat(document.getElementById('r_term').value) || 24;
+    currPmt     = calcPI(currBalance, currRate, currTerm);
+    currPITI    = currPmt + nEscrow; // escrow same before/after
+  } else {
+    const price = stripDollar(document.getElementById('p_price').value);
+    const down  = stripDollar(document.getElementById('p_down').value);
+    currBalance = 0; // renting/no mortgage to replace
+    currPmt     = 0;
+    currPITI    = 0;
+  }
+
+  // Debts
+  const payoffDebts = _debts.filter(d => d.action === 'payoff');
+  const keepDebts   = _debts.filter(d => d.action === 'keep');
+  const totalDebtBal  = payoffDebts.reduce((s,d) => s + stripDollar(d.balance), 0);
+  const totalDebtPmt  = payoffDebts.reduce((s,d) => s + stripDollar(d.payment), 0);
+  const keepDebtPmt   = keepDebts.reduce((s,d)   => s + stripDollar(d.payment), 0);
+  const allDebtPmt    = _debts.reduce((s,d) => s + stripDollar(d.payment), 0);
+
+  // New loan
+  let newLoanBalance = currBalance;
+  if (_mode === 'refi') {
+    newLoanBalance = currBalance + totalDebtBal + nClosing;
+  } else {
+    const price = stripDollar(document.getElementById('p_price').value);
+    const down  = stripDollar(document.getElementById('p_down').value);
+    newLoanBalance = (price - down) + totalDebtBal + nClosing;
+    currBalance = price - down; // for equity calc
+  }
+  const newPI   = calcPI(newLoanBalance, nRate, nTerm);
+  const newPITI = newPI + nEscrow;
+
+  // Current total obligations
+  const currTotalObl = currPITI + allDebtPmt;
+  const newTotalObl  = newPITI + keepDebtPmt;
+  const cashflowImpr = currTotalObl - newTotalObl;
+
+  // Update cards
+  setEl('c_cashflow', (cashflowImpr >= 0 ? '+' : '') + fmt$(cashflowImpr) + '/mo');
+  setEl('c_debtElim', fmt$(totalDebtBal));
+  setEl('c_newPITI', fmt$(newPITI) + '/mo');
+
+  // Warning box
+  const warnHTML = totalDebtBal > 0 ? `
+    Consolidating <strong>${fmt$(totalDebtBal)}</strong> in debts into your mortgage increases your secured debt by the same amount.
+    While your monthly cash flow improves by <strong>${fmt$(Math.abs(cashflowImpr))}/month</strong>
+    ${cashflowImpr >= 0 ? '' : '<em>(note: cash flow is negative — review loan structure)</em>'},
+    the equity you've built has been redeployed. Review total net worth impact carefully before proceeding.
+  ` : `No debts are currently marked "Pay Off." Toggle debts above to include them in the consolidation analysis.`;
+  document.getElementById('warnText').innerHTML = warnHTML;
+
+  // Analysis tabs
+  buildAnalysis(60, currPmt, currRate, currTerm, newPI, newLoanBalance, nRate, nTerm, payoffDebts, keepDebtPmt, nEscrow, cashflowImpr, reinvest);
+  buildAnalysis(120, currPmt, currRate, currTerm, newPI, newLoanBalance, nRate, nTerm, payoffDebts, keepDebtPmt, nEscrow, cashflowImpr, reinvest);
+
+  // Chart
+  buildChart(currTotalObl, newTotalObl, cashflowImpr);
+}
+
+function buildAnalysis(months, currPmt, currRate, currTerm, newPI, newLoan, nRate, nTerm, payoffDebts, keepDebtPmt, escrow, cashflowImpr, reinvest) {
+  // Interest on kept debts
+  let debtIntKept = 0;
+  payoffDebts.forEach(d => {
+    debtIntKept += debtInterestOver(stripDollar(d.balance), stripPct(d.rate), stripDollar(d.payment), months);
+  });
+
+  // Interest on the consolidated portion of new loan
+  const totalDebtBal = payoffDebts.reduce((s,d) => s + stripDollar(d.balance), 0);
+  const consInt = totalInterestPaid(totalDebtBal, nRate, nTerm, months);
+
+  // Total interest: keep scenario = curr mortgage int + debt interest
+  let currMortgInt = 0;
+  if (currPmt > 0 && currRate > 0 && currTerm > 0) {
+    const rBalance = stripDollar(document.getElementById(_mode==='refi' ? 'r_balance' : 'p_price').value);
+    currMortgInt = totalInterestPaid(rBalance, currRate, currTerm, months);
+  }
+
+  // New mortgage interest
+  const newMortgInt = totalInterestPaid(newLoan, nRate, nTerm, months);
+
+  // Savings reinvested
+  const reinvestFV = cashflowImpr > 0 ? futureValueSavings(cashflowImpr, reinvest, months) : 0;
+
+  const mthSavTotal  = cashflowImpr;
+  const cumMthSav    = mthSavTotal * months;
+
+  const el = document.getElementById('analysis' + months);
+  const yr = months / 12;
+  el.innerHTML = `
+    <div class="analysis-section">At ${months} Months (${yr} Years)</div>
+
+    <div class="analysis-row">
+      <span class="lbl">Current total monthly obligations</span>
+      <span class="val" style="color:var(--red);">${fmt$(currPmt + escrow + payoffDebts.reduce((s,d)=>s+stripDollar(d.payment),0) + keepDebtPmt)}/mo</span>
+    </div>
+    <div class="analysis-row">
+      <span class="lbl">New monthly obligations (after consolidation)</span>
+      <span class="val" style="color:var(--blue);">${fmt$(newPI + escrow + keepDebtPmt)}/mo</span>
+    </div>
+
+    <div class="analysis-section">Interest Cost Comparison</div>
+    <div class="analysis-row">
+      <span class="lbl">Interest on debts (if kept separate, ${months} mo)</span>
+      <span class="val" style="color:var(--red);">${fmt$(debtIntKept)}</span>
+    </div>
+    <div class="analysis-row">
+      <span class="lbl">Interest on consolidated debt amount (${months} mo)</span>
+      <span class="val" style="color:var(--amber);">${fmt$(consInt)}</span>
+    </div>
+    <div class="analysis-row">
+      <span class="lbl">Interest difference (keep vs. consolidate)</span>
+      <span class="val" style="color:${debtIntKept - consInt >= 0 ? 'var(--green)' : 'var(--red)'};">${fmt$(debtIntKept - consInt)}</span>
+    </div>
+
+    <div class="analysis-section">Cash Flow Impact</div>
+    <div class="analysis-row">
+      <span class="lbl">Monthly cash flow improvement</span>
+      <span class="val" style="color:${mthSavTotal >= 0 ? 'var(--green)' : 'var(--red)'};">${mthSavTotal >= 0 ? '+' : ''}${fmt$(mthSavTotal)}/mo</span>
+    </div>
+    <div class="analysis-row">
+      <span class="lbl">Cumulative monthly savings (${months} mo)</span>
+      <span class="val" style="color:${cumMthSav >= 0 ? 'var(--green)' : 'var(--red)'};">${cumMthSav >= 0 ? '+' : ''}${fmt$(cumMthSav)}</span>
+    </div>
+    <div class="analysis-row">
+      <span class="lbl">Reinvestment value of savings at ${stripPct(document.getElementById('n_reinvest').value).toFixed(1)}%</span>
+      <span class="val" style="color:var(--blue);">${reinvestFV > 0 ? fmt$(reinvestFV) : '—'}</span>
+    </div>
+  `;
+}
+
+function buildChart(currObl, newObl, cashflowImpr) {
+  const horizons = [60, 120];
+  const keepData = horizons.map(mo => currObl * mo);
+  const consData = horizons.map(mo => newObl * mo);
+
+  const cfg = {
+    type: 'bar',
+    data: {
+      labels: ['60 Months (5 yrs)', '120 Months (10 yrs)'],
+      datasets: [
+        { label: 'Keep Debts Separate', data: keepData, backgroundColor: 'rgba(220,53,69,0.7)', borderColor: 'var(--red)', borderWidth: 1.5, borderRadius: 4 },
+        { label: 'Consolidate', data: consData, backgroundColor: 'rgba(36,145,235,0.7)', borderColor: 'var(--blue)', borderWidth: 1.5, borderRadius: 4 }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 }, padding: 12 } },
+        tooltip: { callbacks: { label: c => ' ' + c.dataset.label + ': $' + Math.round(c.raw).toLocaleString() } }
+      },
+      scales: {
+        x: { ticks: { color: '#888', font: { size: 12 } }, grid: { display: false } },
+        y: { ticks: { color: '#888', font: { size: 10 }, callback: v => '$' + (Math.abs(v)>=1000 ? Math.round(v/1000)+'k' : Math.round(v)) }, grid: { color: 'rgba(0,0,0,0.05)' } }
+      }
+    }
+  };
+  if (_costChart) _costChart.destroy();
+  _costChart = new Chart(document.getElementById('costChart').getContext('2d'), cfg);
+}
+
+function setEl(id, v) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = v;
+}
+
+function printView() {
+  const client = (document.getElementById('print_client').value||'').trim();
+  const agent  = (document.getElementById('print_agent').value||'').trim();
+  const now    = new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
+  document.getElementById('ph_client').innerHTML = client ? `<strong>Prepared for:</strong> ${client}` : '';
+  document.getElementById('ph_agent').innerHTML  = agent  ? `<strong>Prepared by:</strong> ${agent}` : '';
+  document.getElementById('ph_date').innerHTML   = `<strong>Date:</strong> ${now}`;
+  if (_costChart) { _costChart.resize(); _costChart.update('none'); }
+  window.print();
+}
+
+// ── INIT ──
+window.addEventListener('DOMContentLoaded', () => {
+  // Default debts
+  addDebt('Credit Card', '$12,000', '$280', '22.99%', 'payoff');
+  addDebt('Auto Loan',   '$18,500', '$385', '7.50%',  'payoff');
+  addDebt('Personal Loan','$8,000', '$210', '14.99%', 'payoff');
+  calc();
+});
+</script>
+<a href="javascript:window.close()" id="hws-hub-btn" style="position:fixed;top:14px;right:16px;z-index:9999;background:#1c2b3a;color:rgba(255,255,255,0.9);text-decoration:none;font-size:12px;font-weight:700;padding:6px 14px;border-radius:8px;font-family:-apple-system,BlinkMacSystemFont,sans-serif;letter-spacing:0.2px;box-shadow:0 2px 8px rgba(0,0,0,0.25);">← Hub</a>
+
+<!-- HWS Hub back button -->
+<div id="hws-back-btn" style="position:fixed;bottom:20px;right:20px;z-index:99999;">
+  <button onclick="window.close()" style="
+    background:#1a2332;
+    color:white;
+    border:none;
+    border-radius:8px;
+    padding:9px 16px;
+    font-size:13px;
+    font-weight:600;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    gap:7px;
+    box-shadow:0 2px 12px rgba(0,0,0,0.25);
+    opacity:0.85;
+    transition:opacity .15s;
+  " onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.85'">
+    ← Hub
+  </button>
+</div>
+</body>
+</html>

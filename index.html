@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HWS Tools Hub</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: #f0f4f9;
+    color: #1a2332;
+    min-height: 100vh;
+  }
+
+  /* Header */
+  .header {
+    background: #2491EB;
+    color: white;
+    padding: 18px 20px 14px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 12px rgba(36,145,235,0.25);
+  }
+  .header-inner {
+    max-width: 720px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .logo { font-size: 16px; font-weight: 800; letter-spacing: -0.3px; }
+  .logo span { color: #8EC73F; }
+  .header-sub { font-size: 11px; opacity: 0.8; margin-top: 1px; }
+  .header-count { font-size: 11px; opacity: 0.7; margin-top: 2px; }
+  .search-wrap { position: relative; flex: 1; max-width: 240px; }
+  .search-wrap input {
+    width: 100%;
+    background: rgba(255,255,255,0.2);
+    border: 1.5px solid rgba(255,255,255,0.35);
+    border-radius: 8px;
+    padding: 7px 10px 7px 28px;
+    font-size: 13px;
+    color: white;
+    outline: none;
+  }
+  .search-wrap input::placeholder { color: rgba(255,255,255,0.6); }
+  .search-wrap input:focus { background: rgba(255,255,255,0.3); }
+  .search-icon {
+    position: absolute;
+    left: 9px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 12px;
+    opacity: 0.7;
+  }
+
+  /* Layout */
+  .main { max-width: 720px; margin: 0 auto; padding: 20px 16px 48px; }
+
+  /* Stage sections */
+  .stage { margin-bottom: 26px; }
+  .stage-label {
+    font-size: 10px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: #6b7a8d;
+    margin-bottom: 10px;
+    padding-left: 2px;
+  }
+
+  /* Tool cards */
+  .cards { display: flex; flex-direction: column; gap: 7px; }
+
+  .card {
+    background: white;
+    border-radius: 11px;
+    border: 1.5px solid #e2e8f0;
+    padding: 13px 15px;
+    display: flex;
+    align-items: center;
+    gap: 13px;
+    text-decoration: none;
+    color: inherit;
+    transition: border-color 0.15s, box-shadow 0.15s, transform 0.1s;
+    cursor: pointer;
+  }
+  .card:hover {
+    border-color: #2491EB;
+    box-shadow: 0 2px 12px rgba(36,145,235,0.12);
+    transform: translateY(-1px);
+  }
+  .card:active { transform: translateY(0); }
+
+  .card-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 9px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+  .blue   { background: #dbeafe; }
+  .green  { background: #dcfce7; }
+  .amber  { background: #fef3c7; }
+  .purple { background: #ede9fe; }
+  .teal   { background: #ccfbf1; }
+  .rose   { background: #ffe4e6; }
+  .slate  { background: #f1f5f9; }
+  .indigo { background: #e0e7ff; }
+  .orange { background: #ffedd5; }
+
+  .card-info { flex: 1; min-width: 0; }
+  .card-name { font-size: 14px; font-weight: 700; color: #1a2332; line-height: 1.3; }
+  .card-desc { font-size: 12px; color: #64748b; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  .card-type {
+    font-size: 10px;
+    font-weight: 700;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    flex-shrink: 0;
+  }
+
+  .badge-new {
+    font-size: 9px;
+    font-weight: 800;
+    background: #8EC73F;
+    color: white;
+    padding: 2px 6px;
+    border-radius: 4px;
+    letter-spacing: 0.3px;
+    flex-shrink: 0;
+  }
+
+  /* No results */
+  .no-results { text-align: center; color: #94a3b8; font-size: 14px; padding: 40px 0; display: none; }
+
+  /* Hidden */
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-inner">
+    <div>
+      <div class="logo">HomeWealth<span>.</span></div>
+      <div class="header-sub">Tools Hub</div>
+      <div class="header-count" id="toolCount"></div>
+    </div>
+    <div class="search-wrap">
+      <span class="search-icon">🔍</span>
+      <input type="text" id="searchInput" placeholder="Find a tool…" oninput="filterTools()" autocomplete="off">
+    </div>
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- DAILY OPS -->
+  <div class="stage" data-stage="ops">
+    <div class="stage-label">🗂 Daily Operations</div>
+    <div class="cards">
+
+      <a class="card" href="./loa-checklist.html" data-name="LOA checklist daily weekly follow-up pipeline email lead management tasks nurture">
+        <div class="card-icon amber">📋</div>
+        <div class="card-info">
+          <div class="card-name">LOA Daily/Weekly Checklist</div>
+          <div class="card-desc">Daily tasks, lead follow-up cadence, pipeline email template</div>
+        </div>
+        <div class="card-type">HTML</div>
+      </a>
+
+    </div>
+  </div>
+
+  <!-- DISCOVERY / CLIENT CALL -->
+  <div class="stage" data-stage="discovery">
+    <div class="stage-label">📞 Discovery &amp; Client Call</div>
+    <div class="cards">
+
+      <a class="card" href="./storyselling.html" data-name="storyselling story selling discovery cpcc context plot characters conflict archetypes narrative">
+        <div class="card-icon purple">🎭</div>
+        <div class="card-info">
+          <div class="card-name">StorySelling Framework</div>
+          <div class="card-desc">CPCC discovery, archetypes, 6-step story sell, annual review scripts</div>
+        </div>
+        <div class="card-type">HTML</div>
+      </a>
+
+      <a class="card" href="./comfort-calculator.html" data-name="comfort calculator discovery call affordability payment DTI budget ranges total funds">
+        <div class="card-icon green">🏠</div>
+        <div class="card-info">
+          <div class="card-name">Comfort Calculator</div>
+          <div class="card-desc">Income → max qualifying + comfort price, DTI ranges table, total funds needed</div>
+        </div>
+        <div class="card-type">HTML</div>
+      </a>
+
+      <a class="card" href="./down-payment.html" data-name="down payment calculator strategy options PMI breakeven">
+        <div class="card-icon blue">💰</div>
+        <div class="card-info">
+          <div class="card-name">Down Payment Calculator</div>
+          <div class="card-desc">Compare down payment options, PMI breakeven, cost over time</div>
+        </div>
+        <div class="card-type">HTML</div>
+      </a>
+
+      <a class="card" href="./closing-cost.html" data-name="closing cost estimator cash to close fees prepaids escrow">
+        <div class="card-icon rose">🧾</div>
+        <div class="card-info">
+          <div class="card-name">Closing Cost Estimator</div>
+          <div class="card-desc">Estimate total cash to close — lender fees, prepaids, title, escrows</div>
+        </div>
+        <div class="card-type">HTML</div>
+      </a>
+
+    </div>
+  </div>
+
+  <!-- PRE-APPROVAL -->
+  <div class="stage" data-stage="preapproval">
+    <div class="stage-label">📝 Pre-Approval</div>
+    <div class="cards">
+
+      <a class="card" href="./pre-approval.html" data-name="pre-approval workflow steps process checklist">
+        <div class="card-icon blue">🔄</div>
+        <div class="card-info">
+          <div class="card-name">Pre-Approval Workflow</div>
+          <div class="card-desc">Step-by-step pre-approval process reference</div>
+        </div>
+        <div class="card-type">HTML</div>
+      </a>
+
+      <a class="card" href="./loan-types.html" data-name="loan types conventional FHA VA USDA DTI down payment credit score MI PMI flip rules">
+        <div class="card-icon blue">📚</div>
+        <div class="card-info">
+          <div class="card-name">Loan Types Reference</div>
+          <div class="card-desc">Conv, FHA, VA, USDA — DTI, down payment, credit score, MI, flip rules</div>
+        </div>
+        <div class="card-type">HTML</div>
+      </a>
+
+    </div>
+  </div>
+
+  <!-- BUYER STRATEGY -->
+  <div class="stage" data-stage="buyerstrategy">
+    <div class="stage-label">🏡 Buyer Strategy</div>
+    <div class="cards">
+
+      <a class="card" href="./rent-vs-own.html" data-name="rent vs own buy compare tax benefit net monthly pay annual rent increase cost to sell ownership">
+        <div class="card-icon green">🏠</div>
+        <div class="card-info">
+          <div class="card-name">Rent vs. Own</div>
+          <div class="card-desc">Net monthly pay (after tax benefit + equity), rent increase compounding, long-term comparison</div>
+        </div>
+        <div class="card-type">HTML</div>
+      </a>
+
+      <a class="card" href="./cost-of-waiting.html" data-name="cost of waiting delay purchase appreciation price increase rate shoppers buyers fence">
+        <div class="card-icon amber">⏱️</div>
+        <div class="card-info">
+          <div class="card-name">Cost of Waiting</div>
+          <div class="card-desc">Buy now vs. wait — price appreciation, down payment gap, break-even months</div>
+        </div>
+        <div class="card-type">HTML</div>
+        <div class="badge-new">NEW</div>
+      </a>
+
+      <a class="card" href="./appreciation-calc.html" data-name="appreciation calculator home value growth ROI return on investment down payment leverage real estate">
+        <div class="card-icon green">📈</div>
+        <div class="card-info">
+          <div class="card-name">Appreciation Calculator</div>
+          <div class="card-desc">Home value growth over 1–15 years, ROI on down payment, leverage framing</div>
+        </div>
+        <div class="card-type">HTML</div>
+        <div class="badge-new">NEW</div>
+      </a>
+
+      <a class="card" href="./equity-gained.html" data-name="equity growth calculator appreciation paydown principal home wealth building stacked">
+        <div class="card-icon teal">📊</div>
+        <div class="card-info">
+          <div class="card-name">Equity Growth Calculator</div>
+          <div class="card-desc">Appreciation equity + paydown equity over time — stacked chart, ROI multiplier</div>
+        </div>
+        <div class="card-type">HTML</div>
+        <div class="badge-new">NEW</div>
+      </a>
+
+      <a class="card" href="./bid-over-asking.html" data-name="bid over asking price premium break even appreciation competitive offer multiple offer">
+        <div class="card-icon rose">🎯</div>
+        <div class="card-info">
+          <div class="card-name">Bid Over Asking Analyzer</div>
+          <div class="card-desc">Break-even months for any premium — when does appreciation cover the overbid?</div>
+        </div>
+        <div class="card-type">HTML</div>
+        <div class="badge-new">NEW</div>
+      </a>
+
+      <a class="card" href="./mi-options.html" data-name="MI mortgage insurance LPMI lender paid split single premium financed upfront PMI comparison options">
+        <div class="card-icon blue">🛡️</div>
+        <div class="card-info">
+          <div class="card-name">MI Options Comparison</div>
+          <div class="card-desc">Monthly vs. LPMI vs. Split vs. Single Premium Financed — cost + break-even</div>
+        </div>
+        <div class="card-type">HTML</div>
+        <div class="badge-new">NEW</div>
+      </a>
+
+      <a class="card" href="./appraisal-gap.html" data-name="appraisal gap strategy appraised value contract price SPMI financed options comparison">
+        <div class="card-icon amber">🏚️</div>
+        <div class="card-info">
+          <div class="card-name">Appraisal Gap Strategy</div>
+          <div class="card-desc">4-column: base loan, SPMI financed, buyer covers gap, gap + SPMI financed</div>
+        </div>
+        <div class="card-type">HTML</div>
+        <div class="badge-new">NEW</div>
+      </a>
+
+      <a class="card" href="./move-up-buyer.html" data-name="move up buyer multi product scenario compare purchase refi zero out of pocket closing costs rolled">
+        <div class="card-icon purple">🏘️</div>
+        <div class="card-info">
+          <div class="card-name">Move Up Buyer Strategy</div>
+          <div class="card-desc">Up to 4 products side-by-side — purchase, refi, zero out-of-pocket framing</div>
+        </div>
+        <div class="card-type">HTML</div>
+        <div class="badge-new">NEW</div>
+      </a>
+
+    </div>
+  </div>
+
+  <!-- LOAN COMPARISON & PRESENTATION -->
+  <div class="stage" data-stage="presentation">
+    <div class="stage-label">📊 Loan Comparison &amp; Presentation</div>
+    <div class="cards">
+
+      <a class="card" href="./mortgage-coach.html" data-name="mortgage coach rate comparison points discount buydown breakeven options Denise Donoghue">
+        <div class="card-icon blue">🎓</div>
+        <div class="card-info">
+          <div class="card-name">Mortgage Coach — Rate &amp; Points</div>
+          <div class="card-desc">4 rate options side-by-side: breakeven, net savings, temp buydown analysis</div>
+        </div>
+        <div class="card-type">HTML</div>
+      </a>
+
+      <a class="card" href="./scenario-compare.html" data-name="scenario compare loan options side by side comparison multiple products payment CTC">
+        <div class="card-icon teal">⚖️</div>
+        <div class="card-info">
+          <div class="card-name">Scenario Comparison Tool</div>
+          <div class="card-desc">Multiple loan scenarios side-by-side — payment, cash to close, total cost</div>
+        </div>
+        <div class="card-type">HTML</div>
+      </a>
+
+      <a class="card" href="./seller-contribution.html" data-name="seller contribution concession price reduction rate buydown permanent temp 2-1 comparison realtor">
+        <div class="card-icon green">🤝</div>
+        <div class="card-info">
+          <div class="card-name">Seller Contribution Analyzer</div>
+          <div class="card-desc">4-column: no contribution, price break, permanent buydown, 2-1 temp buydown</div>
+        </div>
+        <div class="card-type">HTML</div>
+        <div class="badge-new">NEW</div>
+      </a>
+
+      <a class="card" href="./paying-points.html" data-name="paying points buy down rate apply principal comparison breakeven discount points cost">
+        <div class="card-icon amber">💎</div>
+        <div class="card-info">
+          <div class="card-name">Paying Points: 3-Way Comparison</div>
+          <div class="card-desc">No points vs. rate buydown vs. apply to principal — winner by horizon</div>
+        </div>
+        <div class="card-type">HTML</div>
+        <div class="badge-new">NEW</div>
+      </a>
+
+      <a class="card" href="./buydown-analyzer.html" data-name="buydown analyzer 2-1 1-0 temporary rate seller funded escrow savings">
+        <div class="card-icon rose">📉</div>
+        <div class="card-info">
+          <div class="card-name">Buydown Analyzer</div>
+          <div class="card-desc">Temporary rate buydown — escrow cost, year-by-year savings, seller concession</div>
+        </div>
+        <div class="card-type">HTML</div>
+      </a>
+
+      <a class="card" href="./true-breakeven.html" data-name="true breakeven refi refinance breakeven months savings closing costs">
+        <div class="card-icon purple">⏱️</div>
+        <div class="card-info">
+          <div class="card-name">True Breakeven Calculator</div>
+          <div class="card-desc">Refinance or rate change — true breakeven accounting for all costs</div>
+        </div>
+        <div class="card-type">HTML</div>
+      </a>
+
+    </div>
+  </div>
+
+  <!-- DEBT & CASH FLOW STRATEGY -->
+  <div class="stage" data-stage="debtcashflow">
+    <div class="stage-label">💸 Debt &amp; Cash Flow Strategy</div>
+    <div class="cards">
+
+      <a class="card" href="./blended-rate.html" data-name="blended rate weighted average debt consolidation entry point multiple debts combined rate">
+        <div class="card-icon orange">🔀</div>
+        <div class="card-info">
+          <div class="card-name">Blended Rate Calculator</div>
+          <div class="card-desc">Weighted average rate across all debts — entry point for consolidation talk</div>
+        </div>
+        <div class="card-type">HTML</div>
+        <div class="badge-new">NEW</div>
+      </a>
+
+      <a class="card" href="./debt-consolidation.html" data-name="debt consolidation strategy refinance purchase debts pay off monthly savings net worth warning">
+        <div class="card-icon rose">🔗</div>
+        <div class="card-info">
+          <div class="card-name">Debt Consolidation Strategy</div>
+          <div class="card-desc">Refi or purchase mode — monthly savings, net worth warning, short/long-term tabs</div>
+        </div>
+        <div class="card-type">HTML</div>
+        <div class="badge-new">NEW</div>
+      </a>
+
+      <a class="card" href="./reinvestment-calc.html" data-name="freedom point calculator extra payment payoff date months saved interest saved reinvestment opportunity cost">
+        <div class="card-icon green">🏁</div>
+        <div class="card-info">
+          <div class="card-name">Freedom Point Calculator</div>
+          <div class="card-desc">Extra payments → new payoff date, months saved, vs. investing instead</div>
+        </div>
+        <div class="card-type">HTML</div>
+        <div class="badge-new">NEW</div>
+      </a>
+
+      <a class="card" href="./refi-risk-of-waiting.html" data-name="refi refinance risk of waiting interest overpaid delay breakeven monthly savings net comparison">
+        <div class="card-icon amber">⚠️</div>
+        <div class="card-info">
+          <div class="card-name">Refi: Risk of Waiting</div>
+          <div class="card-desc">Refi now vs. wait for lower rate — interest overpaid, 5-year net comparison</div>
+        </div>
+        <div class="card-type">HTML</div>
+        <div class="badge-new">NEW</div>
+      </a>
+
+      <a class="card" href="./amortization-calc.html" data-name="amortization calculator schedule full monthly yearly extra payment payoff date interest">
+        <div class="card-icon blue">📋</div>
+        <div class="card-info">
+          <div class="card-name">Amortization Calculator</div>
+          <div class="card-desc">Full schedule — monthly or yearly view, extra payment impact, printable</div>
+        </div>
+        <div class="card-type">HTML</div>
+        <div class="badge-new">NEW</div>
+      </a>
+
+    </div>
+  </div>
+
+  <!-- NEW CONTRACT / SUBMISSION -->
+  <div class="stage" data-stage="contract">
+    <div class="stage-label">📋 New Contract &amp; Submission</div>
+    <div class="cards">
+
+      <a class="card" href="./new-contract.html" data-name="new contract submission checklist arive fub lender portal steps">
+        <div class="card-icon green">✅</div>
+        <div class="card-info">
+          <div class="card-name">New Contract Submission Checklist</div>
+          <div class="card-desc">Step-by-step: Arive → lender portal → FUB → submission email</div>
+        </div>
+        <div class="card-type">HTML</div>
+      </a>
+
+    </div>
+  </div>
+
+  <!-- PROCESSING / IN FILE -->
+  <div class="stage" data-stage="processing">
+    <div class="stage-label">⚙️ Processing &amp; In-File</div>
+    <div class="cards">
+
+      <a class="card" href="./income-calc.html" data-name="income calculation guide W2 hourly salary schedule C 1120S K-1 rental self-employed SE liquidity test">
+        <div class="card-icon green">🧮</div>
+        <div class="card-info">
+          <div class="card-name">Income Calculation Guide</div>
+          <div class="card-desc">W-2, Schedule C, S-Corp/K-1, Rental — interactive calculator + liquidity test</div>
+        </div>
+        <div class="card-type">HTML</div>
+      </a>
+
+      <a class="card" href="./income-comparison.html" data-name="income comparison tool W2 salary hourly AI analysis discrepancy flags">
+        <div class="card-icon teal">🔢</div>
+        <div class="card-info">
+          <div class="card-name">Income Comparison Tool</div>
+          <div class="card-desc">Paste Claude + ChatGPT outputs side-by-side, flags discrepancies</div>
+        </div>
+        <div class="card-type">HTML</div>
+      </a>
+
+      <a class="card" href="./loan-routing.html" data-name="loan file routing guide lender assignment which lender">
+        <div class="card-icon amber">🗺️</div>
+        <div class="card-info">
+          <div class="card-name">Loan File Routing Guide</div>
+          <div class="card-desc">Which lender gets which loan type — quick reference</div>
+        </div>
+        <div class="card-type">HTML</div>
+      </a>
+
+    </div>
+  </div>
+
+  <!-- CLOSE / POST-CLOSE -->
+  <div class="stage" data-stage="close">
+    <div class="stage-label">🏁 Close &amp; Post-Close</div>
+    <div class="cards">
+
+      <a class="card" href="./post-close.html" data-name="post close checklist closing funded tasks">
+        <div class="card-icon green">🎉</div>
+        <div class="card-info">
+          <div class="card-name">Post-Close Checklist</div>
+          <div class="card-desc">Everything to do after a loan funds — don't miss a step</div>
+        </div>
+        <div class="card-type">HTML</div>
+      </a>
+
+    </div>
+  </div>
+
+  <!-- PARTNER / REALTOR -->
+  <div class="stage" data-stage="partner">
+    <div class="stage-label">🤝 Partner &amp; Realtor Tools</div>
+    <div class="cards">
+
+      <a class="card" href="https://drive.google.com/file/d/1wF-SLLup1o3dqrYAr7cNP68_-C6Edj4A/view" target="_blank" data-name="realtor engagement tracker partner follow up cadence status">
+        <div class="card-icon rose">📌</div>
+        <div class="card-info">
+          <div class="card-name">Realtor Engagement Tracker</div>
+          <div class="card-desc">Active partner list with status, last contact, and next steps</div>
+        </div>
+        <div class="card-type">Excel</div>
+      </a>
+
+      <a class="card" href="./realtor-planning.html" data-name="realtor business planning calculator goals production partner meeting">
+        <div class="card-icon amber">📈</div>
+        <div class="card-info">
+          <div class="card-name">Realtor Business Planning Calculator</div>
+          <div class="card-desc">Goal-setting and production planning tool for partner meetings</div>
+        </div>
+        <div class="card-type">HTML</div>
+      </a>
+
+      <a class="card" href="./scenario-flyer.html" data-name="scenario flyer generator marketing payment open house branding co-brand Realtor">
+        <div class="card-icon blue">📄</div>
+        <div class="card-info">
+          <div class="card-name">Scenario Flyer Generator</div>
+          <div class="card-desc">Co-branded payment scenario flyer — VA, 5% down, 20% down</div>
+        </div>
+        <div class="card-type">HTML</div>
+      </a>
+
+      <a class="card" href="./jumbo-flyer.html" data-name="jumbo flyer generator marketing high balance jumbo loan branding">
+        <div class="card-icon purple">📄</div>
+        <div class="card-info">
+          <div class="card-name">Jumbo Flyer Generator</div>
+          <div class="card-desc">Same as scenario flyer — formatted for jumbo / high-balance loans</div>
+        </div>
+        <div class="card-type">HTML</div>
+      </a>
+
+    </div>
+  </div>
+
+  <!-- MARKET & RATE INTELLIGENCE -->
+  <div class="stage" data-stage="market">
+    <div class="stage-label">📡 Market &amp; Rate Intelligence</div>
+    <div class="cards">
+
+      <a class="card" href="./rate-board.html" data-name="rate board presenter display rates advertise current mortgage rates">
+        <div class="card-icon blue">📺</div>
+        <div class="card-info">
+          <div class="card-name">Rate Board Presenter</div>
+          <div class="card-desc">Display and present current rate scenarios in a clean format</div>
+        </div>
+        <div class="card-type">HTML</div>
+      </a>
+
+      <a class="card" href="./rate-board-client.html" data-name="rate board client facing public rates comparison display">
+        <div class="card-icon teal">📊</div>
+        <div class="card-info">
+          <div class="card-name">Rate Board — Client View</div>
+          <div class="card-desc">Client-facing rate comparison display page</div>
+        </div>
+        <div class="card-type">HTML</div>
+      </a>
+
+      <a class="card" href="./rate-lock.html" data-name="rate lock guide strategy when to lock float analysis decision">
+        <div class="card-icon amber">🔒</div>
+        <div class="card-info">
+          <div class="card-name">Rate Lock Guide</div>
+          <div class="card-desc">When to lock vs. float — strategy reference and client talking points</div>
+        </div>
+        <div class="card-type">HTML</div>
+      </a>
+
+      <a class="card" href="./recession-tracker.html" data-name="recession tracker economic indicators signals market data monitoring">
+        <div class="card-icon rose">📉</div>
+        <div class="card-info">
+          <div class="card-name">Recession Tracker</div>
+          <div class="card-desc">Key economic indicators and recession signal monitoring</div>
+        </div>
+        <div class="card-type">HTML</div>
+      </a>
+
+      <a class="card" href="./housing-market.html" data-name="housing market data Tampa local market statistics inventory supply demand">
+        <div class="card-icon green">🏠</div>
+        <div class="card-info">
+          <div class="card-name">Housing Market Guide</div>
+          <div class="card-desc">Local market data, inventory trends, supply and demand signals</div>
+        </div>
+        <div class="card-type">HTML</div>
+      </a>
+
+    </div>
+  </div>
+
+  <!-- CMPS ADVISORY CALCULATORS -->
+  <div class="stage" data-stage="cmps">
+    <div class="stage-label">🧮 CMPS Advisory Calculators</div>
+    <div class="cards">
+
+      <a class="card" href="./tax-calc.html" data-name="after-tax rate gross-up calculator tax bracket retirement IRA 401k withdrawal penalty CMPS">
+        <div class="card-icon blue">💸</div>
+        <div class="card-info">
+          <div class="card-name">After-Tax Rate &amp; Gross-Up Calculator</div>
+          <div class="card-desc">True cost of mortgage after-tax + IRA/401(k) gross-up with penalty logic</div>
+        </div>
+        <div class="card-type">HTML</div>
+      </a>
+
+      <a class="card" href="./cash-vs-mortgage.html" data-name="cash vs mortgage calculator opportunity cost invest difference pay off CMPS">
+        <div class="card-icon green">⚖️</div>
+        <div class="card-info">
+          <div class="card-name">Cash vs. Mortgage Calculator</div>
+          <div class="card-desc">Should cash buyers finance? Compare net worth outcomes side by side</div>
+        </div>
+        <div class="card-type">HTML</div>
+      </a>
+
+      <a class="card" href="./critical-capital.html" data-name="critical capital retirement calculator lump sum income goal savings CMPS elder care">
+        <div class="card-icon purple">🎯</div>
+        <div class="card-info">
+          <div class="card-name">Critical Capital Calculator</div>
+          <div class="card-desc">How much do they need to retire? Income goal ÷ (return − inflation)</div>
+        </div>
+        <div class="card-type">HTML</div>
+      </a>
+
+      <a class="card" href="./cap-rate.html" data-name="cap rate NOI solver investor property capitalization rate leverage analysis CMPS">
+        <div class="card-icon amber">🏘️</div>
+        <div class="card-info">
+          <div class="card-name">Cap Rate / NOI Solver</div>
+          <div class="card-desc">3-way solve: find cap rate, max price, or required rent + leverage check</div>
+        </div>
+        <div class="card-type">HTML</div>
+      </a>
+
+      <a class="card" href="./irr-calc.html" data-name="IRR internal rate of return investment property cash on cash investor calculator CMPS">
+        <div class="card-icon teal">📈</div>
+        <div class="card-info">
+          <div class="card-name">Investment Property IRR Calculator</div>
+          <div class="card-desc">Full IRR + cash-on-cash using PV, PMT, N, FV — the CMPS investor model</div>
+        </div>
+        <div class="card-type">HTML</div>
+      </a>
+
+      <a class="card" href="./rule-of-72.html" data-name="rule of 72 double money financial education compound interest return rate investment years">
+        <div class="card-icon indigo">✖️</div>
+        <div class="card-info">
+          <div class="card-name">Rule of 72 — Financial Education</div>
+          <div class="card-desc">How long to double money? 4-rate comparison, real estate leverage framing</div>
+        </div>
+        <div class="card-type">HTML</div>
+        <div class="badge-new">NEW</div>
+      </a>
+
+    </div>
+  </div>
+
+  <!-- IDEAS / EXPERIMENTS -->
+  <div class="stage" data-stage="ideas">
+    <div class="stage-label">💡 Ideas &amp; Experiments</div>
+    <div class="cards">
+
+      <a class="card" href="./rate-tool.html" data-name="rate tool rates advertise bankrate public concept">
+        <div class="card-icon amber">📊</div>
+        <div class="card-info">
+          <div class="card-name">Rate Tool</div>
+          <div class="card-desc">Concept: public-facing rate display page, similar to Bankrate</div>
+        </div>
+        <div class="card-type">HTML</div>
+      </a>
+
+    </div>
+  </div>
+
+  <div class="no-results" id="noResults">No tools match that search.</div>
+
+</div>
+
+<script>
+function filterTools() {
+  const q = document.getElementById('searchInput').value.toLowerCase().trim();
+  const cards = document.querySelectorAll('.card');
+  const stages = document.querySelectorAll('.stage');
+  let anyVisible = false;
+
+  cards.forEach(card => {
+    const text = (card.dataset.name || '') + ' ' + card.innerText;
+    if (!q || text.toLowerCase().includes(q)) {
+      card.classList.remove('hidden');
+    } else {
+      card.classList.add('hidden');
+    }
+  });
+
+  stages.forEach(stage => {
+    const visible = [...stage.querySelectorAll('.card')].some(c => !c.classList.contains('hidden'));
+    stage.classList.toggle('hidden', !visible);
+    if (visible) anyVisible = true;
+  });
+
+  document.getElementById('noResults').style.display = anyVisible ? 'none' : 'block';
+}
+
+// Count tools on load
+window.addEventListener('DOMContentLoaded', () => {
+  const count = document.querySelectorAll('.card').length;
+  document.getElementById('toolCount').textContent = count + ' tools';
+});
+</script>
+
+</body>
+</html>

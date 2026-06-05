@@ -1,0 +1,1645 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Comfort Calculator | HomeWealth Solutions</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+      font-size: 14px;
+      color: #1a1a2e;
+      background: #f0f4f8;
+    }
+
+    /* ── Header ── */
+    .header {
+      background: #2491EB;
+      position: relative;
+      color: white;
+      padding: 14px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .header .brand  { font-size: 20px; font-weight: 800; letter-spacing: -0.5px; }
+    .header .sub    { font-size: 11px; opacity: 0.8; margin-top: 2px; }
+    .header .right  { text-align: right; font-size: 12px; line-height: 1.6; opacity: 0.9; }
+    .header .right strong { font-size: 13px; }
+
+    /* ── Tabs ── */
+    .tabs {
+      background: white;
+      border-bottom: 2px solid #e2e8f0;
+      display: flex;
+      padding: 0 32px;
+    }
+    .tab-btn {
+      padding: 12px 20px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #64748b;
+      cursor: pointer;
+      border: none;
+      background: none;
+      border-bottom: 3px solid transparent;
+      margin-bottom: -2px;
+      transition: all 0.15s;
+    }
+    .tab-btn:hover { color: #2491EB; }
+    .tab-btn.active { color: #2491EB; border-bottom-color: #2491EB; }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    .container { max-width: 1100px; margin: 0 auto; padding: 20px 24px 40px; }
+
+    /* ── Cards ── */
+    .card {
+      background: white;
+      border-radius: 10px;
+      border: 1px solid #e2e8f0;
+      padding: 20px 24px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+      margin-bottom: 16px;
+    }
+    .card-title {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      color: #2491EB;
+      margin-bottom: 14px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    .card-title.green { color: #8EC73F; border-bottom-color: #e2e8f0; }
+
+    /* ── Two-col layout ── */
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+    @media (max-width: 700px) {
+      .two-col, .three-col { grid-template-columns: 1fr; }
+    }
+
+    /* ── Input grid ── */
+    .input-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px 20px;
+    }
+    @media (max-width: 600px) { .input-grid { grid-template-columns: 1fr; } }
+    .field label {
+      display: block;
+      font-size: 11px;
+      font-weight: 600;
+      color: #64748b;
+      margin-bottom: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+    }
+    .field input {
+      width: 100%;
+      padding: 8px 10px;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      font-size: 14px;
+      color: #1a1a2e;
+      background: #fafbfc;
+      transition: border-color 0.15s;
+    }
+    .field input:focus { outline: none; border-color: #2491EB; background: white; }
+    .field.full { grid-column: 1 / -1; }
+    .input-hint {
+      font-size: 11px;
+      color: #94a3b8;
+      margin-top: 10px;
+      font-style: italic;
+    }
+
+    /* ── Stat cards ── */
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    @media (max-width: 600px) { .stat-grid { grid-template-columns: 1fr 1fr; } }
+    .stat-card {
+      background: white;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 14px 16px;
+      text-align: center;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    .stat-card.highlight-blue { border-top: 3px solid #2491EB; }
+    .stat-card.highlight-green { border-top: 3px solid #8EC73F; }
+    .stat-card.highlight-gold { border-top: 3px solid #f59e0b; }
+    .sv { font-size: 22px; font-weight: 800; color: #1a1a2e; }
+    .sv.blue { color: #2491EB; }
+    .sv.green { color: #8EC73F; }
+    .sl { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #94a3b8; margin-top: 3px; }
+
+    /* ── Tables ── */
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    thead th {
+      background: #f8fafc;
+      padding: 8px 10px;
+      text-align: left;
+      font-size: 11px;
+      font-weight: 700;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      border-bottom: 2px solid #e2e8f0;
+    }
+    thead th:not(:first-child) { text-align: right; }
+    tbody tr { border-bottom: 1px solid #f1f5f9; }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: #f8fafc; }
+    tbody tr.current-row { background: #eff8ff; font-weight: 700; }
+    tbody tr.total-row { background: #f0f4f8; font-weight: 700; border-top: 2px solid #e2e8f0; }
+    tbody td { padding: 8px 10px; }
+    tbody td:not(:first-child) { text-align: right; }
+    .pos { color: #16a34a; }
+    .neg { color: #dc2626; }
+    .muted { color: #94a3b8; }
+    .tag {
+      display: inline-block;
+      padding: 2px 7px;
+      border-radius: 10px;
+      font-size: 10px;
+      font-weight: 700;
+    }
+    .tag-blue   { background: #dbeafe; color: #1d4ed8; }
+    .tag-green  { background: #dcfce7; color: #15803d; }
+    .tag-purple { background: #ede9fe; color: #6d28d9; }
+    .tag-gray   { background: #f1f5f9; color: #64748b; }
+
+    /* ── Section header in table ── */
+    .section-hd td {
+      background: #2491EB !important;
+      color: white !important;
+      font-weight: 700 !important;
+      font-size: 11px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      padding: 6px 10px !important;
+    }
+
+    /* ── Buydown tab ── */
+    .option-card {
+      background: white;
+      border-radius: 10px;
+      border: 2px solid #e2e8f0;
+      padding: 20px 24px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    }
+    .option-card.blue   { border-top-color: #2491EB; }
+    .option-card.green  { border-top-color: #8EC73F; }
+    .option-card.purple { border-top-color: #8b5cf6; }
+    .option-title {
+      font-size: 13px;
+      font-weight: 800;
+      color: #1a1a2e;
+      margin-bottom: 14px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    .result-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 6px 0;
+      border-bottom: 1px solid #f1f5f9;
+      font-size: 13px;
+    }
+    .result-row:last-child { border-bottom: none; }
+    .result-label { color: #64748b; }
+    .result-value { font-weight: 700; color: #1a1a2e; }
+    .winner-banner {
+      background: #ecfdf5;
+      border: 2px solid #8EC73F;
+      border-radius: 8px;
+      padding: 12px 16px;
+      text-align: center;
+      font-weight: 700;
+      color: #15803d;
+      font-size: 14px;
+      margin-bottom: 16px;
+      display: none;
+    }
+    .shared-info {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 12px 16px;
+      margin-bottom: 16px;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      text-align: center;
+    }
+    .shared-info .si-val { font-size: 16px; font-weight: 800; color: #2491EB; }
+    .shared-info .si-lbl { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px; color: #94a3b8; }
+    @media (max-width: 600px) { .shared-info { grid-template-columns: 1fr 1fr; } }
+
+    /* ── Savings chart ── */
+    .savings-bar-wrap { display: flex; align-items: center; gap: 6px; }
+    .savings-bar {
+      height: 12px;
+      border-radius: 3px;
+      min-width: 3px;
+      transition: width 0.3s;
+    }
+    .bar-a { background: #2491EB; }
+    .bar-b { background: #8EC73F; }
+    .bar-c { background: #8b5cf6; }
+    .bar-neg { background: #fca5a5; }
+
+    /* ── Actions ── */
+    .actions { display: flex; gap: 8px; justify-content: flex-end; margin-bottom: 16px; }
+    .btn {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 8px 16px; border-radius: 7px; font-size: 12px; font-weight: 600;
+      cursor: pointer; border: none; transition: all 0.15s;
+    }
+    .btn-blue  { background: #2491EB; color: white; }
+    .btn-blue:hover { background: #1a7fd4; }
+    .btn-ghost { background: white; color: #374151; border: 1px solid #d1d5db; }
+    .btn-ghost:hover { background: #f9fafb; }
+
+    /* ── Compliance footer ── */
+    .compliance {
+      font-size: 10px;
+      color: #94a3b8;
+      line-height: 1.5;
+      padding: 14px 0 0;
+      border-top: 1px solid #e2e8f0;
+      margin-top: 16px;
+    }
+    .notice-bar {
+      background: #fffbeb;
+      border: 1px solid #fcd34d;
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 12px;
+      color: #92400e;
+      margin-bottom: 16px;
+    }
+
+    /* ── Scrollable table wrapper ── */
+    .table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .table-scroll table { min-width: 560px; }
+
+    /* ══════════════════════════════════════
+       MOBILE — 640px and below
+    ══════════════════════════════════════ */
+    @media (max-width: 640px) {
+      /* Header */
+      .header { padding: 10px 14px; }
+      .header .brand { font-size: 16px; }
+      .header .right { display: none; }
+
+      /* Tabs */
+      .tabs { padding: 0 6px; }
+      .tab-btn { padding: 11px 12px; font-size: 12px; }
+
+      /* Container */
+      .container { padding: 12px 10px 32px; }
+
+      /* Cards */
+      .card { padding: 14px 14px; }
+      .option-card { padding: 14px 14px; }
+
+      /* Inputs — single col, larger touch targets */
+      .field input { padding: 11px 10px; font-size: 15px; min-height: 44px; }
+
+      /* Stat cards — 2 col */
+      .stat-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
+      .sv { font-size: 18px; }
+
+      /* Shared info bar — 2 col */
+      .shared-info { grid-template-columns: 1fr 1fr; }
+
+      /* Offer strategy — stack inputs and paths */
+      .os-inputs-grid { grid-template-columns: 1fr !important; }
+      .os-paths-grid  { grid-template-columns: 1fr !important; }
+
+      /* Winner banner */
+      .winner-banner { font-size: 12px; padding: 10px 12px; }
+
+      /* Result rows */
+      .result-row { font-size: 12px; gap: 8px; }
+      .result-label { flex: 1; min-width: 0; }
+      .result-value { flex-shrink: 0; }
+
+      /* Actions */
+      .actions { flex-wrap: wrap; justify-content: flex-start; }
+      .btn { font-size: 11px; padding: 9px 12px; min-height: 40px; }
+
+      /* Tables — full scroll, readable on phone */
+      table { font-size: 12px; }
+      thead th, tbody td { padding: 7px 7px; }
+
+      /* Compliance */
+      .compliance { font-size: 9.5px; }
+
+      /* Notice bar */
+      .notice-bar { font-size: 11px; }
+    }
+  
+  .back-link {
+    color: rgba(255,255,255,0.85);
+    text-decoration: none;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-shrink: 0;
+  }
+  .back-link:hover { color: white; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <div class="brand">HomeWealth Solutions</div>
+    <div class="sub">Discovery Call — Comfort Calculator</div>
+  </div>
+  <a href="javascript:window.close()" class="back-link" style="position:absolute;top:14px;right:14px;font-size:11px;color:rgba(255,255,255,0.8);text-decoration:none;">← Hub</a>
+  <div class="right">
+    <strong>Doug Smith, CMA® | President & Broker</strong><br>
+    813-733-7371 · doug@homewealthsolutions.com<br>
+    NMLS #2609118 · Company NMLS #2742458
+  </div>
+</div>
+
+<div class="tabs">
+  <button class="tab-btn active" onclick="switchTab('calc')">🏠 Comfort Calculator</button>
+  <button class="tab-btn" onclick="switchTab('buydown')">📊 Buydown vs. Down Payment</button>
+</div>
+
+<!-- ══════════════════════════════════════════════════ -->
+<!-- TAB 1: COMFORT CALCULATOR                        -->
+<!-- ══════════════════════════════════════════════════ -->
+<div class="tab-panel active" id="tab-calc">
+<div class="container">
+
+  <div class="actions">
+    <button class="btn btn-ghost" onclick="loadSample()">Load Sample</button>
+    <button class="btn btn-ghost" onclick="clearAll()">Clear</button>
+    <button class="btn btn-blue" onclick="window.print()">🖨 Print</button>
+  </div>
+
+  <div class="notice-bar">
+    <strong>Quick reference only</strong> — not a pre-approval. Taxes and insurance are estimates. Actual payment will vary by lender, loan program, and property.
+  </div>
+
+  <!-- INPUTS -->
+  <div class="card">
+    <div class="card-title">Inputs</div>
+    <div class="input-grid">
+      <div class="field">
+        <label>Annual Gross Income ($)</label>
+        <input type="text" inputmode="decimal" id="annualIncome" placeholder="Enter annual income" oninput="syncIncome('annual')" onblur="fmtInput(this)" onfocus="clearFmt(this)">
+      </div>
+      <div class="field">
+        <label>Monthly Gross Income ($)</label>
+        <input type="text" inputmode="decimal" id="monthlyIncome" placeholder="Or enter monthly" oninput="syncIncome('monthly')" onblur="fmtInput(this)" onfocus="clearFmt(this)">
+      </div>
+      <div class="field">
+        <label>Monthly Non-Housing Debt ($)</label>
+        <input type="text" inputmode="decimal" id="monthlyDebt" placeholder="Car, student loans, etc." oninput="calculate()" onblur="fmtInput(this)" onfocus="clearFmt(this)">
+      </div>
+      <div class="field">
+        <label>Comfortable Monthly Payment ($)</label>
+        <div style="display:flex;gap:6px;align-items:center;">
+          <button onclick="stepComfort(-100)" title="-$100" style="flex-shrink:0;width:34px;height:38px;border:1px solid #cbd5e1;border-radius:7px;background:#f8fafc;font-size:18px;line-height:1;cursor:pointer;color:#475569;font-weight:700;display:flex;align-items:center;justify-content:center;" onmousedown="startStep(-100)" onmouseup="stopStep()" onmouseleave="stopStep()">−</button>
+          <input type="text" inputmode="decimal" id="comfortPayment" placeholder="What feels comfortable?" oninput="calculate()" onblur="fmtInput(this)" onfocus="clearFmt(this)" style="flex:1;min-width:0;">
+          <button onclick="stepComfort(100)" title="+$100" style="flex-shrink:0;width:34px;height:38px;border:1px solid #cbd5e1;border-radius:7px;background:#f8fafc;font-size:18px;line-height:1;cursor:pointer;color:#475569;font-weight:700;display:flex;align-items:center;justify-content:center;" onmousedown="startStep(100)" onmouseup="stopStep()" onmouseleave="stopStep()">+</button>
+        </div>
+      </div>
+      <div class="field">
+        <label>Down Payment ($)</label>
+        <input type="text" inputmode="decimal" id="downPayment" placeholder="Enter down payment" oninput="syncTotalCash();calculate()" onblur="fmtInput(this)" onfocus="clearFmt(this)">
+      </div>
+
+      <!-- Total Cash Available panel -->
+      <div class="field" style="grid-column:1/-1;">
+        <div style="border:1.5px solid #2491EB22;border-radius:10px;background:#f0f7ff;padding:12px 14px;">
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+            <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#2491EB;margin:0;">Total Cash Available</label>
+            <input type="text" inputmode="decimal" id="totalCash" placeholder="e.g. $75,000" oninput="_cashManual=true;updateCashEst()" onblur="fmtInput(this)" onfocus="clearFmt(this)" style="width:140px;padding:6px 10px;border:1px solid #bfdbfe;border-radius:7px;font-size:13px;background:white;">
+            <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12px;color:#475569;margin:0;user-select:none;">
+              <div id="cc-toggle-track" onclick="toggleCCIncluded()" style="width:34px;height:18px;background:#94a3b8;border-radius:9px;position:relative;cursor:pointer;transition:background .2s;flex-shrink:0;">
+                <div id="cc-toggle-knob" style="position:absolute;top:2px;left:2px;width:14px;height:14px;background:white;border-radius:50%;transition:left .2s;box-shadow:0 1px 3px rgba(0,0,0,.2);"></div>
+              </div>
+              Closing costs included?
+            </label>
+            <button onclick="applyCashAlloc()" style="margin-left:auto;padding:6px 14px;background:#2491EB;color:white;border:none;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;">Apply Down Payment</button>
+          </div>
+          <div id="cash-breakdown" style="display:none;margin-top:10px;border-top:1px solid #bfdbfe;padding-top:10px;">
+            <div style="display:flex;gap:24px;flex-wrap:wrap;align-items:center;">
+              <div style="font-size:14px;"><span style="color:#64748b;">Est. Closing Costs: </span><span id="cc_total_est" style="font-weight:800;color:#dc2626;"></span></div>
+              <div style="font-size:14px;"><span style="color:#64748b;">Effective Down Payment: </span><span id="cc_eff_down" style="font-weight:800;color:#2491EB;"></span></div>
+            </div>
+            <div id="cc_note" style="font-size:10px;color:#94a3b8;margin-top:4px;">Est. based on current comfort price. Hit Apply to recalculate with updated down payment.</div>
+          </div>
+        </div>
+      </div>
+      <div class="field">
+        <label>Interest Rate (%)</label>
+        <input type="text" inputmode="decimal" id="rate" placeholder="Enter rate" oninput="calculate()" onblur="fmtPct(this)" onfocus="clearPct(this)">
+      </div>
+      <div class="field">
+        <label>Loan Term (Years)</label>
+        <input type="number" id="termYears" value="30" step="1" oninput="calculate()">
+      </div>
+      <div class="field">
+        <label>Annual Property Taxes ($) <span style="font-size:10px;color:#8EC73F;font-weight:600">default</span></label>
+        <input type="text" inputmode="decimal" id="annualTaxes" value="5000" oninput="calculate()" onblur="fmtInput(this)" onfocus="clearFmt(this)">
+      </div>
+      <div class="field">
+        <label>Annual Homeowners Insurance ($) <span style="font-size:10px;color:#8EC73F;font-weight:600">default</span></label>
+        <input type="text" inputmode="decimal" id="annualHOI" value="2400" oninput="calculate()" onblur="fmtInput(this)" onfocus="clearFmt(this)">
+      </div>
+      <div class="field">
+        <label>Monthly HOA ($)</label>
+        <input type="text" inputmode="decimal" id="monthlyHOA" placeholder="0 if none" oninput="calculate()" onblur="fmtInput(this)" onfocus="clearFmt(this)">
+      </div>
+      <div class="field">
+        <label>PMI Rate (% of loan / yr) <span style="font-size:10px;color:#8EC73F;font-weight:600">default</span></label>
+        <input type="text" inputmode="decimal" id="pmiRate" value="0.85" oninput="calculate()" onblur="fmtPct(this)" onfocus="clearPct(this)">
+      </div>
+      <div class="field full">
+        <label>DTI Limit</label>
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+          <button onclick="setDTI(36)"  id="dti-btn-36"  style="padding:6px 14px;border-radius:6px;border:1.5px solid #d1d5db;background:white;font-size:12px;font-weight:700;cursor:pointer;color:#64748b;transition:all .15s;" class="dti-quick-btn">Conservative (36%)</button>
+          <button onclick="setDTI(43)"  id="dti-btn-43"  style="padding:6px 14px;border-radius:6px;border:1.5px solid #d1d5db;background:white;font-size:12px;font-weight:700;cursor:pointer;color:#64748b;transition:all .15s;" class="dti-quick-btn">Standard (43%)</button>
+          <button onclick="setDTI(50)"  id="dti-btn-50"  style="padding:6px 14px;border-radius:6px;border:1.5px solid #d1d5db;background:white;font-size:12px;font-weight:700;cursor:pointer;color:#64748b;transition:all .15s;" class="dti-quick-btn">FHA/VA (50%)</button>
+          <input type="text" inputmode="decimal" id="dtiLimit" value="49.99%" oninput="calculate()" onblur="fmtPct(this)" onfocus="clearPct(this)" style="width:90px;padding:8px 10px;border:1px solid #d1d5db;border-radius:6px;font-size:14px;color:#1a1a2e;background:#fafbfc;">
+        </div>
+        <div style="font-size:10px;color:#94a3b8;margin-top:5px">Quick-select or enter any value — all calculations update dynamically</div>
+      </div>
+    </div>
+    <div class="input-hint">Blank fields need your input. <span style="color:#8EC73F;font-weight:600">Green "default"</span> fields are pre-filled with FL averages — edit as needed.</div>
+  </div>
+
+  <!-- KEY RESULTS -->
+  <div class="stat-grid">
+    <div class="stat-card highlight-blue">
+      <div class="sv blue" id="r_comfortPrice">—</div>
+      <div class="sl">Comfort Purchase Price</div>
+    </div>
+    <div class="stat-card highlight-gold">
+      <div class="sv" id="r_maxPrice" style="color:#d97706">—</div>
+      <div class="sl">Max Qualifying Price</div>
+    </div>
+    <div class="stat-card highlight-green">
+      <div class="sv green" id="r_dti">—</div>
+      <div class="sl">Total DTI</div>
+    </div>
+    <div class="stat-card">
+      <div class="sv" id="r_grossMonthly">—</div>
+      <div class="sl">Gross Monthly Income</div>
+    </div>
+    <div class="stat-card">
+      <div class="sv" id="r_maxHousing">—</div>
+      <div class="sl">Max Housing Payment (DTI)</div>
+    </div>
+    <div class="stat-card" id="card_comfortDTI">
+      <div class="sv" id="r_comfortDTI">—</div>
+      <div class="sl" id="sl_comfortDTI">DTI at Comfort Payment</div>
+    </div>
+  </div>
+
+  <!-- PAYMENT BREAKDOWN -->
+  <div class="two-col">
+    <div class="card">
+      <div class="card-title">Monthly Payment Breakdown — Comfort Price</div>
+      <table id="payBreakTable">
+        <tbody>
+          <tr><td>Principal &amp; Interest</td><td id="pb_pi" style="text-align:right">—</td></tr>
+          <tr><td>Property Taxes</td><td id="pb_tax" style="text-align:right">—</td></tr>
+          <tr><td>Homeowners Insurance</td><td id="pb_hoi" style="text-align:right">—</td></tr>
+          <tr><td>HOA</td><td id="pb_hoa" style="text-align:right">—</td></tr>
+          <tr><td>PMI</td><td id="pb_pmi" style="text-align:right">—</td></tr>
+          <tr class="total-row"><td><strong>Total Est. Payment</strong></td><td id="pb_total" style="text-align:right;font-weight:800">—</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Loan Summary</div>
+      <table>
+        <tbody>
+          <tr><td>Comfort-Based Loan</td><td id="r_comfortLoan" style="text-align:right">—</td></tr>
+          <tr><td>Comfort Purchase Price</td><td id="r_comfortPrice2" style="text-align:right">—</td></tr>
+          <tr><td>Max Qualifying Loan</td><td id="r_maxLoan" style="text-align:right">—</td></tr>
+          <tr><td>Max Purchase Price</td><td id="r_maxPrice2" style="text-align:right">—</td></tr>
+          <tr style="border-top:2px solid #e2e8f0"><td style="padding-top:10px">Recommended Starting Price</td><td id="r_recommended" style="text-align:right;font-weight:800;color:#2491EB;padding-top:10px">—</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- DOWN PAYMENT IMPACT -->
+  <div class="card">
+    <div class="card-title">Down Payment Impact — per $10,000 Additional</div>
+    <table>
+      <thead>
+        <tr>
+          <th>Additional Down</th>
+          <th>New Down Total</th>
+          <th>New Loan</th>
+          <th>Payment Change</th>
+          <th>New Est. Payment</th>
+        </tr>
+      </thead>
+      <tbody id="downImpactBody"></tbody>
+    </table>
+  </div>
+
+  <!-- RATE SENSITIVITY -->
+  <div class="card">
+    <div class="card-title">Rate Sensitivity — Effect of ±0.25% Rate Change</div>
+    <table>
+      <thead>
+        <tr>
+          <th>Rate</th>
+          <th>Monthly P&amp;I</th>
+          <th>vs Current Rate</th>
+          <th>Total Est. Payment</th>
+        </tr>
+      </thead>
+      <tbody id="rateSensBody"></tbody>
+    </table>
+  </div>
+
+  <!-- BUDGET RANGES TABLE -->
+  <div class="card">
+    <div class="card-title">Budget Ranges — Purchasing Zones</div>
+    <div style="font-size:12px;color:#64748b;margin-bottom:12px">Back-calculated from income, obligations, and rate. Each zone shows the max home price at that DTI threshold.</div>
+    <div class="table-scroll"><table id="budgetRangesTable">
+      <thead>
+        <tr>
+          <th>Zone</th>
+          <th>DTI</th>
+          <th>Max Home Price</th>
+          <th>Monthly P&amp;I</th>
+          <th>Est. Monthly PITI</th>
+        </tr>
+      </thead>
+      <tbody id="budgetRangesBody">
+        <tr><td colspan="5" class="muted" style="text-align:center;padding:12px">Enter inputs above to see ranges</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+
+  <!-- TOTAL FUNDS NEEDED -->
+  <div class="card" id="fundsNeededCard" style="border-top:3px solid #2491EB;display:none">
+    <div class="card-title">Total Funds Needed</div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:14px" id="fundsNeededGrid"></div>
+    <div id="fundsNeededNote" style="font-size:11px;color:#94a3b8;line-height:1.6;padding:10px 12px;background:#f8fafc;border-radius:6px;border-left:3px solid #e2e8f0"></div>
+  </div>
+
+</div>
+</div>
+
+<!-- ══════════════════════════════════════════════════ -->
+<!-- TAB 2: BUYDOWN vs DOWN PAYMENT                   -->
+<!-- ══════════════════════════════════════════════════ -->
+<div class="tab-panel" id="tab-buydown">
+<div class="container">
+
+  <div class="notice-bar">
+    Inputs are pulled automatically from the Comfort Calculator tab. Use the Offer Strategy card to compare negotiation paths, then drill into the detail cards below.
+  </div>
+
+  <!-- SHARED INFO -->
+  <div class="shared-info">
+    <div>
+      <div class="si-val" id="bd_loanAmt">—</div>
+      <div class="si-lbl">Comfort Loan</div>
+    </div>
+    <div>
+      <div class="si-val" id="bd_rate">—</div>
+      <div class="si-lbl">Note Rate</div>
+    </div>
+    <div>
+      <div class="si-val" id="bd_term">—</div>
+      <div class="si-lbl">Term (Years)</div>
+    </div>
+    <div>
+      <div class="si-val" id="bd_currentPmt">—</div>
+      <div class="si-lbl">Current Total Pmt / mo</div>
+    </div>
+  </div>
+
+  <!-- OFFER STRATEGY — featured full-width card -->
+  <div class="card" style="margin-bottom:16px;border-top:3px solid #f97316">
+    <div class="card-title" style="color:#f97316;margin-bottom:4px">⚖️ Offer Strategy — Lower Price vs. Seller Concession for Rate Buydown</div>
+    <div style="color:#64748b;font-size:12px;margin-bottom:16px">Seller has $X to contribute — is the buyer better off with a lower purchase price, or keeping the full price and using that money as a concession toward a rate buydown?</div>
+
+    <div class="os-inputs-grid" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:16px;align-items:end">
+      <div class="field">
+        <label>Seller Contribution ($)</label>
+        <input type="text" inputmode="decimal" id="os_amount" placeholder="e.g. 10000" oninput="calcOfferStrategy()" onblur="fmtInput(this)" onfocus="clearFmt(this)">
+      </div>
+      <div>
+        <div style="font-size:11px;color:#94a3b8;margin-bottom:4px">Rate reduction per point assumption</div>
+        <div style="display:flex;align-items:center;gap:6px">
+          <input type="text" inputmode="decimal" id="os_ratePerPoint" value="0.25" min="0.125" max="0.5" style="width:70px;padding:7px 8px;border:1px solid #e2e8f0;border-radius:6px;font-size:13px" oninput="calcOfferStrategy()" onblur="fmtPct(this)" onfocus="clearPct(this)">
+          <span style="font-size:12px;color:#64748b">% per point</span>
+        </div>
+        <div style="font-size:10px;color:#94a3b8;margin-top:3px">1 pt = 1% of loan · typical: 0.25%</div>
+      </div>
+      <div>
+        <div style="font-size:11px;color:#64748b;margin-bottom:4px">Estimated buydown rate</div>
+        <div id="os_estRate" style="font-size:22px;font-weight:700;color:#2491EB">—</div>
+        <div style="font-size:10px;color:#94a3b8;margin-top:2px" id="os_estPoints">Enter contribution above</div>
+        <div style="margin-top:6px;font-size:11px;color:#64748b">Override rate: <input type="text" inputmode="decimal" id="os_rate" placeholder="actual quote" style="width:90px;padding:4px 6px;border:1px solid #e2e8f0;border-radius:5px;font-size:12px" oninput="calcOfferStrategy()" onblur="fmtPct(this)" onfocus="clearPct(this)"></div>
+      </div>
+    </div>
+
+    <div class="os-paths-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+      <div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:8px;padding:16px">
+        <div style="font-weight:700;color:#ea580c;margin-bottom:4px;font-size:13px">PATH 1 — Lower Offer</div>
+        <div style="color:#94a3b8;font-size:11px;font-style:italic;margin-bottom:12px">Buyer offers less. Same rate, smaller loan, more equity day one.</div>
+        <div class="result-row"><span class="result-label">New Purchase Price</span><span class="result-value" id="os_lower_price">—</span></div>
+        <div class="result-row"><span class="result-label">New Loan Amount</span><span class="result-value" id="os_lower_loan">—</span></div>
+        <div class="result-row"><span class="result-label">PMI Status</span><span class="result-value" id="os_lower_pmi">—</span></div>
+        <div class="result-row"><span class="result-label">New Total Payment</span><span class="result-value" id="os_lower_total">—</span></div>
+        <div class="result-row"><span class="result-label">Monthly Savings</span><span class="result-value pos" id="os_lower_savings">—</span></div>
+      </div>
+      <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:16px">
+        <div style="font-weight:700;color:#2491EB;margin-bottom:4px;font-size:13px">PATH 2 — Seller Concession → Rate Buydown</div>
+        <div style="color:#94a3b8;font-size:11px;font-style:italic;margin-bottom:12px">Full asking price. Seller funds the buydown at closing.</div>
+        <div class="result-row"><span class="result-label">Points Purchased</span><span class="result-value" id="os_conc_points">—</span></div>
+        <div class="result-row"><span class="result-label">Buydown Rate</span><span class="result-value" id="os_conc_rate">—</span></div>
+        <div class="result-row"><span class="result-label">New P&amp;I</span><span class="result-value" id="os_conc_pi">—</span></div>
+        <div class="result-row"><span class="result-label">PMI Status</span><span class="result-value" id="os_conc_pmi">—</span></div>
+        <div class="result-row"><span class="result-label">New Total Payment</span><span class="result-value" id="os_conc_total">—</span></div>
+        <div class="result-row"><span class="result-label">Monthly Savings</span><span class="result-value pos" id="os_conc_savings">—</span></div>
+      </div>
+    </div>
+    <div id="os_winner" style="margin-top:14px;padding:11px 16px;border-radius:8px;background:#f8fafc;font-size:13px;color:#94a3b8;text-align:center">
+      Enter a seller contribution and buydown rate above to compare
+    </div>
+  </div>
+
+  <div class="winner-banner" id="winnerBanner"></div>
+
+  <!-- OPTION CARDS — A, C, B (B moved to reference position) -->
+  <div class="three-col" style="margin-bottom:16px">
+
+    <div class="option-card blue">
+      <div class="option-title" style="color:#2491EB">Option A — Rate Buydown Detail</div>
+      <div class="field" style="margin-bottom:10px">
+        <label>Cost of Buydown ($)</label>
+        <input type="text" inputmode="decimal" id="bd_buydownCost" value="5000" oninput="calcBuydown()" onblur="fmtInput(this)" onfocus="clearFmt(this)">
+      </div>
+      <div class="field" style="margin-bottom:14px">
+        <label>Bought-Down Rate (%)</label>
+        <input type="text" inputmode="decimal" id="bd_boughtRate" value="" placeholder="e.g. 6.75" oninput="calcBuydown()" onblur="fmtPct(this)" onfocus="clearPct(this)">
+      </div>
+      <div id="optA_results">
+        <div class="result-row"><span class="result-label">New P&amp;I at Bought-Down Rate</span><span class="result-value" id="a_pi">—</span></div>
+        <div class="result-row"><span class="result-label">New Total Payment</span><span class="result-value" id="a_total">—</span></div>
+        <div class="result-row"><span class="result-label">Monthly Savings vs. Current</span><span class="result-value pos" id="a_savings">—</span></div>
+        <div class="result-row"><span class="result-label">Upfront Cost</span><span class="result-value" id="a_cost">—</span></div>
+        <div class="result-row"><span class="result-label">Break-Even (months)</span><span class="result-value" id="a_beMonths">—</span></div>
+        <div class="result-row"><span class="result-label">Break-Even (years)</span><span class="result-value" id="a_beYears">—</span></div>
+      </div>
+    </div>
+
+    <div class="option-card purple">
+      <div class="option-title" style="color:#8b5cf6">Option B — Price Drop</div>
+      <div class="field" style="margin-bottom:10px">
+        <label>Price Reduction ($)</label>
+        <input type="text" inputmode="decimal" id="bd_priceDrop" value="5000" oninput="calcBuydown()" onblur="fmtInput(this)" onfocus="clearFmt(this)">
+      </div>
+      <div style="height:56px; margin-bottom:14px; display:flex; align-items:center; color:#94a3b8; font-size:12px; font-style:italic;">
+        Seller reduces purchase price — buyer builds equity faster, smaller loan
+      </div>
+      <div id="optC_results">
+        <div class="result-row"><span class="result-label">New Purchase Price</span><span class="result-value" id="c_price">—</span></div>
+        <div class="result-row"><span class="result-label">New Loan Amount</span><span class="result-value" id="c_loan">—</span></div>
+        <div class="result-row"><span class="result-label">PMI Status</span><span class="result-value" id="c_pmi">—</span></div>
+        <div class="result-row"><span class="result-label">New Total Payment</span><span class="result-value" id="c_total">—</span></div>
+        <div class="result-row"><span class="result-label">Monthly Savings vs. Current</span><span class="result-value pos" id="c_savings">—</span></div>
+        <div class="result-row"><span class="result-label">Price Reduction</span><span class="result-value" id="c_cost">—</span></div>
+        <div class="result-row"><span class="result-label">Break-Even (months)</span><span class="result-value" id="c_beMonths">—</span></div>
+        <div class="result-row"><span class="result-label">Break-Even (years)</span><span class="result-value" id="c_beYears">—</span></div>
+      </div>
+    </div>
+
+    <div class="option-card" style="border-color:#e2e8f0;background:#fafbfc">
+      <div class="option-title" style="color:#64748b">Option C — Extra Down Payment <span style="font-size:10px;font-weight:500;color:#94a3b8">(Reference)</span></div>
+      <div class="field" style="margin-bottom:10px">
+        <label>Extra Down Payment ($)</label>
+        <input type="text" inputmode="decimal" id="bd_extraDown" value="5000" oninput="calcBuydown()" onblur="fmtInput(this)" onfocus="clearFmt(this)">
+      </div>
+      <div style="height:56px; margin-bottom:14px; display:flex; align-items:center; color:#94a3b8; font-size:12px; font-style:italic;">
+        Buyer brings additional cash at closing — shows payment impact of extra down vs. buydown
+      </div>
+      <div id="optB_results">
+        <div class="result-row"><span class="result-label">New Loan Amount</span><span class="result-value" id="b_loan">—</span></div>
+        <div class="result-row"><span class="result-label">PMI Status</span><span class="result-value" id="b_pmi">—</span></div>
+        <div class="result-row"><span class="result-label">New Total Payment</span><span class="result-value" id="b_total">—</span></div>
+        <div class="result-row"><span class="result-label">Monthly Savings vs. Current</span><span class="result-value pos" id="b_savings">—</span></div>
+        <div class="result-row"><span class="result-label">Upfront Cost</span><span class="result-value" id="b_cost">—</span></div>
+        <div class="result-row"><span class="result-label">Break-Even (months)</span><span class="result-value" id="b_beMonths">—</span></div>
+        <div class="result-row"><span class="result-label">Break-Even (years)</span><span class="result-value" id="b_beYears">—</span></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- CUMULATIVE SAVINGS TABLE -->
+  <div class="card">
+    <div class="card-title">Cumulative Savings Over Time vs. Keeping Current Payment</div>
+    <div class="table-scroll"><table>
+      <thead>
+        <tr>
+          <th>Year</th>
+          <th style="color:#2491EB">A: Buydown</th>
+          <th style="text-align:left; padding-left:6px; color:#2491EB">▸</th>
+          <th style="color:#8b5cf6">B: Price Drop</th>
+          <th style="text-align:left; padding-left:6px; color:#8b5cf6">▸</th>
+          <th style="color:#94a3b8">C: Extra Down</th>
+          <th style="text-align:left; padding-left:6px; color:#94a3b8">▸</th>
+          <th>Winner</th>
+        </tr>
+      </thead>
+      <tbody id="cumSavingsBody"></tbody>
+    </table></div>
+  </div>
+
+  <div class="compliance">
+    Quick reference only — not a pre-approval. Buydown savings assume you keep the loan for the full period shown. Actual results will vary based on lender pricing, PMI removal, and early payoff scenarios.
+  </div>
+
+</div>
+</div>
+
+<!-- COMPLIANCE FOOTER -->
+<div class="container" style="padding-top:0">
+  <div class="compliance">
+    This communication is for informational and educational purposes only and does not constitute an offer to lend or a commitment to make a loan. All loans are subject to credit approval, underwriting guidelines, and property approval. Interest rates, payment examples, programs, and terms are illustrative, vary by borrower qualification, and are subject to change without notice. Not all applicants will qualify. Examples shown do not reflect all costs of a mortgage transaction. Consult a licensed tax or legal advisor regarding your individual situation. HomeWealth Solutions LLC is licensed by the Florida Office of Financial Regulation, Mortgage Broker License #MBR8082. Verify our licensure at www.nmlsconsumeraccess.org. Equal Housing Opportunity.
+  </div>
+</div>
+
+<script>
+// ─── Formatters ────────────────────────────────────────────────────────────────
+const fmt  = v => isNaN(v) || !isFinite(v) ? '—' : '$' + Math.round(v).toLocaleString();
+const fmtD = v => isNaN(v) || !isFinite(v) ? '—' : '$' + v.toLocaleString('en-US', {minimumFractionDigits:0, maximumFractionDigits:0});
+const fmtPctVal = v => isNaN(v) || !isFinite(v) ? '—' : v.toFixed(2) + '%';
+const fmtN  = v => isNaN(v) || !isFinite(v) ? '—' : Math.round(v).toLocaleString();
+
+function fmtChange(v) {
+  if (isNaN(v) || !isFinite(v)) return '—';
+  const abs = '$' + Math.abs(Math.round(v)).toLocaleString();
+  return v < 0 ? `<span class="neg">-${abs}</span>` : `<span class="pos">+${abs}</span>`;
+}
+function fmtSigned(v) {
+  if (isNaN(v) || !isFinite(v)) return '—';
+  const abs = '$' + Math.abs(Math.round(v)).toLocaleString();
+  return v < 0 ? `<span class="neg">(${abs})</span>` : `<span class="pos">${abs}</span>`;
+}
+
+// ─── Core Math ─────────────────────────────────────────────────────────────────
+function pmt(annualRate, pv, termYears) {
+  if (!pv || pv <= 0) return 0;
+  const n = termYears * 12;
+  if (!annualRate || annualRate <= 0) return pv / n;
+  const r = annualRate / 100 / 12;
+  return (pv * r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
+}
+
+// Solve for loan given target payment (linear in P when PMI is % of loan)
+// targetPayment = PMT(r, P, n) + fixedMonthly + pmiRate/12 * P
+// P = (targetPayment - fixedMonthly) / (pmtFactor + pmiRate/12)
+function calcLoan(targetPayment, annualRate, termYears, fixedMonthly, pmiRate) {
+  const available = targetPayment - fixedMonthly;
+  if (available <= 0) return 0;
+  const n = termYears * 12;
+  const pmiMonthly = (pmiRate || 0) / 100 / 12;
+  if (!annualRate || annualRate <= 0) {
+    const factor = 1 / n + pmiMonthly;
+    return factor > 0 ? available / factor : 0;
+  }
+  const r = annualRate / 100 / 12;
+  const pmtFactor = r * Math.pow(1 + r, n) / (Math.pow(1 + r, n) - 1);
+  return available / (pmtFactor + pmiMonthly);
+}
+
+// ─── Shared state (updated by calculate()) ─────────────────────────────────────
+let STATE = {};
+
+// ─── Comfort Payment Stepper ───────────────────────────────────────────────────
+let _stepTimer = null;
+let _stepInterval = null;
+function stepComfort(delta) {
+  const el = document.getElementById('comfortPayment');
+  const cur = pf(el.value) || 0;
+  const next = Math.max(0, Math.round((cur + delta) / 100) * 100);
+  el.value = next;
+  fmtInput(el);
+  calculate();
+}
+function startStep(delta) {
+  stopStep();
+  // Short delay before repeat kicks in (feels natural)
+  _stepTimer = setTimeout(() => {
+    _stepInterval = setInterval(() => stepComfort(delta), 120);
+  }, 400);
+}
+function stopStep() {
+  clearTimeout(_stepTimer);
+  clearInterval(_stepInterval);
+  _stepTimer = null;
+  _stepInterval = null;
+}
+
+// ─── Total Cash / CC Allocation ────────────────────────────────────────────────
+let _ccIncluded = false;
+let _cashManual = false;
+function syncTotalCash() {
+  if (_cashManual) return;
+  const dp = document.getElementById('downPayment');
+  const tc = document.getElementById('totalCash');
+  const raw = pf(dp.value);
+  if (raw > 0) { tc.value = raw; fmtInput(tc); } else { tc.value = ''; }
+  updateCashEst();
+}
+function toggleCCIncluded() {
+  _ccIncluded = !_ccIncluded;
+  const track = document.getElementById('cc-toggle-track');
+  const knob  = document.getElementById('cc-toggle-knob');
+  track.style.background = _ccIncluded ? '#2491EB' : '#94a3b8';
+  knob.style.left = _ccIncluded ? '18px' : '2px';
+  updateCashEst();
+}
+function flTitleIns(price) {
+  return price <= 100000 ? price * 0.00575 : 575 + (price - 100000) * 0.005;
+}
+function updateCashEst() {
+  const total   = pf(document.getElementById('totalCash').value);
+  const breakdown = document.getElementById('cash-breakdown');
+  if (!_ccIncluded || !total) { breakdown.style.display = 'none'; return; }
+
+  // Use current STATE price if available, otherwise skip
+  const price   = STATE.comfortPrice || 0;
+  const rate    = STATE.rate || 0;
+  const taxes   = pf(document.getElementById('annualTaxes').value) || 5000;
+  const hoi     = pf(document.getElementById('annualHOI').value)   || 2400;
+
+  if (!price || !rate) {
+    document.getElementById('cc_note').textContent = 'Enter rate and income above to estimate closing costs.';
+    breakdown.style.display = 'block';
+    ['cc_govt','cc_title','cc_lender','cc_prepint','cc_prepaid','cc_taxesc','cc_total_est','cc_eff_down']
+      .forEach(id => { document.getElementById(id).textContent = '—'; });
+    return;
+  }
+
+  // One-pass estimate: assume rough loan = price - total (before CC deduction)
+  const loanEst    = Math.max(0, price - total);
+  const govt       = loanEst * 0.0055;                           // doc stamps 0.35% + intangible 0.20%
+  const title      = flTitleIns(price);                          // FL promulgated owner's title
+  const lenderFees = 895;                                        // lender title (~$300) + settlement ($595)
+  const dailyInt   = loanEst * (rate / 100) / 365;
+  const prepInt    = dailyInt * 15;
+  const hoiPrepaid = hoi + (hoi / 12) * 2;                      // 12 mo premium + 2 mo escrow
+  const taxEsc     = (taxes / 12) * 3;                          // 3 mo escrow
+  const totalCC    = govt + title + lenderFees + prepInt + hoiPrepaid + taxEsc;
+  const effDown    = Math.max(0, total - totalCC);
+
+  const f = v => '$' + Math.round(v).toLocaleString();
+  document.getElementById('cc_total_est').textContent = f(totalCC);
+  document.getElementById('cc_eff_down').textContent  = f(effDown);
+  document.getElementById('cc_note').textContent     = 'Est. based on current comfort price. Hit Apply to recalculate with updated down payment.';
+  breakdown.style.display = 'block';
+}
+function applyCashAlloc() {
+  const total = pf(document.getElementById('totalCash').value);
+  if (!total) return;
+  let down = total;
+  if (_ccIncluded) {
+    const effDownEl = document.getElementById('cc_eff_down');
+    const parsed = pf(effDownEl.textContent);
+    if (parsed > 0) down = parsed;
+  }
+  const dp = document.getElementById('downPayment');
+  dp.value = down;
+  fmtInput(dp);
+  calculate();
+}
+
+// ─── Income Sync ───────────────────────────────────────────────────────────────
+function syncIncome(source) {
+  const annual  = document.getElementById('annualIncome');
+  const monthly = document.getElementById('monthlyIncome');
+  if (source === 'annual') {
+    const v = pf(annual.value);
+    monthly.value = !v ? '' : (v / 12).toFixed(2);
+    if (monthly.value) fmtInput(monthly);
+  } else {
+    const v = pf(monthly.value);
+    annual.value = !v ? '' : (v * 12).toFixed(0);
+    if (annual.value) fmtInput(annual);
+  }
+  calculate();
+}
+
+// ─── DTI Quick Select ──────────────────────────────────────────────────────────
+function setDTI(val) {
+  const el = document.getElementById('dtiLimit');
+  el.value = val + '%';
+  // Highlight active button
+  document.querySelectorAll('.dti-quick-btn').forEach(btn => {
+    const isActive = btn.id === 'dti-btn-' + val;
+    btn.style.background    = isActive ? '#2491EB' : 'white';
+    btn.style.color         = isActive ? 'white'   : '#64748b';
+    btn.style.borderColor   = isActive ? '#2491EB' : '#d1d5db';
+  });
+  calculate();
+}
+
+// ─── Budget Ranges Table ───────────────────────────────────────────────────────
+function buildBudgetRanges(income, debt, rate, term, taxMo, hoiMo, hoa, pmiRate, down) {
+  const body = document.getElementById('budgetRangesBody');
+  const grossMonthly = income / 12;
+  if (!grossMonthly || !rate || rate <= 0) {
+    body.innerHTML = '<tr><td colspan="5" class="muted" style="text-align:center;padding:12px">Enter income and rate above to see ranges</td></tr>';
+    return;
+  }
+  const fixedMonthly = taxMo + hoiMo + hoa;
+  const zones = [
+    { label: 'Comfortable', emoji: '🟢', dti: 36,  colorClass: 'pos',  bg: '#f0fdf4' },
+    { label: 'Qualifying Max', emoji: '🟡', dti: null, colorClass: '',   bg: '#fffbeb' },
+    { label: 'Stretch',   emoji: '🔴', dti: 50,  colorClass: 'neg', bg: '#fef2f2' },
+  ];
+  // Get the selected DTI for the "Qualifying Max" row
+  const selectedDTI = parseFloat((document.getElementById('dtiLimit').value || '').replace(/%/g,'')) || 43;
+  zones[1].dti = selectedDTI;
+
+  let html = '';
+  zones.forEach(zone => {
+    const maxHousing = grossMonthly * (zone.dti / 100) - debt;
+    if (maxHousing <= 0) {
+      html += `<tr style="background:${zone.bg}"><td>${zone.emoji} ${zone.label}</td><td>${zone.dti}%</td><td colspan="3" class="muted">Debt exceeds housing budget at this DTI</td></tr>`;
+      return;
+    }
+    const maxLoan  = calcLoan(maxHousing, rate, term, fixedMonthly, pmiRate);
+    const maxPrice = maxLoan + down;
+    const pi       = pmt(rate, maxLoan, term);
+    const pmiMo    = (maxPrice > 0 && (maxLoan / maxPrice) > 0.80) ? maxLoan * (pmiRate / 100) / 12 : 0;
+    const totalPITI = pi + fixedMonthly + pmiMo;
+    const isSelected = zone.label === 'Qualifying Max';
+    html += `<tr style="background:${zone.bg}${isSelected ? ';font-weight:700' : ''}">
+      <td>${zone.emoji} ${zone.label}${isSelected ? ' <span class="tag tag-blue">Selected</span>' : ''}</td>
+      <td>${zone.dti}%</td>
+      <td class="${zone.colorClass}">${fmt(maxPrice)}</td>
+      <td>${fmt(pi)}</td>
+      <td>${fmt(totalPITI)}</td>
+    </tr>`;
+  });
+  body.innerHTML = html;
+}
+
+// ─── Total Funds Needed ────────────────────────────────────────────────────────
+function buildFundsNeeded(comfortPrice, down, rate, term, taxMo, hoiMo, hoa, pmiMo) {
+  const card = document.getElementById('fundsNeededCard');
+  if (!comfortPrice || comfortPrice <= 0 || rate <= 0) { card.style.display = 'none'; return; }
+
+  const loanAmt     = Math.max(comfortPrice - down, 0);
+  // Estimate closing costs (FL-based, mirrors Cash Allocation logic)
+  const govt        = loanAmt * 0.0055;
+  const titleIns    = comfortPrice <= 100000 ? comfortPrice * 0.00575 : 575 + (comfortPrice - 100000) * 0.005;
+  const lenderFees  = 895;
+  const dailyInt    = loanAmt * (rate / 100) / 365;
+  const prepInt     = dailyInt * 15;
+  const hoiAnnual   = hoiMo * 12;
+  const hoiPrepaid  = hoiAnnual + (hoiMo * 2);
+  const taxAnnual   = taxMo * 12;
+  const taxEsc      = (taxAnnual / 12) * 3;
+  const estCC       = govt + titleIns + lenderFees + prepInt + hoiPrepaid + taxEsc;
+
+  const monthlyPITI = pmt(rate, loanAmt, term) + taxMo + hoiMo + hoa + pmiMo;
+  const reserves    = monthlyPITI * 2;
+  const total       = down + estCC + reserves;
+
+  card.style.display = 'block';
+  const grid = document.getElementById('fundsNeededGrid');
+  grid.innerHTML = `
+    <div style="background:#eff8ff;border-radius:8px;padding:14px;text-align:center">
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#2491EB;margin-bottom:6px">Down Payment</div>
+      <div style="font-size:22px;font-weight:900;color:#2491EB">${fmt(down)}</div>
+    </div>
+    <div style="background:#f9fafb;border-radius:8px;padding:14px;text-align:center">
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#64748b;margin-bottom:6px">Est. Closing Costs</div>
+      <div style="font-size:22px;font-weight:900;color:#374151">${fmt(estCC)}</div>
+    </div>
+    <div style="background:#f9fafb;border-radius:8px;padding:14px;text-align:center">
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#64748b;margin-bottom:6px">2-Mo. Reserves</div>
+      <div style="font-size:22px;font-weight:900;color:#374151">${fmt(reserves)}</div>
+    </div>`;
+
+  const note = document.getElementById('fundsNeededNote');
+  note.innerHTML = `<strong>Total Funds Needed: <span style="color:#2491EB;font-size:14px">${fmt(total)}</span></strong> = Down Payment ${fmt(down)} + Est. Closing Costs ${fmt(estCC)} + 2 months PITI reserves ${fmt(reserves)}. Closing costs are estimated based on FL rates (doc stamps, title insurance, lender fees, prepaid items, escrow). Actual costs will vary — get a Loan Estimate for exact figures.`;
+}
+
+// ─── Main Calculate ────────────────────────────────────────────────────────────
+
+
+function fmtInput(el) {
+  const raw = parseFloat((el.value||'').replace(/[$,]/g,''));
+  if (!isNaN(raw) && el.value.trim() !== '') el.value = '$' + raw.toLocaleString('en-US',{maximumFractionDigits:2});
+}
+function clearFmt(el) {
+  const raw = parseFloat((el.value||'').replace(/[$,]/g,''));
+  if (!isNaN(raw) && raw > 0) el.value = raw;
+}
+function fmtPct(el) {
+  if (el.value.trim()===''||el.value.trim()==='%') { el.value=''; return; }
+  const raw = parseFloat((el.value||'').replace(/%/g,''));
+  if (!isNaN(raw)) el.value = raw + '%';
+}
+function clearPct(el) {
+  const raw = parseFloat((el.value||'').replace(/%/g,''));
+  if (!isNaN(raw)) el.value = raw;
+}
+function pf(s){return parseFloat((String(s||'')).replace(/[$,]/g,''))||0;}
+function calculate() {
+  const income       = pf(document.getElementById('annualIncome').value) || 0;
+  const debt         = pf(document.getElementById('monthlyDebt').value) || 0;
+  const comfortPmt   = pf(document.getElementById('comfortPayment').value) || 0;
+  const down         = pf(document.getElementById('downPayment').value) || 0;
+  const rate         = parseFloat(document.getElementById('rate').value) || 0;
+  const term         = parseFloat(document.getElementById('termYears').value) || 30;
+  const taxes        = pf(document.getElementById('annualTaxes').value) || 0;
+  const hoi          = pf(document.getElementById('annualHOI').value) || 0;
+  const hoa          = pf(document.getElementById('monthlyHOA').value) || 0;
+  const pmiRate      = parseFloat(document.getElementById('pmiRate').value) || 0;
+  const dtiPct       = parseFloat((document.getElementById('dtiLimit').value || '').replace(/%/g,'')) || 49.99;
+
+  const grossMonthly   = income / 12;
+  const maxHousing     = grossMonthly * (dtiPct / 100) - debt;
+  const taxMo          = taxes / 12;
+  const hoiMo          = hoi / 12;
+  const fixedMonthly   = taxMo + hoiMo + hoa;
+
+  // Max qualifying price (compute first so comfort can be capped)
+  const maxLoan        = rate > 0 ? calcLoan(maxHousing, rate, term, fixedMonthly, pmiRate) : 0;
+  const maxPrice       = maxLoan + down;
+
+  // Comfort price — capped at max qualifying (DTI limits actual qualification)
+  const comfortLoanRaw = rate > 0 ? calcLoan(comfortPmt, rate, term, fixedMonthly, pmiRate) : 0;
+  const comfortCapped  = comfortPmt > 0 && comfortLoanRaw > maxLoan;
+  const comfortLoan    = comfortPmt > 0 ? Math.min(comfortLoanRaw, maxLoan) : 0;
+  const comfortPrice   = comfortLoan + down;
+  const comfortPI      = pmt(rate, comfortLoan, term);
+  const comfortLTV     = comfortPrice > 0 ? (comfortLoan / comfortPrice * 100) : 0;
+  const comfortPMI     = comfortLTV > 80 ? comfortLoan * (pmiRate / 100) / 12 : 0;
+  const comfortTotal   = comfortPI + taxMo + hoiMo + hoa + comfortPMI;
+
+  // Store for buydown tab + shared sync
+  STATE = { comfortLoan, comfortPrice, comfortPI, comfortPMI, comfortTotal, rate, term, taxMo, hoiMo, hoa, pmiRate, down, comfortLTV, maxPrice };
+
+  // ── Key result cards ──
+  const noRate = '<span style="font-size:11px;color:#94a3b8">add rate ↑</span>';
+  const housingDTI = (grossMonthly > 0 && rate > 0) ? (comfortTotal / grossMonthly * 100) : NaN;
+  const totalDTI   = (grossMonthly > 0 && rate > 0) ? ((comfortTotal + debt) / grossMonthly * 100) : NaN;
+  const comfortPriceEl = document.getElementById('r_comfortPrice');
+  if (rate > 0) {
+    comfortPriceEl.innerHTML = fmt(comfortPrice) + (comfortCapped ? ' <span style="font-size:10px;color:#f59e0b;font-weight:600;vertical-align:middle">DTI-limited</span>' : '');
+  } else { comfortPriceEl.textContent = '—'; }
+  document.getElementById('r_maxPrice').textContent     = rate > 0 ? fmt(maxPrice) : '—';
+  document.getElementById('r_dti').textContent          = isFinite(totalDTI) ? totalDTI.toFixed(1) + '%' : '—';
+  document.getElementById('r_grossMonthly').textContent = income > 0 ? fmt(grossMonthly) : '—';
+  document.getElementById('r_maxHousing').textContent   = income > 0 ? fmt(maxHousing) : '—';
+  // DTI at comfort payment card
+  const comfortDTI    = (comfortPmt > 0 && grossMonthly > 0) ? ((comfortPmt + debt) / grossMonthly * 100) : NaN;
+  const dtiGap        = isFinite(comfortDTI) ? (comfortDTI - dtiPct) : NaN;
+  const dtiEl         = document.getElementById('r_comfortDTI');
+  const dtiLblEl      = document.getElementById('sl_comfortDTI');
+  const dtiCardEl     = document.getElementById('card_comfortDTI');
+  if (isFinite(comfortDTI)) {
+    const over = dtiGap > 0;
+    dtiEl.textContent      = comfortDTI.toFixed(1) + '%';
+    dtiEl.style.color      = over ? '#dc2626' : '#16a34a';
+    dtiLblEl.innerHTML     = 'DTI at Comfort Payment — <span style="font-weight:700">' + (over ? '+' : '') + dtiGap.toFixed(1) + '% ' + (over ? 'over' : 'under') + ' limit</span>';
+    dtiCardEl.style.borderTopColor = over ? '#dc2626' : '#16a34a';
+  } else {
+    dtiEl.textContent      = '—';
+    dtiEl.style.color      = '';
+    dtiLblEl.textContent   = 'DTI at Comfort Payment';
+    dtiCardEl.style.borderTopColor = '';
+  }
+
+  // ── Loan summary ──
+  document.getElementById('r_comfortLoan').textContent  = rate > 0 ? fmt(comfortLoan) : '—';
+  document.getElementById('r_comfortPrice2').textContent= rate > 0 ? fmt(comfortPrice) : '—';
+  document.getElementById('r_maxLoan').textContent      = rate > 0 ? fmt(maxLoan) : '—';
+  document.getElementById('r_maxPrice2').textContent    = rate > 0 ? fmt(maxPrice) : '—';
+  document.getElementById('r_recommended').textContent  = rate > 0 ? fmt(comfortPrice) : '—';
+
+  // ── Payment breakdown ──
+  document.getElementById('pb_pi').textContent    = rate > 0 ? fmt(comfortPI) : '—';
+  document.getElementById('pb_tax').textContent   = fmt(taxMo);
+  document.getElementById('pb_hoi').textContent   = fmt(hoiMo);
+  document.getElementById('pb_hoa').textContent   = fmt(hoa);
+  document.getElementById('pb_pmi').innerHTML     = rate > 0
+    ? (comfortLTV <= 80
+        ? '<span style="color:#8EC73F;font-size:11px;font-weight:600">N/A — LTV ≤ 80%</span>'
+        : fmt(comfortPMI))
+    : '—';
+  document.getElementById('pb_total').textContent = rate > 0 ? fmt(comfortTotal) : '—';
+
+  // ── Down payment impact ──
+  buildDownImpact(comfortPrice, comfortTotal, down, rate, term, taxMo, hoiMo, hoa, pmiRate);
+
+  // ── Rate sensitivity ──
+  buildRateSensitivity(rate, comfortLoan, term, taxMo, hoiMo, hoa, comfortPMI, comfortTotal);
+
+  // ── Budget ranges ──
+  buildBudgetRanges(income, debt, rate, term, taxMo, hoiMo, hoa, pmiRate, down);
+
+  // ── Total funds needed ──
+  buildFundsNeeded(comfortPrice, down, rate, term, taxMo, hoiMo, hoa, comfortPMI);
+
+  // ── DTI button highlight sync (in case value was typed manually) ──
+  const dtiVal = parseFloat((document.getElementById('dtiLimit').value || '').replace(/%/g,''));
+  [36, 43, 50].forEach(v => {
+    const btn = document.getElementById('dti-btn-' + v);
+    if (!btn) return;
+    const isActive = Math.abs(dtiVal - v) < 0.1;
+    btn.style.background  = isActive ? '#2491EB' : 'white';
+    btn.style.color       = isActive ? 'white'   : '#64748b';
+    btn.style.borderColor = isActive ? '#2491EB' : '#d1d5db';
+  });
+
+  // ── Update buydown shared info ──
+  updateBuydownHeader();
+  updateCashEst();
+  saveInputs();
+}
+
+// ─── Down Payment Impact Table ─────────────────────────────────────────────────
+function buildDownImpact(comfortPrice, currentTotal, currentDown, rate, term, taxMo, hoiMo, hoa, pmiRate) {
+  const tbody = document.getElementById('downImpactBody');
+  if (!comfortPrice || comfortPrice <= 0 || rate <= 0) { tbody.innerHTML = '<tr><td colspan="5" class="muted" style="text-align:center;padding:12px">Enter inputs above to see impact</td></tr>'; return; }
+
+  let html = '';
+  for (let add = 10000; add <= 50000; add += 10000) {
+    const newDown   = currentDown + add;
+    const newLoan   = Math.max(comfortPrice - newDown, 0);
+    const newPI     = pmt(rate, newLoan, term);
+    const newLTV    = comfortPrice > 0 ? (newLoan / comfortPrice * 100) : 0;
+    const newPMI    = newLTV > 80 ? newLoan * (pmiRate / 100) / 12 : 0;
+    const newTotal  = newPI + taxMo + hoiMo + hoa + newPMI;
+    const change    = newTotal - currentTotal;
+    html += `<tr>
+      <td>+${fmt(add)}</td>
+      <td>${fmt(newDown)}</td>
+      <td>${fmt(newLoan)}</td>
+      <td>${fmtChange(change)}</td>
+      <td>${fmt(newTotal)}</td>
+    </tr>`;
+  }
+  tbody.innerHTML = html;
+}
+
+// ─── Rate Sensitivity Table ────────────────────────────────────────────────────
+function buildRateSensitivity(currentRate, comfortLoan, term, taxMo, hoiMo, hoa, pmiMonthly, currentTotal) {
+  const tbody = document.getElementById('rateSensBody');
+  if (!currentRate || currentRate <= 0 || comfortLoan <= 0) {
+    tbody.innerHTML = '<tr><td colspan="4" class="muted" style="text-align:center;padding:12px">Enter inputs above to see sensitivity</td></tr>';
+    return;
+  }
+
+  const rates = [currentRate - 0.50, currentRate - 0.25, currentRate, currentRate + 0.25, currentRate + 0.50];
+  // Loan is constant across rate scenarios → LTV is constant → PMI status is constant
+  // pmiMonthly passed in is already LTV-adjusted (0 if LTV ≤ 80%)
+  let html = '';
+  rates.forEach(r => {
+    if (r <= 0) return;
+    const pi    = pmt(r, comfortLoan, term);
+    const total = pi + taxMo + hoiMo + hoa + pmiMonthly;
+    const diff  = total - currentTotal;
+    const isCur = Math.abs(r - currentRate) < 0.0001;
+    const cls   = isCur ? ' class="current-row"' : '';
+    html += `<tr${cls}>
+      <td>${r.toFixed(2)}%${isCur ? ' <span class="tag tag-blue">Current</span>' : ''}</td>
+      <td>${fmt(pi)}</td>
+      <td>${isCur ? '<span class="muted">—</span>' : fmtChange(diff)}</td>
+      <td>${fmt(total)}</td>
+    </tr>`;
+  });
+  tbody.innerHTML = html;
+}
+
+// ─── Buydown Tab ───────────────────────────────────────────────────────────────
+function updateBuydownHeader() {
+  const s = STATE;
+  document.getElementById('bd_loanAmt').textContent   = s.comfortLoan > 0 ? fmt(s.comfortLoan) : '—';
+  document.getElementById('bd_rate').textContent      = s.rate > 0 ? s.rate.toFixed(2) + '%' : '—';
+  document.getElementById('bd_term').textContent      = s.term ? s.term + ' yr' : '—';
+  document.getElementById('bd_currentPmt').textContent= s.comfortTotal > 0 ? fmt(s.comfortTotal) : '—';
+  calcBuydown();
+  calcOfferStrategy();
+}
+
+function calcBuydown() {
+  const s = STATE;
+  if (!s.comfortLoan || s.comfortLoan <= 0 || s.rate <= 0) return;
+
+  const buydownCost  = pf(document.getElementById('bd_buydownCost').value) || 0;
+  const boughtRate   = parseFloat(document.getElementById('bd_boughtRate').value) || 0;
+  const extraDown    = pf(document.getElementById('bd_extraDown').value) || 0;
+  const priceDrop    = pf(document.getElementById('bd_priceDrop').value) || 0;
+  const pmiMonthly   = s.comfortPMI;  // already LTV-adjusted from calculate()
+  const fixed        = s.taxMo + s.hoiMo + s.hoa;
+
+  // ── Option A: Rate Buydown ──
+  let aPI = 0, aTotal = 0, aSavings = 0, aBreakMonths = Infinity, aBreakYears = Infinity;
+  if (boughtRate > 0) {
+    aPI          = pmt(boughtRate, s.comfortLoan, s.term);
+    aTotal       = aPI + fixed + pmiMonthly;  // same loan/price → same LTV → same PMI
+    aSavings     = s.comfortTotal - aTotal;
+    if (aSavings > 0 && buydownCost > 0) {
+      aBreakMonths = buydownCost / aSavings;
+      aBreakYears  = aBreakMonths / 12;
+    }
+  }
+
+  // ── Option B: Extra Down Payment ──
+  const newLoanB    = Math.max(s.comfortLoan - extraDown, 0);
+  const bPI         = pmt(s.rate, newLoanB, s.term);
+  const ltvB        = s.comfortPrice > 0 ? (newLoanB / s.comfortPrice * 100) : 100;
+  const bPMI        = ltvB > 80 ? newLoanB * (s.pmiRate / 100) / 12 : 0;
+  const bPMIDropped = s.comfortLTV > 80 && ltvB <= 80;
+  const bTotal      = bPI + fixed + bPMI;
+  const bSavings    = s.comfortTotal - bTotal;
+  let bBreakMonths = Infinity, bBreakYears = Infinity;
+  if (bSavings > 0 && extraDown > 0) {
+    bBreakMonths = extraDown / bSavings;
+    bBreakYears  = bBreakMonths / 12;
+  }
+
+  // ── Option C: Price Drop ──
+  // Seller reduces purchase price by $X → new loan = new price minus same down payment
+  const newPriceC   = Math.max(s.comfortPrice - priceDrop, 0);
+  const newLoanC    = Math.max(newPriceC - s.down, 0);
+  const cPI         = pmt(s.rate, newLoanC, s.term);
+  const ltvC        = newPriceC > 0 ? (newLoanC / newPriceC * 100) : 100;
+  const cPMI        = ltvC > 80 ? newLoanC * (s.pmiRate / 100) / 12 : 0;
+  const cPMIDropped = s.comfortLTV > 80 && ltvC <= 80;
+  const cTotal      = cPI + fixed + cPMI;
+  const cSavings    = s.comfortTotal - cTotal;
+  let cBreakMonths = Infinity, cBreakYears = Infinity;
+  if (cSavings > 0 && priceDrop > 0) {
+    cBreakMonths = priceDrop / cSavings;
+    cBreakYears  = cBreakMonths / 12;
+  }
+
+  // ── Option A results ──
+  document.getElementById('a_pi').textContent       = boughtRate > 0 ? fmt(aPI) : '—';
+  document.getElementById('a_total').textContent    = boughtRate > 0 ? fmt(aTotal) : '—';
+  document.getElementById('a_savings').textContent  = boughtRate > 0 ? fmt(aSavings) : '—';
+  document.getElementById('a_cost').textContent     = fmt(buydownCost);
+  document.getElementById('a_beMonths').textContent = boughtRate > 0 && isFinite(aBreakMonths) ? Math.ceil(aBreakMonths).toLocaleString() : '—';
+  document.getElementById('a_beYears').textContent  = boughtRate > 0 && isFinite(aBreakYears)  ? aBreakYears.toFixed(1) : '—';
+
+  // ── Option B results ──
+  document.getElementById('b_loan').textContent     = fmt(newLoanB);
+  document.getElementById('b_pmi').innerHTML        = ltvB <= 80
+    ? (bPMIDropped
+        ? `<span style="color:#8EC73F;font-size:11px;font-weight:600">✓ Removed — save ${fmt(s.comfortPMI)}/mo</span>`
+        : '<span style="color:#8EC73F;font-size:11px;font-weight:600">N/A — LTV ≤ 80%</span>')
+    : `<span class="muted">${ltvB.toFixed(1)}% LTV — applies</span>`;
+  document.getElementById('b_total').textContent    = fmt(bTotal);
+  document.getElementById('b_savings').textContent  = fmt(bSavings);
+  document.getElementById('b_cost').textContent     = fmt(extraDown);
+  document.getElementById('b_beMonths').textContent = isFinite(bBreakMonths) ? Math.ceil(bBreakMonths).toLocaleString() : '—';
+  document.getElementById('b_beYears').textContent  = isFinite(bBreakYears)  ? bBreakYears.toFixed(1) : '—';
+
+  // ── Option C results ──
+  document.getElementById('c_price').textContent    = fmt(newPriceC);
+  document.getElementById('c_loan').textContent     = fmt(newLoanC);
+  document.getElementById('c_pmi').innerHTML        = ltvC <= 80
+    ? (cPMIDropped
+        ? `<span style="color:#8EC73F;font-size:11px;font-weight:600">✓ Removed — save ${fmt(s.comfortPMI)}/mo</span>`
+        : '<span style="color:#8EC73F;font-size:11px;font-weight:600">N/A — LTV ≤ 80%</span>')
+    : `<span class="muted">${ltvC.toFixed(1)}% LTV — applies</span>`;
+  document.getElementById('c_total').textContent    = fmt(cTotal);
+  document.getElementById('c_savings').textContent  = fmt(cSavings);
+  document.getElementById('c_cost').textContent     = fmt(priceDrop);
+  document.getElementById('c_beMonths').textContent = isFinite(cBreakMonths) ? Math.ceil(cBreakMonths).toLocaleString() : '—';
+  document.getElementById('c_beYears').textContent  = isFinite(cBreakYears)  ? cBreakYears.toFixed(1) : '—';
+
+  // ── Cumulative savings table ──
+  buildCumTable(aSavings, buydownCost, bSavings, extraDown, cSavings, priceDrop, boughtRate > 0);
+
+  // ── Winner banner ──
+  const opts = [];
+  if (boughtRate > 0 && isFinite(aBreakYears)) opts.push({ label: 'Option A (Rate Buydown)', yrs: aBreakYears });
+  if (isFinite(cBreakYears)) opts.push({ label: 'Option B (Price Drop)', yrs: cBreakYears });
+  if (isFinite(bBreakYears)) opts.push({ label: 'Option C (Extra Down)', yrs: bBreakYears });
+
+  const banner = document.getElementById('winnerBanner');
+  if (opts.length >= 2) {
+    opts.sort((a, b) => a.yrs - b.yrs);
+    banner.style.display = 'block';
+    banner.textContent = `✅ ${opts[0].label} breaks even fastest — ${opts[0].yrs.toFixed(1)} yrs vs ${opts.slice(1).map(o => o.label.split('(')[1].replace(')','') + ' ' + o.yrs.toFixed(1) + ' yrs').join(', ')}`;
+  } else {
+    banner.style.display = 'none';
+  }
+
+  saveBuydownInputs();
+}
+
+// ─── Offer Strategy ───────────────────────────────────────────────────────────
+function calcOfferStrategy() {
+  const s = STATE;
+  if (!s.comfortLoan || s.comfortLoan <= 0 || s.rate <= 0) return;
+
+  const osAmount       = pf(document.getElementById('os_amount').value) || 0;
+  const ratePerPoint   = parseFloat(document.getElementById('os_ratePerPoint').value) || 0.25;
+  const fixed          = s.taxMo + s.hoiMo + s.hoa;
+
+  // ── Auto-calculate bought-down rate from contribution ──
+  const points         = osAmount > 0 && s.comfortLoan > 0 ? osAmount / (s.comfortLoan * 0.01) : 0;
+  const autoRate       = points > 0 ? Math.max(s.rate - (points * ratePerPoint), 0.125) : 0;
+
+  // Display the estimate
+  const estRateEl    = document.getElementById('os_estRate');
+  const estPointsEl  = document.getElementById('os_estPoints');
+  if (points > 0) {
+    estRateEl.textContent   = autoRate.toFixed(3) + '%';
+    estPointsEl.textContent = points.toFixed(3) + ' pts · est. only — use actual lender quote';
+  } else {
+    estRateEl.textContent   = '—';
+    estPointsEl.textContent = 'Enter contribution above';
+  }
+
+  // Use manual override if entered, otherwise use auto-calculated rate
+  const manualRate = parseFloat(document.getElementById('os_rate').value) || 0;
+  const osRate     = manualRate > 0 ? manualRate : autoRate;
+
+  // ── Path 1: Lower Offer ──
+  const p1Price   = Math.max(s.comfortPrice - osAmount, 0);
+  const p1Loan    = Math.max(p1Price - s.down, 0);
+  const p1LTV     = p1Price > 0 ? (p1Loan / p1Price * 100) : 100;
+  const p1PMI     = p1LTV > 80 ? p1Loan * (s.pmiRate / 100) / 12 : 0;
+  const p1PMIDrop = s.comfortLTV > 80 && p1LTV <= 80;
+  const p1PI      = pmt(s.rate, p1Loan, s.term);
+  const p1Total   = p1PI + fixed + p1PMI;
+  const p1Savings = s.comfortTotal - p1Total;
+
+  // ── Path 2: Full price + seller concession → rate buydown ──
+  // Loan and purchase price unchanged; seller contribution funds points at closing
+  let p2PI = 0, p2Total = 0, p2Savings = 0;
+  if (osRate > 0) {
+    p2PI      = pmt(osRate, s.comfortLoan, s.term);
+    p2Total   = p2PI + fixed + s.comfortPMI;  // same loan → same LTV → same PMI
+    p2Savings = s.comfortTotal - p2Total;
+  }
+
+  // ── Display Path 1 ──
+  document.getElementById('os_lower_price').textContent    = osAmount > 0 ? fmt(p1Price) : '—';
+  document.getElementById('os_lower_loan').textContent     = osAmount > 0 ? fmt(p1Loan) : '—';
+  document.getElementById('os_lower_pmi').innerHTML        = osAmount > 0
+    ? (p1LTV <= 80
+        ? (p1PMIDrop
+            ? `<span style="color:#8EC73F;font-size:11px;font-weight:600">✓ Removed — save ${fmt(s.comfortPMI)}/mo</span>`
+            : '<span style="color:#8EC73F;font-size:11px;font-weight:600">N/A — LTV ≤ 80%</span>')
+        : `<span class="muted">${p1LTV.toFixed(1)}% LTV — applies</span>`)
+    : '—';
+  document.getElementById('os_lower_total').textContent    = osAmount > 0 ? fmt(p1Total) : '—';
+  document.getElementById('os_lower_savings').textContent  = osAmount > 0 ? fmt(p1Savings) : '—';
+
+  // ── Display Path 2 ──
+  const manualUsed = parseFloat(document.getElementById('os_rate').value) > 0;
+  document.getElementById('os_conc_points').textContent    = points > 0 ? points.toFixed(3) + ' pts' : '—';
+  document.getElementById('os_conc_rate').innerHTML        = osRate > 0
+    ? `${osRate.toFixed(3)}% <span style="font-size:10px;color:#94a3b8">${manualUsed ? '(actual)' : '(est.)'}</span>`
+    : '—';
+  document.getElementById('os_conc_pi').textContent        = osRate > 0 ? fmt(p2PI) : '—';
+  document.getElementById('os_conc_pmi').innerHTML         = osRate > 0
+    ? (s.comfortLTV <= 80
+        ? '<span style="color:#8EC73F;font-size:11px;font-weight:600">N/A — LTV ≤ 80%</span>'
+        : `<span class="muted">${s.comfortLTV.toFixed(1)}% LTV — applies</span>`)
+    : '—';
+  document.getElementById('os_conc_total').textContent     = osRate > 0 ? fmt(p2Total) : '—';
+  document.getElementById('os_conc_savings').textContent   = osRate > 0 ? fmt(p2Savings) : '—';
+
+  // ── Winner ──
+  const winner = document.getElementById('os_winner');
+  if (osAmount > 0 && osRate > 0) {
+    const diff = p1Savings - p2Savings;
+    if (Math.abs(diff) < 1) {
+      winner.innerHTML    = '⚖️ Both strategies produce essentially the same monthly savings';
+      winner.style.background = '#f8fafc'; winner.style.color = '#64748b';
+    } else if (diff > 0) {
+      winner.innerHTML    = `✅ <strong>Lower offer wins</strong> — saves <strong>${fmt(diff)}/mo more</strong> than seller concession for rate buydown`;
+      winner.style.background = '#fff7ed'; winner.style.color = '#ea580c';
+    } else {
+      winner.innerHTML    = `✅ <strong>Rate concession wins</strong> — saves <strong>${fmt(-diff)}/mo more</strong> than taking a lower purchase price`;
+      winner.style.background = '#eff6ff'; winner.style.color = '#1d4ed8';
+    }
+  } else {
+    winner.innerHTML      = 'Enter a seller contribution and buydown rate above to compare';
+    winner.style.background = '#f8fafc'; winner.style.color = '#94a3b8';
+  }
+
+  saveInputs();
+}
+
+function buildCumTable(savingsA, costA, savingsB, costB, savingsC, costC, hasA) {
+  const tbody  = document.getElementById('cumSavingsBody');
+  const maxVal = Math.max(Math.abs(costA), Math.abs(costB), Math.abs(costC)) * 3 || 1000;
+  let html = '';
+
+  for (let yr = 1; yr <= 10; yr++) {
+    const cumA = hasA ? (savingsA * 12 * yr - costA) : null;
+    const cumB = savingsB * 12 * yr - costB;
+    const cumC = savingsC * 12 * yr - costC;
+
+    // Find winner among positive cumulative values — display order: A, C, B
+    const candidates = [];
+    if (cumA !== null && cumA > 0) candidates.push({ label: 'A', val: cumA, tag: 'tag-blue' });
+    if (cumC > 0) candidates.push({ label: 'B', val: cumC, tag: 'tag-purple' });
+    if (cumB > 0) candidates.push({ label: 'C', val: cumB, tag: 'tag-green' });
+    candidates.sort((a, b) => b.val - a.val);
+
+    let winner = '<span class="tag tag-gray">None yet</span>';
+    if (candidates.length) winner = `<span class="tag ${candidates[0].tag}">Option ${candidates[0].label}</span>`;
+
+    html += `<tr${yr % 2 === 0 ? ' style="background:#fafbfc"' : ''}>
+      <td><strong>Yr ${yr}</strong></td>
+      <td>${cumA !== null ? fmtSigned(cumA) : '<span class="muted">—</span>'}</td>
+      <td style="padding-left:6px">${cumA !== null ? makeBar(cumA, maxVal, 'a') : ''}</td>
+      <td>${fmtSigned(cumC)}</td>
+      <td style="padding-left:6px">${makeBar(cumC, maxVal, 'c')}</td>
+      <td>${fmtSigned(cumB)}</td>
+      <td style="padding-left:6px">${makeBar(cumB, maxVal, 'b')}</td>
+      <td>${winner}</td>
+    </tr>`;
+  }
+  tbody.innerHTML = html;
+}
+
+function makeBar(val, max, type) {
+  const pct = Math.min(Math.abs(val) / max * 70, 70);
+  const cls = val < 0 ? 'bar-neg' : (type === 'a' ? 'bar-a' : type === 'b' ? 'bar-b' : 'bar-c');
+  return `<div class="savings-bar-wrap"><div class="savings-bar ${cls}" style="width:${pct.toFixed(1)}px"></div></div>`;
+}
+
+// ─── Tab Switching ─────────────────────────────────────────────────────────────
+function switchTab(t) {
+  document.querySelectorAll('.tab-btn').forEach((b, i) => b.classList.toggle('active', i === (t === 'calc' ? 0 : 1)));
+  document.getElementById('tab-calc').classList.toggle('active', t === 'calc');
+  document.getElementById('tab-buydown').classList.toggle('active', t === 'buydown');
+}
+
+// ─── Sample Data ───────────────────────────────────────────────────────────────
+function loadSample() {
+  document.getElementById('annualIncome').value   = 85000;
+  document.getElementById('monthlyIncome').value  = (85000 / 12).toFixed(2);
+  document.getElementById('monthlyDebt').value    = 300;
+  document.getElementById('comfortPayment').value = 2500;
+  document.getElementById('downPayment').value    = 50000;
+  document.getElementById('rate').value           = 7.25;
+  document.getElementById('termYears').value      = 30;
+  document.getElementById('annualTaxes').value    = 5000;
+  document.getElementById('annualHOI').value      = 2400;
+  document.getElementById('monthlyHOA').value     = 0;
+  document.getElementById('pmiRate').value        = 0.85;
+  document.getElementById('dtiLimit').value       = '49.99%';
+  document.getElementById('bd_buydownCost').value = 5000;
+  document.getElementById('bd_boughtRate').value  = 6.75;
+  document.getElementById('bd_extraDown').value   = 5000;
+  document.getElementById('bd_priceDrop').value   = 5000;
+  formatAllFields();
+  calculate();
+}
+
+// ─── Persistence ───────────────────────────────────────────────────────────────
+const STORAGE_KEY = 'hws_comfort_calc_v4';
+const CALC_FIELDS = ['annualIncome','monthlyIncome','monthlyDebt','comfortPayment','downPayment','rate','termYears',
+  'annualTaxes','annualHOI','monthlyHOA','pmiRate','dtiLimit'];
+const BD_FIELDS   = ['bd_buydownCost','bd_boughtRate','bd_extraDown','bd_priceDrop','os_amount','os_rate','os_ratePerPoint'];
+
+function saveInputs() {
+  const d = {};
+  [...CALC_FIELDS, ...BD_FIELDS].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) d[id] = el.value;
+  });
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(d)); } catch(e) {}
+
+  // Write shared scenario key so Closing Cost Estimator can sync
+  try {
+    const shared = {
+      rate:         d['rate']         || '',
+      termYears:    d['termYears']    || '30',
+      downPayment:  d['downPayment']  || '',
+      annualTaxes:  d['annualTaxes']  || '',
+      annualHOI:    d['annualHOI']    || '',
+      pmiRate:      d['pmiRate']      || '0.85',
+      comfortPrice: STATE && STATE.comfortPrice > 0 ? STATE.comfortPrice.toFixed(0) : '',
+      maxPrice:     STATE && STATE.maxPrice     > 0 ? STATE.maxPrice.toFixed(0)     : ''
+    };
+    localStorage.setItem('hws_shared_scenario', JSON.stringify(shared));
+  } catch(e) {}
+}
+function saveBuydownInputs() {
+  saveInputs(); // unified save
+}
+
+
+function formatAllFields() {
+  const dollarIds = ['annualIncome','monthlyIncome','monthlyDebt','comfortPayment','downPayment',
+    'annualTaxes','annualHOI','monthlyHOA','os_amount','bd_buydownCost','bd_priceDrop','bd_extraDown'];
+  const pctIds = ['rate','pmiRate','dtiLimit','os_ratePerPoint','os_rate','bd_boughtRate'];
+  dollarIds.forEach(id => { const el = document.getElementById(id); if (el && el.value) fmtInput(el); });
+  pctIds.forEach(id => { const el = document.getElementById(id); if (el && el.value) fmtPct(el); });
+}
+function loadSaved() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return false;
+    const d = JSON.parse(raw);
+    [...CALC_FIELDS, ...BD_FIELDS].forEach(id => {
+      const el = document.getElementById(id);
+      if (el && d[id] != null) el.value = d[id];
+    });
+    return true;
+  } catch(e) { return false; }
+}
+
+function clearAll() {
+  try { localStorage.removeItem(STORAGE_KEY); } catch(e) {}
+  [...CALC_FIELDS, ...BD_FIELDS].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  // Reset displays
+  ['r_comfortPrice','r_maxPrice','r_dti','r_grossMonthly','r_maxHousing','r_comfortDTI',
+   'r_comfortLoan','r_comfortPrice2','r_maxLoan','r_maxPrice2','r_recommended',
+   'pb_pi','pb_tax','pb_hoi','pb_hoa','pb_pmi','pb_total'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = '—';
+  });
+  document.getElementById('downImpactBody').innerHTML = '';
+  document.getElementById('rateSensBody').innerHTML = '';
+  document.getElementById('budgetRangesBody').innerHTML = '<tr><td colspan="5" class="muted" style="text-align:center;padding:12px">Enter inputs above to see ranges</td></tr>';
+  document.getElementById('fundsNeededCard').style.display = 'none';
+  // Reset DTI buttons
+  [36, 43, 50].forEach(v => {
+    const btn = document.getElementById('dti-btn-' + v);
+    if (btn) { btn.style.background = 'white'; btn.style.color = '#64748b'; btn.style.borderColor = '#d1d5db'; }
+  });
+  document.getElementById('sl_comfortDTI').textContent = 'DTI at Comfort Payment';
+  document.getElementById('r_comfortDTI').style.color = '';
+  document.getElementById('card_comfortDTI').style.borderTopColor = '';
+  document.getElementById('totalCash').value = '';
+  document.getElementById('cash-breakdown').style.display = 'none';
+  _cashManual = false;
+  STATE = {};
+}
+
+// ─── Init ──────────────────────────────────────────────────────────────────────
+loadSaved();
+formatAllFields();
+calculate();
+</script>
+
+<!-- HWS Hub back button -->
+<div id="hws-back-btn" style="position:fixed;bottom:20px;right:20px;z-index:99999;">
+  <button onclick="window.close()" style="
+    background:#1a2332;
+    color:white;
+    border:none;
+    border-radius:8px;
+    padding:9px 16px;
+    font-size:13px;
+    font-weight:600;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    gap:7px;
+    box-shadow:0 2px 12px rgba(0,0,0,0.25);
+    opacity:0.85;
+    transition:opacity .15s;
+  " onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.85'">
+    ← Hub
+  </button>
+</div>
+</body>
+</html>

@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Closing Cost Estimator | HomeWealth Solutions</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+      font-size: 14px;
+      color: #1a1a2e;
+      background: #f0f4f8;
+    }
+
+    /* ── Header ── */
+    .header {
+      background: #2491EB;
+      position: relative;
+      color: white;
+      padding: 14px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .header .brand  { font-size: 20px; font-weight: 800; letter-spacing: -0.5px; }
+    .header .sub    { font-size: 11px; opacity: 0.8; margin-top: 2px; }
+    .header .right  { text-align: right; font-size: 12px; line-height: 1.6; opacity: 0.9; }
+    .header .right strong { font-size: 13px; }
+
+    .container { max-width: 1100px; margin: 0 auto; padding: 20px 24px 32px; }
+
+    /* ── Buttons ── */
+    .btn {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 8px 16px; border-radius: 7px; font-size: 12px; font-weight: 600;
+      cursor: pointer; border: none; transition: all 0.15s;
+    }
+    .btn-blue  { background: #2491EB; color: white; }
+    .btn-blue:hover { background: #1a7fd4; }
+    .btn-ghost { background: white; color: #374151; border: 1px solid #d1d5db; }
+    .btn-ghost:hover { background: #f9fafb; }
+    .actions { display: flex; gap: 8px; justify-content: flex-end; margin-bottom: 16px; }
+
+    /* ── Cards ── */
+    .card {
+      background: white; border-radius: 10px; border: 1px solid #e2e8f0;
+      padding: 18px 22px; box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+      margin-bottom: 16px;
+    }
+    .card-title {
+      font-size: 10px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 1px; color: #94a3b8; margin-bottom: 14px;
+      padding-bottom: 10px; border-bottom: 1px solid #f1f5f9;
+    }
+
+    /* ── Form fields ── */
+    .field { display: flex; flex-direction: column; gap: 4px; }
+    .field label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; color: #6b7280; }
+    .field input, .field select {
+      padding: 8px 10px; border: 1px solid #d1d5db; border-radius: 6px;
+      font-size: 13px; color: #1a1a2e; background: white;
+      transition: border-color 0.15s, box-shadow 0.15s; width: 100%;
+    }
+    .field input:focus, .field select:focus {
+      outline: none; border-color: #2491EB;
+      box-shadow: 0 0 0 3px rgba(36,145,235,0.12);
+    }
+    .fg-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px 16px; }
+    .fg-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px 16px; }
+    .fg-5 { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px 16px; }
+    .span-2 { grid-column: span 2; }
+
+    /* ── Two-column comparison ── */
+    .compare-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+    .price-card {
+      background: white; border: 2px solid #e2e8f0; border-radius: 10px;
+      padding: 18px 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    .price-card.card-comfort { border-color: #2491EB; }
+    .price-card.card-max     { border-color: #8EC73F; }
+
+    .price-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 14px; padding-bottom: 10px; border-bottom: 1px solid #f1f5f9;
+    }
+    .price-label {
+      font-size: 11px; font-weight: 800; text-transform: uppercase;
+      letter-spacing: 0.8px;
+    }
+    .price-label.comfort { color: #2491EB; }
+    .price-label.max     { color: #8EC73F; }
+
+    /* ── Summary stats row ── */
+    .stat-row {
+      display: grid; grid-template-columns: repeat(4, 1fr);
+      gap: 8px; margin-bottom: 14px;
+    }
+    .stat { background: #f8fafc; border-radius: 7px; padding: 10px 12px; text-align: center; }
+    .stat .sv { font-size: 16px; font-weight: 800; color: #2491EB; }
+    .stat .sl { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #94a3b8; margin-top: 2px; }
+    .price-card.card-max .stat .sv { color: #8EC73F; }
+
+    /* ── Closing cost breakdown ── */
+    .breakdown { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 6px; }
+    .breakdown tr td { padding: 5px 0; border-bottom: 1px solid #f8fafc; }
+    .breakdown tr td:last-child { text-align: right; font-weight: 600; color: #1a1a2e; }
+    .breakdown tr td:first-child { color: #6b7280; }
+    .breakdown .section-hd td,
+    .breakdown .section-hd td:first-child,
+    .breakdown .section-hd td:last-child {
+      font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.8px;
+      color: white !important; background: #2491EB; padding: 4px 6px; border-bottom: none; border-radius: 3px;
+    }
+    .price-card.card-max .breakdown .section-hd td,
+    .price-card.card-max .breakdown .section-hd td:first-child,
+    .price-card.card-max .breakdown .section-hd td:last-child { background: #8EC73F; color: white !important; }
+    .breakdown .subtotal td { font-weight: 700; color: #374151; border-bottom: 2px solid #e2e8f0; padding-bottom: 6px; margin-bottom: 4px; }
+    .breakdown .total-row td { font-size: 13px; font-weight: 800; padding-top: 6px; border-bottom: none; }
+    .breakdown .total-row td:first-child { color: #1a1a2e; }
+    .breakdown .total-row td:last-child { font-size: 15px; color: #2491EB; }
+    .price-card.card-max .breakdown .total-row td:last-child { color: #6ba82b; }
+    .breakdown .deduct td { color: #dc2626 !important; }
+    .breakdown .ctc-row td { font-size: 14px; font-weight: 800; padding-top: 8px; border-top: 2px solid #1a1a2e; border-bottom: none; }
+    .breakdown .ctc-row td:last-child { font-size: 16px; }
+
+    /* ── Note box ── */
+    .note-box {
+      background: #fffbea; border: 1px solid #fcd34d; border-radius: 8px;
+      padding: 10px 14px; font-size: 11px; color: #92400e; line-height: 1.6;
+      margin-bottom: 16px;
+    }
+
+    /* ── Compliance ── */
+    .compliance {
+      font-size: 9.5px; color: #9ca3af; line-height: 1.7;
+      border-top: 1px solid #e5e7eb; padding-top: 14px; margin-top: 4px;
+    }
+
+    /* ── Print ── */
+    @media print {
+      body { background: white; font-size: 11px; }
+      .no-print { display: none !important; }
+      .container { padding: 0; max-width: 100%; }
+      .header, .breakdown .section-hd td { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .card, .price-card { box-shadow: none; }
+      .compare-grid { gap: 10px; }
+    }
+    @media (max-width: 768px) {
+      .compare-grid { grid-template-columns: 1fr; }
+      .fg-4, .fg-5 { grid-template-columns: 1fr 1fr; }
+      .fg-3 { grid-template-columns: 1fr 1fr; }
+    }
+
+    /* ══════════════════════════════════════
+       MOBILE — 640px and below
+    ══════════════════════════════════════ */
+    @media (max-width: 640px) {
+      /* Header */
+      .header { padding: 10px 14px; }
+      .header .brand { font-size: 16px; }
+      .header .right { display: none; }
+
+      /* Container */
+      .container { padding: 12px 10px 32px; }
+
+      /* Cards */
+      .card { padding: 14px 14px; }
+
+      /* Form grids — single column on small phones */
+      .fg-3, .fg-4, .fg-5 { grid-template-columns: 1fr 1fr; }
+      .span-2 { grid-column: span 2; }
+
+      /* Inputs — larger touch targets */
+      .field input, .field select { padding: 11px 10px; font-size: 15px; min-height: 44px; }
+
+      /* Price cards */
+      .price-card { padding: 14px 14px; }
+      .price-header { flex-direction: column; align-items: flex-start; gap: 8px; }
+      .price-header .field { width: 100%; }
+      .price-header .field input { width: 100%; }
+
+      /* Stat row — 2 col */
+      .stat-row { grid-template-columns: 1fr 1fr; }
+      .stat .sv { font-size: 14px; }
+
+      /* Breakdown table — readable */
+      .breakdown { font-size: 11px; }
+      .breakdown tr td { padding: 4px 0; }
+      .breakdown .total-row td { font-size: 12px; }
+      .breakdown .total-row td:last-child { font-size: 13px; }
+      .breakdown .ctc-row td:last-child { font-size: 14px; }
+
+      /* Actions */
+      .actions { flex-wrap: wrap; justify-content: flex-start; gap: 6px; }
+      .btn { font-size: 11px; padding: 9px 12px; min-height: 40px; }
+
+      /* Note box */
+      .note-box { font-size: 10px; }
+
+      /* Sync bar */
+      #syncBar { flex-direction: column; gap: 8px; align-items: flex-start !important; }
+      #syncBar > div { display: flex; flex-wrap: wrap; gap: 6px; }
+    }
+  
+  .back-link {
+    color: rgba(255,255,255,0.85);
+    text-decoration: none;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-shrink: 0;
+  }
+  .back-link:hover { color: white; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <div class="brand">HomeWealth Solutions</div>
+    <div class="sub">Closing Cost Estimator &nbsp;|&nbsp; NMLS #2742458 &nbsp;|&nbsp; FL MBR #MBR8082</div>
+  </div>
+  <a href="javascript:window.close()" class="back-link" style="position:absolute;top:14px;right:14px;font-size:11px;color:rgba(255,255,255,0.8);text-decoration:none;">← Hub</a>
+  <div class="right">
+    <strong>Doug Smith, CMA® &nbsp;|&nbsp; President & Broker</strong><br>
+    NMLS #2609118 &nbsp;|&nbsp; (813) 733-8778 &nbsp;|&nbsp; homewealthsolutions.com
+  </div>
+</div>
+
+<div class="container">
+
+  <div class="actions no-print">
+    <button class="btn btn-ghost" onclick="clearAll()">✕ Clear</button>
+    <button class="btn btn-ghost" onclick="loadSample()">⚙ Sample</button>
+    <button class="btn btn-blue" onclick="window.print()">⎙ Print / PDF</button>
+  </div>
+
+  <!-- Client Info -->
+  <div class="card">
+    <div class="card-title">Client Information</div>
+    <div class="fg-5">
+      <div class="field span-2">
+        <label>Client Name</label>
+        <input type="text" id="clientName" placeholder="First & Last Name">
+      </div>
+      <div class="field">
+        <label>FICO Score</label>
+        <input type="text" id="fico" placeholder="e.g. 720">
+      </div>
+      <div class="field">
+        <label>Referred By</label>
+        <input type="text" id="referredBy" placeholder="Realtor / Source">
+      </div>
+      <div class="field">
+        <label>Date Prepared</label>
+        <input type="text" id="prepDate">
+      </div>
+    </div>
+  </div>
+
+  <!-- Loan Parameters -->
+  <div class="card">
+    <div class="card-title">Loan Parameters &amp; Fee Assumptions</div>
+    <div class="fg-4">
+      <div class="field span-2">
+        <label>Purchase Price ($)</label>
+        <input type="text" inputmode="decimal" id="purchasePrice" placeholder="400,000" onblur="fmtInput(this)" onfocus="clearFmt(this)" oninput="calculate()">
+      </div>
+      <div class="field">
+        <label>Interest Rate (%)</label>
+        <input type="text" inputmode="decimal" id="rate" placeholder="6.500" onblur="fmtPct(this)" onfocus="clearPct(this)" oninput="calculate()">
+      </div>
+      <div class="field">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2px;">
+          <label id="dp-label" style="margin-bottom:0;">Down Payment (%)</label>
+          <div style="display:flex;align-items:center;gap:5px;font-size:10px;font-weight:700;color:#6b7280;">
+            <span id="dp-mode-pct" style="color:#2491EB;">%</span>
+            <div id="dp-toggle" onclick="toggleDownMode()" style="width:32px;height:17px;background:#2491EB;border-radius:9px;position:relative;cursor:pointer;transition:background 0.2s;flex-shrink:0;">
+              <div id="dp-knob" style="width:13px;height:13px;background:white;border-radius:50%;position:absolute;top:2px;left:2px;transition:left 0.2s;box-shadow:0 1px 3px rgba(0,0,0,0.2);"></div>
+            </div>
+            <span id="dp-mode-dollar" style="color:#94a3b8;">$</span>
+          </div>
+        </div>
+        <input type="text" inputmode="decimal" id="downPct" placeholder="10.00" onblur="dpMode==='pct'?fmtPct(this):fmtInput(this)" onfocus="dpMode==='pct'?clearPct(this):clearFmt(this)" oninput="calculate()">
+      </div>
+      <div class="field">
+        <label>Discount Points (%)</label>
+        <input type="text" inputmode="decimal" id="points" placeholder="0.000" onblur="fmtPct(this)" onfocus="clearPct(this)" oninput="calculate()">
+      </div>
+      <div class="field">
+        <label>Loan Program</label>
+        <select id="loanType" onchange="calculate()">
+          <option value="conv">Conventional</option>
+          <option value="fha">FHA</option>
+          <option value="va">VA</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Monthly HOI ($)</label>
+        <input type="text" inputmode="decimal" id="hoi" placeholder="auto" onblur="fmtInput(this)" onfocus="clearFmt(this)" oninput="calculate()">
+      </div>
+      <div class="field">
+        <label>Monthly Taxes ($)</label>
+        <input type="text" inputmode="decimal" id="taxes" placeholder="auto" onblur="fmtInput(this)" onfocus="clearFmt(this)" oninput="calculate()">
+      </div>
+      <div class="field">
+        <label>Monthly MI ($)</label>
+        <input type="text" inputmode="decimal" id="mi" placeholder="0" onblur="fmtInput(this)" onfocus="clearFmt(this)" oninput="calculate()">
+      </div>
+      <div class="field">
+        <label>Prepaid Interest (days)</label>
+        <input type="number" id="prepaidDays" value="15" min="1" max="31" oninput="calculate()">
+      </div>
+      <div class="field">
+        <label>Escrow Months (taxes)</label>
+        <div style="display:flex; align-items:center; gap:8px;">
+          <input type="number" id="escrowMonths" value="3" min="0" max="12" oninput="calculate()" style="flex:1;">
+          <label style="display:flex; align-items:center; gap:5px; font-size:11px; font-weight:600; color:#6b7280; text-transform:none; letter-spacing:0; white-space:nowrap; cursor:pointer;">
+            <input type="checkbox" id="escrowWaived" onchange="calculate()" style="width:auto; accent-color:#dc2626;">
+            Waived
+          </label>
+        </div>
+      </div>
+      <div class="field">
+        <label>3rd Party Processing Fee ($)</label>
+        <div style="display:flex; align-items:center; gap:8px;">
+          <input type="text" inputmode="decimal" id="processingFee" value="995" onblur="fmtInput(this)" onfocus="clearFmt(this)" oninput="calculate()" style="flex:1;">
+          <label style="display:flex; align-items:center; gap:5px; font-size:11px; font-weight:600; color:#6b7280; text-transform:none; letter-spacing:0; white-space:nowrap; cursor:pointer;">
+            <input type="checkbox" id="processingFeeOn" checked onchange="calculate()" style="width:auto; accent-color:#2491EB;">
+            Include
+          </label>
+        </div>
+      </div>
+      <div class="field">
+        <label>Credit Report (if applicable) ($)</label>
+        <input type="text" inputmode="decimal" id="creditReport" placeholder="0" onblur="fmtInput(this)" onfocus="clearFmt(this)" oninput="calculate()">
+      </div>
+      <div class="field">
+        <label>Earnest Money Deposit ($)</label>
+        <input type="text" inputmode="decimal" id="deposit" placeholder="5,000" onblur="fmtInput(this)" onfocus="clearFmt(this)" oninput="calculate()">
+      </div>
+      <div class="field">
+        <label>Seller Credits ($)</label>
+        <input type="text" inputmode="decimal" id="sellerCredits" placeholder="0" onblur="fmtInput(this)" onfocus="clearFmt(this)" oninput="calculate()">
+      </div>
+      <div class="field">
+        <label>Buyer Agent Commission (%)</label>
+        <input type="text" inputmode="decimal" id="buyerAgent" placeholder="0.0" onblur="fmtPct(this)" onfocus="clearPct(this)" oninput="calculate()">
+      </div>
+    </div>
+    <div style="margin-top:12px; padding-top:10px; border-top:1px solid #f1f5f9; font-size:11px; color:#94a3b8;">
+      <strong style="color:#6b7280">Fee assumptions:</strong> Underwriting $1,095 · Processing $995 · Fixed services (flood, MERS, tax cert, etc.) $145 · Title/Settlement ~FL promulgated rate + $660 · Recording $234 · FL doc stamps + intangible 0.55% of loan · HOI auto-estimated at 0.5%/yr of purchase price if blank · Taxes auto-estimated at 1.1%/yr if blank. <em>All figures are estimates — actual fees vary by lender, title company, and county.</em>
+    </div>
+  </div>
+
+  <!-- Note -->
+  <div class="note-box no-print">
+    ⚠ <strong>Estimates only.</strong> Actual closing costs vary by lender, title company, county, and closing date. Transfer taxes, escrow, and prepaids are calculated using Florida standard rates. Buyer agent commission (if applicable) is entered separately and shown as a distinct line.
+  </div>
+  <!-- Results -->
+  <div id="results" style="display:none; margin-top:0;">
+    <div class="card">
+      <div class="card-title">📊 Closing Cost Estimate — <span id="res-client" style="font-style:normal;"></span></div>
+      <div class="stat-row">
+        <div class="stat"><div class="sv" id="s-loan">—</div><div class="sl">Loan Amount</div></div>
+        <div class="stat"><div class="sv" id="s-down">—</div><div class="sl">Down Payment</div></div>
+        <div class="stat"><div class="sv" id="s-cc">—</div><div class="sl">Total Closing Costs</div></div>
+        <div class="stat" style="background:#eff6ff;border:1.5px solid #2491EB;">
+          <div class="sv" id="s-ctc" style="font-size:18px;color:#1d4ed8;">—</div>
+          <div class="sl" style="color:#1d4ed8;">Cash to Close</div>
+        </div>
+      </div>
+      <table class="breakdown" id="breakdown-table"></table>
+      <div class="compliance" style="margin-top:16px;">
+        This communication is for informational and educational purposes only and does not constitute an offer to lend or a commitment to make a loan. All loans are subject to credit approval, underwriting guidelines, and property approval. Interest rates, payment examples, programs, and terms are illustrative, vary by borrower qualification, and are subject to change without notice. Not all applicants will qualify. Examples shown do not reflect all costs of a mortgage transaction. Consult a licensed tax or legal advisor regarding your individual situation. HomeWealth Solutions LLC is licensed by the Florida Office of Financial Regulation, Mortgage Broker License #MBR8082. Verify our licensure at www.nmlsconsumeraccess.org. Equal Housing Opportunity.
+      </div>
+    </div>
+  </div>
+
+</div><!-- /container -->
+
+<script>
+document.getElementById('prepDate').value = new Date().toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'});
+fmtInput(document.getElementById('processingFee'));
+
+const fmt = n => '$' + Math.round(n).toLocaleString('en-US');
+const gn  = id => parseFloat((document.getElementById(id).value || '').replace(/[$,%]/g, '')) || 0;
+const chk = id => document.getElementById(id).checked;
+
+function fmtInput(el) {
+  const raw = parseFloat((el.value || '').replace(/[$,]/g, ''));
+  if (!isNaN(raw) && raw > 0) el.value = '$' + raw.toLocaleString('en-US', {maximumFractionDigits: 2});
+}
+function clearFmt(el) {
+  const raw = parseFloat((el.value || '').replace(/[$,]/g, ''));
+  if (!isNaN(raw) && raw > 0) el.value = raw;
+}
+function fmtPct(el) {
+  if (el.value.trim() === '' || el.value.trim() === '%') { el.value = ''; return; }
+  const raw = parseFloat((el.value || '').replace(/%/g, ''));
+  if (!isNaN(raw)) el.value = raw + '%';
+}
+function clearPct(el) {
+  const raw = parseFloat((el.value || '').replace(/%/g, ''));
+  if (!isNaN(raw)) el.value = raw;
+}
+
+var dpMode = 'pct'; // 'pct' or 'dollar'
+function toggleDownMode() {
+  dpMode = dpMode === 'pct' ? 'dollar' : 'pct';
+  const isPct = dpMode === 'pct';
+  document.getElementById('dp-toggle').style.background = isPct ? '#2491EB' : '#8EC73F';
+  document.getElementById('dp-knob').style.left = isPct ? '2px' : '17px';
+  document.getElementById('dp-label').textContent = isPct ? 'Down Payment (%)' : 'Down Payment ($)';
+  document.getElementById('dp-mode-pct').style.color    = isPct ? '#2491EB' : '#94a3b8';
+  document.getElementById('dp-mode-dollar').style.color = isPct ? '#94a3b8' : '#8EC73F';
+  const input = document.getElementById('downPct');
+  input.placeholder = isPct ? '10.00' : '40,000';
+  input.value = '';
+  calculate();
+}
+
+function calculate() {
+  const price = gn('purchasePrice');
+  if (price <= 0) { document.getElementById('results').style.display = 'none'; return; }
+
+  const rate     = gn('rate');
+  const points   = gn('points');
+  const loanType = document.getElementById('loanType').value;
+  const dpRaw    = gn('downPct');
+  const downAmt  = dpMode === 'dollar' ? dpRaw : price * dpRaw / 100;
+  const downPct  = price > 0 ? (downAmt / price) * 100 : 0;
+  const loanAmt  = price - downAmt;
+
+  const hoiMo  = gn('hoi')   || (price * 0.005 / 12);
+  const taxMo  = gn('taxes') || (price * 0.011 / 12);
+
+  const prepaidDays  = gn('prepaidDays') || 15;
+  const escrowMos    = gn('escrowMonths');
+  const escrowWaived = chk('escrowWaived');
+  const procFee      = gn('processingFee') || 995;
+  const procOn       = chk('processingFeeOn');
+  const creditRpt    = gn('creditReport');
+  const deposit      = gn('deposit');
+  const sellerCr     = gn('sellerCredits');
+  const agentPct     = gn('buyerAgent');
+
+  // A — Lender Fees
+  const discPts    = loanAmt * points / 100;
+  const underwrite = 1095;
+  const processing = procOn ? procFee : 0;
+  const totalA     = discPts + underwrite + processing;
+
+  // B — Third-Party Services
+  const fixedSvc = 145;
+  const totalB   = creditRpt + fixedSvc;
+
+  // C — Title / Settlement (FL promulgated owner's rate)
+  const ownerTitle  = price <= 100000 ? price * 0.00575 : 575 + (price - 100000) * 0.005;
+  const lenderTitle = 275;
+  const settlement  = 660;
+  const totalC      = ownerTitle + lenderTitle + settlement;
+
+  // E — Government Fees
+  const recording  = 234;
+  const docStamps  = loanAmt * 0.0035;
+  const intangible = loanAmt * 0.002;
+  const totalE     = recording + docStamps + intangible;
+
+  // F — Prepaids
+  const prepInt    = rate > 0 ? (loanAmt * rate / 100 / 365) * prepaidDays : 0;
+  const hoiPremium = hoiMo * 12;
+  const totalF     = prepInt + hoiPremium;
+
+  // G — Initial Escrow
+  const taxEscrow = (!escrowWaived) ? taxMo * escrowMos : 0;
+  const hoiEscrow = (!escrowWaived) ? hoiMo * 2 : 0;
+  const totalG    = taxEscrow + hoiEscrow;
+
+  // FHA Upfront MIP
+  const mipUpfront   = loanType === 'fha' ? loanAmt * 0.0175 : 0;
+
+  // Buyer Agent
+  const agentAmt = loanAmt * agentPct / 100;
+
+  const totalCC   = totalA + totalB + totalC + totalE + totalF + totalG + mipUpfront + agentAmt;
+  const cashClose = downAmt + totalCC - sellerCr - deposit;
+
+  // Stats
+  document.getElementById('s-loan').textContent = fmt(loanAmt);
+  document.getElementById('s-down').textContent = fmt(downAmt);
+  document.getElementById('s-cc').textContent   = fmt(totalCC);
+  document.getElementById('s-ctc').textContent  = fmt(cashClose);
+  const cn = document.getElementById('clientName').value;
+  document.getElementById('res-client').textContent = cn ? cn : '';
+
+  // Build breakdown
+  const hd  = lbl => `<tr class="section-hd"><td colspan="2">${lbl}</td></tr>`;
+  const row = (lbl, amt) => `<tr><td>${lbl}</td><td>${fmt(amt)}</td></tr>`;
+  const sub = (lbl, amt) => `<tr class="subtotal"><td>${lbl}</td><td>${fmt(amt)}</td></tr>`;
+  const R = [];
+
+  R.push(hd('A — Origination Charges'));
+  if (discPts > 0) R.push(row(`Discount Points (${points}%)`, discPts));
+  R.push(row('Underwriting Fee', underwrite));
+  if (processing > 0) R.push(row('3rd Party Processing Fee', processing));
+  R.push(sub('Subtotal — Section A', totalA));
+
+  R.push(hd('B — Services (Cannot Shop)'));
+  if (creditRpt > 0) R.push(row('Credit Report', creditRpt));
+  R.push(row('Fixed Services (flood, MERS, tax cert)', fixedSvc));
+  R.push(sub('Subtotal — Section B', totalB));
+
+  R.push(hd('C — Title & Settlement'));
+  R.push(row("Owner's Title Insurance (FL promulgated)", ownerTitle));
+  R.push(row("Lender's Title (simultaneous issue)", lenderTitle));
+  R.push(row('Settlement / Closing Fee', settlement));
+  R.push(sub('Subtotal — Section C', totalC));
+
+  R.push(hd('E — Government Fees'));
+  R.push(row('Recording Fee', recording));
+  R.push(row('FL Doc Stamps on Mortgage (0.35%)', docStamps));
+  R.push(row('FL Intangible Tax (0.20%)', intangible));
+  R.push(sub('Subtotal — Section E', totalE));
+
+  R.push(hd('F — Prepaids'));
+  R.push(row(`Prepaid Interest (${prepaidDays} days @ ${rate}%)`, prepInt));
+  R.push(row("Homeowner's Insurance (12 months)", hoiPremium));
+  R.push(sub('Subtotal — Section F', totalF));
+
+  if (!escrowWaived) {
+    R.push(hd('G — Initial Escrow'));
+    R.push(row(`Property Taxes (${escrowMos} months)`, taxEscrow));
+    R.push(row('HOI Cushion (2 months)', hoiEscrow));
+    R.push(sub('Subtotal — Section G', totalG));
+  }
+
+  if (mipUpfront > 0) {
+    R.push(hd('FHA — Upfront MIP (1.75%)'));
+    R.push(row('Upfront Mortgage Insurance Premium', mipUpfront));
+  }
+
+  if (agentAmt > 0) {
+    R.push(hd('Buyer Agent Commission (if buyer-paid)'));
+    R.push(row(`Commission (${agentPct}% of loan amount)`, agentAmt));
+  }
+
+  R.push(`<tr class="total-row"><td>Total Estimated Closing Costs</td><td>${fmt(totalCC)}</td></tr>`);
+  R.push(`<tr style="height:10px;"><td colspan="2"></td></tr>`);
+  R.push(row('(+) Down Payment', downAmt));
+  if (sellerCr > 0) R.push(`<tr class="deduct"><td>(–) Seller Credits</td><td style="color:#dc2626;">– ${fmt(sellerCr)}</td></tr>`);
+  if (deposit  > 0) R.push(`<tr class="deduct"><td>(–) Earnest Money (already paid)</td><td style="color:#dc2626;">– ${fmt(deposit)}</td></tr>`);
+  R.push(`<tr class="ctc-row"><td>💰 Estimated Cash to Close</td><td style="color:#2491EB;">${fmt(cashClose)}</td></tr>`);
+
+  document.getElementById('breakdown-table').innerHTML = R.join('');
+  document.getElementById('results').style.display = 'block';
+}
+
+function clearAll() {
+  ['purchasePrice','rate','downPct','points','hoi','taxes','mi','creditReport',
+   'deposit','sellerCredits','buyerAgent','clientName','fico','referredBy'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  document.getElementById('escrowWaived').checked  = false;
+  document.getElementById('processingFeeOn').checked = true;
+  document.getElementById('prepaidDays').value   = 15;
+  document.getElementById('escrowMonths').value  = 3;
+  document.getElementById('processingFee').value = 995;
+  fmtInput(document.getElementById('processingFee'));
+  document.getElementById('loanType').value      = 'conv';
+  document.getElementById('results').style.display = 'none';
+  if (dpMode !== 'pct') toggleDownMode();
+  document.getElementById('prepDate').value = new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+}
+
+function loadSample() {
+  document.getElementById('clientName').value    = 'Sample Buyer';
+  document.getElementById('fico').value          = '740';
+  document.getElementById('purchasePrice').value = 400000;
+  document.getElementById('rate').value          = 6.875;
+  document.getElementById('downPct').value       = 10;
+  document.getElementById('points').value        = 0;
+  document.getElementById('loanType').value      = 'conv';
+  document.getElementById('hoi').value           = '';
+  document.getElementById('taxes').value         = '';
+  document.getElementById('prepaidDays').value   = 15;
+  document.getElementById('escrowMonths').value  = 3;
+  document.getElementById('escrowWaived').checked  = false;
+  document.getElementById('processingFee').value   = 995;
+  document.getElementById('processingFeeOn').checked = true;
+  document.getElementById('creditReport').value  = '';
+  document.getElementById('deposit').value       = 5000;
+  document.getElementById('sellerCredits').value = 0;
+  document.getElementById('buyerAgent').value    = 0;
+  fmtInput(document.getElementById('purchasePrice'));
+  fmtPct(document.getElementById('rate'));
+  fmtPct(document.getElementById('points'));
+  fmtPct(document.getElementById('buyerAgent'));
+  fmtInput(document.getElementById('processingFee'));
+  fmtInput(document.getElementById('deposit'));
+  calculate();
+}
+</script>
+
+<!-- HWS Hub back button -->
+<div id="hws-back-btn" style="position:fixed;bottom:20px;right:20px;z-index:99999;">
+  <button onclick="window.close()" style="
+    background:#1a2332;
+    color:white;
+    border:none;
+    border-radius:8px;
+    padding:9px 16px;
+    font-size:13px;
+    font-weight:600;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    gap:7px;
+    box-shadow:0 2px 12px rgba(0,0,0,0.25);
+    opacity:0.85;
+    transition:opacity .15s;
+  " onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.85'">
+    ← Hub
+  </button>
+</div>
+</body>
+</html>
