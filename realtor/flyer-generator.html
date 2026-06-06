@@ -416,6 +416,7 @@ select.scen-sel:focus { outline:none; border-color:#2491EB; }
 </style>
 </head>
 <body>
+<a href="/" id="hws-hub-btn" style="position:fixed;top:14px;right:16px;z-index:9999;background:#1c2b3a;color:rgba(255,255,255,0.9);text-decoration:none;font-size:12px;font-weight:700;padding:6px 14px;border-radius:8px;font-family:-apple-system,BlinkMacSystemFont,sans-serif;letter-spacing:0.2px;box-shadow:0 2px 8px rgba(0,0,0,0.25);">← Hub</a>
 <div class="app">
 
   <!-- ══ TOOL PANEL ══ -->
@@ -1511,6 +1512,7 @@ async function exportProfiles() {
   const data = {
     partners:   profLoad(PROF_P),
     properties: profLoad(PROF_L),
+    brokerages: profLoad(PROF_B),
     exported:   new Date().toISOString()
   };
   const json = JSON.stringify(data, null, 2);
@@ -1555,6 +1557,12 @@ function importProfiles(input) {
         profSave(PROF_L, merged);
         fillSel('propertyProfSel', merged, '— choose property —');
       }
+      if (data.brokerages) {
+        const existing = profLoad(PROF_B);
+        const merged = Object.assign({}, data.brokerages, existing); // existing wins on conflict
+        profSave(PROF_B, merged);
+        fillSel('brokerProfSel', merged, '— choose brokerage —');
+      }
       alert('Profiles imported successfully.');
     } catch(err) {
       alert('Could not read backup file. Make sure it\'s a valid HWS profiles export.');
@@ -1569,8 +1577,10 @@ function resetAllData() {
   if (!confirm('Delete ALL saved profiles? This cannot be undone. Export a backup first.')) return;
   localStorage.removeItem(PROF_P);
   localStorage.removeItem(PROF_L);
+  localStorage.removeItem(PROF_B);
   fillSel('partnerProfSel',  {}, '— choose partner —');
   fillSel('propertyProfSel', {}, '— choose property —');
+  fillSel('brokerProfSel',   {}, '— choose brokerage —');
   alert('All saved profiles cleared. You can now re-import a backup.');
 }
 
