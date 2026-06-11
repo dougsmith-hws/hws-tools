@@ -138,14 +138,21 @@
       border-top: 1px solid #e5e7eb; padding-top: 14px; margin-top: 4px;
     }
 
+    /* ── Client View ── */
+    .client-view-bar { display:none; background:#f0f9ff; border-bottom:1px solid #bae6fd; padding:10px 32px; font-size:12px; color:#0369a1; text-align:center; }
+    .client-view-bar button { background:#2491EB; color:#fff; border:none; padding:6px 14px; border-radius:6px; font-size:12px; font-weight:600; cursor:pointer; margin-left:10px; }
+
     /* ── Print ── */
     @media print {
       body { background: white; font-size: 11px; }
       .no-print { display: none !important; }
       .container { padding: 0; max-width: 100%; }
       .header, .breakdown .section-hd td { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-      .card, .price-card { box-shadow: none; }
+      .card, .price-card { box-shadow: none; border: 1px solid #e2e8f0; }
       .compare-grid { gap: 10px; }
+      .container > .card:not(#results .card) { display: none !important; }
+      .note-box { display: none !important; }
+      .stat { background:#f8fafc !important; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
     }
     @media (max-width: 768px) {
       .compare-grid { grid-template-columns: 1fr; }
@@ -220,11 +227,17 @@
   </div>
 </div>
 
+<div class="client-view-bar no-print" id="clientViewBar">
+  Viewing a shared estimate prepared by HomeWealth Solutions
+  <button onclick="window.print()">⎙ Save as PDF</button>
+</div>
+
 <div class="container">
 
   <div class="actions no-print">
     <button class="btn btn-ghost" onclick="clearAll()">✕ Clear</button>
     <button class="btn btn-ghost" onclick="loadSample()">⚙ Sample</button>
+    <button class="btn btn-blue" id="shareBtn" onclick="copyShareLink(this)">↗ Share with Client</button>
     <button class="btn btn-blue" onclick="window.print()">⎙ Print / PDF</button>
   </div>
 
@@ -566,6 +579,76 @@ function clearAll() {
   if (dpMode !== 'pct') toggleDownMode();
   document.getElementById('prepDate').value = new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
 }
+
+// ── Share / Client View ──────────────────────────────────────────────────
+function buildShareURL() {
+  const p = new URLSearchParams();
+  const raw = id => (document.getElementById(id)?.value||'').replace(/[$,%]/g,'').trim();
+  p.set('cn',  document.getElementById('clientName').value.trim());
+  p.set('ref', document.getElementById('referredBy').value.trim());
+  p.set('price', raw('purchasePrice'));
+  p.set('rate',  raw('rate'));
+  p.set('dp',    raw('downPct'));
+  p.set('dpm',   dpMode);
+  p.set('pts',   raw('points'));
+  p.set('lt',    document.getElementById('loanType').value);
+  p.set('hoi',   raw('hoi'));
+  p.set('tax',   raw('taxes'));
+  p.set('ppd',   document.getElementById('prepaidDays').value);
+  p.set('esc',   document.getElementById('escrowMonths').value);
+  p.set('escw',  document.getElementById('escrowWaived').checked?'1':'0');
+  p.set('proc',  raw('processingFee'));
+  p.set('procon',document.getElementById('processingFeeOn').checked?'1':'0');
+  p.set('cred',  raw('creditReport'));
+  p.set('dep',   raw('deposit'));
+  p.set('sc',    raw('sellerCredits'));
+  p.set('bac',   raw('buyerAgent'));
+  return 'https://tools.homewealthsolutions.com/buyer/closing-cost.html' + '?' + p.toString();
+}
+
+function copyShareLink(btn) {
+  const url = buildShareURL() + '&view=1';
+  navigator.clipboard.writeText(url).catch(() => {
+    const ta = Object.assign(document.createElement('textarea'), {value: url});
+    document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove();
+  });
+  btn.textContent = '✓ Link Copied!';
+  setTimeout(() => btn.textContent = '↗ Share with Client', 2500);
+}
+
+function enterClientView() {
+  document.querySelectorAll('.no-print, .note-box, #hws-hub-btn').forEach(el => el.style.display='none');
+  document.querySelectorAll('.container > .card').forEach(el => el.style.display='none');
+  const bar = document.getElementById('clientViewBar');
+  if (bar) bar.style.display='block';
+}
+
+function applyParamsAndRun() {
+  const p = new URLSearchParams(location.search);
+  if (![...p.keys()].length) return;
+  const set = (id, key) => { const el=document.getElementById(id); if(el && p.has(key)) el.value=p.get(key); };
+  set('clientName','cn'); set('referredBy','ref');
+  if (p.has('price') && p.get('price')) { const el=document.getElementById('purchasePrice'); el.value=p.get('price'); fmtInput(el); }
+  if (p.has('rate') && p.get('rate')) { const el=document.getElementById('rate'); el.value=p.get('rate'); }
+  if (p.has('dp'))    document.getElementById('downPct').value=p.get('dp');
+  if (p.has('dpm') && p.get('dpm')!==dpMode) toggleDownMode();
+  if (p.has('pts'))   document.getElementById('points').value=p.get('pts');
+  if (p.has('lt'))    document.getElementById('loanType').value=p.get('lt');
+  if (p.has('hoi') && p.get('hoi')) { const el=document.getElementById('hoi'); el.value=p.get('hoi'); fmtInput(el); }
+  if (p.has('tax') && p.get('tax')) { const el=document.getElementById('taxes'); el.value=p.get('tax'); fmtInput(el); }
+  if (p.has('ppd'))   document.getElementById('prepaidDays').value=p.get('ppd');
+  if (p.has('esc'))   document.getElementById('escrowMonths').value=p.get('esc');
+  if (p.has('escw'))  document.getElementById('escrowWaived').checked=p.get('escw')==='1';
+  if (p.has('proc') && p.get('proc')) { const el=document.getElementById('processingFee'); el.value=p.get('proc'); fmtInput(el); }
+  if (p.has('procon')) document.getElementById('processingFeeOn').checked=p.get('procon')==='1';
+  if (p.has('cred'))  document.getElementById('creditReport').value=p.get('cred');
+  if (p.has('dep'))   document.getElementById('deposit').value=p.get('dep');
+  if (p.has('sc'))    document.getElementById('sellerCredits').value=p.get('sc');
+  if (p.has('bac'))   document.getElementById('buyerAgent').value=p.get('bac');
+  calculate();
+  if (p.get('view')==='1') enterClientView();
+}
+window.addEventListener('DOMContentLoaded', applyParamsAndRun);
 
 function loadSample() {
   document.getElementById('clientName').value    = 'Sample Buyer';

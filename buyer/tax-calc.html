@@ -119,6 +119,7 @@
   </div>
   <div class="header-right">
     <a href="/" id="hws-hub-btn" style="position:fixed;top:14px;right:16px;z-index:9999;background:#1c2b3a;color:rgba(255,255,255,0.9);text-decoration:none;font-size:12px;font-weight:700;padding:6px 14px;border-radius:8px;font-family:-apple-system,BlinkMacSystemFont,sans-serif;letter-spacing:0.2px;box-shadow:0 2px 8px rgba(0,0,0,0.25);">← Hub</a>
+    <button id="shareBtn" onclick="copyShareLink(this)" style="background:rgba(255,255,255,0.15);color:#fff;border:1px solid rgba(255,255,255,0.3);padding:6px 14px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;margin-right:8px;">↗ Share with Client</button>
     <span class="header-badge">CMPS Advisory Tool</span>
   </div>
 </div>
@@ -483,6 +484,40 @@
 
   calcATR();
   calcGU();
+
+  // ── Share ────────────────────────────────────────────────────────────────
+  function buildShareURL() {
+    const p = new URLSearchParams();
+    p.set('ar',  document.getElementById('atr_rate').value);
+    p.set('ab',  document.getElementById('atr_bracket').value);
+    p.set('abal',document.getElementById('atr_balance').value.replace(/[$,]/g,''));
+    p.set('gn',  document.getElementById('gu_net').value.replace(/[$,]/g,''));
+    p.set('gb',  document.getElementById('gu_bracket').value);
+    p.set('ga',  document.getElementById('gu_acct_type').value);
+    return 'https://tools.homewealthsolutions.com/buyer/tax-calc.html' + '?' + p.toString();
+  }
+
+  function copyShareLink(btn) {
+    const url = buildShareURL() + '&view=1';
+    navigator.clipboard.writeText(url).catch(() => {
+      const ta = Object.assign(document.createElement('textarea'),{value:url});
+      document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove();
+    });
+    btn.textContent = '✓ Link Copied!';
+    setTimeout(() => btn.textContent = '↗ Share with Client', 2500);
+  }
+
+  (function applyParams() {
+    const p = new URLSearchParams(location.search);
+    if (![...p.keys()].length) return;
+    if (p.has('ar'))  document.getElementById('atr_rate').value = p.get('ar');
+    if (p.has('ab'))  document.getElementById('atr_bracket').value = p.get('ab');
+    if (p.has('abal') && p.get('abal')) { const el=document.getElementById('atr_balance'); el.value=p.get('abal'); fmtInput(el); }
+    if (p.has('gn') && p.get('gn')) { const el=document.getElementById('gu_net'); el.value=p.get('gn'); fmtInput(el); }
+    if (p.has('gb'))  document.getElementById('gu_bracket').value = p.get('gb');
+    if (p.has('ga'))  document.getElementById('gu_acct_type').value = p.get('ga');
+    calcATR(); calcGU();
+  })();
 </script>
 
 </body>

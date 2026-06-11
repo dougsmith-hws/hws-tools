@@ -381,6 +381,7 @@
   <div class="actions">
     <button class="btn btn-ghost" onclick="loadSample()">Load Sample</button>
     <button class="btn btn-ghost" onclick="clearAll()">Clear</button>
+    <button class="btn btn-blue" id="shareBtn" onclick="copyShareLink(this)">↗ Share with Client</button>
     <button class="btn btn-blue" onclick="window.print()">🖨 Print</button>
   </div>
 
@@ -1604,10 +1605,51 @@ function clearAll() {
   STATE = {};
 }
 
+// ── Share / Client View ──────────────────────────────────────────────────────
+function buildShareURL() {
+  const p = new URLSearchParams();
+  [...CALC_FIELDS, ...BD_FIELDS].forEach(id => {
+    const el = document.getElementById(id);
+    if (el && el.value) p.set(id, el.value);
+  });
+  return 'https://tools.homewealthsolutions.com/buyer/comfort-calculator.html' + '?' + p.toString();
+}
+
+function copyShareLink(btn) {
+  const url = buildShareURL() + '&view=1';
+  navigator.clipboard.writeText(url).catch(() => {
+    const ta = Object.assign(document.createElement('textarea'),{value:url});
+    document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove();
+  });
+  btn.textContent = '✓ Link Copied!';
+  setTimeout(() => btn.textContent = '↗ Share with Client', 2500);
+}
+
+function applyURLParams() {
+  const p = new URLSearchParams(location.search);
+  if (![...p.keys()].some(k => CALC_FIELDS.includes(k))) return false;
+  [...CALC_FIELDS, ...BD_FIELDS].forEach(id => {
+    const el = document.getElementById(id);
+    if (el && p.has(id)) el.value = p.get(id);
+  });
+  return true;
+}
+
 // ─── Init ──────────────────────────────────────────────────────────────────────
-loadSaved();
+const _fromURL = applyURLParams();
+if (!_fromURL) loadSaved();
 formatAllFields();
 calculate();
+if (new URLSearchParams(location.search).get('view')==='1') {
+  // client view: hide inputs panel, show just results
+  document.querySelectorAll('.card:not(.results-card), .notice-bar, #hws-hub-btn, #shareBtn').forEach(el => el.style.display='none');
+  const bar = Object.assign(document.createElement('div'),{
+    className:'no-print',
+    style:'background:#f0f9ff;border-bottom:1px solid #bae6fd;padding:10px 24px;font-size:12px;color:#0369a1;text-align:center;',
+    innerHTML:'Affordability analysis prepared by HomeWealth Solutions &nbsp;<button onclick="window.print()" style="background:#2491EB;color:#fff;border:none;padding:5px 12px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;">⎙ Save as PDF</button>'
+  });
+  document.querySelector('.container')?.insertBefore(bar, document.querySelector('.container').firstChild);
+}
 </script>
 
 </body>

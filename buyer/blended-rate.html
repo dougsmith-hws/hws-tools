@@ -128,6 +128,7 @@ table.breakdown-tbl tr:nth-child(even) td { background: #fafbfc; }
       <div class="hdr-nmls">NMLS #2742458</div>
     </div>
   </div>
+  <button class="btn-print" id="shareBtn" onclick="copyShareLink(this)" style="margin-right:8px;">↗ Share with Client</button>
   <button class="btn-print" onclick="printView()">&#9113; Print / Save PDF</button>
 </div>
 
@@ -472,11 +473,58 @@ function printView() {
   window.print();
 }
 
+// ── Share / Client View ──────────────────────────────────────────────────
+function buildShareURL() {
+  syncDebtsFromDOM();
+  const p = new URLSearchParams();
+  p.set('client', document.getElementById('print_client').value.trim());
+  p.set('agent',  document.getElementById('print_agent').value.trim());
+  p.set('debts',  JSON.stringify(_debts.map(d => [d.name, d.balance, d.payment, d.rate])));
+  return 'https://tools.homewealthsolutions.com/buyer/blended-rate.html' + '?' + p.toString();
+}
+
+function copyShareLink(btn) {
+  const url = buildShareURL() + '&view=1';
+  navigator.clipboard.writeText(url).catch(() => {
+    const ta = Object.assign(document.createElement('textarea'), {value: url});
+    document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove();
+  });
+  btn.textContent = '✓ Link Copied!';
+  setTimeout(() => btn.textContent = '↗ Share with Client', 2500);
+}
+
+function enterClientView() {
+  document.querySelectorAll('.print-fields-row, #hws-hub-btn').forEach(el => el.style.display='none');
+  document.querySelector('.btn-print[onclick*="shareBtn"], #shareBtn')?.style.setProperty('display','none');
+  document.getElementById('shareBtn').style.display='none';
+  const bar = Object.assign(document.createElement('div'), {
+    className:'no-print',
+    style:'background:#f0f9ff;border-bottom:1px solid #bae6fd;padding:10px 24px;font-size:12px;color:#0369a1;text-align:center;',
+    innerHTML:'Blended Rate analysis prepared by HomeWealth Solutions &nbsp;<button onclick="printView()" style="background:#2491EB;color:#fff;border:none;padding:5px 12px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;">⎙ Save as PDF</button>'
+  });
+  document.body.insertBefore(bar, document.querySelector('.main') || document.body.firstChild);
+}
+
 // ── INIT ──
 window.addEventListener('DOMContentLoaded', () => {
-  addDebt('Credit Card',   '$8,500',  '$220', '22.99%');
-  addDebt('Auto Loan',     '$14,000', '$325', '7.49%');
-  addDebt('Personal Loan', '$5,000',  '$165', '14.99%');
+  const p = new URLSearchParams(location.search);
+  if (p.has('debts')) {
+    try {
+      const rows = JSON.parse(p.get('debts'));
+      rows.forEach(r => addDebt(r[0], r[1], r[2], r[3]));
+    } catch(e) {
+      addDebt('Credit Card','$8,500','$220','22.99%');
+      addDebt('Auto Loan','$14,000','$325','7.49%');
+      addDebt('Personal Loan','$5,000','$165','14.99%');
+    }
+    if (p.has('client')) document.getElementById('print_client').value = p.get('client');
+    if (p.has('agent'))  document.getElementById('print_agent').value  = p.get('agent');
+    if (p.get('view')==='1') enterClientView();
+  } else {
+    addDebt('Credit Card',   '$8,500',  '$220', '22.99%');
+    addDebt('Auto Loan',     '$14,000', '$325', '7.49%');
+    addDebt('Personal Loan', '$5,000',  '$165', '14.99%');
+  }
   calc();
 });
 </script>

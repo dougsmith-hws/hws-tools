@@ -198,7 +198,7 @@ function buildShareURL(){
   if(realtor) p.set('realtor', realtor);
   if(deal) p.set('deal', deal);
   p.set('tier', pick('tier'));
-  return location.origin + location.pathname + '?' + p.toString();
+  return 'https://tools.homewealthsolutions.com/buyer/strategy-builder.html' + '?' + p.toString();
 }
 
 // client-facing (realtor) link: static view, no Hub, no editing

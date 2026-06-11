@@ -143,6 +143,7 @@ table.debt-tbl input[type=text]:focus { outline: none; border-color: var(--blue)
       <div class="hdr-nmls">NMLS #2742458</div>
     </div>
   </div>
+  <button class="btn-print" id="shareBtn" onclick="copyShareLink(this)" style="margin-right:8px;">↗ Share with Client</button>
   <button class="btn-print" onclick="printView()">&#9113; Print / Save PDF</button>
 </div>
 
@@ -665,12 +666,69 @@ function printView() {
   window.print();
 }
 
+// ── Share / Client View ──────────────────────────────────────────────────
+function buildShareURL() {
+  syncDebtsFromDOM();
+  const raw = id => (document.getElementById(id)?.value||'').replace(/[$,%]/g,'').trim();
+  const p = new URLSearchParams();
+  p.set('mode',   currentMode);
+  p.set('client', document.getElementById('print_client').value.trim());
+  p.set('agent',  document.getElementById('print_agent').value.trim());
+  if (currentMode === 'refi') {
+    p.set('hv', raw('r_homeVal')); p.set('bal', raw('r_balance'));
+    p.set('rr', raw('r_rate'));    p.set('rt', raw('r_term'));
+  } else {
+    p.set('pp', raw('p_price')); p.set('pd', raw('p_down'));
+  }
+  p.set('nr', raw('n_rate')); p.set('nt', document.getElementById('n_term').value);
+  p.set('nc', raw('n_closing')); p.set('ne', raw('n_escrow'));
+  p.set('ni', raw('n_reinvest'));
+  p.set('debts', JSON.stringify(_debts.map(d=>[d.name,d.balance,d.payment,d.rate,d.action])));
+  return 'https://tools.homewealthsolutions.com/buyer/debt-consolidation.html' + '?' + p.toString();
+}
+
+function copyShareLink(btn) {
+  const url = buildShareURL() + '&view=1';
+  navigator.clipboard.writeText(url).catch(() => {
+    const ta = Object.assign(document.createElement('textarea'),{value:url});
+    document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove();
+  });
+  btn.textContent = '✓ Link Copied!';
+  setTimeout(() => btn.textContent = '↗ Share with Client', 2500);
+}
+
+function enterClientView() {
+  document.querySelectorAll('.print-fields, #hws-hub-btn, #shareBtn').forEach(el => el.style.display='none');
+  const bar = Object.assign(document.createElement('div'),{
+    className:'no-print',
+    style:'background:#f0f9ff;border-bottom:1px solid #bae6fd;padding:10px 24px;font-size:12px;color:#0369a1;text-align:center;',
+    innerHTML:'Debt consolidation analysis prepared by HomeWealth Solutions &nbsp;<button onclick="printView()" style="background:#2491EB;color:#fff;border:none;padding:5px 12px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;">⎙ Save as PDF</button>'
+  });
+  document.body.insertBefore(bar, document.querySelector('.mode-bar')||document.body.firstChild);
+}
+
 // ── INIT ──
 window.addEventListener('DOMContentLoaded', () => {
-  // Default debts
-  addDebt('Credit Card', '$12,000', '$280', '22.99%', 'payoff');
-  addDebt('Auto Loan',   '$18,500', '$385', '7.50%',  'payoff');
-  addDebt('Personal Loan','$8,000', '$210', '14.99%', 'payoff');
+  const p = new URLSearchParams(location.search);
+  if (p.has('debts')) {
+    if (p.has('mode')) setMode(p.get('mode'));
+    const raw = (id,key) => { const el=document.getElementById(id); if(el && p.has(key)) el.value=p.get(key); };
+    raw('r_homeVal','hv'); raw('r_balance','bal'); raw('r_rate','rr'); raw('r_term','rt');
+    raw('p_price','pp'); raw('p_down','pd');
+    raw('n_rate','nr'); raw('n_closing','nc'); raw('n_escrow','ne'); raw('n_reinvest','ni');
+    if (p.has('nt')) document.getElementById('n_term').value = p.get('nt');
+    if (p.has('client')) document.getElementById('print_client').value = p.get('client');
+    if (p.has('agent'))  document.getElementById('print_agent').value  = p.get('agent');
+    try {
+      const rows = JSON.parse(p.get('debts'));
+      rows.forEach(r => addDebt(r[0],r[1],r[2],r[3],r[4]||'payoff'));
+    } catch(e) { addDebt('Credit Card','$12,000','$280','22.99%','payoff'); }
+    if (p.get('view')==='1') enterClientView();
+  } else {
+    addDebt('Credit Card', '$12,000', '$280', '22.99%', 'payoff');
+    addDebt('Auto Loan',   '$18,500', '$385', '7.50%',  'payoff');
+    addDebt('Personal Loan','$8,000', '$210', '14.99%', 'payoff');
+  }
   calc();
 });
 </script>

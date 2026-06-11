@@ -1,0 +1,1187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Multi-Unit Investment Loan Comparison — HomeWealth Solutions</title>
+<style>
+  :root {
+    --blue: #2491EB;
+    --green: #8EC73F;
+    --dark: #1a2535;
+    --gray: #f4f6f9;
+    --border: #dde3ec;
+    --text: #2c3e50;
+    --muted: #7f8c9a;
+    --white: #ffffff;
+    --red: #e74c3c;
+    --orange: #f39c12;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+    background: var(--gray);
+    color: var(--text);
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  /* ─── Header ─── */
+  .header {
+    background: var(--dark);
+    padding: 20px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .header-brand {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .brand-dot {
+    width: 38px; height: 38px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, var(--blue), var(--green));
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800; color: #fff; font-size: 16px;
+  }
+  .brand-name { color: #fff; font-size: 18px; font-weight: 700; }
+  .brand-sub  { color: #94a3b8; font-size: 12px; }
+  .header-tool { color: #94a3b8; font-size: 13px; text-align: right; }
+  .header-tool strong { display: block; color: #fff; font-size: 15px; }
+
+  /* ─── Client Bar ─── */
+  .client-bar {
+    background: #fff;
+    border-bottom: 1px solid var(--border);
+    padding: 12px 32px;
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .client-bar label { font-size: 11px; text-transform: uppercase; letter-spacing: .5px; color: var(--muted); display: block; margin-bottom: 3px; }
+  .client-bar input {
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 6px 10px;
+    font-size: 13px;
+    width: 200px;
+    color: var(--text);
+  }
+  .client-bar input:focus { outline: none; border-color: var(--blue); }
+
+  /* ─── Main Layout ─── */
+  .main { max-width: 1100px; margin: 0 auto; padding: 24px 16px 48px; }
+
+  /* ─── Units Banner ─── */
+  .units-banner {
+    background: linear-gradient(135deg, var(--blue) 0%, #1a7fd4 100%);
+    color: #fff;
+    border-radius: 12px;
+    padding: 20px 28px;
+    display: flex;
+    align-items: center;
+    gap: 28px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+  }
+  .units-banner-label { font-size: 13px; opacity: .85; }
+  .units-banner-title { font-size: 20px; font-weight: 700; }
+  .units-control {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-left: auto;
+  }
+  .units-control label { font-size: 13px; opacity: .85; }
+  .units-control input {
+    width: 70px;
+    text-align: center;
+    font-size: 22px;
+    font-weight: 700;
+    border: 2px solid rgba(255,255,255,.4);
+    background: rgba(255,255,255,.15);
+    color: #fff;
+    border-radius: 8px;
+    padding: 6px 10px;
+  }
+  .units-control input:focus { outline: none; border-color: #fff; background: rgba(255,255,255,.25); }
+  .units-btn {
+    width: 34px; height: 34px;
+    border-radius: 8px;
+    border: 2px solid rgba(255,255,255,.4);
+    background: rgba(255,255,255,.15);
+    color: #fff;
+    font-size: 20px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: background .15s;
+  }
+  .units-btn:hover { background: rgba(255,255,255,.3); }
+
+  /* ─── Grid ─── */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px; }
+  @media(max-width: 700px) { .grid-2 { grid-template-columns: 1fr; } }
+
+  /* ─── Card ─── */
+  .card {
+    background: #fff;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    overflow: hidden;
+  }
+  .card-header {
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--border);
+    font-weight: 700;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+    color: var(--muted);
+    background: var(--gray);
+  }
+  .card-body { padding: 20px; }
+
+  /* ─── Input Groups ─── */
+  .input-group { margin-bottom: 14px; }
+  .input-group:last-child { margin-bottom: 0; }
+  .input-group label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--muted);
+    margin-bottom: 5px;
+    text-transform: uppercase;
+    letter-spacing: .4px;
+  }
+  .input-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+  .input-prefix, .input-suffix {
+    position: absolute;
+    font-size: 13px;
+    color: var(--muted);
+    font-weight: 600;
+  }
+  .input-prefix { left: 10px; }
+  .input-suffix { right: 10px; }
+  .input-wrap input {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 14px;
+    color: var(--text);
+    transition: border-color .15s;
+  }
+  .input-wrap.has-prefix input { padding-left: 24px; }
+  .input-wrap.has-suffix input { padding-right: 28px; }
+  .input-wrap input:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 3px rgba(36,145,235,.1); }
+  .input-hint { font-size: 11px; color: var(--muted); margin-top: 3px; }
+
+  /* ─── Scenario Cards ─── */
+  .scenarios { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 24px; }
+  @media(max-width: 750px) { .scenarios { grid-template-columns: 1fr; } }
+
+  .scenario-card {
+    background: #fff;
+    border-radius: 12px;
+    border: 2px solid var(--border);
+    overflow: hidden;
+    transition: border-color .2s;
+  }
+  .scenario-card:nth-child(1) { border-top: 4px solid var(--green); }
+  .scenario-card:nth-child(2) { border-top: 4px solid var(--blue); }
+  .scenario-card:nth-child(3) { border-top: 4px solid var(--orange); }
+
+  .scenario-header {
+    padding: 14px 18px 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .scenario-icon {
+    width: 32px; height: 32px;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+  }
+  .icon-green { background: rgba(142,199,63,.15); }
+  .icon-blue  { background: rgba(36,145,235,.12); }
+  .icon-orange{ background: rgba(243,156,18,.12); }
+
+  .scenario-title { font-weight: 700; font-size: 15px; }
+  .scenario-body { padding: 0 18px 18px; }
+  .scenario-disabled { color: var(--muted); font-size: 13px; text-align: center; padding: 16px 0; }
+
+  /* ─── Results Table ─── */
+  .results-card {
+    background: #fff;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    overflow: hidden;
+    margin-bottom: 24px;
+  }
+  .results-header {
+    background: var(--dark);
+    color: #fff;
+    padding: 16px 24px;
+    font-weight: 700;
+    font-size: 15px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .results-table { width: 100%; border-collapse: collapse; }
+  .results-table th {
+    background: var(--gray);
+    padding: 12px 16px;
+    text-align: right;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+    color: var(--muted);
+    border-bottom: 1px solid var(--border);
+  }
+  .results-table th:first-child { text-align: left; }
+  .results-table td {
+    padding: 14px 16px;
+    text-align: right;
+    border-bottom: 1px solid var(--border);
+    font-size: 14px;
+  }
+  .results-table td:first-child { text-align: left; font-weight: 600; color: var(--text); }
+  .results-table tr:last-child td { border-bottom: none; }
+  .results-table tr:hover td { background: #f8fafc; }
+
+  .val-green  { color: #27ae60; font-weight: 700; }
+  .val-red    { color: var(--red); font-weight: 700; }
+  .val-blue   { color: var(--blue); font-weight: 700; }
+  .val-orange { color: var(--orange); font-weight: 700; }
+  .val-bold   { font-weight: 700; }
+
+  /* ─── Highlight Row ─── */
+  .highlight-row td { background: #f0f9ff !important; }
+
+  /* ─── Summary Tiles ─── */
+  .tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 24px; }
+  @media(max-width: 700px) { .tiles { grid-template-columns: 1fr; } }
+
+  .tile {
+    background: #fff;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    padding: 20px;
+    text-align: center;
+  }
+  .tile-label { font-size: 11px; text-transform: uppercase; letter-spacing: .5px; color: var(--muted); margin-bottom: 8px; }
+  .tile-row { display: flex; justify-content: space-around; flex-wrap: wrap; gap: 12px; }
+  .tile-item { flex: 1; }
+  .tile-name { font-size: 11px; color: var(--muted); margin-bottom: 4px; }
+  .tile-value { font-size: 22px; font-weight: 800; }
+  .tile-value.green  { color: #27ae60; }
+  .tile-value.red    { color: var(--red); }
+  .tile-value.blue   { color: var(--blue); }
+  .tile-value.orange { color: var(--orange); }
+
+  /* ─── Footer / Compliance ─── */
+  .compliance {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px 20px;
+    font-size: 10px;
+    color: var(--muted);
+    line-height: 1.6;
+    margin-bottom: 16px;
+  }
+  .compliance strong { color: var(--text); }
+
+  .footer-bar {
+    text-align: center;
+    font-size: 11px;
+    color: var(--muted);
+    padding-bottom: 16px;
+  }
+  .footer-bar a { color: var(--blue); text-decoration: none; }
+
+  /* ─── Print ─── */
+  @media print {
+    body { background: #fff; }
+    .no-print { display: none !important; }
+    .main { padding: 0; max-width: 100%; }
+    .card, .results-card, .tile, .scenario-card, .compliance { box-shadow: none; border: 1px solid #ccc; break-inside: avoid; }
+    .header { background: #1a2535 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  }
+
+  /* ─── Tooltip ─── */
+  .tooltip { position: relative; display: inline-block; cursor: help; color: var(--muted); font-size: 11px; margin-left: 4px; }
+  .tooltip .tip {
+    visibility: hidden; opacity: 0;
+    background: var(--dark); color: #fff;
+    font-size: 11px; border-radius: 6px;
+    padding: 6px 10px; width: 200px;
+    position: absolute; bottom: 125%; left: 50%; transform: translateX(-50%);
+    transition: opacity .2s; pointer-events: none; z-index: 10;
+  }
+  .tooltip:hover .tip { visibility: visible; opacity: 1; }
+
+  /* ─── Section Divider ─── */
+  .section-title {
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .6px;
+    color: var(--muted);
+    margin: 0 0 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .section-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* Print button */
+  .btn-print {
+    background: var(--dark);
+    color: #fff;
+    border: none;
+    padding: 8px 18px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: background .15s;
+  }
+  .btn-print:hover { background: #2c3e50; }
+
+  .top-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 16px;
+    gap: 10px;
+  }
+</style>
+</head>
+<body>
+
+<!-- ─── Header ─── -->
+<div class="header">
+  <div class="header-brand">
+    <div class="brand-dot">HW</div>
+    <div>
+      <div class="brand-name">HomeWealth Solutions</div>
+      <div class="brand-sub">NMLS #2742458 · Florida MBR8082</div>
+    </div>
+  </div>
+  <div class="header-tool">
+    <strong>Multi-Unit Investment Loan Comparison</strong>
+    Doug Smith, CMA® · 813-733-7371
+  </div>
+</div>
+
+<!-- ─── Client Bar ─── -->
+<div class="client-bar no-print">
+  <div>
+    <label>Prepared For</label>
+    <input type="text" id="clientName" placeholder="Client Name" oninput="updateLabel()">
+  </div>
+  <div>
+    <label>Property Address</label>
+    <input type="text" id="propAddress" placeholder="e.g. 123 Main St, Tampa FL" style="width:260px" oninput="updateLabel()">
+  </div>
+  <div style="margin-left:auto;display:flex;gap:8px;align-items:center;">
+    <button id="shareBtn" onclick="copyShareLink(this)" style="background:var(--blue);color:#fff;border:none;padding:7px 16px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;">↗ Share with Client</button>
+    <button class="btn-print" onclick="window.print()">🖨 Print / Save PDF</button>
+  </div>
+</div>
+
+<!-- ─── Main ─── -->
+<div class="main">
+
+  <!-- Units Banner -->
+  <div class="units-banner">
+    <div>
+      <div class="units-banner-label">Investment Analysis Tool</div>
+      <div class="units-banner-title" id="propAddressDisplay">Multi-Unit Property Comparison</div>
+    </div>
+    <div class="units-control">
+      <label>Number of Units</label>
+      <button class="units-btn" onclick="changeUnits(-1)">−</button>
+      <input type="number" id="numUnits" value="4" min="1" max="100" oninput="calculate()">
+      <button class="units-btn" onclick="changeUnits(1)">+</button>
+    </div>
+  </div>
+
+  <!-- Top Actions (print only, skip in screen) -->
+  <div id="printHeader" style="display:none; margin-bottom:16px;">
+    <div style="font-size:13px; color:#555;">
+      Prepared for: <strong id="printClient">—</strong> &nbsp;|&nbsp;
+      Property: <strong id="printAddress">—</strong> &nbsp;|&nbsp;
+      Date: <strong id="printDate"></strong>
+    </div>
+  </div>
+
+  <!-- Property & Income Inputs -->
+  <div class="grid-2">
+
+    <!-- Property Details -->
+    <div class="card">
+      <div class="card-header">📍 Property Details</div>
+      <div class="card-body">
+        <div class="input-group">
+          <label>Purchase Price / Value</label>
+          <div class="input-wrap has-prefix">
+            <span class="input-prefix">$</span>
+            <input type="number" id="propValue" value="500000" oninput="calculate()" step="1000">
+          </div>
+        </div>
+        <div class="input-group">
+          <label>Annual Appreciation Rate</label>
+          <div class="input-wrap has-suffix">
+            <input type="number" id="appreciation" value="4" step="0.1" oninput="calculate()">
+            <span class="input-suffix">%</span>
+          </div>
+        </div>
+        <div class="input-group">
+          <label>Holding Period</label>
+          <div class="input-wrap has-suffix">
+            <input type="number" id="holdingMonths" value="120" step="12" oninput="calculate()">
+            <span class="input-suffix">months</span>
+          </div>
+          <div class="input-hint" id="holdingHint">10 years</div>
+        </div>
+        <div class="input-group">
+          <label>Selling Costs (agents, closing)</label>
+          <div class="input-wrap has-suffix">
+            <input type="number" id="salesExpPct" value="9" step="0.5" oninput="calculate()">
+            <span class="input-suffix">%</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Income & Expense Inputs -->
+    <div class="card">
+      <div class="card-header">💰 Income &amp; Expenses — Per Unit</div>
+      <div class="card-body">
+        <div class="input-group">
+          <label>Monthly Rent Per Unit</label>
+          <div class="input-wrap has-prefix">
+            <span class="input-prefix">$</span>
+            <input type="number" id="rentPerUnit" value="1200" step="50" oninput="calculate()">
+          </div>
+          <div class="input-hint">Total rent: <strong id="totalRentDisplay">$4,800</strong> / mo (<span id="numUnitsHint">4</span> units)</div>
+        </div>
+        <div class="input-group">
+          <label>Vacancy / Credit Loss
+            <span class="tooltip">ⓘ<span class="tip">Estimated vacancy as % of gross rent. 5–10% is typical for multi-family.</span></span>
+          </label>
+          <div class="input-wrap has-suffix">
+            <input type="number" id="vacancyPct" value="5" step="1" oninput="calculate()">
+            <span class="input-suffix">%</span>
+          </div>
+        </div>
+        <div class="input-group">
+          <label>Monthly Expenses Per Unit
+            <span class="tooltip">ⓘ<span class="tip">Taxes, insurance, maintenance, property management, etc.</span></span>
+          </label>
+          <div class="input-wrap has-prefix">
+            <span class="input-prefix">$</span>
+            <input type="number" id="expPerUnit" value="300" step="25" oninput="calculate()">
+          </div>
+          <div class="input-hint">Total expenses: <strong id="totalExpDisplay">$1,200</strong> / mo</div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /.grid-2 -->
+
+  <!-- ─── Scenario Inputs ─── -->
+  <p class="section-title">Financing Scenarios</p>
+  <div class="scenarios">
+
+    <!-- Scenario 1: Cash -->
+    <div class="scenario-card">
+      <div class="scenario-header">
+        <div class="scenario-icon icon-green">💵</div>
+        <div>
+          <div class="scenario-title">Scenario 1 — Cash</div>
+          <div style="font-size:11px;color:var(--muted);">No financing</div>
+        </div>
+      </div>
+      <div class="scenario-body">
+        <div class="input-group">
+          <label>Closing Costs (flat)</label>
+          <div class="input-wrap has-prefix">
+            <span class="input-prefix">$</span>
+            <input type="number" id="s1_closingCosts" value="2000" step="500" oninput="calculate()">
+          </div>
+        </div>
+        <div style="font-size:12px; color:var(--muted); margin-top:10px; background:var(--gray); border-radius:6px; padding:8px 10px;">
+          No mortgage payment. Full purchase price invested.
+        </div>
+      </div>
+    </div>
+
+    <!-- Scenario 2 -->
+    <div class="scenario-card">
+      <div class="scenario-header">
+        <div class="scenario-icon icon-blue">🏦</div>
+        <div>
+          <div class="scenario-title">Scenario 2
+            <span class="tooltip" style="font-size:13px;">ⓘ<span class="tip">Edit the label to name this scenario (e.g. "25% Down").</span></span>
+          </div>
+          <input type="text" id="s2_name" value="25% Down" style="font-size:11px;color:var(--muted);border:none;background:transparent;width:120px;padding:0;" oninput="updateLabels()">
+        </div>
+      </div>
+      <div class="scenario-body">
+        <div class="input-group">
+          <label>Down Payment %</label>
+          <div class="input-wrap has-suffix">
+            <input type="number" id="s2_downPct" value="25" step="5" oninput="calculate()">
+            <span class="input-suffix">%</span>
+          </div>
+        </div>
+        <div class="input-group">
+          <label>Interest Rate</label>
+          <div class="input-wrap has-suffix">
+            <input type="number" id="s2_rate" value="7.5" step="0.125" oninput="calculate()">
+            <span class="input-suffix">%</span>
+          </div>
+        </div>
+        <div class="input-group">
+          <label>Loan Term</label>
+          <div class="input-wrap has-suffix">
+            <input type="number" id="s2_term" value="360" step="60" oninput="calculate()">
+            <span class="input-suffix">months</span>
+          </div>
+        </div>
+        <div class="input-group">
+          <label>Points</label>
+          <div class="input-wrap has-suffix">
+            <input type="number" id="s2_points" value="1" step="0.25" oninput="calculate()">
+            <span class="input-suffix">%</span>
+          </div>
+        </div>
+        <div class="input-group">
+          <label>Closing Costs (flat)</label>
+          <div class="input-wrap has-prefix">
+            <span class="input-prefix">$</span>
+            <input type="number" id="s2_closingCosts" value="6000" step="500" oninput="calculate()">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Scenario 3 -->
+    <div class="scenario-card">
+      <div class="scenario-header">
+        <div class="scenario-icon icon-orange">📊</div>
+        <div>
+          <div class="scenario-title">Scenario 3</div>
+          <input type="text" id="s3_name" value="20% Down" style="font-size:11px;color:var(--muted);border:none;background:transparent;width:120px;padding:0;" oninput="updateLabels()">
+        </div>
+      </div>
+      <div class="scenario-body">
+        <div class="input-group">
+          <label>Down Payment %</label>
+          <div class="input-wrap has-suffix">
+            <input type="number" id="s3_downPct" value="20" step="5" oninput="calculate()">
+            <span class="input-suffix">%</span>
+          </div>
+        </div>
+        <div class="input-group">
+          <label>Interest Rate</label>
+          <div class="input-wrap has-suffix">
+            <input type="number" id="s3_rate" value="7.5" step="0.125" oninput="calculate()">
+            <span class="input-suffix">%</span>
+          </div>
+        </div>
+        <div class="input-group">
+          <label>Loan Term</label>
+          <div class="input-wrap has-suffix">
+            <input type="number" id="s3_term" value="360" step="60" oninput="calculate()">
+            <span class="input-suffix">months</span>
+          </div>
+        </div>
+        <div class="input-group">
+          <label>Points</label>
+          <div class="input-wrap has-suffix">
+            <input type="number" id="s3_points" value="1.75" step="0.25" oninput="calculate()">
+            <span class="input-suffix">%</span>
+          </div>
+        </div>
+        <div class="input-group">
+          <label>Closing Costs (flat)</label>
+          <div class="input-wrap has-prefix">
+            <span class="input-prefix">$</span>
+            <input type="number" id="s3_closingCosts" value="6000" step="500" oninput="calculate()">
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /.scenarios -->
+
+  <!-- ─── Summary Tiles ─── -->
+  <p class="section-title">Results Summary</p>
+  <div class="tiles">
+    <div class="tile">
+      <div class="tile-label">Monthly Cash Flow</div>
+      <div class="tile-row">
+        <div class="tile-item">
+          <div class="tile-name">Cash</div>
+          <div class="tile-value green" id="tile_cf_s1">—</div>
+        </div>
+        <div class="tile-item">
+          <div class="tile-name" id="tile_name_s2">Scen 2</div>
+          <div class="tile-value blue" id="tile_cf_s2">—</div>
+        </div>
+        <div class="tile-item">
+          <div class="tile-name" id="tile_name_s3">Scen 3</div>
+          <div class="tile-value orange" id="tile_cf_s3">—</div>
+        </div>
+      </div>
+    </div>
+    <div class="tile">
+      <div class="tile-label">Cash Needed to Close</div>
+      <div class="tile-row">
+        <div class="tile-item">
+          <div class="tile-name">Cash</div>
+          <div class="tile-value green" id="tile_ctc_s1">—</div>
+        </div>
+        <div class="tile-item">
+          <div class="tile-name" id="tile_name2_s2">Scen 2</div>
+          <div class="tile-value blue" id="tile_ctc_s2">—</div>
+        </div>
+        <div class="tile-item">
+          <div class="tile-name" id="tile_name2_s3">Scen 3</div>
+          <div class="tile-value orange" id="tile_ctc_s3">—</div>
+        </div>
+      </div>
+    </div>
+    <div class="tile">
+      <div class="tile-label">Annual IRR</div>
+      <div class="tile-row">
+        <div class="tile-item">
+          <div class="tile-name">Cash</div>
+          <div class="tile-value green" id="tile_irr_s1">—</div>
+        </div>
+        <div class="tile-item">
+          <div class="tile-name" id="tile_name3_s2">Scen 2</div>
+          <div class="tile-value blue" id="tile_irr_s2">—</div>
+        </div>
+        <div class="tile-item">
+          <div class="tile-name" id="tile_name3_s3">Scen 3</div>
+          <div class="tile-value orange" id="tile_irr_s3">—</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── Results Table ─── -->
+  <div class="results-card">
+    <div class="results-header">📋 Full Comparison — <span id="tableUnitsLabel">4-Unit Property</span></div>
+    <table class="results-table">
+      <thead>
+        <tr>
+          <th>Metric</th>
+          <th>Cash</th>
+          <th id="th_s2">Scenario 2</th>
+          <th id="th_s3">Scenario 3</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td colspan="4" style="padding:8px 16px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);background:var(--gray);">Investment Inputs</td></tr>
+        <tr>
+          <td>Purchase Price</td>
+          <td id="r_price_s1" class="val-bold">—</td>
+          <td id="r_price_s2" class="val-bold">—</td>
+          <td id="r_price_s3" class="val-bold">—</td>
+        </tr>
+        <tr>
+          <td>Down Payment</td>
+          <td id="r_down_s1">—</td>
+          <td id="r_down_s2">—</td>
+          <td id="r_down_s3">—</td>
+        </tr>
+        <tr>
+          <td>Mortgage Balance</td>
+          <td id="r_loan_s1">—</td>
+          <td id="r_loan_s2">—</td>
+          <td id="r_loan_s3">—</td>
+        </tr>
+        <tr>
+          <td>Interest Rate</td>
+          <td id="r_rate_s1">—</td>
+          <td id="r_rate_s2">—</td>
+          <td id="r_rate_s3">—</td>
+        </tr>
+        <tr>
+          <td>Points + Closing Costs</td>
+          <td id="r_costs_s1">—</td>
+          <td id="r_costs_s2">—</td>
+          <td id="r_costs_s3">—</td>
+        </tr>
+        <tr class="highlight-row">
+          <td>💵 Cash Needed to Close</td>
+          <td id="r_ctc_s1" class="val-green">—</td>
+          <td id="r_ctc_s2" class="val-blue">—</td>
+          <td id="r_ctc_s3" class="val-orange">—</td>
+        </tr>
+        <tr><td colspan="4" style="padding:8px 16px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);background:var(--gray);">Monthly Cash Flow (<span id="tableUnitsLabel2">4</span> Units)</td></tr>
+        <tr>
+          <td>Gross Rent</td>
+          <td id="r_rent_s1">—</td>
+          <td id="r_rent_s2">—</td>
+          <td id="r_rent_s3">—</td>
+        </tr>
+        <tr>
+          <td>Vacancy Loss</td>
+          <td id="r_vac_s1">—</td>
+          <td id="r_vac_s2">—</td>
+          <td id="r_vac_s3">—</td>
+        </tr>
+        <tr>
+          <td>Effective Rent</td>
+          <td id="r_effrent_s1">—</td>
+          <td id="r_effrent_s2">—</td>
+          <td id="r_effrent_s3">—</td>
+        </tr>
+        <tr>
+          <td>Total Expenses</td>
+          <td id="r_exp_s1">—</td>
+          <td id="r_exp_s2">—</td>
+          <td id="r_exp_s3">—</td>
+        </tr>
+        <tr>
+          <td>Mortgage Payment</td>
+          <td id="r_pmt_s1">—</td>
+          <td id="r_pmt_s2">—</td>
+          <td id="r_pmt_s3">—</td>
+        </tr>
+        <tr class="highlight-row">
+          <td>📈 Net Monthly Cash Flow</td>
+          <td id="r_cf_s1">—</td>
+          <td id="r_cf_s2">—</td>
+          <td id="r_cf_s3">—</td>
+        </tr>
+        <tr>
+          <td>Annual Cash Flow</td>
+          <td id="r_acf_s1">—</td>
+          <td id="r_acf_s2">—</td>
+          <td id="r_acf_s3">—</td>
+        </tr>
+        <tr>
+          <td>Cash-on-Cash Return</td>
+          <td id="r_coc_s1">—</td>
+          <td id="r_coc_s2">—</td>
+          <td id="r_coc_s3">—</td>
+        </tr>
+        <tr><td colspan="4" style="padding:8px 16px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);background:var(--gray);">Exit Analysis (<span id="tableUnitsLabel3">10</span>-Year Hold)</td></tr>
+        <tr>
+          <td>Projected Sales Price</td>
+          <td id="r_sale_s1">—</td>
+          <td id="r_sale_s2">—</td>
+          <td id="r_sale_s3">—</td>
+        </tr>
+        <tr>
+          <td>Selling Costs</td>
+          <td id="r_sellcost_s1">—</td>
+          <td id="r_sellcost_s2">—</td>
+          <td id="r_sellcost_s3">—</td>
+        </tr>
+        <tr>
+          <td>Mortgage Payoff</td>
+          <td id="r_payoff_s1">—</td>
+          <td id="r_payoff_s2">—</td>
+          <td id="r_payoff_s3">—</td>
+        </tr>
+        <tr>
+          <td>Net Proceeds from Sale</td>
+          <td id="r_net_s1">—</td>
+          <td id="r_net_s2">—</td>
+          <td id="r_net_s3">—</td>
+        </tr>
+        <tr class="highlight-row">
+          <td>📊 Annual IRR</td>
+          <td id="r_irr_s1">—</td>
+          <td id="r_irr_s2">—</td>
+          <td id="r_irr_s3">—</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ─── Gross Rent Schedule ─── -->
+  <div class="card" style="margin-bottom:24px;">
+    <div class="card-header">📅 Gross Rent Schedule by Number of Units</div>
+    <div class="card-body" style="overflow-x:auto;">
+      <table style="width:100%;border-collapse:collapse;font-size:13px;" id="rentScheduleTable">
+        <thead>
+          <tr style="border-bottom:1px solid var(--border);">
+            <th style="text-align:left;padding:8px 12px;color:var(--muted);">Units</th>
+            <th style="text-align:right;padding:8px 12px;color:var(--muted);">Monthly Rent</th>
+            <th style="text-align:right;padding:8px 12px;color:var(--muted);">Vacancy Loss</th>
+            <th style="text-align:right;padding:8px 12px;color:var(--muted);">Effective Rent</th>
+            <th style="text-align:right;padding:8px 12px;color:var(--muted);">Monthly Expenses</th>
+            <th style="text-align:right;padding:8px 12px;color:var(--muted);">Annual Gross Rent</th>
+          </tr>
+        </thead>
+        <tbody id="rentScheduleBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ─── Compliance ─── -->
+  <div class="compliance">
+    <strong>Disclosure:</strong> This communication is for informational and educational purposes only and does not constitute an offer to lend or a commitment to make a loan. All loans are subject to credit approval, underwriting guidelines, and property approval. Interest rates, payment examples, programs, and terms are illustrative, vary by borrower qualification, and are subject to change without notice. Not all applicants will qualify. Examples shown do not reflect all costs of a mortgage transaction. Consult a licensed tax or legal advisor regarding your individual situation. IRR and cash flow projections are estimates based on inputs provided and are not guaranteed. Actual results will vary. <strong>HomeWealth Solutions LLC</strong> is licensed by the Florida Office of Financial Regulation, Mortgage Broker License #MBR8082. Verify our licensure at www.nmlsconsumeraccess.org. Equal Housing Opportunity.
+  </div>
+
+  <div class="footer-bar">
+    <a href="https://homewealthsolutions.com">homewealthsolutions.com</a> &nbsp;·&nbsp;
+    813-733-7371 &nbsp;·&nbsp;
+    <a href="mailto:doug@homewealthsolutions.com">doug@homewealthsolutions.com</a> &nbsp;·&nbsp;
+    Doug Smith, CMA® · NMLS #2609118
+  </div>
+
+</div><!-- /.main -->
+
+<script>
+// ─── Helpers ───────────────────────────────────────────────
+const fmt = (v, decimals = 0) =>
+  '$' + (Math.abs(v) < 0.01 ? '0' : Math.round(v).toLocaleString());
+
+const fmtFull = (v) =>
+  (v < 0 ? '($' : '$') + Math.abs(v).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 }) + (v < 0 ? ')' : '');
+
+const pct = (v) => (v * 100).toFixed(1) + '%';
+
+const negClass = (v) => v >= 0 ? 'val-green' : 'val-red';
+
+function getVal(id) {
+  return parseFloat(document.getElementById(id).value) || 0;
+}
+
+// ─── PMT ────────────────────────────────────────────────────
+function pmt(rate, nper, pv) {
+  if (rate === 0) return pv / nper;
+  return pv * rate / (1 - Math.pow(1 + rate, -nper));
+}
+
+// ─── Remaining balance after k payments ─────────────────────
+function remainingBalance(rate, nper, pv, k) {
+  if (rate === 0) return pv - (pv / nper) * k;
+  return pv * Math.pow(1 + rate, k) - pmt(rate, nper, pv) * (Math.pow(1 + rate, k) - 1) / rate;
+}
+
+// ─── IRR (monthly) via Newton-Raphson ───────────────────────
+function calcIRR(cashFlows) {
+  let rate = 0.01;
+  for (let iter = 0; iter < 2000; iter++) {
+    let npv = 0, dnpv = 0;
+    for (let t = 0; t < cashFlows.length; t++) {
+      const disc = Math.pow(1 + rate, t);
+      npv += cashFlows[t] / disc;
+      dnpv -= t * cashFlows[t] / (disc * (1 + rate));
+    }
+    if (Math.abs(dnpv) < 1e-14) break;
+    const newRate = rate - npv / dnpv;
+    if (Math.abs(newRate - rate) < 1e-10) { rate = newRate; break; }
+    rate = newRate;
+    if (rate < -0.9999) rate = 0.0001;
+  }
+  return rate;
+}
+
+// ─── Compute one scenario ────────────────────────────────────
+function computeScenario(propValue, isCash, downPct, annualRate, termMonths,
+                         pointsPct, closingCostsFlat, grossRent, vacLoss, totalExp, appreciation, holdMonths, salesExpPct) {
+  const downPayment = isCash ? propValue : propValue * downPct;
+  const loanAmount  = propValue - downPayment;
+  const monthlyRate = isCash ? 0 : annualRate / 12;
+  const mortgagePmt = isCash ? 0 : pmt(monthlyRate, termMonths, loanAmount);
+  const pointsDollar = isCash ? 0 : loanAmount * pointsPct;
+  const totalCosts   = isCash ? closingCostsFlat : pointsDollar + closingCostsFlat;
+  const cashToClose  = downPayment + totalCosts;
+
+  const effectiveRent = grossRent - vacLoss;
+  const monthlyCF    = effectiveRent - totalExp - mortgagePmt;
+  const annualCF     = monthlyCF * 12;
+  const coc          = cashToClose > 0 ? annualCF / cashToClose : 0;
+
+  // Exit
+  const yearsHeld   = holdMonths / 12;
+  const salePrice   = propValue * Math.pow(1 + appreciation, yearsHeld);
+  const sellCosts   = salePrice * salesExpPct;
+  const mortPayoff  = isCash ? 0 : remainingBalance(monthlyRate, termMonths, loanAmount, holdMonths);
+  const netProceeds = salePrice - sellCosts - mortPayoff;
+
+  // IRR cash flows: [-cashToClose, monthly CF x N, final CF = monthlyCF + netProceeds]
+  const cashFlows = [-cashToClose];
+  for (let m = 1; m <= holdMonths; m++) {
+    cashFlows.push(m === holdMonths ? monthlyCF + netProceeds : monthlyCF);
+  }
+  const monthlyIRR = calcIRR(cashFlows);
+  const annualIRR  = Math.pow(1 + monthlyIRR, 12) - 1;
+
+  return { downPayment, loanAmount, mortgagePmt, pointsDollar, totalCosts, cashToClose,
+           effectiveRent, monthlyCF, annualCF, coc,
+           salePrice, sellCosts, mortPayoff, netProceeds, annualIRR,
+           grossRent, vacLoss, totalExp };
+}
+
+// ─── Main calculate ─────────────────────────────────────────
+function calculate() {
+  const propValue    = getVal('propValue');
+  const appreciation = getVal('appreciation') / 100;
+  const holdMonths   = getVal('holdingMonths');
+  const salesExpPct  = getVal('salesExpPct') / 100;
+  const numUnits     = Math.max(1, parseInt(document.getElementById('numUnits').value) || 1);
+  const rentPerUnit  = getVal('rentPerUnit');
+  const vacancyPct   = getVal('vacancyPct') / 100;
+  const expPerUnit   = getVal('expPerUnit');
+
+  const grossRent  = rentPerUnit * numUnits;
+  const vacLoss    = grossRent * vacancyPct;
+  const totalExp   = expPerUnit * numUnits;
+
+  // Update hints
+  document.getElementById('totalRentDisplay').textContent = fmt(grossRent);
+  document.getElementById('numUnitsHint').textContent = numUnits;
+  document.getElementById('totalExpDisplay').textContent = fmt(totalExp);
+  document.getElementById('holdingHint').textContent = (holdMonths / 12).toFixed(1) + ' years';
+
+  const yearsLabel = (holdMonths / 12).toFixed(1);
+  document.getElementById('tableUnitsLabel').textContent = numUnits + '-Unit Property';
+  document.getElementById('tableUnitsLabel2').textContent = numUnits;
+  document.getElementById('tableUnitsLabel3').textContent = yearsLabel;
+
+  // Scenario 1: Cash
+  const s1 = computeScenario(propValue, true, 1, 0, 0,
+    0, getVal('s1_closingCosts'),
+    grossRent, vacLoss, totalExp, appreciation, holdMonths, salesExpPct);
+
+  // Scenario 2
+  const s2 = computeScenario(propValue, false,
+    getVal('s2_downPct') / 100,
+    getVal('s2_rate') / 100,
+    getVal('s2_term'),
+    getVal('s2_points') / 100,
+    getVal('s2_closingCosts'),
+    grossRent, vacLoss, totalExp, appreciation, holdMonths, salesExpPct);
+
+  // Scenario 3
+  const s3 = computeScenario(propValue, false,
+    getVal('s3_downPct') / 100,
+    getVal('s3_rate') / 100,
+    getVal('s3_term'),
+    getVal('s3_points') / 100,
+    getVal('s3_closingCosts'),
+    grossRent, vacLoss, totalExp, appreciation, holdMonths, salesExpPct);
+
+  // ── Summary Tiles ──
+  const setTile = (id, v, cls) => { const el = document.getElementById(id); el.textContent = v; el.className = 'tile-value ' + cls; };
+  setTile('tile_cf_s1', fmtFull(Math.round(s1.monthlyCF)), s1.monthlyCF >= 0 ? 'green' : 'red');
+  setTile('tile_cf_s2', fmtFull(Math.round(s2.monthlyCF)), s2.monthlyCF >= 0 ? 'blue' : 'red');
+  setTile('tile_cf_s3', fmtFull(Math.round(s3.monthlyCF)), s3.monthlyCF >= 0 ? 'orange' : 'red');
+  setTile('tile_ctc_s1', fmt(s1.cashToClose), 'green');
+  setTile('tile_ctc_s2', fmt(s2.cashToClose), 'blue');
+  setTile('tile_ctc_s3', fmt(s3.cashToClose), 'orange');
+  setTile('tile_irr_s1', pct(s1.annualIRR), 'green');
+  setTile('tile_irr_s2', pct(s2.annualIRR), 'blue');
+  setTile('tile_irr_s3', pct(s3.annualIRR), 'orange');
+
+  // ── Full Table ──
+  function setRow(prefix, s1v, s2v, s3v, formatter, useColors) {
+    if (useColors) {
+      const el1 = document.getElementById('r_' + prefix + '_s1');
+      const el2 = document.getElementById('r_' + prefix + '_s2');
+      const el3 = document.getElementById('r_' + prefix + '_s3');
+      el1.textContent = formatter(s1v); el1.className = s1v >= 0 ? 'val-green' : 'val-red';
+      el2.textContent = formatter(s2v); el2.className = s2v >= 0 ? 'val-blue' : 'val-red';
+      el3.textContent = formatter(s3v); el3.className = s3v >= 0 ? 'val-orange' : 'val-red';
+    } else {
+      document.getElementById('r_' + prefix + '_s1').textContent = formatter(s1v);
+      document.getElementById('r_' + prefix + '_s2').textContent = formatter(s2v);
+      document.getElementById('r_' + prefix + '_s3').textContent = formatter(s3v);
+    }
+  }
+
+  setRow('price',    propValue, propValue, propValue, fmt, false);
+  setRow('down',     s1.downPayment, s2.downPayment, s3.downPayment, fmtFull, false);
+  setRow('loan',     s1.loanAmount, s2.loanAmount, s3.loanAmount, fmtFull, false);
+  document.getElementById('r_rate_s1').textContent = '—';
+  document.getElementById('r_rate_s2').textContent = getVal('s2_rate').toFixed(3) + '%';
+  document.getElementById('r_rate_s3').textContent = getVal('s3_rate').toFixed(3) + '%';
+  setRow('costs',    s1.totalCosts, s2.totalCosts, s3.totalCosts, fmtFull, false);
+  setRow('ctc',      s1.cashToClose, s2.cashToClose, s3.cashToClose, fmtFull, false);
+
+  // Cash flow rows
+  setRow('rent',     s1.grossRent, s2.grossRent, s3.grossRent, fmtFull, false);
+  setRow('vac',      -s1.vacLoss, -s2.vacLoss, -s3.vacLoss, v => '(' + fmt(Math.abs(v)) + ')', false);
+  setRow('effrent',  s1.effectiveRent, s2.effectiveRent, s3.effectiveRent, fmtFull, false);
+  setRow('exp',      -s1.totalExp, -s2.totalExp, -s3.totalExp, v => '(' + fmt(Math.abs(v)) + ')', false);
+  setRow('pmt',      s1.mortgagePmt, s2.mortgagePmt, s3.mortgagePmt, v => v === 0 ? '—' : '(' + fmt(v) + ')', false);
+  setRow('cf',       s1.monthlyCF, s2.monthlyCF, s3.monthlyCF, fmtFull, true);
+  setRow('acf',      s1.annualCF, s2.annualCF, s3.annualCF, fmtFull, true);
+  document.getElementById('r_coc_s1').textContent = pct(s1.coc);
+  document.getElementById('r_coc_s2').textContent = pct(s2.coc);
+  document.getElementById('r_coc_s3').textContent = pct(s3.coc);
+
+  // Exit rows
+  setRow('sale',     s1.salePrice, s2.salePrice, s3.salePrice, fmtFull, false);
+  setRow('sellcost', -s1.sellCosts, -s2.sellCosts, -s3.sellCosts, v => '(' + fmt(Math.abs(v)) + ')', false);
+  setRow('payoff',   s1.mortPayoff, s2.mortPayoff, s3.mortPayoff, v => v === 0 ? '—' : '(' + fmt(v) + ')', false);
+  setRow('net',      s1.netProceeds, s2.netProceeds, s3.netProceeds, fmtFull, true);
+  document.getElementById('r_irr_s1').textContent = pct(s1.annualIRR);
+  document.getElementById('r_irr_s2').textContent = pct(s2.annualIRR);
+  document.getElementById('r_irr_s3').textContent = pct(s3.annualIRR);
+
+  // ── Rent Schedule (1 to numUnits+3, highlight current) ──
+  const body = document.getElementById('rentScheduleBody');
+  body.innerHTML = '';
+  const maxRows = Math.min(numUnits + 4, 20);
+  const startUnit = Math.max(1, numUnits - 2);
+  for (let u = 1; u <= Math.max(numUnits + 3, 10); u++) {
+    if (u > 20) break; // cap at 20 rows
+    const gRent = rentPerUnit * u;
+    const vac   = gRent * vacancyPct;
+    const eff   = gRent - vac;
+    const exp   = expPerUnit * u;
+    const isActive = u === numUnits;
+    const tr = document.createElement('tr');
+    tr.style.cssText = isActive
+      ? 'background:#e8f4fe;font-weight:700;'
+      : (u % 2 === 0 ? 'background:#fafafa;' : '');
+    tr.innerHTML = `
+      <td style="padding:8px 12px;">${u} unit${u > 1 ? 's' : ''}${isActive ? ' ← current' : ''}</td>
+      <td style="text-align:right;padding:8px 12px;">${fmt(gRent)}</td>
+      <td style="text-align:right;padding:8px 12px;color:#e74c3c;">(${fmt(vac)})</td>
+      <td style="text-align:right;padding:8px 12px;">${fmt(eff)}</td>
+      <td style="text-align:right;padding:8px 12px;color:#e74c3c;">(${fmt(exp)})</td>
+      <td style="text-align:right;padding:8px 12px;">${fmt(gRent * 12)}</td>`;
+    body.appendChild(tr);
+  }
+}
+
+function changeUnits(delta) {
+  const input = document.getElementById('numUnits');
+  const current = parseInt(input.value) || 1;
+  input.value = Math.max(1, current + delta);
+  calculate();
+}
+
+function updateLabels() {
+  const s2 = document.getElementById('s2_name').value || 'Scenario 2';
+  const s3 = document.getElementById('s3_name').value || 'Scenario 3';
+  ['tile_name_s2', 'tile_name2_s2', 'tile_name3_s2'].forEach(id => document.getElementById(id).textContent = s2);
+  ['tile_name_s3', 'tile_name2_s3', 'tile_name3_s3'].forEach(id => document.getElementById(id).textContent = s3);
+  document.getElementById('th_s2').textContent = s2;
+  document.getElementById('th_s3').textContent = s3;
+}
+
+function updateLabel() {
+  const client  = document.getElementById('clientName').value;
+  const address = document.getElementById('propAddress').value;
+  const banner  = document.getElementById('propAddressDisplay');
+  if (address) banner.textContent = address;
+  else banner.textContent = 'Multi-Unit Property Comparison';
+  document.getElementById('printClient').textContent  = client  || '—';
+  document.getElementById('printAddress').textContent = address || '—';
+  document.getElementById('printDate').textContent    = new Date().toLocaleDateString('en-US', {year:'numeric',month:'long',day:'numeric'});
+}
+
+// Show print header on print
+window.addEventListener('beforeprint', () => {
+  document.getElementById('printHeader').style.display = 'block';
+});
+window.addEventListener('afterprint', () => {
+  document.getElementById('printHeader').style.display = 'none';
+});
+
+// ─── Share / Client View ────────────────────────────────────────────────
+function buildShareURL() {
+  const p = new URLSearchParams();
+  const ids = ['propValue','appreciation','holdingMonths','salesExpPct','numUnits',
+    'rentPerUnit','vacancyPct','expPerUnit',
+    's1_closingCosts',
+    's2_downPct','s2_rate','s2_term','s2_points','s2_closingCosts',
+    's3_downPct','s3_rate','s3_term','s3_points','s3_closingCosts'];
+  ids.forEach(id => p.set(id, document.getElementById(id)?.value || ''));
+  p.set('s2n', document.getElementById('s2_name').value);
+  p.set('s3n', document.getElementById('s3_name').value);
+  const cn = document.getElementById('clientName')?.value.trim();
+  const pa = document.getElementById('propAddress')?.value.trim();
+  if (cn) p.set('cn', cn);
+  if (pa) p.set('pa', pa);
+  return 'https://tools.homewealthsolutions.com/buyer/multi-unit-investment-calculator.html' + '?' + p.toString();
+}
+
+function copyShareLink(btn) {
+  const url = buildShareURL() + '&view=1';
+  navigator.clipboard.writeText(url).catch(() => {
+    const ta = Object.assign(document.createElement('textarea'),{value:url});
+    document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove();
+  });
+  btn.textContent = '✓ Link Copied!';
+  setTimeout(() => btn.textContent = '↗ Share with Client', 2500);
+}
+
+function enterClientView() {
+  document.querySelectorAll('.client-bar, #hws-hub-btn, #shareBtn').forEach(el => el.style.display='none');
+  // hide input cards (grid-2 and scenarios section)
+  const grid2 = document.querySelector('.grid-2');
+  if (grid2) grid2.style.display='none';
+  const scenarios = document.querySelector('.scenarios');
+  if (scenarios) scenarios.style.display='none';
+  document.querySelectorAll('.section-title').forEach((el,i) => { if(i===0) el.style.display='none'; });
+  const bar = Object.assign(document.createElement('div'),{
+    className:'no-print',
+    style:'background:#f0f9ff;border-bottom:1px solid #bae6fd;padding:10px 24px;font-size:12px;color:#0369a1;text-align:center;',
+    innerHTML:'Investment analysis prepared by HomeWealth Solutions &nbsp;<button onclick="window.print()" style="background:#2491EB;color:#fff;border:none;padding:5px 12px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;">⎙ Save as PDF</button>'
+  });
+  document.querySelector('.main').insertBefore(bar, document.querySelector('.main').firstChild);
+}
+
+function applyParamsAndRun() {
+  const p = new URLSearchParams(location.search);
+  if (![...p.keys()].length) return;
+  const ids = ['propValue','appreciation','holdingMonths','salesExpPct','numUnits',
+    'rentPerUnit','vacancyPct','expPerUnit',
+    's1_closingCosts',
+    's2_downPct','s2_rate','s2_term','s2_points','s2_closingCosts',
+    's3_downPct','s3_rate','s3_term','s3_points','s3_closingCosts'];
+  ids.forEach(id => { if(p.has(id)) { const el=document.getElementById(id); if(el) el.value=p.get(id); } });
+  if (p.has('s2n')) document.getElementById('s2_name').value = p.get('s2n');
+  if (p.has('s3n')) document.getElementById('s3_name').value = p.get('s3n');
+  if (p.has('cn'))  { document.getElementById('clientName').value = p.get('cn'); }
+  if (p.has('pa'))  { document.getElementById('propAddress').value = p.get('pa'); }
+  updateLabel(); updateLabels(); calculate();
+  if (p.get('view')==='1') enterClientView();
+}
+
+// ─── Init ───────────────────────────────────────────────────
+updateLabels();
+calculate();
+window.addEventListener('DOMContentLoaded', applyParamsAndRun);
+</script>
+</body>
+</html>
