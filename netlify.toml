@@ -1,0 +1,5 @@
+[[redirects]]
+  from = "http://tools.homewealthsolutions.com/*"
+  to = "https://tools.homewealthsolutions.com/:splat"
+  status = 301
+  force = true
