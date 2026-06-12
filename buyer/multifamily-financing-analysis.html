@@ -1,0 +1,1596 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Multifamily Financing &amp; Return Analysis — HomeWealth Solutions</title>
+<style>
+:root {
+  --blue:   #2491EB;
+  --green:  #8EC73F;
+  --dark:   #1a2535;
+  --dark2:  #1c2b3a;
+  --gray:   #f4f6f9;
+  --border: #dde3ec;
+  --text:   #2c3e50;
+  --muted:  #7f8c9a;
+  --white:  #ffffff;
+  --red:    #e74c3c;
+  --orange: #f39c12;
+  --dscr-green: #27ae60;
+  --dscr-yellow:#f39c12;
+  --dscr-red:   #e74c3c;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;background:var(--gray);color:var(--text);font-size:14px;line-height:1.5;}
+a{color:var(--blue);text-decoration:none;}
+a:hover{text-decoration:underline;}
+
+/* ── Header ── */
+.header{
+  background:var(--dark);
+  padding:14px 28px;
+  display:flex;align-items:center;justify-content:space-between;
+  flex-wrap:wrap;gap:10px;
+  position:sticky;top:0;z-index:100;
+}
+.header-brand{display:flex;align-items:center;gap:12px;}
+.brand-dot{
+  width:36px;height:36px;border-radius:8px;
+  background:linear-gradient(135deg,var(--blue),var(--green));
+  display:flex;align-items:center;justify-content:center;
+  font-weight:800;color:#fff;font-size:15px;flex-shrink:0;
+}
+.brand-name{color:#fff;font-size:16px;font-weight:700;line-height:1.2;}
+.brand-sub{color:#94a3b8;font-size:11px;}
+.header-center{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.header-field label{font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:#64748b;display:block;margin-bottom:2px;}
+.header-field input{
+  background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15);
+  border-radius:6px;padding:5px 10px;font-size:13px;color:#fff;
+  width:180px;
+}
+.header-field input::placeholder{color:#64748b;}
+.header-field input:focus{outline:none;border-color:var(--blue);background:rgba(255,255,255,.1);}
+.header-sep{color:#475569;font-size:16px;}
+.header-actions{display:flex;align-items:center;gap:8px;}
+.btn-hub{
+  background:transparent;border:1px solid #475569;color:#94a3b8;
+  padding:6px 12px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;
+  text-decoration:none;
+}
+.btn-hub:hover{border-color:#94a3b8;color:#fff;text-decoration:none;}
+.btn-print-hdr{
+  background:transparent;border:1px solid #475569;color:#94a3b8;
+  padding:6px 12px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;
+}
+.btn-print-hdr:hover{border-color:#94a3b8;color:#fff;}
+.btn-share{
+  background:var(--blue);color:#fff;border:none;
+  padding:7px 16px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;
+}
+.btn-share:hover{background:#1a7fd4;}
+
+/* ── Summary Strip ── */
+.summary-strip{
+  background:var(--dark2);
+  padding:14px 28px;
+  display:flex;gap:12px;
+  border-bottom:2px solid rgba(36,145,235,.3);
+}
+.tile{
+  flex:1;background:rgba(255,255,255,.05);
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:10px;padding:14px 16px;
+  min-width:0;
+}
+.tile-label{
+  font-size:10px;text-transform:uppercase;letter-spacing:.8px;
+  color:#64748b;font-weight:600;margin-bottom:10px;
+}
+/* Tile 1 — single values */
+.tile-row{display:flex;gap:0;align-items:center;}
+.tile-metric{flex:1;text-align:center;}
+.tile-metric-val{font-size:22px;font-weight:700;color:#fff;line-height:1;}
+.tile-metric-key{font-size:11px;color:#64748b;margin-top:3px;}
+.tile-divider{width:1px;background:rgba(255,255,255,.1);height:40px;margin:0 8px;}
+/* Tile 2 & 3 — per-scenario */
+.tile-scen-row{display:flex;gap:4px;}
+.tile-scen{flex:1;text-align:center;background:rgba(0,0,0,.2);border-radius:6px;padding:8px 4px;}
+.tile-scen-name{font-size:10px;color:#94a3b8;font-weight:600;text-transform:uppercase;letter-spacing:.3px;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.tile-scen-dscr,.tile-scen-coc{font-size:17px;font-weight:700;color:#fff;line-height:1;}
+.tile-scen-irr{font-size:14px;font-weight:600;color:#94a3b8;margin-top:2px;}
+.tile-scen-ctc{font-size:12px;color:#94a3b8;margin-top:2px;}
+.tile-scen-sub{font-size:10px;color:#475569;margin-top:1px;}
+
+/* ── Main ── */
+.main{max-width:1100px;margin:0 auto;padding:24px 16px 48px;}
+
+/* ── Section Blocks ── */
+.section-block{
+  background:var(--white);border-radius:12px;
+  border:1px solid var(--border);
+  margin-bottom:24px;overflow:hidden;
+}
+.section-question{
+  background:var(--dark);color:#fff;
+  padding:14px 24px;
+  font-size:16px;font-weight:700;
+  display:flex;align-items:center;gap:12px;
+}
+.section-num{
+  width:28px;height:28px;border-radius:50%;
+  background:var(--blue);
+  display:flex;align-items:center;justify-content:center;
+  font-size:13px;font-weight:800;flex-shrink:0;
+}
+.section-content{padding:24px;}
+
+/* ── Section 1 Layout ── */
+.s1-layout{display:grid;grid-template-columns:1fr 1fr;gap:24px;}
+@media(max-width:760px){.s1-layout{grid-template-columns:1fr;}}
+
+.panel-header{
+  font-size:11px;text-transform:uppercase;letter-spacing:.6px;
+  color:var(--muted);font-weight:600;
+  margin-bottom:14px;padding-bottom:8px;
+  border-bottom:1px solid var(--border);
+}
+.inputs-panel,.outputs-panel{min-width:0;}
+
+/* ── Input Controls ── */
+.input-group{margin-bottom:14px;}
+.input-group label{
+  font-size:12px;font-weight:600;color:var(--text);
+  display:block;margin-bottom:5px;
+}
+.input-wrap{display:flex;align-items:center;}
+.input-wrap.has-prefix .input-prefix,
+.input-wrap.has-suffix .input-suffix{
+  background:var(--gray);border:1px solid var(--border);
+  padding:7px 10px;font-size:13px;color:var(--muted);font-weight:500;
+  flex-shrink:0;
+}
+.input-wrap.has-prefix .input-prefix{border-right:none;border-radius:6px 0 0 6px;}
+.input-wrap.has-suffix .input-suffix{border-left:none;border-radius:0 6px 6px 0;}
+.input-wrap input{
+  border:1px solid var(--border);border-radius:6px;
+  padding:7px 10px;font-size:13px;color:var(--text);
+  flex:1;min-width:0;
+}
+.input-wrap.has-prefix input{border-radius:0 6px 6px 0;border-left:none;}
+.input-wrap.has-suffix input{border-radius:6px 0 0 6px;border-right:none;}
+.input-wrap input:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 2px rgba(36,145,235,.15);}
+.input-hint{font-size:11px;color:var(--muted);margin-top:3px;}
+.input-hint strong{color:var(--text);}
+
+/* Units control */
+.units-control{display:flex;align-items:center;gap:8px;}
+.units-btn{
+  width:32px;height:32px;border-radius:6px;
+  background:var(--blue);color:#fff;border:none;
+  font-size:18px;font-weight:700;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+}
+.units-btn:hover{background:#1a7fd4;}
+.units-control input{
+  width:64px;text-align:center;
+  border:1px solid var(--border);border-radius:6px;
+  padding:5px;font-size:15px;font-weight:700;color:var(--text);
+}
+.units-control input:focus{outline:none;border-color:var(--blue);}
+
+/* Long-term assumption group */
+.assumption-group{
+  background:#f8fafc;border:1px solid var(--border);
+  border-radius:8px;padding:14px;margin-top:8px;
+}
+.assumption-group-label{
+  font-size:11px;text-transform:uppercase;letter-spacing:.5px;
+  color:var(--blue);font-weight:700;margin-bottom:12px;
+}
+.assumption-group .input-group{margin-bottom:12px;}
+.assumption-group .input-group:last-child{margin-bottom:0;}
+
+/* ── Outputs Panel (Section 1) ── */
+.output-row{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:9px 12px;border-radius:6px;
+}
+.output-row.deduction{background:#fff5f5;}
+.output-row.subtotal{background:#f0f7ff;font-weight:600;}
+.output-row.hero-row{
+  background:var(--dark);border-radius:8px;
+  margin-top:4px;margin-bottom:4px;
+}
+.output-row.hero-row .output-label{color:#fff;font-weight:700;font-size:14px;}
+.output-row.hero-row .output-val{color:var(--green);font-weight:800;font-size:20px;}
+.output-label{font-size:13px;color:var(--text);}
+.output-val{font-size:14px;font-weight:600;text-align:right;}
+.output-val.deduct{color:var(--red);}
+.hero-val{color:var(--green);font-size:20px;font-weight:800;}
+
+.caprate-block{
+  background:linear-gradient(135deg,var(--blue) 0%,#1a7fd4 100%);
+  border-radius:10px;padding:16px 18px;margin-top:12px;
+  color:#fff;
+}
+.caprate-val{font-size:32px;font-weight:800;line-height:1;}
+.caprate-label{font-size:12px;text-transform:uppercase;letter-spacing:.8px;opacity:.8;margin-top:2px;}
+.caprate-def{font-size:11px;opacity:.7;margin-top:8px;line-height:1.5;}
+.annual-noi-row{margin-top:10px;padding:0 4px;}
+
+/* ── Scenario Cards ── */
+.scenario-cards{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:16px;
+  margin-bottom:24px;
+}
+@media(max-width:760px){.scenario-cards{grid-template-columns:1fr;}}
+.scenario-card{
+  border-radius:10px;border:1px solid var(--border);
+  overflow:hidden;
+}
+.card-cash{border-top:3px solid var(--dscr-green);}
+.card-s2 {border-top:3px solid var(--blue);}
+.card-s3 {border-top:3px solid var(--orange);}
+.scenario-card-header{
+  background:var(--gray);padding:12px 14px;
+  display:flex;align-items:center;gap:10px;
+}
+.scen-icon{font-size:20px;flex-shrink:0;}
+.scen-name-wrap{min-width:0;}
+.scen-badge{
+  font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;
+  padding:2px 7px;border-radius:10px;display:inline-block;margin-bottom:3px;
+}
+.badge-cash{background:#d4edda;color:#155724;}
+.badge-s2{background:#cce5ff;color:#004085;}
+.badge-s3{background:#fff3cd;color:#856404;}
+.scen-title{font-size:13px;font-weight:700;color:var(--text);}
+.scen-name-input{
+  border:none;background:transparent;font-size:13px;font-weight:700;
+  color:var(--text);padding:0;width:100%;cursor:text;
+}
+.scen-name-input:focus{outline:1px dashed var(--blue);border-radius:3px;}
+.scenario-card-body{padding:14px;}
+.scen-note{
+  font-size:11px;color:var(--muted);background:var(--gray);
+  border-radius:6px;padding:8px 10px;margin-top:10px;line-height:1.5;
+}
+
+/* ── Tables ── */
+.table-section{overflow-x:auto;}
+.comparison-table{
+  width:100%;border-collapse:collapse;font-size:13px;
+}
+.comparison-table th{
+  background:var(--dark);color:#fff;
+  padding:10px 14px;text-align:right;font-weight:700;font-size:12px;
+}
+.comparison-table th.col-metric{text-align:left;}
+.comparison-table th.col-cash{color:var(--green);}
+.comparison-table th.col-s2{color:#93c5fd;}
+.comparison-table th.col-s3{color:#fbbf24;}
+.comparison-table td{
+  padding:9px 14px;border-bottom:1px solid var(--border);
+}
+.val-right{text-align:right;font-weight:500;}
+.row-shaded td{background:#f8fafc;}
+.row-focal td{
+  background:#f0f7ff;font-weight:700;
+  border-top:2px solid var(--blue);border-bottom:2px solid var(--blue);
+}
+.focal-label{font-weight:700;color:var(--dark);}
+.focal-val{font-size:15px;font-weight:700;}
+.muted{color:var(--muted);}
+.val-muted{color:var(--muted);}
+.subheader-row td{
+  background:var(--dark);color:#fff;
+  font-size:11px;text-transform:uppercase;letter-spacing:.8px;font-weight:700;
+  padding:7px 14px;
+}
+.row-subtotal td{
+  background:#e8f4fe;font-weight:600;
+  border-top:1px solid #bdd6ee;border-bottom:1px solid #bdd6ee;
+}
+.row-dscr td{
+  padding:12px 14px;background:var(--gray);
+  border-top:2px solid var(--border);
+}
+.dscr-label{font-weight:700;font-size:14px;}
+.dscr-val{font-size:16px;font-weight:800;text-align:right;}
+.row-irr td{border-top:2px solid var(--blue);}
+.val-green{color:var(--dscr-green);font-weight:700;}
+.val-red{color:var(--dscr-red);font-weight:700;}
+
+.dscr-note,.irr-note{
+  font-size:11px;color:var(--muted);
+  background:#f8fafc;border:1px solid var(--border);
+  border-radius:6px;padding:10px 14px;margin-top:12px;
+  line-height:1.6;
+}
+
+/* ── Compliance Footer ── */
+.compliance-footer{
+  background:var(--white);border:1px solid var(--border);
+  border-radius:12px;padding:20px 24px;
+  font-size:11px;color:var(--muted);line-height:1.7;
+  margin-top:8px;
+}
+
+/* ── Tooltip ── */
+.tooltip{position:relative;cursor:help;color:var(--blue);font-size:12px;margin-left:3px;}
+.tooltip .tip{
+  display:none;position:absolute;z-index:200;
+  background:var(--dark);color:#fff;
+  font-size:11px;line-height:1.5;padding:8px 12px;
+  border-radius:6px;width:220px;left:0;top:20px;
+  font-weight:400;letter-spacing:0;text-transform:none;
+}
+.tooltip:hover .tip{display:block;}
+
+/* ══════════════════════════════════════════════
+   CLIENT-FACING REPORT
+   ══════════════════════════════════════════════ */
+#client-report{background:#fff;min-height:100vh;}
+.cr-wrap{max-width:900px;margin:0 auto;padding:32px 32px 48px;}
+
+/* Client Report Header */
+.cr-header{
+  display:flex;align-items:flex-start;justify-content:space-between;
+  gap:20px;flex-wrap:wrap;
+  border-bottom:3px solid var(--blue);padding-bottom:20px;margin-bottom:24px;
+}
+.cr-brand{display:flex;align-items:center;gap:12px;}
+.cr-brand-dot{
+  width:44px;height:44px;border-radius:10px;
+  background:linear-gradient(135deg,var(--blue),var(--green));
+  display:flex;align-items:center;justify-content:center;
+  font-weight:800;color:#fff;font-size:17px;flex-shrink:0;
+}
+.cr-brand-name{font-size:18px;font-weight:800;color:var(--dark);}
+.cr-brand-sub{font-size:11px;color:var(--muted);}
+.cr-meta{flex:1;min-width:160px;}
+.cr-meta-row{font-size:12px;margin-bottom:4px;}
+.cr-meta-label{color:var(--muted);font-weight:600;margin-right:6px;}
+.cr-meta-val{color:var(--text);font-weight:700;}
+.cr-contact{text-align:right;font-size:12px;}
+.cr-contact-name{font-size:14px;font-weight:800;color:var(--dark);}
+.cr-contact-title{color:var(--muted);margin-bottom:3px;}
+.cr-contact-line{color:var(--text);line-height:1.6;}
+
+/* Report Title */
+.cr-title{
+  font-size:22px;font-weight:800;color:var(--dark);
+  margin-bottom:24px;letter-spacing:-.3px;
+}
+
+/* Section Label */
+.cr-section-label{
+  font-size:10px;font-weight:700;text-transform:uppercase;
+  letter-spacing:1px;color:var(--blue);
+  margin-bottom:12px;padding-bottom:6px;
+  border-bottom:1px solid var(--border);
+}
+
+/* Property Snapshot */
+.cr-snapshot-section{margin-bottom:28px;}
+.cr-snapshot-tiles{
+  display:flex;gap:12px;flex-wrap:wrap;
+}
+.cr-snap-tile{
+  flex:1;min-width:130px;
+  background:var(--gray);border-radius:8px;padding:14px 16px;
+  border:1px solid var(--border);
+}
+.cr-snap-val{font-size:20px;font-weight:800;color:var(--dark);line-height:1;}
+.cr-snap-key{font-size:11px;color:var(--muted);margin-top:4px;}
+
+/* CR Table */
+.cr-table-section{margin-bottom:28px;}
+.cr-table{width:100%;border-collapse:collapse;font-size:13px;}
+.cr-table thead tr{background:var(--dark);}
+.cr-th-metric{
+  color:#94a3b8;font-weight:700;font-size:12px;
+  padding:10px 16px;text-align:left;
+}
+.cr-th-scen{
+  color:#fff;font-weight:700;font-size:12px;
+  padding:10px 16px;text-align:right;
+}
+.cr-table td{padding:11px 16px;border-bottom:1px solid var(--border);}
+.cr-val{text-align:right;font-weight:600;}
+.cr-muted{color:var(--muted);}
+.cr-row-shaded td{background:#f8fafc;}
+.cr-focal{font-size:15px;font-weight:800;}
+.cr-irr-label{font-weight:700;}
+
+/* CR Assumptions */
+.cr-assumptions-section{margin-bottom:28px;}
+.cr-assumptions-grid{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:10px;
+}
+@media(max-width:600px){.cr-assumptions-grid{grid-template-columns:1fr 1fr;}}
+.cr-assump-item{
+  background:var(--gray);border-radius:6px;padding:10px 14px;
+  border:1px solid var(--border);
+}
+.cr-assump-key{font-size:11px;color:var(--muted);display:block;margin-bottom:2px;}
+.cr-assump-val{font-size:14px;font-weight:700;color:var(--dark);display:block;}
+
+/* CR Footer */
+.cr-footer{
+  font-size:10.5px;color:var(--muted);line-height:1.7;
+  border-top:1px solid var(--border);padding-top:16px;margin-top:8px;
+}
+.cr-footer p{margin-bottom:8px;}
+.cr-footer-contact{
+  margin-top:10px;font-weight:600;color:var(--text);font-size:11px;
+}
+
+/* Client view banner */
+.client-view-banner{
+  background:#eff6ff;border-bottom:2px solid var(--blue);
+  padding:12px 28px;
+  display:flex;align-items:center;justify-content:space-between;
+  gap:12px;flex-wrap:wrap;
+}
+.client-view-banner p{font-size:13px;color:#1e40af;font-weight:600;}
+.client-view-banner button{
+  background:var(--blue);color:#fff;border:none;
+  padding:7px 16px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;
+}
+
+/* ── DSCR color classes ── */
+.dscr-green{color:var(--dscr-green)!important;}
+.dscr-yellow{color:var(--dscr-yellow)!important;}
+.dscr-red{color:var(--dscr-red)!important;}
+.coc-pos{color:var(--dscr-green)!important;}
+.coc-neg{color:var(--dscr-red)!important;}
+
+/* ── Print ── */
+@media print {
+  #advisor-workspace{display:none!important;}
+  #client-report{display:block!important;}
+  .client-view-banner{display:none!important;}
+  .cr-wrap{padding:16px 24px 32px;}
+  @page{margin:0.75in 0.75in 0.75in 0.75in;size:letter;}
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════
+     ADVISOR WORKSPACE
+     ═══════════════════════════════════════════════════════════ -->
+<div id="advisor-workspace">
+
+  <!-- Sticky Header -->
+  <div class="header">
+    <div class="header-brand">
+      <div class="brand-dot">HW</div>
+      <div>
+        <div class="brand-name">HomeWealth Solutions</div>
+        <div class="brand-sub">Certified Mortgage Advisor · CMA®</div>
+      </div>
+    </div>
+    <div class="header-center">
+      <div class="header-field">
+        <label>Prepared For</label>
+        <input type="text" id="clientName" placeholder="Client Name" oninput="updateMeta()">
+      </div>
+      <div class="header-sep">·</div>
+      <div class="header-field">
+        <label>Property</label>
+        <input type="text" id="propAddress" placeholder="Property Address" style="width:220px" oninput="updateMeta()">
+      </div>
+    </div>
+    <div class="header-actions">
+      <a href="https://tools.homewealthsolutions.com/" class="btn-hub">← Hub</a>
+      <button class="btn-print-hdr" onclick="window.print()">🖨 Print / PDF</button>
+      <button id="shareBtn" class="btn-share" onclick="copyShareLink(this)">↗ Share with Client</button>
+    </div>
+  </div>
+
+  <!-- Summary Strip -->
+  <div class="summary-strip">
+    <!-- Tile 1: Property Income -->
+    <div class="tile">
+      <div class="tile-label">Property Income</div>
+      <div class="tile-row">
+        <div class="tile-metric">
+          <div class="tile-metric-val" id="tile_noi">—</div>
+          <div class="tile-metric-key">NOI / month</div>
+        </div>
+        <div class="tile-divider"></div>
+        <div class="tile-metric">
+          <div class="tile-metric-val" id="tile_caprate">—</div>
+          <div class="tile-metric-key">Cap Rate</div>
+        </div>
+      </div>
+    </div>
+    <!-- Tile 2: Financing Qualification -->
+    <div class="tile tile-scenarios">
+      <div class="tile-label">Financing Qualification</div>
+      <div class="tile-scen-row">
+        <div class="tile-scen">
+          <div class="tile-scen-name">All Cash</div>
+          <div class="tile-scen-dscr val-muted">—</div>
+          <div class="tile-scen-sub">DSCR</div>
+          <div class="tile-scen-ctc" id="tq_ctc_s1">—</div>
+          <div class="tile-scen-sub">Cash-to-Close</div>
+        </div>
+        <div class="tile-scen">
+          <div class="tile-scen-name" id="tq_name_s2">25% Down</div>
+          <div class="tile-scen-dscr" id="tq_dscr_s2">—</div>
+          <div class="tile-scen-sub">DSCR</div>
+          <div class="tile-scen-ctc" id="tq_ctc_s2">—</div>
+          <div class="tile-scen-sub">Cash-to-Close</div>
+        </div>
+        <div class="tile-scen">
+          <div class="tile-scen-name" id="tq_name_s3">30% Down</div>
+          <div class="tile-scen-dscr" id="tq_dscr_s3">—</div>
+          <div class="tile-scen-sub">DSCR</div>
+          <div class="tile-scen-ctc" id="tq_ctc_s3">—</div>
+          <div class="tile-scen-sub">Cash-to-Close</div>
+        </div>
+      </div>
+    </div>
+    <!-- Tile 3: Return by Scenario -->
+    <div class="tile tile-scenarios">
+      <div class="tile-label">Return by Scenario</div>
+      <div class="tile-scen-row">
+        <div class="tile-scen">
+          <div class="tile-scen-name">All Cash</div>
+          <div class="tile-scen-coc" id="tr_coc_s1">—</div>
+          <div class="tile-scen-sub">Cash-on-Cash</div>
+          <div class="tile-scen-irr" id="tr_irr_s1">—</div>
+          <div class="tile-scen-sub">IRR *</div>
+        </div>
+        <div class="tile-scen">
+          <div class="tile-scen-name" id="tr_name_s2">25% Down</div>
+          <div class="tile-scen-coc" id="tr_coc_s2">—</div>
+          <div class="tile-scen-sub">Cash-on-Cash</div>
+          <div class="tile-scen-irr" id="tr_irr_s2">—</div>
+          <div class="tile-scen-sub">IRR *</div>
+        </div>
+        <div class="tile-scen">
+          <div class="tile-scen-name" id="tr_name_s3">30% Down</div>
+          <div class="tile-scen-coc" id="tr_coc_s3">—</div>
+          <div class="tile-scen-sub">Cash-on-Cash</div>
+          <div class="tile-scen-irr" id="tr_irr_s3">—</div>
+          <div class="tile-scen-sub">IRR *</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── Main Content ─── -->
+  <div class="main">
+
+    <!-- ═══ SECTION 1 ═══ -->
+    <div class="section-block">
+      <div class="section-question">
+        <span class="section-num">1</span>
+        What does this property generate?
+      </div>
+      <div class="section-content s1-layout">
+
+        <!-- Inputs Panel -->
+        <div class="inputs-panel">
+          <div class="panel-header">Property &amp; Income Inputs</div>
+
+          <div class="input-group">
+            <label>Purchase Price</label>
+            <div class="input-wrap has-prefix">
+              <span class="input-prefix">$</span>
+              <input type="number" id="propValue" value="500000" step="1000" oninput="calculate()">
+            </div>
+          </div>
+
+          <div class="input-group">
+            <label>Number of Units</label>
+            <div class="units-control">
+              <button class="units-btn" onclick="changeUnits(-1)">−</button>
+              <input type="number" id="numUnits" value="4" min="1" max="50" oninput="calculate()">
+              <button class="units-btn" onclick="changeUnits(1)">+</button>
+            </div>
+          </div>
+
+          <div class="input-group">
+            <label>Monthly Rent Per Unit</label>
+            <div class="input-wrap has-prefix">
+              <span class="input-prefix">$</span>
+              <input type="number" id="rentPerUnit" value="1200" step="50" oninput="calculate()">
+            </div>
+            <div class="input-hint">Total: <strong id="hint_grossRent">$4,800</strong> / mo</div>
+          </div>
+
+          <div class="input-group">
+            <label>Vacancy Rate</label>
+            <div class="input-wrap has-suffix">
+              <input type="number" id="vacancyPct" value="5" step="1" oninput="calculate()">
+              <span class="input-suffix">%</span>
+            </div>
+          </div>
+
+          <div class="input-group">
+            <label>Monthly Expenses Per Unit
+              <span class="tooltip">ⓘ<span class="tip">Taxes, insurance, maintenance, property management, etc.</span></span>
+            </label>
+            <div class="input-wrap has-prefix">
+              <span class="input-prefix">$</span>
+              <input type="number" id="expPerUnit" value="300" step="25" oninput="calculate()">
+            </div>
+            <div class="input-hint">Total: <strong id="hint_totalExp">$1,200</strong> / mo</div>
+          </div>
+
+          <div class="input-group">
+            <label>Selling Costs</label>
+            <div class="input-wrap has-suffix">
+              <input type="number" id="salesExpPct" value="7" step="0.5" oninput="calculate()">
+              <span class="input-suffix">%</span>
+            </div>
+          </div>
+
+          <!-- Long-Term Assumptions -->
+          <div class="assumption-group">
+            <div class="assumption-group-label">Long-Term Assumptions — Client-Provided</div>
+            <div class="input-group">
+              <label>Holding Period</label>
+              <div class="input-wrap has-suffix">
+                <input type="number" id="holdingMonths" value="120" step="12" oninput="calculate()">
+                <span class="input-suffix">mos</span>
+              </div>
+              <div class="input-hint" id="hint_holdYears">10.0 years</div>
+            </div>
+            <div class="input-group">
+              <label>Annual Appreciation Rate
+                <span class="tooltip">ⓘ<span class="tip">Client-provided assumption. Appreciation is not guaranteed and actual results will vary.</span></span>
+              </label>
+              <div class="input-wrap has-suffix">
+                <input type="number" id="appreciation" value="4" step="0.5" oninput="calculate()">
+                <span class="input-suffix">%</span>
+              </div>
+            </div>
+            <div class="input-group">
+              <label>Annual Rent Growth (optional)
+                <span class="tooltip">ⓘ<span class="tip">Client-provided assumption. Affects IRR only — not year-1 cash flow or CoC. A 0% default assumes flat rents for the full hold period.</span></span>
+              </label>
+              <div class="input-wrap has-suffix">
+                <input type="number" id="rentGrowth" value="0" step="0.5" oninput="calculate()">
+                <span class="input-suffix">%</span>
+              </div>
+            </div>
+          </div>
+        </div><!-- /.inputs-panel -->
+
+        <!-- Outputs Panel -->
+        <div class="outputs-panel">
+          <div class="panel-header">Property Income Summary</div>
+
+          <div class="output-row">
+            <span class="output-label">Gross Monthly Rent</span>
+            <span class="output-val" id="out_grossRent">—</span>
+          </div>
+          <div class="output-row deduction">
+            <span class="output-label" style="color:var(--muted);">− Vacancy Loss</span>
+            <span class="output-val deduct" id="out_vacLoss">—</span>
+          </div>
+          <div class="output-row subtotal">
+            <span class="output-label">Effective Gross Income</span>
+            <span class="output-val" id="out_egi">—</span>
+          </div>
+          <div class="output-row deduction">
+            <span class="output-label" style="color:var(--muted);">− Operating Expenses</span>
+            <span class="output-val deduct" id="out_expenses">—</span>
+          </div>
+          <div class="output-row hero-row">
+            <span class="output-label">Net Operating Income (NOI)</span>
+            <span class="output-val hero-val" id="out_noi">—</span>
+          </div>
+
+          <div class="caprate-block">
+            <div class="caprate-val" id="out_caprate">—</div>
+            <div class="caprate-label">Cap Rate</div>
+            <div class="caprate-def">Net Operating Income ÷ Purchase Price — measures the property's income return independent of financing.</div>
+          </div>
+
+          <div class="annual-noi-row" style="margin-top:12px;">
+            <span style="color:var(--muted);font-size:12px;">Annual NOI: </span>
+            <span id="out_annualNoi" style="font-weight:700;font-size:13px;">—</span>
+          </div>
+        </div><!-- /.outputs-panel -->
+
+      </div>
+    </div><!-- /section 1 -->
+
+    <!-- ═══ SECTION 2 ═══ -->
+    <div class="section-block">
+      <div class="section-question">
+        <span class="section-num">2</span>
+        Can I qualify, and what does it cost to close?
+      </div>
+      <div class="section-content">
+
+        <!-- Scenario Cards -->
+        <div class="scenario-cards">
+
+          <!-- Cash -->
+          <div class="scenario-card card-cash">
+            <div class="scenario-card-header">
+              <div class="scen-icon">💵</div>
+              <div class="scen-name-wrap">
+                <div class="scen-badge badge-cash">Scenario 1</div>
+                <div class="scen-title">All Cash</div>
+              </div>
+            </div>
+            <div class="scenario-card-body">
+              <div class="input-group">
+                <label>Closing Costs</label>
+                <div class="input-wrap has-prefix">
+                  <span class="input-prefix">$</span>
+                  <input type="number" id="s1_closingCosts" value="2000" step="500" oninput="calculate()">
+                </div>
+              </div>
+              <div class="scen-note">No mortgage payment. Full purchase price invested as equity.</div>
+            </div>
+          </div>
+
+          <!-- Scenario 2 -->
+          <div class="scenario-card card-s2">
+            <div class="scenario-card-header">
+              <div class="scen-icon">🏦</div>
+              <div class="scen-name-wrap">
+                <div class="scen-badge badge-s2">Scenario 2</div>
+                <input type="text" id="s2_name" value="25% Down" class="scen-name-input" oninput="updateScenarioNames()">
+              </div>
+            </div>
+            <div class="scenario-card-body">
+              <div class="input-group">
+                <label>Down Payment %</label>
+                <div class="input-wrap has-suffix">
+                  <input type="number" id="s2_downPct" value="25" step="5" oninput="calculate()">
+                  <span class="input-suffix">%</span>
+                </div>
+              </div>
+              <div class="input-group">
+                <label>Interest Rate</label>
+                <div class="input-wrap has-suffix">
+                  <input type="number" id="s2_rate" value="7.5" step="0.125" oninput="calculate()">
+                  <span class="input-suffix">%</span>
+                </div>
+              </div>
+              <div class="input-group">
+                <label>Loan Term</label>
+                <div class="input-wrap has-suffix">
+                  <input type="number" id="s2_term" value="360" step="60" oninput="calculate()">
+                  <span class="input-suffix">mos</span>
+                </div>
+              </div>
+              <div class="input-group">
+                <label>Points</label>
+                <div class="input-wrap has-suffix">
+                  <input type="number" id="s2_points" value="1" step="0.25" oninput="calculate()">
+                  <span class="input-suffix">%</span>
+                </div>
+              </div>
+              <div class="input-group">
+                <label>Closing Costs</label>
+                <div class="input-wrap has-prefix">
+                  <span class="input-prefix">$</span>
+                  <input type="number" id="s2_closingCosts" value="6000" step="500" oninput="calculate()">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Scenario 3 -->
+          <div class="scenario-card card-s3">
+            <div class="scenario-card-header">
+              <div class="scen-icon">📊</div>
+              <div class="scen-name-wrap">
+                <div class="scen-badge badge-s3">Scenario 3</div>
+                <input type="text" id="s3_name" value="30% Down" class="scen-name-input" oninput="updateScenarioNames()">
+              </div>
+            </div>
+            <div class="scenario-card-body">
+              <div class="input-group">
+                <label>Down Payment %</label>
+                <div class="input-wrap has-suffix">
+                  <input type="number" id="s3_downPct" value="30" step="5" oninput="calculate()">
+                  <span class="input-suffix">%</span>
+                </div>
+              </div>
+              <div class="input-group">
+                <label>Interest Rate</label>
+                <div class="input-wrap has-suffix">
+                  <input type="number" id="s3_rate" value="7.125" step="0.125" oninput="calculate()">
+                  <span class="input-suffix">%</span>
+                </div>
+              </div>
+              <div class="input-group">
+                <label>Loan Term</label>
+                <div class="input-wrap has-suffix">
+                  <input type="number" id="s3_term" value="360" step="60" oninput="calculate()">
+                  <span class="input-suffix">mos</span>
+                </div>
+              </div>
+              <div class="input-group">
+                <label>Points</label>
+                <div class="input-wrap has-suffix">
+                  <input type="number" id="s3_points" value="0.5" step="0.25" oninput="calculate()">
+                  <span class="input-suffix">%</span>
+                </div>
+              </div>
+              <div class="input-group">
+                <label>Closing Costs</label>
+                <div class="input-wrap has-prefix">
+                  <span class="input-prefix">$</span>
+                  <input type="number" id="s3_closingCosts" value="6500" step="500" oninput="calculate()">
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div><!-- /.scenario-cards -->
+
+        <!-- Qualification Table -->
+        <div class="table-section">
+          <table class="comparison-table">
+            <thead>
+              <tr>
+                <th class="col-metric" style="width:38%">Metric</th>
+                <th class="col-cash">All Cash</th>
+                <th class="col-s2" id="th_s2">25% Down</th>
+                <th class="col-s3" id="th_s3">30% Down</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Purchase Price</td>
+                <td id="q_price_s1" class="val-right">—</td>
+                <td id="q_price_s2" class="val-right">—</td>
+                <td id="q_price_s3" class="val-right">—</td>
+              </tr>
+              <tr class="row-shaded">
+                <td>Down Payment</td>
+                <td id="q_down_s1" class="val-right">—</td>
+                <td id="q_down_s2" class="val-right">—</td>
+                <td id="q_down_s3" class="val-right">—</td>
+              </tr>
+              <tr>
+                <td>Loan Amount</td>
+                <td id="q_loan_s1" class="val-right muted">—</td>
+                <td id="q_loan_s2" class="val-right">—</td>
+                <td id="q_loan_s3" class="val-right">—</td>
+              </tr>
+              <tr class="row-shaded">
+                <td>Interest Rate</td>
+                <td id="q_rate_s1" class="val-right muted">—</td>
+                <td id="q_rate_s2" class="val-right">—</td>
+                <td id="q_rate_s3" class="val-right">—</td>
+              </tr>
+              <tr>
+                <td>Loan Term</td>
+                <td id="q_term_s1" class="val-right muted">—</td>
+                <td id="q_term_s2" class="val-right">—</td>
+                <td id="q_term_s3" class="val-right">—</td>
+              </tr>
+              <tr class="row-shaded">
+                <td>Points + Closing Costs</td>
+                <td id="q_costs_s1" class="val-right">—</td>
+                <td id="q_costs_s2" class="val-right">—</td>
+                <td id="q_costs_s3" class="val-right">—</td>
+              </tr>
+              <tr class="row-focal">
+                <td class="focal-label">Cash Needed to Close</td>
+                <td id="q_ctc_s1" class="val-right focal-val">—</td>
+                <td id="q_ctc_s2" class="val-right focal-val">—</td>
+                <td id="q_ctc_s3" class="val-right focal-val">—</td>
+              </tr>
+              <tr>
+                <td>Monthly Mortgage Payment</td>
+                <td id="q_pmt_s1" class="val-right muted">—</td>
+                <td id="q_pmt_s2" class="val-right">—</td>
+                <td id="q_pmt_s3" class="val-right">—</td>
+              </tr>
+              <tr class="row-dscr">
+                <td class="dscr-label">
+                  DSCR
+                  <span class="tooltip">ⓘ<span class="tip">Annual NOI ÷ Annual Debt Service</span></span>
+                </td>
+                <td id="q_dscr_s1" class="dscr-val muted">—</td>
+                <td id="q_dscr_s2" class="dscr-val">—</td>
+                <td id="q_dscr_s3" class="dscr-val">—</td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="dscr-note">
+            Typical conventional investment property minimum: 1.25x. Portfolio lenders may vary. Actual qualification depends on borrower profile, property type, and lender guidelines. This is not a qualification determination.
+          </div>
+        </div>
+
+      </div>
+    </div><!-- /section 2 -->
+
+    <!-- ═══ SECTION 3 ═══ -->
+    <div class="section-block">
+      <div class="section-question">
+        <span class="section-num">3</span>
+        What does each financing structure return?
+      </div>
+      <div class="section-content">
+        <div class="table-section">
+          <table class="comparison-table">
+            <thead>
+              <tr>
+                <th class="col-metric" style="width:38%">Metric</th>
+                <th class="col-cash">All Cash</th>
+                <th class="col-s2" id="th2_s2">25% Down</th>
+                <th class="col-s3" id="th2_s3">30% Down</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- Cash Flow -->
+              <tr class="subheader-row"><td colspan="4">Cash Flow</td></tr>
+              <tr>
+                <td>Gross Monthly Rent</td>
+                <td id="r_rent_s1" class="val-right">—</td>
+                <td id="r_rent_s2" class="val-right">—</td>
+                <td id="r_rent_s3" class="val-right">—</td>
+              </tr>
+              <tr class="row-shaded">
+                <td>Vacancy Loss</td>
+                <td id="r_vac_s1" class="val-right val-muted">—</td>
+                <td id="r_vac_s2" class="val-right val-muted">—</td>
+                <td id="r_vac_s3" class="val-right val-muted">—</td>
+              </tr>
+              <tr>
+                <td>Effective Gross Income</td>
+                <td id="r_egi_s1" class="val-right">—</td>
+                <td id="r_egi_s2" class="val-right">—</td>
+                <td id="r_egi_s3" class="val-right">—</td>
+              </tr>
+              <tr class="row-shaded">
+                <td>Operating Expenses</td>
+                <td id="r_exp_s1" class="val-right val-muted">—</td>
+                <td id="r_exp_s2" class="val-right val-muted">—</td>
+                <td id="r_exp_s3" class="val-right val-muted">—</td>
+              </tr>
+              <tr>
+                <td>Mortgage Payment</td>
+                <td id="r_pmt_s1" class="val-right val-muted">—</td>
+                <td id="r_pmt_s2" class="val-right val-muted">—</td>
+                <td id="r_pmt_s3" class="val-right val-muted">—</td>
+              </tr>
+              <tr class="row-subtotal">
+                <td>Monthly Cash Flow</td>
+                <td id="r_mcf_s1" class="val-right">—</td>
+                <td id="r_mcf_s2" class="val-right">—</td>
+                <td id="r_mcf_s3" class="val-right">—</td>
+              </tr>
+              <tr class="row-shaded">
+                <td>Annual Cash Flow</td>
+                <td id="r_acf_s1" class="val-right">—</td>
+                <td id="r_acf_s2" class="val-right">—</td>
+                <td id="r_acf_s3" class="val-right">—</td>
+              </tr>
+              <tr class="row-focal">
+                <td class="focal-label">Cash-on-Cash Return</td>
+                <td id="r_coc_s1" class="val-right focal-val">—</td>
+                <td id="r_coc_s2" class="val-right focal-val">—</td>
+                <td id="r_coc_s3" class="val-right focal-val">—</td>
+              </tr>
+
+              <!-- Exit Analysis -->
+              <tr class="subheader-row"><td colspan="4">Exit Analysis</td></tr>
+              <tr>
+                <td>Projected Sale Price</td>
+                <td id="r_sale_s1" class="val-right">—</td>
+                <td id="r_sale_s2" class="val-right">—</td>
+                <td id="r_sale_s3" class="val-right">—</td>
+              </tr>
+              <tr class="row-shaded">
+                <td>Selling Costs</td>
+                <td id="r_sellcost_s1" class="val-right val-muted">—</td>
+                <td id="r_sellcost_s2" class="val-right val-muted">—</td>
+                <td id="r_sellcost_s3" class="val-right val-muted">—</td>
+              </tr>
+              <tr>
+                <td>Remaining Loan Balance</td>
+                <td id="r_payoff_s1" class="val-right val-muted">—</td>
+                <td id="r_payoff_s2" class="val-right val-muted">—</td>
+                <td id="r_payoff_s3" class="val-right val-muted">—</td>
+              </tr>
+              <tr class="row-subtotal">
+                <td>Net Proceeds</td>
+                <td id="r_net_s1" class="val-right">—</td>
+                <td id="r_net_s2" class="val-right">—</td>
+                <td id="r_net_s3" class="val-right">—</td>
+              </tr>
+              <tr class="row-focal row-irr">
+                <td class="focal-label" id="irr_label">IRR (10-Year Hold) *</td>
+                <td id="r_irr_s1" class="val-right focal-val">—</td>
+                <td id="r_irr_s2" class="val-right focal-val">—</td>
+                <td id="r_irr_s3" class="val-right focal-val">—</td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="irr-note">
+            * Based on <span id="irr_apprate">4.0</span>% annual appreciation<span id="irr_rentgrowth_note" style="display:none;"> and <span id="irr_rentrate">0.0</span>% annual rent growth</span> — client-provided assumption(s). Appreciation is not guaranteed and actual results will vary. This is not an investment recommendation or projection of future performance.
+          </div>
+        </div>
+      </div>
+    </div><!-- /section 3 -->
+
+    <!-- Compliance Footer -->
+    <div class="compliance-footer">
+      <p>This communication is for informational and educational purposes only and does not constitute an offer to lend or a commitment to make a loan. All loans are subject to credit approval, underwriting guidelines, and property approval. Interest rates, payment examples, programs, and terms are illustrative, vary by borrower qualification, and are subject to change without notice. Not all applicants will qualify. Examples shown do not reflect all costs of a mortgage transaction. Consult a licensed tax or legal advisor regarding your individual situation. HomeWealth Solutions LLC is licensed by the Florida Office of Financial Regulation, Mortgage Broker License #MBR8082. Verify our licensure at <a href="https://www.nmlsconsumeraccess.org" target="_blank">www.nmlsconsumeraccess.org</a>. Equal Housing Opportunity.</p>
+      <p style="margin-top:8px;font-weight:600;color:var(--text);">Doug Smith, CMA® · President &amp; Broker · NMLS #2609118 · HomeWealth Solutions LLC NMLS #2742458 · doug@homewealthsolutions.com · 813-733-7371 · homewealthsolutions.com</p>
+    </div>
+
+  </div><!-- /.main -->
+</div><!-- /#advisor-workspace -->
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     CLIENT-FACING REPORT
+     ═══════════════════════════════════════════════════════════ -->
+<div id="client-report" style="display:none;">
+
+  <div class="client-view-banner no-print" id="clientBanner">
+    <p>Financing analysis prepared by HomeWealth Solutions · Contact Doug Smith to discuss your options · 813-733-7371</p>
+    <button onclick="window.print()">⎙ Save as PDF</button>
+  </div>
+
+  <div class="cr-wrap">
+
+    <!-- Header Band -->
+    <div class="cr-header">
+      <div class="cr-brand">
+        <div class="cr-brand-dot">HW</div>
+        <div>
+          <div class="cr-brand-name">HomeWealth Solutions</div>
+          <div class="cr-brand-sub">Certified Mortgage Advisor · CMA®</div>
+        </div>
+      </div>
+      <div class="cr-meta">
+        <div class="cr-meta-row"><span class="cr-meta-label">Prepared For:</span><span class="cr-meta-val" id="cr_clientName">—</span></div>
+        <div class="cr-meta-row"><span class="cr-meta-label">Property:</span><span class="cr-meta-val" id="cr_address">—</span></div>
+        <div class="cr-meta-row"><span class="cr-meta-label">Date:</span><span class="cr-meta-val" id="cr_date">—</span></div>
+      </div>
+      <div class="cr-contact">
+        <div class="cr-contact-name">Doug Smith, CMA®</div>
+        <div class="cr-contact-title">President &amp; Broker · HomeWealth Solutions</div>
+        <div class="cr-contact-line">813-733-7371 · doug@homewealthsolutions.com</div>
+        <div class="cr-contact-line">homewealthsolutions.com · NMLS #2609118</div>
+      </div>
+    </div>
+
+    <div class="cr-title">Multifamily Financing &amp; Return Analysis</div>
+
+    <!-- Property Snapshot -->
+    <div class="cr-snapshot-section">
+      <div class="cr-section-label">Property Snapshot</div>
+      <div class="cr-snapshot-tiles">
+        <div class="cr-snap-tile">
+          <div class="cr-snap-val" id="cr_purchasePrice">—</div>
+          <div class="cr-snap-key">Purchase Price</div>
+        </div>
+        <div class="cr-snap-tile">
+          <div class="cr-snap-val" id="cr_units">—</div>
+          <div class="cr-snap-key">Units</div>
+        </div>
+        <div class="cr-snap-tile">
+          <div class="cr-snap-val" id="cr_grossRent">—</div>
+          <div class="cr-snap-key">Gross Monthly Rent</div>
+        </div>
+        <div class="cr-snap-tile">
+          <div class="cr-snap-val" id="cr_noi">—</div>
+          <div class="cr-snap-key">Annual NOI</div>
+        </div>
+        <div class="cr-snap-tile">
+          <div class="cr-snap-val" id="cr_caprate">—</div>
+          <div class="cr-snap-key">Cap Rate</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Financing Comparison Table -->
+    <div class="cr-table-section">
+      <div class="cr-section-label">Financing Comparison</div>
+      <table class="cr-table">
+        <thead>
+          <tr>
+            <th class="cr-th-metric">Metric</th>
+            <th class="cr-th-scen" id="cr_th_s1">All Cash</th>
+            <th class="cr-th-scen" id="cr_th_s2">25% Down</th>
+            <th class="cr-th-scen" id="cr_th_s3">30% Down</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Cash Needed to Close</td>
+            <td id="cr_ctc_s1" class="cr-val">—</td>
+            <td id="cr_ctc_s2" class="cr-val">—</td>
+            <td id="cr_ctc_s3" class="cr-val">—</td>
+          </tr>
+          <tr class="cr-row-shaded">
+            <td>Loan Amount</td>
+            <td id="cr_loan_s1" class="cr-val cr-muted">—</td>
+            <td id="cr_loan_s2" class="cr-val">—</td>
+            <td id="cr_loan_s3" class="cr-val">—</td>
+          </tr>
+          <tr>
+            <td>DSCR (Debt Service Coverage Ratio)</td>
+            <td id="cr_dscr_s1" class="cr-val cr-muted">—</td>
+            <td id="cr_dscr_s2" class="cr-val">—</td>
+            <td id="cr_dscr_s3" class="cr-val">—</td>
+          </tr>
+          <tr class="cr-row-shaded">
+            <td>Monthly Cash Flow</td>
+            <td id="cr_cf_s1" class="cr-val">—</td>
+            <td id="cr_cf_s2" class="cr-val">—</td>
+            <td id="cr_cf_s3" class="cr-val">—</td>
+          </tr>
+          <tr>
+            <td>Cash-on-Cash Return</td>
+            <td id="cr_coc_s1" class="cr-val cr-focal">—</td>
+            <td id="cr_coc_s2" class="cr-val cr-focal">—</td>
+            <td id="cr_coc_s3" class="cr-val cr-focal">—</td>
+          </tr>
+          <tr class="cr-row-shaded">
+            <td id="cr_irr_label">IRR (10-Year Hold) *</td>
+            <td id="cr_irr_s1" class="cr-val cr-focal">—</td>
+            <td id="cr_irr_s2" class="cr-val cr-focal">—</td>
+            <td id="cr_irr_s3" class="cr-val cr-focal">—</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Assumptions -->
+    <div class="cr-assumptions-section">
+      <div class="cr-section-label">Assumptions Used in This Analysis</div>
+      <div class="cr-assumptions-grid">
+        <div class="cr-assump-item"><span class="cr-assump-key">Vacancy Rate</span><span class="cr-assump-val" id="cr_a_vacancy">—</span></div>
+        <div class="cr-assump-item"><span class="cr-assump-key">Expenses / Unit / Month</span><span class="cr-assump-val" id="cr_a_expenses">—</span></div>
+        <div class="cr-assump-item"><span class="cr-assump-key">Holding Period</span><span class="cr-assump-val" id="cr_a_holdperiod">—</span></div>
+        <div class="cr-assump-item"><span class="cr-assump-key">Annual Appreciation (Client)</span><span class="cr-assump-val" id="cr_a_appr">—</span></div>
+        <div class="cr-assump-item"><span class="cr-assump-key">Projected Sale Price</span><span class="cr-assump-val" id="cr_a_saleprice">—</span></div>
+        <div class="cr-assump-item"><span class="cr-assump-key">Selling Costs</span><span class="cr-assump-val" id="cr_a_sellcosts">—</span></div>
+        <div class="cr-assump-item" id="cr_rentgrowth_item" style="display:none;">
+          <span class="cr-assump-key">Annual Rent Growth (Client)</span>
+          <span class="cr-assump-val" id="cr_a_rentgrowth">—</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="cr-footer">
+      <p>* IRR is based on client-provided appreciation assumption(s). Appreciation is not guaranteed and actual results will vary. This figure is illustrative only and does not constitute an investment recommendation or projection of future performance.</p>
+      <p>This communication is for informational and educational purposes only and does not constitute an offer to lend or a commitment to make a loan. All loans are subject to credit approval, underwriting guidelines, and property approval. Interest rates, payment examples, programs, and terms are illustrative, vary by borrower qualification, and are subject to change without notice. Not all applicants will qualify. Examples shown do not reflect all costs of a mortgage transaction. Consult a licensed tax or legal advisor regarding your individual situation. HomeWealth Solutions LLC is licensed by the Florida Office of Financial Regulation, Mortgage Broker License #MBR8082. Verify our licensure at www.nmlsconsumeraccess.org. Equal Housing Opportunity.</p>
+      <div class="cr-footer-contact">
+        Doug Smith, CMA® &nbsp;·&nbsp; President &amp; Broker &nbsp;·&nbsp; NMLS #2609118 &nbsp;·&nbsp;
+        HomeWealth Solutions LLC NMLS #2742458 &nbsp;·&nbsp; 813-733-7371 &nbsp;·&nbsp;
+        doug@homewealthsolutions.com &nbsp;·&nbsp; homewealthsolutions.com
+      </div>
+    </div>
+
+  </div><!-- /.cr-wrap -->
+</div><!-- /#client-report -->
+
+
+<script>
+// ─── Formatters ──────────────────────────────────────────────
+const fmtCur = n => '$' + Math.round(Math.abs(n)).toLocaleString();
+const fmt    = n => '$' + Math.round(Math.abs(n)).toLocaleString();
+const fmtPM  = n => (n < 0 ? '(' : '') + '$' + Math.round(Math.abs(n)).toLocaleString() + (n < 0 ? ')' : '');
+const pct    = n => (n * 100).toFixed(1) + '%';
+const pctSigned = n => (n >= 0 ? '' : '') + (n * 100).toFixed(1) + '%';
+const getVal = id => parseFloat(document.getElementById(id).value) || 0;
+
+// ─── Math Helpers ────────────────────────────────────────────
+function pmt(rate, nper, pv) {
+  if (rate === 0) return pv / nper;
+  return (pv * rate * Math.pow(1 + rate, nper)) / (Math.pow(1 + rate, nper) - 1);
+}
+
+function remainingBalance(rate, nper, pv, k) {
+  if (rate === 0) return pv - (pv / nper) * k;
+  const pmtVal = pmt(rate, nper, pv);
+  return pv * Math.pow(1 + rate, k) - pmtVal * (Math.pow(1 + rate, k) - 1) / rate;
+}
+
+function calcIRR(cashFlows) {
+  let rate = 0.01;
+  for (let i = 0; i < 2000; i++) {
+    let npv = 0, dnpv = 0;
+    for (let t = 0; t < cashFlows.length; t++) {
+      const disc = Math.pow(1 + rate, t);
+      npv  += cashFlows[t] / disc;
+      dnpv -= t * cashFlows[t] / (disc * (1 + rate));
+    }
+    if (Math.abs(dnpv) < 1e-14) break;
+    const newRate = rate - npv / dnpv;
+    if (Math.abs(newRate - rate) < 1e-10) { rate = newRate; break; }
+    rate = newRate;
+    if (rate < -0.9999) rate = 0.0001;
+  }
+  return rate;
+}
+
+// ─── Compute Scenario ────────────────────────────────────────
+function computeScenario(propValue, isCash, downPct, annualRate, termMonths,
+                         pointsPct, closingCostsFlat,
+                         grossRentY1, vacancyPct, totalExpY1,
+                         appreciation, holdMonths, salesExpPct, rentGrowthRate) {
+  const downPayment  = isCash ? propValue : propValue * downPct;
+  const loanAmount   = propValue - downPayment;
+  const monthlyRate  = isCash ? 0 : annualRate / 12;
+  const mortgagePmt  = isCash ? 0 : pmt(monthlyRate, termMonths, loanAmount);
+  const pointsDollar = isCash ? 0 : loanAmount * pointsPct;
+  const totalCosts   = isCash ? closingCostsFlat : pointsDollar + closingCostsFlat;
+  const cashToClose  = downPayment + totalCosts;
+
+  // Year-1 cash flow (CoC uses this)
+  const vacLossY1       = grossRentY1 * vacancyPct;
+  const effectiveRentY1 = grossRentY1 - vacLossY1;
+  const monthlyCFY1     = effectiveRentY1 - totalExpY1 - mortgagePmt;
+  const annualCFY1      = monthlyCFY1 * 12;
+  const coc             = cashToClose > 0 ? annualCFY1 / cashToClose : 0;
+
+  // NOI & DSCR (always uses Year-1 NOI)
+  const annualNOI        = (effectiveRentY1 - totalExpY1) * 12;
+  const annualDebtService = mortgagePmt * 12;
+  const dscr             = annualDebtService > 0 ? annualNOI / annualDebtService : null;
+
+  // Exit
+  const yearsHeld  = holdMonths / 12;
+  const salePrice  = propValue * Math.pow(1 + appreciation, yearsHeld);
+  const sellCosts  = salePrice * salesExpPct;
+  const mortPayoff = isCash ? 0 : remainingBalance(monthlyRate, termMonths, loanAmount, holdMonths);
+  const netProceeds = salePrice - sellCosts - mortPayoff;
+
+  // IRR: monthly cash flows with optional rent growth
+  const cashFlows = [-cashToClose];
+  for (let m = 1; m <= holdMonths; m++) {
+    const growthFactor = rentGrowthRate === 0 ? 1 : Math.pow(1 + rentGrowthRate, (m - 1) / 12);
+    const grossRentM   = grossRentY1 * growthFactor;
+    const vacLossM     = grossRentM * vacancyPct;
+    const cfM          = (grossRentM - vacLossM - totalExpY1 - mortgagePmt);
+    cashFlows.push(m === holdMonths ? cfM + netProceeds : cfM);
+  }
+  const monthlyIRR = calcIRR(cashFlows);
+  const annualIRR  = Math.pow(1 + monthlyIRR, 12) - 1;
+
+  return {
+    downPayment, loanAmount, mortgagePmt, pointsDollar, totalCosts, cashToClose,
+    vacLossY1, effectiveRentY1, monthlyCFY1, annualCFY1, coc, dscr,
+    salePrice, sellCosts, mortPayoff, netProceeds, annualIRR,
+    grossRentY1, totalExpY1, annualNOI
+  };
+}
+
+// ─── DSCR Color Helper ───────────────────────────────────────
+function dscrClass(v) {
+  if (v === null || isNaN(v)) return '';
+  if (v >= 1.25) return 'dscr-green';
+  if (v >= 1.00) return 'dscr-yellow';
+  return 'dscr-red';
+}
+function dscrText(v) {
+  if (v === null || isNaN(v)) return '—';
+  return v.toFixed(2) + 'x';
+}
+
+// ─── Main Calculate ──────────────────────────────────────────
+function calculate() {
+  const propValue    = getVal('propValue');
+  const numUnits     = Math.max(1, parseInt(document.getElementById('numUnits').value) || 1);
+  const rentPerUnit  = getVal('rentPerUnit');
+  const vacancyPct   = getVal('vacancyPct') / 100;
+  const expPerUnit   = getVal('expPerUnit');
+  const salesExpPct  = getVal('salesExpPct') / 100;
+  const holdMonths   = getVal('holdingMonths');
+  const appreciation = getVal('appreciation') / 100;
+  const rentGrowth   = getVal('rentGrowth') / 100;
+
+  const grossRentY1  = rentPerUnit * numUnits;
+  const totalExpY1   = expPerUnit * numUnits;
+
+  // Update hints
+  document.getElementById('hint_grossRent').textContent = '$' + Math.round(grossRentY1).toLocaleString();
+  document.getElementById('hint_totalExp').textContent  = '$' + Math.round(totalExpY1).toLocaleString();
+  document.getElementById('hint_holdYears').textContent = (holdMonths / 12).toFixed(1) + ' years';
+
+  // IRR label
+  const holdYearsLabel = (holdMonths / 12) % 1 === 0
+    ? (holdMonths / 12).toFixed(0)
+    : (holdMonths / 12).toFixed(1);
+  const irrLabel = 'IRR (' + holdYearsLabel + '-Year Hold) *';
+  document.getElementById('irr_label').textContent    = irrLabel;
+  document.getElementById('cr_irr_label').textContent = irrLabel;
+
+  // IRR disclaimer rates
+  document.getElementById('irr_apprate').textContent  = getVal('appreciation').toFixed(1);
+  document.getElementById('irr_rentrate').textContent = getVal('rentGrowth').toFixed(1);
+  const showRentNote = getVal('rentGrowth') > 0;
+  document.getElementById('irr_rentgrowth_note').style.display = showRentNote ? 'inline' : 'none';
+
+  // Section 1 outputs
+  const vacLoss    = grossRentY1 * vacancyPct;
+  const egi        = grossRentY1 - vacLoss;
+  const noi        = egi - totalExpY1;
+  const annualNOI  = noi * 12;
+  const capRate    = propValue > 0 ? annualNOI / propValue : 0;
+
+  document.getElementById('out_grossRent').textContent = '$' + Math.round(grossRentY1).toLocaleString();
+  document.getElementById('out_vacLoss').textContent   = '(' + '$' + Math.round(vacLoss).toLocaleString() + ')';
+  document.getElementById('out_egi').textContent       = '$' + Math.round(egi).toLocaleString();
+  document.getElementById('out_expenses').textContent  = '(' + '$' + Math.round(totalExpY1).toLocaleString() + ')';
+  document.getElementById('out_noi').textContent       = '$' + Math.round(noi).toLocaleString();
+  document.getElementById('out_caprate').textContent   = (capRate * 100).toFixed(1) + '%';
+  document.getElementById('out_annualNoi').textContent = '$' + Math.round(annualNOI).toLocaleString() + ' / yr';
+
+  // Summary Tile 1
+  document.getElementById('tile_noi').textContent     = '$' + Math.round(noi).toLocaleString();
+  document.getElementById('tile_caprate').textContent = (capRate * 100).toFixed(1) + '%';
+
+  // ── Compute Scenarios ──
+  const s1 = computeScenario(propValue, true, 1, 0, 0,
+    0, getVal('s1_closingCosts'),
+    grossRentY1, vacancyPct, totalExpY1,
+    appreciation, holdMonths, salesExpPct, rentGrowth);
+
+  const s2 = computeScenario(propValue, false,
+    getVal('s2_downPct') / 100, getVal('s2_rate') / 100, getVal('s2_term'),
+    getVal('s2_points') / 100, getVal('s2_closingCosts'),
+    grossRentY1, vacancyPct, totalExpY1,
+    appreciation, holdMonths, salesExpPct, rentGrowth);
+
+  const s3 = computeScenario(propValue, false,
+    getVal('s3_downPct') / 100, getVal('s3_rate') / 100, getVal('s3_term'),
+    getVal('s3_points') / 100, getVal('s3_closingCosts'),
+    grossRentY1, vacancyPct, totalExpY1,
+    appreciation, holdMonths, salesExpPct, rentGrowth);
+
+  // ── Summary Tile 2 (Qualification) ──
+  document.getElementById('tq_ctc_s1').textContent = fmt(s1.cashToClose);
+  document.getElementById('tq_ctc_s2').textContent = fmt(s2.cashToClose);
+  document.getElementById('tq_ctc_s3').textContent = fmt(s3.cashToClose);
+
+  const setDscrTile = (id, v) => {
+    const el = document.getElementById(id);
+    el.textContent = dscrText(v);
+    el.className = 'tile-scen-dscr ' + dscrClass(v);
+  };
+  setDscrTile('tq_dscr_s2', s2.dscr);
+  setDscrTile('tq_dscr_s3', s3.dscr);
+
+  // ── Summary Tile 3 (Return) ──
+  const setCocTile = (id, v) => {
+    const el = document.getElementById(id);
+    el.textContent = (v * 100).toFixed(1) + '%';
+    el.className = 'tile-scen-coc ' + (v >= 0 ? 'coc-pos' : 'coc-neg');
+  };
+  setCocTile('tr_coc_s1', s1.coc);
+  setCocTile('tr_coc_s2', s2.coc);
+  setCocTile('tr_coc_s3', s3.coc);
+  document.getElementById('tr_irr_s1').textContent = (s1.annualIRR * 100).toFixed(1) + '%';
+  document.getElementById('tr_irr_s2').textContent = (s2.annualIRR * 100).toFixed(1) + '%';
+  document.getElementById('tr_irr_s3').textContent = (s3.annualIRR * 100).toFixed(1) + '%';
+
+  // ── Section 2: Qualification Table ──
+  const setQ = (id, val) => document.getElementById(id).textContent = val;
+  setQ('q_price_s1', fmt(propValue)); setQ('q_price_s2', fmt(propValue)); setQ('q_price_s3', fmt(propValue));
+  setQ('q_down_s1', fmt(s1.downPayment)); setQ('q_down_s2', fmt(s2.downPayment)); setQ('q_down_s3', fmt(s3.downPayment));
+  setQ('q_loan_s1', '—'); setQ('q_loan_s2', fmt(s2.loanAmount)); setQ('q_loan_s3', fmt(s3.loanAmount));
+  setQ('q_rate_s1', '—'); setQ('q_rate_s2', getVal('s2_rate').toFixed(3) + '%'); setQ('q_rate_s3', getVal('s3_rate').toFixed(3) + '%');
+  setQ('q_term_s1', '—'); setQ('q_term_s2', getVal('s2_term') + ' mos'); setQ('q_term_s3', getVal('s3_term') + ' mos');
+  setQ('q_costs_s1', fmt(s1.totalCosts)); setQ('q_costs_s2', fmt(s2.totalCosts)); setQ('q_costs_s3', fmt(s3.totalCosts));
+  setQ('q_ctc_s1', fmt(s1.cashToClose)); setQ('q_ctc_s2', fmt(s2.cashToClose)); setQ('q_ctc_s3', fmt(s3.cashToClose));
+  setQ('q_pmt_s1', '—'); setQ('q_pmt_s2', fmt(s2.mortgagePmt)); setQ('q_pmt_s3', fmt(s3.mortgagePmt));
+
+  // DSCR rows
+  const setDscrRow = (id, v) => {
+    const el = document.getElementById(id);
+    el.textContent = dscrText(v);
+    el.className = 'dscr-val ' + dscrClass(v);
+  };
+  document.getElementById('q_dscr_s1').textContent = '—';
+  setDscrRow('q_dscr_s2', s2.dscr);
+  setDscrRow('q_dscr_s3', s3.dscr);
+
+  // ── Section 3: Return Table ──
+  const setCF = (id, val, colorize) => {
+    const el = document.getElementById(id);
+    if (colorize) {
+      el.textContent = fmtPM(val);
+      el.className = 'val-right ' + (val >= 0 ? 'val-green' : 'val-red');
+    } else {
+      el.textContent = fmtPM(val);
+    }
+  };
+
+  // Cash flow rows (same for all 3 — property income doesn't change by scenario)
+  const setRight = (id, v) => { document.getElementById(id).textContent = v; };
+  setRight('r_rent_s1', fmt(s1.grossRentY1)); setRight('r_rent_s2', fmt(s2.grossRentY1)); setRight('r_rent_s3', fmt(s3.grossRentY1));
+  setRight('r_vac_s1', '(' + fmt(s1.vacLossY1) + ')'); setRight('r_vac_s2', '(' + fmt(s2.vacLossY1) + ')'); setRight('r_vac_s3', '(' + fmt(s3.vacLossY1) + ')');
+  setRight('r_egi_s1', fmt(s1.effectiveRentY1)); setRight('r_egi_s2', fmt(s2.effectiveRentY1)); setRight('r_egi_s3', fmt(s3.effectiveRentY1));
+  setRight('r_exp_s1', '(' + fmt(s1.totalExpY1) + ')'); setRight('r_exp_s2', '(' + fmt(s2.totalExpY1) + ')'); setRight('r_exp_s3', '(' + fmt(s3.totalExpY1) + ')');
+  setRight('r_pmt_s1', '—'); setRight('r_pmt_s2', '(' + fmt(s2.mortgagePmt) + ')'); setRight('r_pmt_s3', '(' + fmt(s3.mortgagePmt) + ')');
+  setCF('r_mcf_s1', s1.monthlyCFY1, true); setCF('r_mcf_s2', s2.monthlyCFY1, true); setCF('r_mcf_s3', s3.monthlyCFY1, true);
+  setCF('r_acf_s1', s1.annualCFY1,  true); setCF('r_acf_s2', s2.annualCFY1,  true); setCF('r_acf_s3', s3.annualCFY1,  true);
+
+  // CoC focal row
+  const setCoc = (id, v) => {
+    const el = document.getElementById(id);
+    el.textContent = (v * 100).toFixed(1) + '%';
+    el.className = 'val-right focal-val ' + (v >= 0 ? 'coc-pos' : 'coc-neg');
+  };
+  setCoc('r_coc_s1', s1.coc); setCoc('r_coc_s2', s2.coc); setCoc('r_coc_s3', s3.coc);
+
+  // Exit rows
+  setRight('r_sale_s1', fmt(s1.salePrice)); setRight('r_sale_s2', fmt(s2.salePrice)); setRight('r_sale_s3', fmt(s3.salePrice));
+  setRight('r_sellcost_s1', '(' + fmt(s1.sellCosts) + ')'); setRight('r_sellcost_s2', '(' + fmt(s2.sellCosts) + ')'); setRight('r_sellcost_s3', '(' + fmt(s3.sellCosts) + ')');
+  setRight('r_payoff_s1', '—'); setRight('r_payoff_s2', '(' + fmt(s2.mortPayoff) + ')'); setRight('r_payoff_s3', '(' + fmt(s3.mortPayoff) + ')');
+  setCF('r_net_s1', s1.netProceeds, true); setCF('r_net_s2', s2.netProceeds, true); setCF('r_net_s3', s3.netProceeds, true);
+  setRight('r_irr_s1', (s1.annualIRR * 100).toFixed(1) + '%');
+  setRight('r_irr_s2', (s2.annualIRR * 100).toFixed(1) + '%');
+  setRight('r_irr_s3', (s3.annualIRR * 100).toFixed(1) + '%');
+
+  // ── Populate Client Report ──
+  const client  = document.getElementById('clientName').value || '—';
+  const address = document.getElementById('propAddress').value || '—';
+  const dateStr = new Date().toLocaleDateString('en-US', {year:'numeric',month:'long',day:'numeric'});
+
+  document.getElementById('cr_clientName').textContent  = client;
+  document.getElementById('cr_address').textContent     = address;
+  document.getElementById('cr_date').textContent        = dateStr;
+
+  document.getElementById('cr_purchasePrice').textContent = fmt(propValue);
+  document.getElementById('cr_units').textContent         = numUnits;
+  document.getElementById('cr_grossRent').textContent     = fmt(grossRentY1) + '/mo';
+  document.getElementById('cr_noi').textContent           = '$' + Math.round(annualNOI).toLocaleString();
+  document.getElementById('cr_caprate').textContent       = (capRate * 100).toFixed(1) + '%';
+
+  // CR Table
+  document.getElementById('cr_ctc_s1').textContent  = fmt(s1.cashToClose);
+  document.getElementById('cr_ctc_s2').textContent  = fmt(s2.cashToClose);
+  document.getElementById('cr_ctc_s3').textContent  = fmt(s3.cashToClose);
+  document.getElementById('cr_loan_s1').textContent = '—';
+  document.getElementById('cr_loan_s2').textContent = fmt(s2.loanAmount);
+  document.getElementById('cr_loan_s3').textContent = fmt(s3.loanAmount);
+  document.getElementById('cr_dscr_s1').textContent = '—';
+
+  const setCrDscr = (id, v) => {
+    const el = document.getElementById(id);
+    el.textContent = dscrText(v);
+    el.className = 'cr-val ' + dscrClass(v);
+  };
+  setCrDscr('cr_dscr_s2', s2.dscr);
+  setCrDscr('cr_dscr_s3', s3.dscr);
+
+  const setCrCF = (id, v) => {
+    const el = document.getElementById(id);
+    el.textContent = fmtPM(v);
+    el.className = 'cr-val ' + (v >= 0 ? 'coc-pos' : 'coc-neg');
+  };
+  setCrCF('cr_cf_s1', s1.monthlyCFY1);
+  setCrCF('cr_cf_s2', s2.monthlyCFY1);
+  setCrCF('cr_cf_s3', s3.monthlyCFY1);
+
+  const setCrCoc = (id, v) => {
+    const el = document.getElementById(id);
+    el.textContent = (v * 100).toFixed(1) + '%';
+    el.className = 'cr-val cr-focal ' + (v >= 0 ? 'coc-pos' : 'coc-neg');
+  };
+  setCrCoc('cr_coc_s1', s1.coc);
+  setCrCoc('cr_coc_s2', s2.coc);
+  setCrCoc('cr_coc_s3', s3.coc);
+
+  document.getElementById('cr_irr_s1').textContent = (s1.annualIRR * 100).toFixed(1) + '%';
+  document.getElementById('cr_irr_s2').textContent = (s2.annualIRR * 100).toFixed(1) + '%';
+  document.getElementById('cr_irr_s3').textContent = (s3.annualIRR * 100).toFixed(1) + '%';
+
+  // CR Assumptions
+  document.getElementById('cr_a_vacancy').textContent    = getVal('vacancyPct').toFixed(0) + '%';
+  document.getElementById('cr_a_expenses').textContent   = '$' + Math.round(expPerUnit).toLocaleString();
+  document.getElementById('cr_a_holdperiod').textContent = holdYearsLabel + ' years';
+  document.getElementById('cr_a_appr').textContent       = getVal('appreciation').toFixed(1) + '%';
+  document.getElementById('cr_a_saleprice').textContent  = fmt(s1.salePrice); // same for all
+  document.getElementById('cr_a_sellcosts').textContent  = getVal('salesExpPct').toFixed(1) + '%';
+
+  const rgVal = getVal('rentGrowth');
+  const showRG = rgVal > 0;
+  document.getElementById('cr_rentgrowth_item').style.display = showRG ? '' : 'none';
+  if (showRG) document.getElementById('cr_a_rentgrowth').textContent = rgVal.toFixed(1) + '%';
+}
+
+// ─── Units ───────────────────────────────────────────────────
+function changeUnits(delta) {
+  const el = document.getElementById('numUnits');
+  el.value = Math.max(1, (parseInt(el.value) || 1) + delta);
+  calculate();
+}
+
+// ─── Scenario Names ──────────────────────────────────────────
+function updateScenarioNames() {
+  const s2 = document.getElementById('s2_name').value || 'Scenario 2';
+  const s3 = document.getElementById('s3_name').value || 'Scenario 3';
+  ['th_s2','th2_s2','tq_name_s2','tr_name_s2','cr_th_s2'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.textContent = s2;
+  });
+  ['th_s3','th2_s3','tq_name_s3','tr_name_s3','cr_th_s3'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.textContent = s3;
+  });
+}
+
+// ─── Meta / Address ──────────────────────────────────────────
+function updateMeta() {
+  // triggers client report population on next calculate()
+  // (calculate already reads these values)
+  calculate();
+}
+
+// ─── Share / Client View ─────────────────────────────────────
+function buildShareURL() {
+  const p = new URLSearchParams();
+  ['propValue','numUnits','rentPerUnit','vacancyPct','expPerUnit','salesExpPct',
+   'holdingMonths','appreciation','rentGrowth',
+   's1_closingCosts',
+   's2_downPct','s2_rate','s2_term','s2_points','s2_closingCosts',
+   's3_downPct','s3_rate','s3_term','s3_points','s3_closingCosts'
+  ].forEach(id => p.set(id, document.getElementById(id)?.value || ''));
+  p.set('s2n', document.getElementById('s2_name').value);
+  p.set('s3n', document.getElementById('s3_name').value);
+  const cn = document.getElementById('clientName').value.trim();
+  const pa = document.getElementById('propAddress').value.trim();
+  if (cn) p.set('cn', cn);
+  if (pa) p.set('pa', pa);
+  return 'https://tools.homewealthsolutions.com/buyer/multifamily-financing-analysis.html?' + p.toString();
+}
+
+function copyShareLink(btn) {
+  const url = buildShareURL() + '&view=1';
+  navigator.clipboard.writeText(url).catch(() => {
+    const ta = Object.assign(document.createElement('textarea'), {value: url});
+    document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove();
+  });
+  btn.textContent = '✓ Link Copied!';
+  setTimeout(() => btn.textContent = '↗ Share with Client', 2500);
+}
+
+function enterClientView() {
+  document.getElementById('advisor-workspace').style.display = 'none';
+  document.getElementById('client-report').style.display = 'block';
+}
+
+// ─── Apply URL Params ────────────────────────────────────────
+function applyParamsAndRun() {
+  const p = new URLSearchParams(location.search);
+  if (![...p.keys()].length) { updateScenarioNames(); calculate(); return; }
+
+  ['propValue','numUnits','rentPerUnit','vacancyPct','expPerUnit','salesExpPct',
+   'holdingMonths','appreciation','rentGrowth',
+   's1_closingCosts',
+   's2_downPct','s2_rate','s2_term','s2_points','s2_closingCosts',
+   's3_downPct','s3_rate','s3_term','s3_points','s3_closingCosts'
+  ].forEach(id => { if (p.has(id)) { const el = document.getElementById(id); if (el) el.value = p.get(id); } });
+
+  if (p.has('s2n')) document.getElementById('s2_name').value = p.get('s2n');
+  if (p.has('s3n')) document.getElementById('s3_name').value = p.get('s3n');
+  if (p.has('cn'))  document.getElementById('clientName').value = p.get('cn');
+  if (p.has('pa'))  document.getElementById('propAddress').value = p.get('pa');
+
+  updateScenarioNames();
+  calculate();
+  if (p.get('view') === '1') enterClientView();
+}
+
+window.addEventListener('DOMContentLoaded', applyParamsAndRun);
+</script>
+</body>
+</html>

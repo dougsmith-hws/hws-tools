@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HomeWealth Strategy Builder</title>
+<style>
+  :root{--blue:#2491EB;--green:#8EC73F;--dark:#1F2A37;--gray:#6B7280;--line:#E2E8F0;--bg:#F7FAFC;}
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--dark);font-size:16px;line-height:1.45;}
+  .wrap{max-width:560px;margin:0 auto;padding:16px 16px 40px;}
+  header{text-align:center;padding:8px 0 14px;}
+  header h1{font-size:19px;margin:0;color:var(--dark);}
+  header .sub{font-size:12px;color:var(--gray);margin-top:2px;}
+  .bar{height:4px;background:linear-gradient(90deg,var(--blue),var(--green));border-radius:4px;margin:10px 0 18px;}
+  .card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:14px;box-shadow:0 1px 3px rgba(0,0,0,.04);}
+  label{display:block;font-size:13px;font-weight:600;margin:12px 0 5px;color:var(--dark);}
+  label:first-child{margin-top:0;}
+  input,select{width:100%;padding:13px 12px;font-size:16px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--dark);}
+  input:focus,select:focus{outline:none;border-color:var(--blue);}
+  .hint{font-size:11px;color:var(--gray);margin-top:3px;}
+  .row{display:flex;gap:10px;}
+  .row>div{flex:1;}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px;}
+  .chip{flex:1;min-width:46%;text-align:center;padding:11px 8px;border:1.5px solid var(--line);border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;background:#fff;color:var(--gray);}
+  .chip.on{border-color:var(--blue);background:#EAF4FD;color:var(--blue);}
+  button.go{width:100%;padding:15px;font-size:16px;font-weight:700;color:#fff;background:var(--blue);border:none;border-radius:12px;margin-top:18px;cursor:pointer;}
+  button.go:active{background:#1a7ac9;}
+  .out{display:none;}
+  .strat{border:1px solid var(--line);border-left:5px solid var(--green);border-radius:12px;padding:14px;margin-bottom:12px;background:#fff;}
+  .strat h3{margin:0 0 4px;font-size:15px;color:var(--dark);}
+  .strat .tag{display:inline-block;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:#fff;background:var(--green);padding:2px 8px;border-radius:20px;margin-bottom:8px;}
+  .nums{display:flex;flex-wrap:wrap;gap:10px;margin:8px 0;}
+  .num{flex:1;min-width:30%;background:var(--bg);border-radius:8px;padding:8px 10px;}
+  .num .k{font-size:10px;color:var(--gray);text-transform:uppercase;letter-spacing:.3px;}
+  .num .v{font-size:16px;font-weight:700;color:var(--dark);}
+  .say{background:#EAF4FD;border-radius:8px;padding:10px 12px;font-size:13.5px;margin-top:8px;}
+  .say b{color:var(--blue);}
+  .rec{background:#F1F8E9;border:1px solid var(--green);border-radius:10px;padding:12px;font-size:14px;margin-bottom:12px;}
+  .rec b{color:#5a8a1f;}
+  .footer{font-size:9px;color:var(--gray);line-height:1.4;margin-top:18px;border-top:1px solid var(--line);padding-top:12px;}
+  .copy{width:100%;padding:12px;font-size:14px;font-weight:600;color:var(--blue);background:#fff;border:1.5px solid var(--blue);border-radius:10px;margin-top:4px;cursor:pointer;}
+  .reset{display:block;text-align:center;margin-top:14px;color:var(--gray);font-size:13px;text-decoration:underline;cursor:pointer;}
+  /* v2 additions */
+  .edit-bar{text-align:center;margin-bottom:10px;}
+  .edit-bar a{color:var(--blue);font-size:13px;font-weight:600;text-decoration:none;cursor:pointer;}
+  .savings-row{background:#F1F8E9;border:1px solid var(--green);border-radius:8px;padding:8px 12px;font-size:13px;margin-top:8px;color:#5a8a1f;font-weight:600;}
+  .prepared-by{font-size:10px;color:var(--gray);text-align:center;margin-bottom:4px;margin-top:14px;}
+  .tax-note{font-size:11px;color:var(--gray);line-height:1.5;padding:8px 10px;background:#fff;border:1px solid var(--line);border-radius:8px;margin-top:8px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Strategy Builder</h1>
+    <div class="sub">HomeWealth Solutions · advisor-grade scenarios in 2 minutes</div>
+    <div class="bar"></div>
+  </header>
+
+  <!-- shown only when loaded from shared URL -->
+  <div id="editBar" class="edit-bar" style="display:none">
+    <a onclick="showInputs()">‹ Edit inputs</a>
+  </div>
+
+  <div class="card" id="inputs">
+
+    <!-- MODE TOGGLE -->
+    <label style="margin-top:0">Mode</label>
+    <div class="chips" data-group="mode">
+      <div class="chip on" data-v="analyze">Analyze — Another lender's buyer</div>
+      <div class="chip" data-v="validate">Validate — I pre-approved this buyer</div>
+    </div>
+
+    <!-- VALIDATE-ONLY FIELDS -->
+    <div id="validateFields" style="display:none;margin-top:4px;padding:12px;background:var(--bg);border-radius:10px;border:1px solid var(--line)">
+      <label style="margin-top:0">Payment ceiling (PITI)</label>
+      <input id="ceil" type="text" inputmode="numeric" placeholder="$3,000" oninput="commafy(this)">
+      <label>Target down payment $</label>
+      <input id="tdp" type="text" inputmode="numeric" placeholder="$200,000" oninput="commafy(this)">
+      <label>Max purchase price <span style="font-weight:400;color:var(--gray)">(optional)</span></label>
+      <input id="maxpp" type="text" inputmode="numeric" placeholder="$550,000" oninput="commafy(this)">
+    </div>
+
+    <label>List / target price</label>
+    <input id="price" type="text" inputmode="numeric" placeholder="$450,000" oninput="commafy(this);applyCountyTax()">
+
+    <div class="row">
+      <div>
+        <label>Buyer cash available</label>
+        <input id="cash" type="text" inputmode="numeric" placeholder="$40,000" oninput="commafy(this)">
+        <div class="hint">For down + closing. Optional.</div>
+      </div>
+      <div>
+        <label>Note rate (illustrative)</label>
+        <input id="rate" type="number" inputmode="decimal" step="0.001" placeholder="6.750%">
+        <div class="hint"><a href="https://www.mortgagenewsdaily.com/mortgage-rates" target="_blank" rel="noopener" style="color:var(--blue);font-weight:600;text-decoration:none">↗ MND national avg ›</a></div>
+      </div>
+    </div>
+
+    <label>How long will they likely keep it?</label>
+    <div class="chips" data-group="hold">
+      <div class="chip" data-v="3">~3 yrs</div>
+      <div class="chip on" data-v="7">~7 yrs</div>
+      <div class="chip" data-v="12">10+ yrs</div>
+    </div>
+
+    <label>What matters most to this buyer?</label>
+    <div class="chips" data-group="goal">
+      <div class="chip on" data-v="payment">Lowest payment</div>
+      <div class="chip" data-v="cash">Least cash now</div>
+      <div class="chip" data-v="win">Win the offer</div>
+      <div class="chip" data-v="flex">Keep reserves</div>
+    </div>
+
+    <label>Buyer profile (adds a program card)</label>
+    <div class="chips" data-group="profile">
+      <div class="chip" data-v="fthb">First-time (3% down)</div>
+      <div class="chip" data-v="va">Veteran (VA, 0% down)</div>
+      <div class="chip on" data-v="std">Standard</div>
+    </div>
+
+    <div class="row">
+      <div>
+        <label>County (tax estimate)</label>
+        <select id="county" onchange="applyCountyTax()">
+          <option value="">Other/Manual</option>
+          <option value="hillsborough">Hillsborough (1.01%)</option>
+          <option value="pasco">Pasco (0.97%)</option>
+          <option value="pinellas">Pinellas (0.93%)</option>
+          <option value="hernando">Hernando (0.95%)</option>
+          <option value="polk">Polk (1.05%)</option>
+        </select>
+      </div>
+      <div>
+        <label>Insurance / yr</label>
+        <input id="hoi" type="text" inputmode="numeric" placeholder="$1,800" oninput="commafy(this)">
+      </div>
+    </div>
+    <label>Property tax / yr</label>
+    <input id="tax" type="text" inputmode="numeric" placeholder="auto (~1.1%)" oninput="commafy(this);taxManuallySet=true">
+    <div class="hint" id="taxHint">Select a county above for auto-estimate, or enter manually.</div>
+
+    <label>Escrow account?</label>
+    <div class="chips" data-group="escrow">
+      <div class="chip on" data-v="yes">Escrowed (taxes+ins)</div>
+      <div class="chip" data-v="no">Waived</div>
+    </div>
+
+    <label>Who pays the buyer's agent?</label>
+    <div class="chips" data-group="bac">
+      <div class="chip on" data-v="seller">Seller covers it</div>
+      <div class="chip" data-v="buyer">Buyer pays</div>
+    </div>
+    <div id="bacPctWrap" style="display:none;margin-top:8px">
+      <label style="margin-top:0">Buyer-agent commission %</label>
+      <input id="bacPct" type="text" inputmode="decimal" placeholder="3.0%" value="3.0%" onfocus="stripPct(this)" onblur="pctify(this)">
+      <div class="hint">Ask the agent what they're charging.</div>
+    </div>
+
+    <!-- OPTIONAL · ADVANCED -->
+    <div style="border-top:1px solid var(--line);margin-top:16px;padding-top:14px;">
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--gray);margin-bottom:10px;">Optional · Advanced</div>
+
+      <label style="margin-top:0">Custom down payment %</label>
+      <input id="customDP" type="number" inputmode="decimal" step="0.01" placeholder="Leave blank to skip (e.g. 25, 30, 50)">
+      <div class="hint">Generates an extra scenario card at this exact %. No PMI if ≥ 20.</div>
+
+      <label>Seller concession $</label>
+      <input id="concession" type="text" inputmode="numeric" placeholder="Leave blank to skip (e.g. $10,000)" oninput="commafy(this)">
+
+      <label>Rate buydown from concession (pts)</label>
+      <input id="buydownPts" type="number" inputmode="decimal" step="0.001" placeholder="e.g. 0.5">
+      <div class="hint">How much the concession buys down the rate — check your rate sheet.</div>
+    </div>
+
+    <!-- AGENT NAME -->
+    <label>Realtor name (for shared link)</label>
+    <input id="agentName" type="text" placeholder="e.g. Sarah Jones">
+    <div class="hint">Shows on shared output. Included in shareable URL.</div>
+
+    <button class="go" onclick="run()">Build strategies</button>
+  </div>
+
+  <div class="out" id="out"></div>
+  <span class="reset" id="resetBtn" style="display:none" onclick="location.reload()">↻ Start over</span>
+</div>
+
+<script>
+// ---- chip selectors (original + mode/validate extension) ----
+document.querySelectorAll('.chips').forEach(g=>{
+  g.addEventListener('click',e=>{
+    const c=e.target.closest('.chip'); if(!c)return;
+    g.querySelectorAll('.chip').forEach(x=>x.classList.remove('on'));
+    c.classList.add('on');
+    if(g.dataset.group==='bac'){
+      document.getElementById('bacPctWrap').style.display = c.dataset.v==='buyer'?'block':'none';
+    }
+    if(g.dataset.group==='mode'){
+      document.getElementById('validateFields').style.display = c.dataset.v==='validate'?'block':'none';
+    }
+  });
+});
+const pick=g=>document.querySelector(`[data-group="${g}"] .chip.on`).dataset.v;
+function setChip(group,value){
+  const g=document.querySelector(`[data-group="${group}"]`); if(!g)return;
+  g.querySelectorAll('.chip').forEach(c=>c.classList.toggle('on',c.dataset.v===value));
+}
+
+// ---- input helpers (unchanged) ----
+function commafy(el){
+  const raw=el.value.replace(/[^0-9]/g,'');
+  el.value = raw ? '$'+(+raw).toLocaleString() : '';
+}
+const numVal=id=>+document.getElementById(id).value.replace(/[^0-9.]/g,'')||0;
+function stripPct(el){el.value=el.value.replace(/[^0-9.]/g,'');}
+function pctify(el){const v=el.value.replace(/[^0-9.]/g,'');el.value=v?v+'%':'';}
+const fmt=n=>'$'+Math.round(n).toLocaleString();
+const fmt0=n=>'$'+Math.round(n).toLocaleString();
+
+// ---- county tax table ----
+const COUNTY_RATES={hillsborough:0.0101,pasco:0.0097,pinellas:0.0093,hernando:0.0095,polk:0.0105};
+let taxManuallySet=false;
+function applyCountyTax(){
+  if(taxManuallySet)return;
+  const county=document.getElementById('county').value;
+  const price=numVal('price');
+  const taxEl=document.getElementById('tax');
+  const hintEl=document.getElementById('taxHint');
+  if(county && COUNTY_RATES[county] && price>0){
+    const autoTax=Math.round(price*COUNTY_RATES[county]);
+    taxEl.value='$'+autoTax.toLocaleString();
+    const name=county.charAt(0).toUpperCase()+county.slice(1);
+    hintEl.textContent='Auto-estimated from '+name+' millage. Override if you know exact amount.';
+  } else if(!county){
+    hintEl.textContent='Select a county above for auto-estimate, or enter manually.';
+  }
+}
+
+// ---- show inputs when browsing a shared link ----
+function showInputs(){
+  document.getElementById('inputs').style.display='block';
+  document.getElementById('editBar').style.display='none';
+}
+
+// ---- core math (unchanged) ----
+function pi(principal,annualRate,years=30){
+  const r=annualRate/100/12, n=years*12;
+  if(r===0)return principal/n;
+  return principal*r*Math.pow(1+r,n)/(Math.pow(1+r,n)-1);
+}
+function pmiRate(ltv){
+  if(ltv<=80)return 0;
+  if(ltv<=85)return 0.0030;
+  if(ltv<=90)return 0.0049;
+  if(ltv<=95)return 0.0058;
+  return 0.0070;
+}
+function closingCosts(price,loan,rate,taxYr,hoiYr,escrowOn,bacPct){
+  const underwriting=1095;
+  const lendingMisc=250;
+  const miscOther=1400;
+  const titleBand=price<=400000?3000:price<=600000?3500:4000;
+  const recording=225;
+  const mortgageTax=loan*0.0055;
+  const hoi=hoiYr||1800;
+  const prepaidInt=loan*(rate/100)/365*15;
+  const monthlyTax=(taxYr||price*0.011)/12;
+  const escrow=escrowOn?(hoi/12*3+monthlyTax*8):0;
+  const lendTitleGov=underwriting+lendingMisc+miscOther+titleBand+recording+mortgageTax+hoi+prepaidInt+escrow;
+  const buyerAgent=price*(bacPct||0);
+  return{lendTitleGov,buyerAgent,total:lendTitleGov+buyerAgent};
+}
+function scenario(price,downPct,rate,taxYr,hoiYr,type,escrowOn,bacPct){
+  const down=price*downPct/100;
+  let base=price-down, upfront=0, mi=0;
+  const ltv=100-downPct;
+  if(type==='fha'){upfront=base*0.0175;base=base+upfront;mi=base*0.0055/12;}
+  else if(type==='va'){upfront=base*0.023;base=base+upfront;mi=0;}
+  else if(type==='fthb'){mi=(price-down)*0.0035/12;}
+  else{mi=(price-down)*pmiRate(ltv)/12;}
+  const PI=pi(base,rate);
+  const tax=(taxYr||price*0.011)/12;
+  const ins=(hoiYr||1800)/12;
+  const total=PI+tax+ins+mi;
+  const cc=closingCosts(price,price-down,rate,taxYr,hoiYr,escrowOn,bacPct);
+  const cashToClose=down+cc.total;
+  return{down,downPct,PI,tax,ins,mi,total,cashToClose,closing:cc.total,
+         ccLendTitle:cc.lendTitleGov,ccAgent:cc.buyerAgent,type,ltv};
+}
+function numBlock(s){
+  const dpLabel=parseFloat(s.downPct.toFixed(1));
+  return`<div class="nums">
+    <div class="num"><div class="k">${dpLabel}% down</div><div class="v">${fmt(s.down)}</div></div>
+    <div class="num"><div class="k">Total pmt/mo</div><div class="v">${fmt(s.total)}</div></div>
+    <div class="num"><div class="k">Cash to close</div><div class="v">${fmt(s.cashToClose)}</div></div>
+  </div>`;
+}
+function buydownCost(base,rate){
+  const full=pi(base,rate);
+  const y1=pi(base,rate-2);
+  const y2=pi(base,rate-1);
+  return(full-y1)*12+(full-y2)*12;
+}
+
+// ---- validate badge helper ----
+function ceilBadge(total,ceil){
+  if(!ceil)return'';
+  return total>ceil
+    ?`<span style="float:right;color:#E8A33D;font-weight:700;font-size:12px">✗ ${fmt(total-ceil)}/mo over</span>`
+    :`<span style="float:right;color:var(--green);font-weight:700;font-size:12px">✓ clears</span>`;
+}
+function ceilBorderColor(total,ceil){
+  return(ceil&&total>ceil)?'#E8A33D':'var(--green)';
+}
+
+// ---- URL helpers ----
+function buildShareURL(p){
+  const base=window.location.origin+window.location.pathname;
+  const sp=new URLSearchParams();
+  const add=(k,v)=>{if(v!==''&&v!==null&&v!==undefined)sp.set(k,String(v));};
+  add('mode',p.mode);
+  add('p',p.price);
+  add('r',p.rate);
+  if(p.dp)add('dp',p.dp);
+  if(p.cash)add('cash',p.cash);
+  if(p.ceil)add('ceil',p.ceil);
+  if(p.tdp)add('tdp',p.tdp);
+  if(p.maxpp)add('maxpp',p.maxpp);
+  add('hold',p.hold);
+  add('goal',p.goal);
+  add('profile',p.profile);
+  add('escrow',p.escrow);
+  add('bac',p.bac);
+  if(p.bacpct)add('bacpct',p.bacpct);
+  if(p.county)add('county',p.county);
+  if(p.tax)add('tax',p.tax);
+  if(p.hoi)add('hoi',p.hoi);
+  if(p.con)add('con',p.con);
+  if(p.bd)add('bd',p.bd);
+  if(p.agent)add('agent',encodeURIComponent(p.agent));
+  return base+'?'+sp.toString();
+}
+
+// ---- populate all inputs from URL params ----
+function populateFromURL(sp){
+  if(sp.has('mode')&&sp.get('mode')){
+    setChip('mode',sp.get('mode'));
+    if(sp.get('mode')==='validate')document.getElementById('validateFields').style.display='block';
+  }
+  if(sp.has('p')&&sp.get('p')){document.getElementById('price').value='$'+(+sp.get('p')).toLocaleString();}
+  if(sp.has('r')&&sp.get('r')){document.getElementById('rate').value=sp.get('r');}
+  if(sp.has('cash')&&sp.get('cash')){document.getElementById('cash').value='$'+(+sp.get('cash')).toLocaleString();}
+  if(sp.has('dp')&&sp.get('dp')){document.getElementById('customDP').value=sp.get('dp');}
+  if(sp.has('ceil')&&sp.get('ceil')){document.getElementById('ceil').value='$'+(+sp.get('ceil')).toLocaleString();}
+  if(sp.has('tdp')&&sp.get('tdp')){document.getElementById('tdp').value='$'+(+sp.get('tdp')).toLocaleString();}
+  if(sp.has('maxpp')&&sp.get('maxpp')){document.getElementById('maxpp').value='$'+(+sp.get('maxpp')).toLocaleString();}
+  if(sp.has('hold')&&sp.get('hold')){setChip('hold',sp.get('hold'));}
+  if(sp.has('goal')&&sp.get('goal')){setChip('goal',sp.get('goal'));}
+  if(sp.has('profile')&&sp.get('profile')){setChip('profile',sp.get('profile'));}
+  if(sp.has('escrow')&&sp.get('escrow')){setChip('escrow',sp.get('escrow'));}
+  if(sp.has('bac')&&sp.get('bac')){
+    setChip('bac',sp.get('bac'));
+    if(sp.get('bac')==='buyer'){
+      document.getElementById('bacPctWrap').style.display='block';
+      if(sp.has('bacpct')&&sp.get('bacpct')){document.getElementById('bacPct').value=sp.get('bacpct')+'%';}
+    }
+  }
+  if(sp.has('county')&&sp.get('county')){document.getElementById('county').value=sp.get('county');}
+  if(sp.has('tax')&&sp.get('tax')){
+    document.getElementById('tax').value='$'+(+sp.get('tax')).toLocaleString();
+    taxManuallySet=true;
+  } else if(sp.has('county')&&sp.get('county')){
+    applyCountyTax();
+  }
+  if(sp.has('hoi')&&sp.get('hoi')){document.getElementById('hoi').value='$'+(+sp.get('hoi')).toLocaleString();}
+  if(sp.has('con')&&sp.get('con')){document.getElementById('concession').value='$'+(+sp.get('con')).toLocaleString();}
+  if(sp.has('bd')&&sp.get('bd')){document.getElementById('buydownPts').value=sp.get('bd');}
+  if(sp.has('agent')&&sp.get('agent')){document.getElementById('agentName').value=decodeURIComponent(sp.get('agent'));}
+}
+
+// ---- auto-run if URL has params ----
+window.addEventListener('DOMContentLoaded',()=>{
+  const sp=new URLSearchParams(window.location.search);
+  if(sp.has('p')&&sp.get('p')){
+    populateFromURL(sp);
+    run();
+    document.getElementById('inputs').style.display='none';
+    document.getElementById('editBar').style.display='block';
+  }
+});
+
+// ---- main run function ----
+function run(){
+  const price=numVal('price');
+  if(!price){alert('Enter a price.');return;}
+  const cash=numVal('cash');
+  const rate=+document.getElementById('rate').value||6.75;
+  const taxYr=numVal('tax');
+  const hoiYr=numVal('hoi');
+  const hold=+pick('hold');
+  const goal=pick('goal');
+  const escrowOn=pick('escrow')==='yes';
+  const bacPct=pick('bac')==='buyer' ? numVal('bacPct')/100 : 0;
+  const profile=pick('profile');
+  const mode=pick('mode');
+  const customDPVal=+document.getElementById('customDP').value||0;
+  const concessionVal=numVal('concession');
+  const buydownPtsVal=+document.getElementById('buydownPts').value||0;
+  const agentName=document.getElementById('agentName').value.trim();
+  const ceilVal=numVal('ceil');
+  const targetDPDollar=numVal('tdp');
+  const maxPPVal=numVal('maxpp');
+  const countyVal=document.getElementById('county').value;
+
+  const out=document.getElementById('out');
+  let html='';
+
+  // build + store share URL
+  const shareURL=buildShareURL({
+    mode,price,rate,dp:customDPVal||'',cash:cash||'',
+    ceil:ceilVal||'',tdp:targetDPDollar||'',maxpp:maxPPVal||'',
+    hold,goal,profile,escrow:pick('escrow'),bac:pick('bac'),
+    bacpct:bacPct>0?(bacPct*100).toFixed(2):'',
+    county:countyVal,tax:taxYr||'',hoi:hoiYr||'',
+    con:concessionVal||'',bd:buydownPtsVal||'',agent:agentName
+  });
+  history.replaceState(null,'',shareURL);
+
+  // build standard scenarios
+  const s5=scenario(price,5,rate,taxYr,hoiYr,'conv',escrowOn,bacPct);
+  const s10=scenario(price,10,rate,taxYr,hoiYr,'conv',escrowOn,bacPct);
+  const s20=scenario(price,20,rate,taxYr,hoiYr,'conv',escrowOn,bacPct);
+  const sFHA=scenario(price,3.5,rate,taxYr,hoiYr,'fha',escrowOn,bacPct);
+  const sFTHB=scenario(price,3,rate,taxYr,hoiYr,'fthb',escrowOn,bacPct);
+  const sVA=scenario(price,0,rate,taxYr,hoiYr,'va',escrowOn,bacPct);
+
+  // ---- agent header ----
+  if(agentName){
+    html+=`<div style="text-align:center;font-size:13px;color:var(--gray);margin-bottom:12px;padding:8px 14px;background:#fff;border:1px solid var(--line);border-radius:10px">Prepared for <strong>${agentName}</strong>'s client</div>`;
+  }
+
+  // ---- max purchase price warning (validate mode) ----
+  if(mode==='validate'&&maxPPVal>0&&price>maxPPVal){
+    html+=`<div class="rec" style="background:#FFF4E5;border-color:#E8A33D"><b>⚠ List price ${fmt(price)} exceeds buyer's comfort-based max of ${fmt(maxPPVal)}</b> — review before sharing scenarios.</div>`;
+  }
+
+  // ---- goal-driven strategy selection (unchanged logic) ----
+  let rec='';
+  const strats=[];
+  if(goal==='cash'){
+    rec=`Goal: <b>lowest cash in.</b> Lead low-down, protect reserves.`;
+    strats.push({tag:'Lowest cash in',title:'FHA, 3.5% down',s:sFHA,say:`Lowest cash to keys. Tradeoff: MIP is permanent.`});
+    strats.push({tag:'Low cash, conventional',title:'Conventional, 5% down',s:s5,say:`Slightly more down, but PMI is removable later.`});
+  }else if(goal==='payment'){
+    rec=`Goal: <b>lowest payment.</b> More-down vs. buydown — hold period decides.`;
+    strats.push({tag:'Lower payment via down',title:'Conventional, 20% down',s:s20,say:`Kills PMI, lowest stable payment — but ties up ${fmt(s20.down)}.`});
+    const base=price-s5.down;
+    const bdCost=buydownCost(base,rate);
+    const y1=pi(base,rate-2)+(taxYr||price*0.011)/12+(hoiYr||1800)/12+s5.mi;
+    strats.push({tag:'Lower payment early',title:'5% down + 2-1 buydown',s:s5,say:`Seller funds ~${fmt(bdCost)}; yr-1 payment ~${fmt(y1)}. Best if income rises or refi likely.`});
+  }else if(goal==='win'){
+    rec=`Goal: <b>win the offer.</b> Buydown concession beats a price cut for both sides.`;
+    const base=price-s5.down;
+    const bdCost=buydownCost(base,rate);
+    strats.push({tag:'Stronger offer',title:'Full price + seller-paid 2-1 buydown',s:s5,say:`Ask seller for ~${fmt(bdCost)} credit. Nets seller more than same-size price cut.`});
+    strats.push({tag:'Clean & fast',title:'Conventional 10% down, no concessions',s:s10,say:`Clean ${fmt(s10.total)}/mo offer, no seller asks — easy yes in multiples.`});
+  }else{
+    rec=`Goal: <b>keep reserves.</b> Less down, keep cash working — liquidity has value.`;
+    strats.push({tag:'Keep cash working',title:'Conventional, 5% down',s:s5,say:`Holds ~${fmt(Math.max(0,cash-s5.cashToClose))} in reserve. PMI = the cost of flexibility; removable later.`});
+    strats.push({tag:'Balance',title:'Conventional, 10% down',s:s10,say:`Splits the difference — lower payment, still real reserves.`});
+  }
+
+  // program card (unchanged)
+  if(profile==='va'){
+    strats.push({tag:'Veteran option',title:'VA loan, 0% down',s:sVA,say:`0 down, <b>no monthly MI</b> — can beat FHA's payment. Funding fee ~2.3% financed; <b>$0 if disability-rated.</b>`});
+  }else if(profile==='fthb'){
+    strats.push({tag:'First-time buyer',title:'Conventional 97, 3% down',s:sFTHB,say:`Lowest-cash conventional. Reduced PMI, and <b>removable</b> (unlike FHA).`});
+  }
+
+  // hold-period overlay (unchanged)
+  let holdNote='';
+  if(hold<=3){holdNote=`<div class="rec"><b>~3-yr hold:</b> don't over-capitalize. Temp buydown or low-down + reserves beats 20% down.</div>`;}
+  else if(hold>=10){holdNote=`<div class="rec"><b>10+ yr hold:</b> favor permanent rate buydown (points) over temp; more down pays off.</div>`;}
+  else{holdNote=`<div class="rec"><b>~7-yr hold:</b> sweet spot for a 2-1 buydown — long enough to use it, short enough that 20% down isn't always best.</div>`;}
+
+  // assemble headers
+  html+=`<div class="rec" style="background:var(--dark);border-color:var(--dark);color:#fff"><b>${fmt(price)}</b> · illustrative rate <b>${rate.toFixed(3)}%</b> · 30-yr fixed</div>`;
+  html+=`<div class="rec" style="background:#EAF4FD;border-color:var(--blue)">${rec}</div>`;
+  html+=holdNote;
+
+  // closing cost note (unchanged)
+  const ccPct=(s5.closing/price*100).toFixed(1);
+  let ccNote=`<div class="rec" style="background:#EAF4FD;border-color:var(--blue)"><b>Closing costs ~${ccPct}%</b> (${fmt(s5.closing)})${escrowOn?' incl. escrow':', escrow waived'}`;
+  if(bacPct>0)ccNote+=`, incl. <b>~${fmt(s5.ccAgent)} buyer-paid agent (${(bacPct*100).toFixed(2)}%)</b>`;
+  ccNote+=`. Est. from your CDs — title co. sets final.</div>`;
+  html+=ccNote;
+
+  // cash feasibility flag (unchanged)
+  if(cash>0){
+    const feas=[];
+    if(cash<sFHA.cashToClose)feas.push('Heads up: entered cash may not cover even 3.5% down + closing — confirm gift/DPA options.');
+    html+=feas.length?`<div class="rec" style="background:#FFF4E5;border-color:#E8A33D"><b>${feas[0]}</b></div>`:'';
+  }
+
+  // ---- VALIDATE MODE: Buyer's Target card (primary, shown first) ----
+  if(mode==='validate'&&targetDPDollar>0){
+    const targetDPPct=targetDPDollar/price*100;
+    const sTarget=scenario(price,targetDPPct,rate,taxYr,hoiYr,'conv',escrowOn,bacPct);
+    const failCeil=ceilVal>0&&sTarget.total>ceilVal;
+    html+=`<div class="strat" style="border-left-color:var(--blue)">
+      <span class="tag" style="background:var(--blue)">Buyer's Target</span>${ceilBadge(sTarget.total,ceilVal)}
+      <h3>${fmt(targetDPDollar)} down (${parseFloat(targetDPPct.toFixed(1))}%)</h3>
+      ${numBlock(sTarget)}
+      ${failCeil
+        ?`<div class="say" style="background:#FFF4E5">Payment exceeds the ${fmt(ceilVal)}/mo ceiling by <b>${fmt(sTarget.total-ceilVal)}/mo</b>.</div>`
+        :(ceilVal>0?`<div class="say">✓ Payment clears the <b>${fmt(ceilVal)}/mo</b> ceiling with ${fmt(ceilVal-sTarget.total)}/mo to spare.</div>`:'')
+      }
+    </div>`;
+  }
+
+  // ---- strat cards (with validate ✓/✗ badges) ----
+  strats.forEach(st=>{
+    const failCeil=mode==='validate'&&ceilVal>0&&st.s.total>ceilVal;
+    html+=`<div class="strat" style="border-left-color:${ceilBorderColor(st.s.total,mode==='validate'?ceilVal:0)}">
+      <span class="tag">${st.tag}</span>${mode==='validate'?ceilBadge(st.s.total,ceilVal):''}
+      <h3>${st.title}</h3>
+      ${numBlock(st.s)}
+      <div class="say">${st.say}</div>
+    </div>`;
+  });
+
+  // ---- CUSTOM DOWN PAYMENT CARD ----
+  if(customDPVal>0&&customDPVal<=100){
+    const sCustom=scenario(price,customDPVal,rate,taxYr,hoiYr,'conv',escrowOn,bacPct);
+    html+=`<div class="strat" style="border-left-color:${ceilBorderColor(sCustom.total,mode==='validate'?ceilVal:0)}">
+      <span class="tag">Custom down payment</span>${mode==='validate'?ceilBadge(sCustom.total,ceilVal):''}
+      <h3>${parseFloat(customDPVal.toFixed(1))}% down — conventional</h3>
+      ${numBlock(sCustom)}
+      <div class="say">${customDPVal>=20?'No PMI at this down payment.':'PMI applies — removable once equity hits 20%.'}</div>
+    </div>`;
+  }
+
+  // ---- MAX FROM AVAILABLE CASH (skip if custom DP entered) ----
+  if(!customDPVal&&cash>0&&cash>s20.cashToClose){
+    let bestDP=20;
+    for(let dp=20.5;dp<=99;dp+=0.5){
+      const test=scenario(price,dp,rate,taxYr,hoiYr,'conv',escrowOn,bacPct);
+      if(test.cashToClose<=cash){bestDP=dp;}else{break;}
+    }
+    if(bestDP>20){
+      const sMaxCash=scenario(price,bestDP,rate,taxYr,hoiYr,'conv',escrowOn,bacPct);
+      html+=`<div class="strat" style="border-left-color:${ceilBorderColor(sMaxCash.total,mode==='validate'?ceilVal:0)}">
+        <span class="tag">Max from available cash</span>${mode==='validate'?ceilBadge(sMaxCash.total,ceilVal):''}
+        <h3>${parseFloat(bestDP.toFixed(1))}% down — conventional</h3>
+        ${numBlock(sMaxCash)}
+        <div class="say">Applies most of the ${fmt(cash)} available — ${fmt(Math.round(cash-sMaxCash.cashToClose))} to spare.</div>
+      </div>`;
+    }
+  }
+
+  // ---- CONCESSION VS. PRICE CUT ANALYSIS ----
+  let concCopyExtra='';
+  if(concessionVal>0){
+    // determine base DP for concession comparison
+    let conBaseDP;
+    if(mode==='validate'&&targetDPDollar>0){conBaseDP=targetDPDollar/price*100;}
+    else if(customDPVal>0){conBaseDP=customDPVal;}
+    else if(goal==='payment'){conBaseDP=20;}
+    else{conBaseDP=5;}
+    const conBaseDPLabel=parseFloat(conBaseDP.toFixed(1));
+
+    const buydownRate=Math.max(0.001,rate-buydownPtsVal);
+
+    // Card 1: price cut
+    const sPriceCut=scenario(price-concessionVal,conBaseDP,rate,taxYr,hoiYr,'conv',escrowOn,bacPct);
+
+    // Card 2: permanent buydown
+    const sBuydown=scenario(price,conBaseDP,buydownRate,taxYr,hoiYr,'conv',escrowOn,bacPct);
+    const sBuydownCTC=Math.max(0,sBuydown.cashToClose-concessionVal);
+    const monthlySavingsVsPriceCut=sPriceCut.total-sBuydown.total;
+
+    // Card 3: 2-1 buydown
+    const loan21=price-(price*conBaseDP/100);
+    const tax21=(taxYr||price*0.011)/12;
+    const ins21=(hoiYr||1800)/12;
+    const mi21=loan21*pmiRate(100-conBaseDP)/12;
+    const concY1Total=pi(loan21,Math.max(0.001,rate-2))+tax21+ins21+mi21;
+    const concY2Total=pi(loan21,Math.max(0.001,rate-1))+tax21+ins21+mi21;
+    const concY3Total=pi(loan21,rate)+tax21+ins21+mi21;
+    const y1Savings=concY3Total-concY1Total;
+
+    // Card 4: closing costs
+    const sBase4=scenario(price,conBaseDP,rate,taxYr,hoiYr,'conv',escrowOn,bacPct);
+    const c4CTC=Math.max(0,sBase4.cashToClose-concessionVal);
+
+    // permanent buydown lifetime savings vs. no-buydown baseline
+    const permSavingsVsBase=Math.max(0,sBase4.total-sBuydown.total);
+
+    html+=`<div style="margin-top:20px">
+      <div class="rec" style="background:var(--dark);border-color:var(--dark);color:#fff"><b>${fmt(concessionVal)} from the seller — Price Cut vs. Concession</b></div>
+
+      <div class="strat">
+        <span class="tag">Standard</span>
+        <h3>Price cut to ${fmt(price-concessionVal)}</h3>
+        <div class="nums">
+          <div class="num"><div class="k">${conBaseDPLabel}% down</div><div class="v">${fmt(sPriceCut.down)}</div></div>
+          <div class="num"><div class="k">Total pmt/mo</div><div class="v">${fmt(sPriceCut.total)}</div></div>
+          <div class="num"><div class="k">Cash to close</div><div class="v">${fmt(sPriceCut.cashToClose)}</div></div>
+        </div>
+      </div>
+
+      <div class="strat">
+        <span class="tag">More Savings</span>
+        <h3>Concession → permanent rate buydown${buydownPtsVal?` (${rate.toFixed(3)}% → ${buydownRate.toFixed(3)}%)`:''}</h3>
+        <div class="nums">
+          <div class="num"><div class="k">${conBaseDPLabel}% down</div><div class="v">${fmt(sBuydown.down)}</div></div>
+          <div class="num"><div class="k">Total pmt/mo</div><div class="v">${fmt(sBuydown.total)}</div></div>
+          <div class="num"><div class="k">Cash to close</div><div class="v">${fmt(sBuydownCTC)}</div></div>
+        </div>
+        ${buydownPtsVal>0
+          ?`<div class="savings-row">Concession saves vs. price cut: +${fmt(monthlySavingsVsPriceCut)}/mo${monthlySavingsVsPriceCut>0?' (permanently)':' — price cut payment is lower at this buydown amount'}</div>`
+          :`<div class="say">Enter rate buydown pts above to calculate monthly savings vs. price cut.</div>`}
+      </div>
+
+      <div class="strat">
+        <span class="tag">Early Savings</span>
+        <h3>Concession → 2-1 temporary buydown</h3>
+        <div class="nums">
+          <div class="num"><div class="k">Yr 1 (${Math.max(0.001,rate-2).toFixed(3)}%)</div><div class="v">${fmt(concY1Total)}</div></div>
+          <div class="num"><div class="k">Yr 2 (${Math.max(0.001,rate-1).toFixed(3)}%)</div><div class="v">${fmt(concY2Total)}</div></div>
+          <div class="num"><div class="k">Yr 3+ (${rate.toFixed(3)}%)</div><div class="v">${fmt(concY3Total)}</div></div>
+        </div>
+        <div class="say">Year 1 savings: <b>${fmt(y1Savings)}/mo</b> vs. full-rate payment.</div>
+      </div>
+
+      <div class="strat">
+        <span class="tag">Keep Cash</span>
+        <h3>Concession → cover closing costs</h3>
+        <div class="nums">
+          <div class="num"><div class="k">${conBaseDPLabel}% down</div><div class="v">${fmt(sBase4.down)}</div></div>
+          <div class="num"><div class="k">Total pmt/mo</div><div class="v">${fmt(sBase4.total)}</div></div>
+          <div class="num"><div class="k">Cash to close</div><div class="v">${fmt(c4CTC)}</div></div>
+        </div>
+        <div class="say">Same rate, same payment — ${fmt(concessionVal)} stays in pocket at closing.</div>
+      </div>
+
+      <div class="rec" style="background:#EAF4FD;border-color:var(--blue)"><em>What matters most — lowest payment long-term, early breathing room, or keeping cash in the bank?</em></div>
+
+      <div class="tax-note"><b>Tax note:</b> Seller-paid discount points may be tax deductible for the buyer as mortgage interest. A price cut provides no tax benefit to either party. The concession is a documented selling expense on the settlement statement. Consult a tax advisor for individual situations.</div>
+    </div>`;
+
+    // build copy extra
+    concCopyExtra=`\n\nConcession vs. price cut (${fmt(concessionVal)}):\n`
+      +`• ${fmt(concessionVal)} price cut: ~${fmt(sPriceCut.total)}/mo, ${fmt(sPriceCut.cashToClose)} to close\n`
+      +(buydownPtsVal>0?`• ${fmt(concessionVal)} concession to rate: ~${fmt(sBuydown.total)}/mo, ${fmt(sBuydownCTC)} to close (saves ~${fmt(Math.abs(monthlySavingsVsPriceCut))}/mo${monthlySavingsVsPriceCut>0?' more':''})\n`:'')
+      +`\nThree ways to use the concession:\n`
+      +`• Permanent buydown: ~${fmt(sBuydown.total)}/mo (saves ${fmt(permSavingsVsBase)}/mo for life of loan)\n`
+      +`• 2-1 buydown: ~${fmt(concY1Total)}/mo year 1, ~${fmt(concY2Total)}/mo year 2, full rate year 3\n`
+      +`• Closing costs: payment stays ~${fmt(sBase4.total)}/mo, bring ${fmt(concessionVal)} less cash\n`
+      +`\nWhat matters most — lowest payment long-term, early breathing room, or keeping cash in the bank?\n`
+      +`\nTax note: seller-paid points may be deductible for the buyer. A price cut provides no tax benefit.\n`
+      +`\nLet me know if you want me to adjust for a different offer price.`;
+  }
+
+  // ---- copy buttons ----
+  const copyText=`Quick scenarios for ${fmt(price)} — from Doug Smith, HomeWealth Solutions (813-733-7371):\n`
+    +strats.map(st=>`• ${st.title}: ~${fmt(st.s.total)}/mo, ${fmt(st.s.cashToClose)} to close`).join('\n')
+    +`\nThese are illustrative — happy to tighten once we know your buyer's down payment. Which direction fits?`
+    +concCopyExtra;
+
+  html+=`<button class="copy" style="margin-top:12px" onclick="navigator.clipboard.writeText(${JSON.stringify(copyText)});this.textContent='✓ Copied — paste to your agent'">Copy summary to text the agent</button>`;
+  html+=`<button class="copy" style="margin-top:6px;border-color:var(--gray);color:var(--gray)" onclick="navigator.clipboard.writeText(${JSON.stringify(shareURL)});this.textContent='✓ Link copied'">Copy shareable link</button>`;
+
+  // ---- prepared by + compliance footer ----
+  html+=`<div class="prepared-by">Prepared by Certified Mortgage Advisor — NMLS #2742458</div>`;
+  html+=`<div class="footer">This communication is for informational and educational purposes only and does not constitute an offer to lend or a commitment to make a loan. All loans are subject to credit approval, underwriting guidelines, and property approval. Interest rates, payment examples, programs, and terms are illustrative, vary by borrower qualification, and are subject to change without notice. Not all applicants will qualify. Examples shown do not reflect all costs of a mortgage transaction. Consult a licensed tax or legal advisor regarding your individual situation. HomeWealth Solutions LLC is licensed by the Florida Office of Financial Regulation, Mortgage Broker License #MBR8082. Verify our licensure at www.nmlsconsumeraccess.org. Equal Housing Opportunity.</div>`;
+
+  out.innerHTML=html;
+  out.style.display='block';
+  document.getElementById('resetBtn').style.display='block';
+  out.scrollIntoView({behavior:'smooth'});
+}
+</script>
+</body>
+</html>
