@@ -68,6 +68,50 @@ input[data-fmt]{-moz-appearance:textfield;}
 .divider{border:none;border-top:1px solid var(--line);margin:14px 0;}
 .field-hint{display:block;font-size:11px;color:var(--gray);margin-top:4px;min-height:14px;}
 .field-hint.override{color:var(--blue);}
+/* ── Report View — paying-points design language ─────────────────── */
+:root{--blue-light:#e8f4fd;--blue-mid:#c5e1fa;--green-light:#f0f8e6;--green-dark:#6aaa1f;--pp-dark:#1c2b3a;--mid:#3a4f62;--red-c:#dc3545;--amber:#e8900a;--gray-100:#f7f8fa;--gray-200:#edf0f4;--gray-300:#d1d8e0;--gray-500:#8892a0;--gray-700:#4a5568;--gray-900:#1a2332;--radius:10px;--shadow:0 2px 12px rgba(0,0,0,0.08);}
+#reportView{display:none;font-family:'Segoe UI',Arial,sans-serif;background:var(--gray-100);color:var(--gray-900);min-height:100vh;}
+#reportView .pp-header{background:var(--pp-dark);color:#fff;padding:16px 28px;display:flex;align-items:center;justify-content:space-between;gap:16px;}
+#reportView .pp-header h1{font-size:1.15rem;font-weight:700;}
+#reportView .nmls-badge{background:var(--blue);color:white;font-size:0.7rem;font-weight:700;padding:4px 10px;border-radius:20px;}
+#reportView .pp-propbar{background:#F0F4F7;border-bottom:1px solid #DDE3E8;padding:10px 28px;display:flex;justify-content:space-between;align-items:center;gap:8px;}
+#reportView .pp-propbar-addr{font-size:14px;font-weight:700;color:var(--pp-dark);overflow:hidden;text-overflow:ellipsis;}
+#reportView .pp-propbar-price{font-size:14px;font-weight:700;color:var(--pp-dark);white-space:nowrap;}
+#reportView .pp-prepfor{background:#fff;padding:10px 28px;border-bottom:1px solid var(--gray-200);font-size:15px;color:var(--pp-dark);}
+#reportView .pp-main{max-width:980px;margin:28px auto;padding:0 20px 60px;}
+#reportView .pp-card{background:white;border-radius:var(--radius);box-shadow:var(--shadow);margin-bottom:20px;overflow:hidden;}
+#reportView .pp-card-header{background:var(--pp-dark);color:white;padding:11px 20px;font-size:0.82rem;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;}
+#reportView .pp-card-body{padding:20px;}
+#reportView .two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;}
+@media(max-width:620px){#reportView .two-col{grid-template-columns:1fr;}}
+#reportView .option-col{border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);position:relative;margin-bottom:12px;}
+#reportView .option-col.winner{transform:translateY(-4px);box-shadow:0 8px 24px rgba(36,145,235,0.2);}
+#reportView .oc-hdr{padding:13px 18px;font-size:0.85rem;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;color:white;position:relative;}
+#reportView .oc-hdr.gray{background:#6b7280;}
+#reportView .oc-hdr.blue{background:var(--blue);}
+#reportView .oc-hdr.green{background:var(--green-dark);}
+#reportView .oc-body{background:white;padding:14px 18px;}
+#reportView .best-badge{position:absolute;top:8px;right:10px;background:#f0c060;color:var(--pp-dark);font-size:0.68rem;font-weight:800;padding:3px 8px;border-radius:10px;text-transform:uppercase;}
+#reportView .oc-row{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--gray-200);font-size:0.83rem;color:var(--gray-700);}
+#reportView .oc-row:last-child{border-bottom:none;}
+#reportView .oc-val{font-weight:700;font-size:0.88rem;color:var(--pp-dark);}
+#reportView .oc-val.blue{color:var(--blue);}
+#reportView .oc-val.green{color:var(--green-dark);}
+#reportView .oc-val.red{color:var(--red-c);}
+#reportView .oc-val.gray{color:var(--gray-500);}
+#reportView .oc-val.big{font-size:1.4rem;}
+#reportView .oc-highlight{background:var(--green-light);border-radius:6px;padding:8px 10px;margin-top:6px;border-bottom:none!important;display:flex;justify-content:space-between;align-items:center;font-size:0.83rem;color:var(--gray-700);}
+#reportView .oc-highlight .oc-val{font-size:1.05rem;}
+#reportView .talking-point{background:linear-gradient(135deg,var(--pp-dark) 0%,var(--mid) 100%);color:white;border-radius:var(--radius);padding:20px 24px;margin-bottom:20px;}
+#reportView .tp-label{font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;opacity:0.6;margin-bottom:8px;}
+#reportView .tp-text{font-size:0.9rem;line-height:1.7;}
+#reportView .tp-text strong{color:#f0c060;}
+#reportView .info-box{background:var(--blue-light);border-left:4px solid var(--blue);border-radius:6px;padding:12px 16px;font-size:0.82rem;color:var(--gray-700);line-height:1.6;margin-bottom:20px;}
+#reportView .info-box.amber{background:#fff8e6;border-left-color:var(--amber);}
+#reportView .compliance{font-size:0.7rem;color:var(--gray-500);line-height:1.65;padding-top:16px;border-top:1px solid var(--gray-200);}
+#reportView .rpt-ceil-row{padding:8px 0;font-size:0.88rem;font-weight:600;margin-top:4px;}
+#reportView .rpt-ceil-row.pass{color:#2E7D32;}
+#reportView .rpt-ceil-row.fail{color:var(--red-c);}
 </style>
 </head>
 <body>
@@ -849,16 +893,250 @@ function showInputs(){
   window.scrollTo({top:0,behavior:'smooth'});
 }
 
+function buildReport(){
+  var inp=getInputs();
+  if(!inp.lp)return;
+
+  // Swap views
+  document.querySelector('.wrap').style.display='none';
+  var rv=document.getElementById('reportView');
+  rv.style.display='block';
+
+  // Helpers
+  function ocRow(k,v,vcls){return '<div class="oc-row"><span>'+k+'</span><span class="oc-val'+(vcls?' '+vcls:'')+'">'+v+'</span></div>';}
+  function escH(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+  // Validation (My buyer)
+  var vd=null;
+  if(MODE==='my'){
+    var opV=inp.lp-inp.off||inp.lp;
+    var drV=resolveDown(inp,opV);
+    var stV=inp.tax*(opV/inp.lp);
+    var sV=scenario(opV,drV.dpPct,inp.rate,stV,inp.hoi,inp.loanType,inp.esc,inp.bacPct);
+    var totV=sV.total+inp.hoa;
+    vd={total:totV,clears:inp.ceil>0?totV<=inp.ceil:null,op:opV,ad:drV.ad,dpPct:drV.dpPct};
+  }
+
+  // Strategy calcs
+  var lp=inp.lp,off=inp.off,rate=inp.rate,tax=inp.tax,hoi=inp.hoi,hoa=inp.hoa,
+      escr=inp.esc,bacPct=inp.bacPct,hold=inp.hold,lt=inp.loanType;
+  var op=lp-off;
+  var dpPct,ad;
+  if(MODE==='my'){var dr=resolveDown(inp,op);dpPct=dr.dpPct;ad=dr.ad;}
+  else{dpPct=inp.dpPct;ad=op*dpPct/100;}
+  var dpPctC=ad/lp*100;
+  var stax=tax*(op/lp);
+
+  var sCut=scenario(op,dpPct,rate,stax,hoi,lt,escr,bacPct);
+  var pitiCut=sCut.total+hoa;
+  var sConc=scenario(lp,dpPctC,rate,tax,hoi,lt,escr,bacPct);
+  var pitiConc=sConc.total+hoa;
+  var loan=sConc.loan;
+  var c21=cost21(loan,rate);
+  var piY1=pi(loan,rate-2),piY2=pi(loan,rate-1);
+  var pitiY1=piY1+sConc.tax+sConc.ins+sConc.mi+hoa;
+  var pitiY2=piY2+sConc.tax+sConc.ins+sConc.mi+hoa;
+  var c21ok=off>=c21*0.90;
+
+  var permPts=off/(loan*0.01);
+  var permDrop=Math.min(permPts*0.20,1.5);
+  var capped=permPts*0.20>=1.5;
+  var permSurplus=capped?Math.round(off-(1.5/0.20)*loan*0.01):0;
+  var useOvr=permOverrideVal>0;
+  var permRate=useOvr?permOverrideVal:rate-permDrop;
+  var sPerm=scenario(lp,dpPctC,permRate,tax,hoi,lt,escr,bacPct);
+  var pitiPerm=sPerm.total+hoa;
+  var piSav=sConc.PI-sPerm.PI;
+  var be=piSav>0?Math.round(off/piSav):999;
+
+  // Base (list price, no negotiation) for savings comparison
+  var sBase=MODE==='my'
+    ?(function(){var drB=resolveDown(inp,lp);return scenario(lp,drB.dpPct,rate,tax,hoi,lt,escr,bacPct);})()
+    :scenario(lp,inp.dpPct,rate,tax,hoi,lt,escr,bacPct);
+  var pitiBase=sBase.total+hoa;
+
+  // Recommendation
+  var cMiss=vd&&vd.clears===false;
+  var c21clears=cMiss&&(pitiY1<=(inp.ceil||99999));
+  var cashTight=MODE==='my'&&inp.cashType==='total'&&ad<(lp*0.05);
+  var rec,ra1,ra2,reason;
+  if(hold<=3){
+    if(c21ok){rec='21';ra1='cut';ra2='perm';reason='With a ~3-year hold, the 2-1 buydown maximizes payment savings in the years the buyer will actually own the home. The buyer pays full list price, the concession funds the buydown, and any surplus goes toward closing costs.';}
+    else{rec='cut';ra1='21';ra2='perm';reason='The concession ('+fd(off)+') doesn\'t fully cover the 2-1 buydown cost ('+fd(c21)+'), so a price cut is cleaner — it reduces the loan balance and required down payment simultaneously.';}
+  } else {
+    if(cMiss&&c21clears){rec='21';ra1='cut';ra2='perm';reason='The permanent buydown doesn\'t clear the payment ceiling, but Year 1 of the 2-1 buydown ('+fd(pitiY1)+'/mo) brings it within range — buying time to refinance or for income to catch up.';}
+    else if(cashTight){rec='cut';ra1='perm';ra2='21';reason='Cash is tight — a price cut reduces both the loan balance and the down payment needed, freeing up more cash at closing than a seller concession would.';}
+    else{var hlr=hold===10?'10+':'~7';rec='perm';ra1='cut';ra2='21';reason='With a '+hlr+'-year hold, the permanent rate reduction ('+fr(rate)+' → '+(useOvr?'':'~')+fr(permRate)+') saves more over time than a price cut. Break-even is ~'+be+' months — well within the expected hold. The buyer pays full list price, the appraisal holds, and the seller nets the same.';}
+  }
+  var hl=hold===3?'~3':hold===7?'~7':'10+';
+  var savDiff=Math.abs(pitiCut-pitiPerm);
+  var concWins=pitiPerm<pitiCut;
+
+  var h='';
+
+  // ── Header
+  h+='<div class="pp-header">';
+  h+='<div style="flex:1"><h1 style="margin:0;font-size:1.1rem;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;">Offer Strategy Analysis</h1></div>';
+  h+='<div><span class="nmls-badge">NMLS #2742458</span></div>';
+  h+='</div>';
+
+  // ── Property bar
+  h+='<div class="pp-propbar">';
+  h+='<div class="pp-propbar-addr">'+(inp.addr?escH(inp.addr):'Address not specified')+'</div>';
+  h+='<div class="pp-propbar-price">List Price '+fd(lp)+'</div>';
+  h+='</div>';
+
+  // ── Prepared for
+  if(inp.agent)h+='<div class="pp-prepfor">Prepared for <strong>'+escH(inp.agent)+'\'s</strong> client</div>';
+
+  h+='<div class="pp-main">';
+
+  // ── Section 1: Payment Check (My buyer only)
+  if(MODE==='my'&&vd){
+    h+='<div class="pp-card"><div class="pp-card-header">Payment Check</div><div class="pp-card-body">';
+    h+=ocRow('Purchase price',fd(vd.op));
+    h+=ocRow('Down payment',fd(vd.ad)+' ('+vd.dpPct.toFixed(1)+'%)');
+    h+=ocRow('Rate',fr(inp.rate));
+    h+=ocRow('Monthly payment (PITI'+(hoa>0?'+HOA':'')+')',fd(vd.total)+'/mo','blue');
+    if(vd.clears!==null){
+      var diff=Math.abs(vd.total-inp.ceil);
+      h+='<div class="rpt-ceil-row '+(vd.clears?'pass':'fail')+'">';
+      h+=vd.clears?'&#10003; Clears '+fd(inp.ceil)+' ceiling by '+fd(diff)+'/mo':'&#10007; Over '+fd(inp.ceil)+' ceiling by '+fd(diff)+'/mo';
+      h+='</div>';
+    }
+    h+='</div></div>';
+  }
+
+  // ── Section 2: VS (only if off > 0)
+  if(off>0){
+    h+='<div class="pp-card"><div class="pp-card-header">'+fd(off)+' from the Seller — Two Ways</div><div class="pp-card-body">';
+    h+='<div class="two-col">';
+
+    // Price Cut column
+    h+='<div class="option-col'+(concWins?'':' winner')+'">';
+    h+='<div class="oc-hdr gray">Price Cut'+(concWins?'':'<span class="best-badge">Best</span>')+'</div>';
+    h+='<div class="oc-body">';
+    h+='<div class="oc-row"><span>Monthly payment (PITI'+(hoa>0?'+HOA':'')+')</span><span class="oc-val blue big">'+fd(pitiCut)+'</span></div>';
+    h+=ocRow('Offer price',fd(op));
+    h+=ocRow('Saves vs. list price',fd(pitiBase-pitiCut)+'/mo','green');
+    h+='</div></div>';
+
+    // Concession column
+    h+='<div class="option-col'+(concWins?' winner':'')+'">';
+    h+='<div class="oc-hdr blue">Concession'+(concWins?'<span class="best-badge">Best</span>':'')+'</div>';
+    h+='<div class="oc-body">';
+    h+='<div class="oc-row"><span>Monthly payment (PITI'+(hoa>0?'+HOA':'')+')</span><span class="oc-val blue big">'+fd(pitiPerm)+'</span></div>';
+    h+=ocRow('Rate buydown',fr(rate)+' → '+(useOvr?'':'~')+fr(permRate));
+    h+=ocRow('Saves vs. list price',fd(pitiBase-pitiPerm)+'/mo','green');
+    h+='</div></div>';
+
+    h+='</div>'; // two-col
+
+    if(concWins){
+      h+='<div class="oc-highlight"><span><strong>Concession saves '+fd(savDiff)+'/mo more</strong> — same cost to the seller</span></div>';
+    } else if(pitiCut<pitiPerm){
+      h+='<div class="oc-highlight"><span><strong>Price cut saves '+fd(savDiff)+'/mo more</strong> — also reduces loan balance &amp; down payment</span></div>';
+    }
+
+    h+='</div></div>'; // pp-card-body + pp-card
+  }
+
+  // ── Section 3: Recommended Strategy
+  h+='<div class="pp-card"><div class="pp-card-header">Recommended Strategy</div><div class="pp-card-body">';
+  h+=rptRec(rec);
+  h+='</div></div>';
+
+  // ── Talking point
+  h+='<div class="talking-point"><div class="tp-label">Why This Works</div><div class="tp-text">'+reason+'</div></div>';
+
+  // ── Section 4: Alternatives
+  if(off>0){
+    h+='<div class="pp-card"><div class="pp-card-header">Alternatives</div><div class="pp-card-body">';
+    h+='<div style="display:flex;flex-direction:column;gap:12px;">';
+    h+=rptAlt(ra1);
+    h+=rptAlt(ra2);
+    h+='</div></div></div>';
+  }
+
+  // ── Closing question (info-box blue)
+  h+='<div class="info-box">“What matters most — lowest payment long-term, early breathing room, or keeping cash in the bank?”</div>';
+
+  // ── Tax note (info-box amber)
+  h+='<div class="info-box amber">Seller-paid discount points may be tax deductible for the buyer as mortgage interest (Schedule A). A price cut provides no tax benefit to either party. Consult a tax advisor for individual situations.</div>';
+
+  // ── Compliance footer
+  h+='<div class="compliance">Prepared by Doug Smith, Certified Mortgage Advisor · HomeWealth Solutions LLC · This communication is for informational and educational purposes only and does not constitute an offer to lend or a commitment to make a loan. All loans are subject to credit approval, underwriting guidelines, and property approval. Interest rates, payment examples, programs, and terms are illustrative, vary by borrower qualification, and are subject to change without notice. Not all applicants will qualify. Examples shown do not reflect all costs of a mortgage transaction. Consult a licensed tax or legal advisor regarding your individual situation. HomeWealth Solutions LLC is licensed by the Florida Office of Financial Regulation, Mortgage Broker License #MBR8082. Verify our licensure at www.nmlsconsumeraccess.org. Equal Housing Opportunity. NMLS #2742458 · Doug Smith NMLS #2609118</div>';
+
+  h+='</div>'; // pp-main
+
+  rv.innerHTML=h;
+
+  // Recommended card — green header, full rows
+  function rptRec(key){
+    var s='<div class="option-col winner"><div class="oc-hdr green">◆ RECOMMENDED — '+hl+'-YEAR HOLD<span class="best-badge">Best</span></div><div class="oc-body">';
+    if(key==='cut'){
+      s+='<div style="font-weight:700;font-size:0.95rem;color:var(--pp-dark);padding-bottom:8px;border-bottom:1px solid var(--gray-200);margin-bottom:4px;">Price Cut to '+fd(op)+'</div>';
+      s+=ocRow('Offer price',fd(op));
+      s+=ocRow('P&amp;I',fd(sCut.PI)+'/mo');
+      s+=ocRow('Total PITI'+(hoa>0?'+HOA':''),fd(pitiCut)+'/mo','blue');
+      s+=ocRow('Est. cash to close',fd(sCut.cashToClose));
+    } else if(key==='21'){
+      s+='<div style="font-weight:700;font-size:0.95rem;color:var(--pp-dark);padding-bottom:8px;border-bottom:1px solid var(--gray-200);margin-bottom:4px;">2-1 Buydown — '+fd(off)+' Seller Concession</div>';
+      s+=ocRow('Year 1 rate / payment',fr(rate-2)+' · '+fd(pitiY1)+'/mo','blue');
+      s+=ocRow('Year 2 rate / payment',fr(rate-1)+' · '+fd(pitiY2)+'/mo');
+      s+=ocRow('Year 3+ rate / payment',fr(rate)+' · '+fd(pitiConc)+'/mo');
+      s+=ocRow('Buydown cost',fd(c21));
+      s+=(off>=c21?ocRow('Concession surplus',fd(off-c21)+' → closing costs','green'):ocRow('Concession gap',fd(c21-off)+' short'));
+      s+=ocRow('Est. cash to close',fd(sConc.cashToClose-Math.min(off,c21)));
+    } else {
+      s+='<div style="font-weight:700;font-size:0.95rem;color:var(--pp-dark);padding-bottom:8px;border-bottom:1px solid var(--gray-200);margin-bottom:4px;">Permanent Buydown — '+(useOvr?'':'~')+fr(permRate)+' vs. '+fr(rate)+'</div>';
+      s+=ocRow('Seller concession',fd(off));
+      s+=ocRow('Rate',fr(rate)+' → '+(useOvr?'':'~')+fr(permRate));
+      s+=ocRow('P&amp;I savings',fd(piSav)+'/mo','green');
+      s+=ocRow('Total PITI'+(hoa>0?'+HOA':''),fd(pitiPerm)+'/mo','blue');
+      s+=ocRow('Break-even','~'+be+' months');
+      if(permSurplus>0)s+=ocRow('Concession surplus',fd(permSurplus)+' → closing costs','green');
+      s+=ocRow('Est. cash to close',fd(sPerm.cashToClose));
+    }
+    s+='</div></div>';
+    return s;
+  }
+
+  // Alternative cards — gray header, compact
+  function rptAlt(key){
+    var s='<div class="option-col"><div class="oc-hdr gray">';
+    if(key==='cut'){
+      s+='Alternative — Price Cut to '+fd(op)+'</div><div class="oc-body">';
+      s+=ocRow('Offer price',fd(op));
+      s+=ocRow('Total PITI'+(hoa>0?'+HOA':''),fd(pitiCut)+'/mo');
+      s+=ocRow('Est. cash to close',fd(sCut.cashToClose));
+    } else if(key==='21'){
+      s+='Alternative — 2-1 Temporary Buydown</div><div class="oc-body">';
+      s+=ocRow('Year 1 rate / payment',fr(rate-2)+' · '+fd(pitiY1)+'/mo');
+      s+=ocRow('Year 2 rate / payment',fr(rate-1)+' · '+fd(pitiY2)+'/mo');
+      s+=ocRow('Year 3+ rate / payment',fr(rate)+' · '+fd(pitiConc)+'/mo');
+      s+=ocRow('Buydown cost',fd(c21));
+      if(off>=c21)s+=ocRow('Concession surplus',fd(off-c21)+' → closing costs','green');
+    } else {
+      s+='Alternative — Permanent Buydown</div><div class="oc-body">';
+      s+=ocRow('Rate',fr(rate)+' → '+(useOvr?'':'~')+fr(permRate));
+      s+=ocRow('P&amp;I savings',fd(piSav)+'/mo');
+      s+=ocRow('Total PITI'+(hoa>0?'+HOA':''),fd(pitiPerm)+'/mo');
+      s+=ocRow('Break-even','~'+be+' months');
+    }
+    s+='</div></div>';
+    return s;
+  }
+}
+
 window.addEventListener('DOMContentLoaded',function(){
   var sp=new URLSearchParams(window.location.search);
   if(sp.has('p')&&sp.get('p')){
-    populateFromURL(sp);run();
-    document.getElementById('inputs').style.display='none';
-    document.getElementById('editBar').classList.remove('hidden');
-    var agent=sp.get('agent')||'';
-    document.getElementById('preparedFor').textContent=agent?'Prepared for '+agent+"'s client":'Offer Strategy Analysis';
+    populateFromURL(sp);
+    buildReport();
   }
 });
 </script>
+<div id="reportView"></div>
 </body>
 </html>
