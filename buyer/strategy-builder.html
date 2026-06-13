@@ -68,12 +68,26 @@ input[data-fmt]{-moz-appearance:textfield;}
 .divider{border:none;border-top:1px solid var(--line);margin:14px 0;}
 .field-hint{display:block;font-size:11px;color:var(--gray);margin-top:4px;min-height:14px;}
 .field-hint.override{color:var(--blue);}
+/* ── Print / PDF ────────────────────────────────────────────────── */
+@media print{
+  .wrap,.pdf-btn{display:none!important;}
+  #reportView{display:block!important;background:#fff;}
+  #reportView .pp-header{background:var(--pp-dark)!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  #reportView .pp-card-header{background:var(--pp-dark)!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  #reportView .oc-hdr{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  #reportView .talking-point{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  #reportView .pp-main{margin:16px auto;padding:0 16px 20px;}
+  #reportView .two-col{grid-template-columns:1fr 1fr!important;}
+  @page{margin:0.5in;}
+}
 /* ── Report View — paying-points design language ─────────────────── */
 :root{--blue-light:#e8f4fd;--blue-mid:#c5e1fa;--green-light:#f0f8e6;--green-dark:#6aaa1f;--pp-dark:#1c2b3a;--mid:#3a4f62;--red-c:#dc3545;--amber:#e8900a;--gray-100:#f7f8fa;--gray-200:#edf0f4;--gray-300:#d1d8e0;--gray-500:#8892a0;--gray-700:#4a5568;--gray-900:#1a2332;--radius:10px;--shadow:0 2px 12px rgba(0,0,0,0.08);}
 #reportView{display:none;font-family:'Segoe UI',Arial,sans-serif;background:var(--gray-100);color:var(--gray-900);min-height:100vh;}
 #reportView .pp-header{background:var(--pp-dark);color:#fff;padding:16px 28px;display:flex;align-items:center;justify-content:space-between;gap:16px;}
 #reportView .pp-header h1{font-size:1.15rem;font-weight:700;}
 #reportView .nmls-badge{background:var(--blue);color:white;font-size:0.7rem;font-weight:700;padding:4px 10px;border-radius:20px;}
+#reportView .pdf-btn{background:rgba(255,255,255,0.15);color:#fff;border:1px solid rgba(255,255,255,0.4);border-radius:6px;padding:7px 14px;font-size:0.78rem;font-weight:600;cursor:pointer;white-space:nowrap;transition:background 0.15s;}
+#reportView .pdf-btn:hover{background:rgba(255,255,255,0.28);}
 #reportView .pp-propbar{background:#F0F4F7;border-bottom:1px solid #DDE3E8;padding:10px 28px;display:flex;justify-content:space-between;align-items:center;gap:8px;}
 #reportView .pp-propbar-addr{font-size:14px;font-weight:700;color:var(--pp-dark);overflow:hidden;text-overflow:ellipsis;}
 #reportView .pp-propbar-price{font-size:14px;font-weight:700;color:var(--pp-dark);white-space:nowrap;}
@@ -977,8 +991,10 @@ function buildReport(){
   // ── Header
   h+='<div class="pp-header">';
   h+='<div style="flex:1"><h1 style="margin:0;font-size:1.1rem;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;">Offer Strategy Analysis</h1></div>';
-  h+='<div><span class="nmls-badge">NMLS #2742458</span></div>';
-  h+='</div>';
+  h+='<div style="display:flex;align-items:center;gap:12px;">';
+  h+='<button class="pdf-btn" onclick="window.print()">&#8595; Save as PDF</button>';
+  h+='<span class="nmls-badge">NMLS #2742458</span>';
+  h+='</div></div>';
 
   // ── Property bar
   h+='<div class="pp-propbar">';
