@@ -70,15 +70,41 @@ input[data-fmt]{-moz-appearance:textfield;}
 .field-hint.override{color:var(--blue);}
 /* ── Print / PDF ────────────────────────────────────────────────── */
 @media print{
+  @page{margin:0.3in;}
   .wrap,.pdf-btn{display:none!important;}
-  #reportView{display:block!important;background:#fff;}
-  #reportView .pp-header{background:var(--pp-dark)!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
-  #reportView .pp-card-header{background:var(--pp-dark)!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
-  #reportView .oc-hdr{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
-  #reportView .talking-point{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
-  #reportView .pp-main{margin:16px auto;padding:0 16px 20px;}
-  #reportView .two-col{grid-template-columns:1fr 1fr!important;}
-  @page{margin:0.5in;}
+  #reportView{display:block!important;background:#fff;font-size:11px;}
+  /* Color preservation */
+  #reportView .pp-header,#reportView .pp-card-header,#reportView .oc-hdr,
+  #reportView .talking-point,#reportView .info-box,#reportView .compliance{
+    -webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  /* Tighten header + bars */
+  #reportView .pp-header{padding:8px 16px!important;}
+  #reportView .pp-header h1{font-size:0.95rem!important;}
+  #reportView .pp-propbar{padding:5px 16px!important;}
+  #reportView .pp-prepfor{padding:5px 16px!important;font-size:12px!important;}
+  /* Tighten main layout */
+  #reportView .pp-main{max-width:100%!important;margin:8px auto!important;padding:0 8px 8px!important;}
+  #reportView .pp-card{margin-bottom:8px!important;box-shadow:none!important;border:1px solid #dde3e8;}
+  #reportView .pp-card-header{padding:6px 14px!important;font-size:0.72rem!important;}
+  #reportView .pp-card-body{padding:10px 14px!important;}
+  /* Tighten columns */
+  #reportView .two-col{grid-template-columns:1fr 1fr!important;gap:8px!important;margin-bottom:8px!important;}
+  #reportView .option-col{margin-bottom:0!important;box-shadow:none!important;border:1px solid #dde3e8;}
+  #reportView .oc-hdr{padding:6px 12px!important;font-size:0.72rem!important;}
+  #reportView .oc-body{padding:8px 12px!important;}
+  #reportView .oc-row{padding:3px 0!important;font-size:11px!important;}
+  /* Tighten talking points */
+  #reportView .talking-point{padding:8px 12px!important;margin-bottom:6px!important;}
+  #reportView .tp-label{font-size:0.65rem!important;}
+  #reportView .tp-text{font-size:12px!important;}
+  /* Tighten info boxes */
+  #reportView .info-box{padding:8px 12px!important;font-size:11px!important;margin-bottom:6px!important;}
+  /* Compliance tiny */
+  #reportView .compliance{padding:8px 14px!important;font-size:8.5px!important;line-height:1.4!important;}
+  /* Prevent bad page breaks */
+  #reportView .pp-card{page-break-inside:avoid;}
+  #reportView .two-col{page-break-inside:avoid;}
+  #reportView .talking-point{page-break-inside:avoid;}
 }
 /* ── Report View — paying-points design language ─────────────────── */
 :root{--blue-light:#e8f4fd;--blue-mid:#c5e1fa;--green-light:#f0f8e6;--green-dark:#6aaa1f;--pp-dark:#1c2b3a;--mid:#3a4f62;--red-c:#dc3545;--amber:#e8900a;--gray-100:#f7f8fa;--gray-200:#edf0f4;--gray-300:#d1d8e0;--gray-500:#8892a0;--gray-700:#4a5568;--gray-900:#1a2332;--radius:10px;--shadow:0 2px 12px rgba(0,0,0,0.08);}
