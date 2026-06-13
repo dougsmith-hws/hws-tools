@@ -853,7 +853,30 @@ function copyText(id){
   });
 }
 
-function copyShareLink(){
+async function copyShareLink(){
+  var btn=document.querySelector('.copy-btn.green-btn');
+  var orig=btn?btn.innerHTML:'';
+  if(btn){btn.textContent='Saving…';btn.disabled=true;}
+  try{
+    var resp=await fetch('/.netlify/functions/save-report',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(collectShareData())
+    });
+    if(!resp.ok)throw new Error('server');
+    var json=await resp.json();
+    await navigator.clipboard.writeText(json.url);
+    if(btn){btn.disabled=false;btn.textContent='✓ Link copied!';}
+    setTimeout(function(){if(btn)btn.innerHTML=orig;},2500);
+  }catch(e){
+    // fallback: legacy URL
+    buildShareURL();
+    navigator.clipboard.writeText(window.location.href);
+    if(btn){btn.innerHTML=orig;btn.disabled=false;}
+    alert('Short link unavailable — copied full URL as fallback.');
+  }
+}
+
+function copyShareLink_legacy(){
   buildShareURL();
   navigator.clipboard.writeText(window.location.href).then(function(){
     document.querySelectorAll('.copy-btn').forEach(function(b){
@@ -865,36 +888,27 @@ function copyShareLink(){
   });
 }
 
-function buildShareURL(){
+function collectShareData(){
   function nv(id){var v=numVal(id);return v?String(v):'';}
   function tv(id){return document.getElementById(id).value||'';}
-  var p=new URLSearchParams();
-  p.set('mode',MODE);
-  p.set('p',nv('listPrice'));
-  p.set('agent',tv('agentName'));
-  p.set('addr',tv('address'));
-  p.set('county',tv('county'));
-  p.set('tax',nv('taxYr'));
-  p.set('hoi',nv('hoiYr'));
-  p.set('hoa',nv('hoaMo'));
-  p.set('esc',chipVal('escrow')||'yes');
-  p.set('off',nv('amtOff'));
-  p.set('hold',chipVal('holdPeriod')||'7');
+  var d={};
+  d.mode=MODE;d.p=nv('listPrice');d.agent=tv('agentName');d.addr=tv('address');
+  d.county=tv('county');d.tax=nv('taxYr');d.hoi=nv('hoiYr');d.hoa=nv('hoaMo');
+  d.esc=chipVal('escrow')||'yes';d.off=nv('amtOff');d.hold=chipVal('holdPeriod')||'7';
   if(MODE==='my'){
-    p.set('buyer',tv('buyerName'));
-    p.set('ceil',nv('paymentCeiling'));
+    d.buyer=tv('buyerName');d.ceil=nv('paymentCeiling');
     var dpMode=chipVal('dpMode')||'dollar';
-    p.set('dpmode',dpMode);
-    p.set('down', dpMode==='pct' ? nv('downPct') : nv('downAmt'));
-    p.set('cash',chipVal('cashType')||'dp');
-    p.set('rate',nv('myRate'));
-    p.set('loan',chipVal('loanType')||'conv');
-  } else {
-    p.set('rate',nv('ilRate'));
-    p.set('dp',nv('ilDown'));
-    p.set('bac',chipVal('bac')||'seller');
+    d.dpmode=dpMode;d.down=dpMode==='pct'?nv('downPct'):nv('downAmt');
+    d.cash=chipVal('cashType')||'dp';d.rate=nv('myRate');d.loan=chipVal('loanType')||'conv';
+  }else{
+    d.rate=nv('ilRate');d.dp=nv('ilDown');d.bac=chipVal('bac')||'seller';
   }
-  if(permOverrideVal>0)p.set('permrate',String(permOverrideVal));
+  if(permOverrideVal>0)d.permrate=String(permOverrideVal);
+  return d;
+}
+
+function buildShareURL(){
+  var p=new URLSearchParams(collectShareData());
   history.replaceState(null,'','?'+p.toString());
 }
 
@@ -1171,9 +1185,20 @@ function buildReport(){
   }
 }
 
-window.addEventListener('DOMContentLoaded',function(){
+window.addEventListener('DOMContentLoaded',async function(){
   var sp=new URLSearchParams(window.location.search);
-  if(sp.has('p')&&sp.get('p')){
+  if(sp.has('id')&&sp.get('id')){
+    // New short-link format: fetch stored data from Netlify Blobs
+    try{
+      var resp=await fetch('/.netlify/functions/get-report?id='+encodeURIComponent(sp.get('id')));
+      if(resp.ok){
+        var data=await resp.json();
+        populateFromURL(new URLSearchParams(data));
+        buildReport();
+      }
+    }catch(e){}
+  }else if(sp.has('p')&&sp.get('p')){
+    // Legacy encoded-URL format — still supported
     populateFromURL(sp);
     buildReport();
   }

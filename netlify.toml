@@ -3,3 +3,9 @@
   to = "https://tools.homewealthsolutions.com/:splat"
   status = 301
   force = true
+
+# Short share links
+[[redirects]]
+  from = "/r/:id"
+  to = "/buyer/strategy-builder.html?id=:id"
+  status = 200
