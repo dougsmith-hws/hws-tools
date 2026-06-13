@@ -157,9 +157,8 @@ input[data-fmt]{-moz-appearance:textfield;}
 <body>
 <div class="wrap">
 
-<div class="header-block">
+<div class="header-block" style="text-align:center;">
   <h1>Offer Strategy Builder</h1>
-  <div class="sub">HomeWealth Solutions — Doug Smith, CMA&reg; &middot; (813) 733-7371</div>
 </div>
 
 <div id="editBar" class="edit-bar hidden">
@@ -170,8 +169,8 @@ input[data-fmt]{-moz-appearance:textfield;}
 <div id="inputs">
 
   <div class="mode-toggle">
-    <div class="mode-btn" id="modeMyBuyer" onclick="setMode('my')">My buyer</div>
-    <div class="mode-btn on" id="modeNotMy" onclick="setMode('not')">Not my buyer</div>
+    <div class="mode-btn on" id="modeMyBuyer" onclick="setMode('my')">My buyer</div>
+    <div class="mode-btn" id="modeNotMy" onclick="setMode('not')">Not my buyer</div>
   </div>
 
   <div class="card">
@@ -321,7 +320,7 @@ input[data-fmt]{-moz-appearance:textfield;}
 
 </div>
 <script>
-let MODE='not';
+let MODE='my';
 var permOverrideVal=0;
 
 // ── Input formatting ──────────────────────────────────────────────────────────
