@@ -1185,11 +1185,13 @@ function buildReport(){
 }
 
 window.addEventListener('DOMContentLoaded',async function(){
+  // Short-link: Netlify 200-rewrites /r/abc1234 → this file, path stays /r/abc1234
+  var pathParts=window.location.pathname.split('/');
+  var shortId=(pathParts[1]==='r'&&pathParts[2])?pathParts[2]:null;
   var sp=new URLSearchParams(window.location.search);
-  if(sp.has('id')&&sp.get('id')){
-    // New short-link format: fetch stored data from Netlify Blobs
+  if(shortId){
     try{
-      var resp=await fetch('/.netlify/functions/get-report?id='+encodeURIComponent(sp.get('id')));
+      var resp=await fetch('/.netlify/functions/get-report?id='+encodeURIComponent(shortId));
       if(resp.ok){
         var data=await resp.json();
         populateFromURL(new URLSearchParams(data));
