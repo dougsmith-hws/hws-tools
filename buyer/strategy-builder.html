@@ -1188,6 +1188,12 @@ function buildReport(){
       // ── Zone 1C: Buyer Conversation ──────
       h+='<div class="buyer-question">&ldquo;What matters most &mdash; lowest payment long-term, early breathing room, or keeping cash in the bank?&rdquo;</div>';
 
+      // ── Zone 2: Strategy options (simplified — no payment breakdown) ──
+      h+='<div class="pp-card"><div class="pp-card-header">All Four Options</div><div class="pp-card-body">';
+      var allKeys=rankings.map(function(r){return r.key;});allKeys.push('cc');
+      allKeys.forEach(function(key,idx){h+=renderStratCard(key,key===rec,idx);});
+      h+='</div></div>';
+
     }
 
   } else {
@@ -1218,6 +1224,11 @@ function buildReport(){
       // ── Zone 1C: Buyer Conversation ────────
       h+='<div class="buyer-question">&ldquo;What matters most &mdash; lowest payment long-term, early breathing room, or keeping cash in the bank?&rdquo;</div>';
 
+      // ── Zone 2: Strategy options (simplified — no payment breakdown) ──
+      h+='<div class="pp-card"><div class="pp-card-header">All Four Options</div><div class="pp-card-body">';
+      var allKeys2=rankings.map(function(r){return r.key;});allKeys2.push('cc');
+      allKeys2.forEach(function(key,idx){h+=renderStratCard(key,key===rec,idx);});
+      h+='</div></div>';
 
     } else {
       // No negotiation amount — base payment only
@@ -1251,17 +1262,10 @@ function buildReport(){
     s+='<div class="oc-hdr '+hdrCls+'">'+name+badge+'</div><div class="oc-body">';
     if(key==='cut'){
       s+=ocRow('Offer price',fd(op));
-      s+=ocRow('P&amp;I',fd(sCut.PI)+'/mo');
-      if(sCut.mi>0)s+=ocRow('MI',fd(sCut.mi)+'/mo');
-      if(escr)s+=ocRow('Taxes + insurance',fd(sCut.tax+sCut.ins)+'/mo');
       s+='<div class="oc-row"><span>Monthly PITI'+(hoa>0?'+HOA':'')+'</span><span class="oc-val blue big">'+fd(pitiCut)+'/mo</span></div>';
       if(cutMoSav>0)s+=ocRow('Saves vs. list price',fd(cutMoSav)+'/mo','green');
-      s+=ocRow('Down payment',fd(ad)+' vs. '+fd(adBase)+' at list');
-      s+=ocRow('Loan balance',fd(sCut.loan));
       s+=ocRow('Est. cash to close',fd(sCut.cashToClose));
     } else if(key==='perm'){
-      s+=ocRow('Offer / list price',fd(lp));
-      s+=ocRow('Seller concession',fd(off));
       s+=ocRow('Rate',frR(rate)+' &rarr; '+frR(permRate));
       s+='<div class="oc-row"><span>Monthly PITI'+(hoa>0?'+HOA':'')+'</span><span class="oc-val blue big">'+fd(pitiPerm)+'/mo</span></div>';
       if(permMoSav>0)s+=ocRow('Saves vs. list price',fd(permMoSav)+'/mo','green');
@@ -1269,21 +1273,15 @@ function buildReport(){
       if(permSurplus>0)s+=ocRow('Concession surplus',fd(permSurplus)+' &rarr; closing costs','green');
       s+=ocRow('Est. cash to close',fd(sPerm.cashToClose));
     } else if(key==='21'){
-      s+=ocRow('Offer / list price',fd(lp));
-      s+=ocRow('Seller concession',fd(off));
       s+=ocRow('Year 1 rate / payment',frR(rate-2)+' &middot; '+fd(pitiY1)+'/mo','blue');
       s+=ocRow('Year 2 rate / payment',frR(rate-1)+' &middot; '+fd(pitiY2)+'/mo');
       s+=ocRow('Year 3+ rate / payment',frR(rate)+' &middot; '+fd(pitiConc)+'/mo');
-      s+=ocRow('Buydown cost',fd(c21));
       if(off>=c21){s+=ocRow('Concession surplus',fd(off-c21)+' &rarr; closing costs','green');}
       else{s+=ocRow('Concession gap',fd(c21-off)+' short of full buydown');}
       s+=ocRow('Est. cash to close',fd(sConc.cashToClose-Math.min(off,c21)));
       if(!c21ok)s+='<div style="font-size:0.75rem;color:#92400E;background:#FFFBEB;border:1px solid #FCD34D;border-radius:5px;padding:6px 8px;margin-top:8px;">&#9888; Concession is short of the full 2-1 buydown cost ('+fd(c21)+').</div>';
     } else if(key==='cc'){
-      s+=ocRow('Offer / list price',fd(lp));
-      s+=ocRow('Seller concession',fd(off)+' toward closing costs');
       s+='<div class="oc-row"><span>Monthly PITI'+(hoa>0?'+HOA':'')+'</span><span class="oc-val blue big">'+fd(pitiCC)+'/mo</span></div>';
-      s+=ocRow('Monthly savings','None &mdash; same payment as list price');
       s+=ocRow('Cash savings at close',fd(ccCashSav),'green');
       s+=ocRow('Est. cash to close',fd(sBase.cashToClose-off));
     }
