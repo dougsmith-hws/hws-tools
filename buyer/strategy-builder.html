@@ -331,6 +331,7 @@ input[data-fmt]{-moz-appearance:textfield;}
 <script>
 let MODE='my';
 var permOverrideVal=0;
+var IS_SHARED=false; // true when loaded via share link — hides author-only buttons
 
 // ── Input formatting ──────────────────────────────────────────────────────────
 // numVal: strip $ , % and return float
@@ -1066,9 +1067,11 @@ function buildReport(){
   h+='<div class="pp-header">';
   h+='<div style="flex:1"><h1 style="margin:0;font-size:1.1rem;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;">'+reportTitle+'</h1></div>';
   h+='<div style="display:flex;align-items:center;gap:8px;">';
-  h+='<button class="pdf-btn" style="background:#f0f4f8;color:#1F2A37;border:1px solid #cbd5e1;" onclick="showInputs()">&#8592; Edit</button>';
-  h+='<button class="pdf-btn" onclick="copyShareLink()" id="rptShareBtn">&#128279; Copy link</button>';
-  h+='<button class="pdf-btn" onclick="window.print()">&#8595; Save PDF</button>';
+  if(!IS_SHARED){
+    h+='<button class="pdf-btn" style="background:#f0f4f8;color:#1F2A37;border:1px solid #cbd5e1;" onclick="showInputs()">&#8592; Edit</button>';
+    h+='<button class="pdf-btn" onclick="copyShareLink()" id="rptShareBtn">&#128279; Copy link</button>';
+    h+='<button class="pdf-btn" onclick="window.print()">&#8595; Save PDF</button>';
+  }
   h+='<span class="nmls-badge">NMLS #2742458</span>';
   h+='</div></div>';
 
@@ -1276,12 +1279,14 @@ window.addEventListener('DOMContentLoaded',async function(){
       var resp=await fetch('/.netlify/functions/get-report?id='+encodeURIComponent(shortId));
       if(resp.ok){
         var data=await resp.json();
+        IS_SHARED=true;
         populateFromURL(new URLSearchParams(data));
         buildReport();
       }
     }catch(e){}
   }else if(sp.has('p')&&sp.get('p')){
     // Legacy encoded-URL format — still supported
+    IS_SHARED=true;
     populateFromURL(sp);
     buildReport();
   }
