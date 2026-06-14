@@ -295,8 +295,17 @@ input[data-fmt]{-moz-appearance:textfield;}
   <div class="card">
     <div class="card-title">Offer Negotiation</div>
     <div class="field">
-      <label>Amount buyer wants off list price <span class="note">$ &#8212; leave blank if no negotiation</span></label>
-      <input type="text" id="amtOff" data-fmt="dollar" placeholder="$0" inputmode="numeric">
+      <label>Amount buyer wants off list price <span class="note">leave blank if no negotiation</span></label>
+      <div class="chips" data-group="offMode" style="margin-bottom:8px;">
+        <div class="chip on" data-v="dollar" onclick="setOffMode('dollar')">$ Amount</div>
+        <div class="chip" data-v="pct" onclick="setOffMode('pct')">% of Price</div>
+      </div>
+      <div id="offDollarWrap">
+        <input type="text" id="amtOff" data-fmt="dollar" placeholder="$0" inputmode="numeric">
+      </div>
+      <div id="offPctWrap" class="hidden">
+        <input type="text" id="amtOffPct" data-fmt="pct" placeholder="2%" inputmode="decimal">
+      </div>
     </div>
     <div class="field">
       <label>Expected hold period</label>
@@ -398,6 +407,10 @@ function setDpMode(m){
   document.getElementById('dpPctWrap').classList.toggle('hidden', m!=='pct');
   document.getElementById('cashTypeField').classList.toggle('hidden', m!=='dollar');
 }
+function setOffMode(m){
+  document.getElementById('offDollarWrap').classList.toggle('hidden', m!=='dollar');
+  document.getElementById('offPctWrap').classList.toggle('hidden', m!=='pct');
+}
 
 function setMode(m){
   MODE=m;
@@ -498,7 +511,8 @@ function getInputs(){
   var hoi=numVal('hoiYr')||1800;
   var hoa=numVal('hoaMo')||0;
   var esc=chipVal('escrow')==='yes';
-  var off=numVal('amtOff');
+  var offMode=chipVal('offMode')||'dollar';
+  var off=offMode==='pct'?(lp>0?lp*( numVal('amtOffPct')||0)/100:0):numVal('amtOff');
   var hold=parseInt(chipVal('holdPeriod'))||7;
   var agent=document.getElementById('agentName').value.trim();
   var addr=document.getElementById('address').value.trim();
@@ -894,7 +908,10 @@ function collectShareData(){
   var d={};
   d.mode=MODE;d.p=nv('listPrice');d.agent=tv('agentName');d.addr=tv('address');
   d.county=tv('county');d.tax=nv('taxYr');d.hoi=nv('hoiYr');d.hoa=nv('hoaMo');
-  d.esc=chipVal('escrow')||'yes';d.off=nv('amtOff');d.hold=chipVal('holdPeriod')||'7';
+  d.esc=chipVal('escrow')||'yes';
+  var _offMode=chipVal('offMode')||'dollar';
+  d.offmode=_offMode;d.off=_offMode==='pct'?nv('amtOffPct'):nv('amtOff');
+  d.hold=chipVal('holdPeriod')||'7';
   if(MODE==='my'){
     d.buyer=tv('buyerName');d.ceil=nv('paymentCeiling');
     var dpMode=chipVal('dpMode')||'dollar';
@@ -918,7 +935,10 @@ function populateFromURL(sp){
   function sv(id,v){var e=document.getElementById(id);if(e&&v!==null&&v!=='')e.value=v;}
   setFmtVal('listPrice',sp.get('p'));sv('agentName',sp.get('agent'));sv('address',sp.get('addr'));
   setFmtVal('taxYr',sp.get('tax'));setFmtVal('hoiYr',sp.get('hoi'));setFmtVal('hoaMo',sp.get('hoa'));
-  setFmtVal('amtOff',sp.get('off'));
+  var _om=sp.get('offmode')||'dollar';
+  sc('offMode',_om);setOffMode(_om);
+  if(_om==='pct'){setFmtVal('amtOffPct',sp.get('off'));}
+  else{setFmtVal('amtOff',sp.get('off'));}
   var permrate=sp.get('permrate');if(permrate)permOverrideVal=parseFloat(permrate)||0;
   var county=sp.get('county');if(county){var ce=document.getElementById('county');if(ce)ce.value=county;}
   function sc(g,v){
