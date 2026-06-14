@@ -536,6 +536,7 @@ function cost21(loan,rate){
 function fmt(n){return Math.round(n).toLocaleString('en-US');}
 function fd(n){return '$'+fmt(n);}
 function fr(n){return n.toFixed(2)+'%';}
+function frR(n){var r=Math.round(n*8)/8;return r.toFixed(3)+'%';} // display rate rounded to nearest 0.125%
 
 function getInputs(){
   var county=document.getElementById('county').value;
@@ -1090,24 +1091,18 @@ function buildReport(){
     else{var hlr=hold===10?'10+':'~7';rec='perm';reason='With a '+hlr+'-year hold, the Permanent Buydown ('+fr(rate)+' → '+(useOvr?'':'~')+fr(permRate)+') saves more over time than a lower offer. Break-even is ~'+be+' months — well within the expected hold. The buyer pays list price, the appraisal holds, and the seller nets the same.';}
   }
 
+  // ── Short advisor-friendly reason (Zone 1 only — no jargon)
+  var shortReason='';
+  if(rec==='perm'){shortReason='Best fit for buyers planning to own the home '+(hold===10?'10+':hold>=7?'7+':'long-term')+' years.';}
+  else if(rec==='21'){shortReason='Best fit for buyers who want maximum payment relief in years one and two.';}
+  else if(rec==='cut'){shortReason=cashTight?'Best fit for buyers who need to preserve cash at closing.':'Best fit for buyers focused on the lowest possible long-term payment.';}
+  else if(rec==='cc'){shortReason='Best fit for buyers whose priority is reducing cash needed at closing.';}
+
   var sNames={cut:'Lower Offer Strategy',perm:'Permanent Buydown Strategy','21':'Temporary Buydown Strategy',cc:'Closing Cost Strategy'};
 
   var h='';
 
-  // ── Header
-  var reportTitle=MODE==='my'?'Buyer Affordability &amp; Offer Strategy':'Offer Strategy Analysis';
-  h+='<div class="pp-header">';
-  h+='<div style="flex:1"><h1 style="margin:0;font-size:1.1rem;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;">'+reportTitle+'</h1></div>';
-  h+='<div style="display:flex;align-items:center;gap:8px;">';
-  if(!IS_SHARED){
-    h+='<button class="pdf-btn" style="background:#f0f4f8;color:#1F2A37;border:1px solid #cbd5e1;" onclick="showInputs()">&#8592; Edit</button>';
-    h+='<button class="pdf-btn" onclick="copyShareLink()" id="rptShareBtn">&#128279; Copy link</button>';
-    h+='<button class="pdf-btn" onclick="window.print()">&#8595; Save PDF</button>';
-  }
-  h+='<span class="nmls-badge">NMLS #2742458</span>';
-  h+='</div></div>';
-
-  // ── Property bar
+  // ── Header — property info only (no LO tools in report view)
   h+='<div class="pp-propbar">';
   h+='<div class="pp-propbar-addr">'+(inp.addr?escH(inp.addr):'Address not specified')+'</div>';
   h+='<div class="pp-propbar-price">List Price '+fd(lp)+(off>0?' &middot; Negotiating '+fd(off)+' Off':'')+'</div>';
@@ -1142,10 +1137,10 @@ function buildReport(){
 
     // ── Zone 1A: Buyer Affordability Check ───
     var affIcon={pass:'✅',warn:'⚠️',fail:'❌',none:''}[aState2];
-    var affTitle={pass:'Within Comfort Range',warn:'Above Comfort Range',fail:'Outside Comfort Range',none:'Payment Estimate'}[aState2];
+    var affTitle={pass:'WITHIN COMFORT RANGE',warn:'ABOVE COMFORT RANGE',fail:'OUTSIDE COMFORT RANGE',none:'PAYMENT ESTIMATE'}[aState2];
     var affSentence={
       pass:'This home fits comfortably within the buyer\'s target payment range.',
-      warn:'This property is above the buyer\'s preferred payment range. Explore strategies below to improve affordability.',
+      warn:'This property is above the buyer\'s preferred payment range. The strategies below can help.',
       fail:'Even with available strategies, this property exceeds the buyer\'s target payment range.',
       none:''
     }[aState2];
@@ -1157,9 +1152,10 @@ function buildReport(){
     h+='</div>';
     if(inp.ceil>0){
       var ceilDiff=Math.abs(curPiti-inp.ceil);
+      var diffLabel=aState2==='pass'?fd(ceilDiff)+' Below Target':fd(ceilDiff)+' Above Target';
       h+='<div class="aff-rows">';
-      h+='<div class="aff-row"><span>Comfort Target</span><span>'+fd(inp.ceil)+'/mo</span></div>';
-      h+='<div class="aff-row"><span>'+(aState2==='pass'?'Monthly Cushion':'Over Target')+'</span><span class="'+(aState2==='pass'?'aff-green':'aff-red')+'">'+fd(ceilDiff)+'/mo</span></div>';
+      h+='<div class="aff-row"><span>Target:</span><span>'+fd(inp.ceil)+'/mo</span></div>';
+      h+='<div class="aff-row"><span>&nbsp;</span><span class="'+(aState2==='pass'?'aff-green':'aff-red')+'">'+diffLabel+'</span></div>';
       h+='</div>';
     }
     if(affSentence)h+='<div class="aff-sentence">'+affSentence+'</div>';
@@ -1177,11 +1173,15 @@ function buildReport(){
       h+='<div class="best-summary">';
       h+='<div class="bs-label">&#9670; Recommended Strategy</div>';
       h+='<div class="bs-name">'+sNames[rec]+'</div>';
-      h+='<div class="bs-piti">'+fd(recPiti)+'<span class="bs-mo">/mo</span>';
-      if(rec==='21')h+='<span class="bs-piti-note"> Year 1</span>';
-      if(recSavBase>0)h+='<span class="bs-sav">saves '+fd(recSavBase)+'/mo vs. list price</span>';
-      h+='</div>';
-      h+='<div class="bs-reason">'+reason+'</div>';
+      if(rec==='cc'){
+        h+='<div class="bs-piti">Reduce cash to close by <span style="color:#a8dda0;font-weight:800;">'+fd(off)+'</span></div>';
+      } else {
+        h+='<div class="bs-piti">'+fd(recPiti)+'<span class="bs-mo">/mo</span>';
+        if(rec==='21')h+='<span class="bs-piti-note"> Year 1</span>';
+        if(recSavBase>0)h+='<span class="bs-sav">saves '+fd(recSavBase)+'/mo</span>';
+        h+='</div>';
+      }
+      h+='<div class="bs-reason">'+shortReason+'</div>';
       h+='</div>';
 
       // ── Zone 1C: Buyer Conversation ──────
@@ -1217,7 +1217,7 @@ function buildReport(){
       h+='<div class="best-summary">';
       h+='<div class="bs-label">&#9670; Recommended for '+hl+'-year hold</div>';
       h+='<div class="bs-name">'+sNames[rec]+'</div>';
-      h+='<div class="bs-reason">'+reason+'</div>';
+      h+='<div class="bs-reason">'+shortReason+'</div>';
       h+='</div>';
 
       // ── Zone 1C: Buyer Conversation ────────
@@ -1236,7 +1236,7 @@ function buildReport(){
       h+='<div class="prompt-box">&#128161; Enter an amount above to see price cut vs. concession strategy and a recommendation.</div>';
       h+=ocRow('List price',fd(lp));
       h+=ocRow('Assumed down',fd(adBase)+' ('+inp.dpPct.toFixed(1)+'%)');
-      h+=ocRow('Rate',fr(rate));
+      h+=ocRow('Rate',frR(rate));
       h+=ocRow('P&amp;I',fd(sBase.PI)+'/mo');
       if(sBase.mi>0)h+=ocRow('MI',fd(sBase.mi)+'/mo');
       if(escr)h+=ocRow('Taxes + insurance',fd(sBase.tax+sBase.ins)+'/mo');
@@ -1273,20 +1273,18 @@ function buildReport(){
     } else if(key==='perm'){
       s+=ocRow('Offer / list price',fd(lp));
       s+=ocRow('Seller concession',fd(off));
-      s+=ocRow('Rate',fr(rate)+' &rarr; '+(useOvr?'':'~')+fr(permRate));
-      s+=ocRow('Points purchased (est.)',permPts.toFixed(2)+' pts');
+      s+=ocRow('Rate',frR(rate)+' &rarr; '+frR(permRate));
       s+='<div class="oc-row"><span>Monthly PITI'+(hoa>0?'+HOA':'')+'</span><span class="oc-val blue big">'+fd(pitiPerm)+'/mo</span></div>';
       if(permMoSav>0)s+=ocRow('Saves vs. list price',fd(permMoSav)+'/mo','green');
       s+=ocRow('Break-even','~'+be+' months');
       if(permSurplus>0)s+=ocRow('Concession surplus',fd(permSurplus)+' &rarr; closing costs','green');
       s+=ocRow('Est. cash to close',fd(sPerm.cashToClose));
-      if(!useOvr)s+='<div style="font-size:0.75rem;color:#92400E;background:#FFFBEB;border:1px solid #FCD34D;border-radius:5px;padding:6px 8px;margin-top:8px;">&#9888; Rate estimate (~0.20%/pt). Actual depends on day-of-lock pricing.</div>';
     } else if(key==='21'){
       s+=ocRow('Offer / list price',fd(lp));
       s+=ocRow('Seller concession',fd(off));
-      s+=ocRow('Year 1 rate / payment',fr(rate-2)+' &middot; '+fd(pitiY1)+'/mo','blue');
-      s+=ocRow('Year 2 rate / payment',fr(rate-1)+' &middot; '+fd(pitiY2)+'/mo');
-      s+=ocRow('Year 3+ rate / payment',fr(rate)+' &middot; '+fd(pitiConc)+'/mo');
+      s+=ocRow('Year 1 rate / payment',frR(rate-2)+' &middot; '+fd(pitiY1)+'/mo','blue');
+      s+=ocRow('Year 2 rate / payment',frR(rate-1)+' &middot; '+fd(pitiY2)+'/mo');
+      s+=ocRow('Year 3+ rate / payment',frR(rate)+' &middot; '+fd(pitiConc)+'/mo');
       s+=ocRow('Buydown cost',fd(c21));
       if(off>=c21){s+=ocRow('Concession surplus',fd(off-c21)+' &rarr; closing costs','green');}
       else{s+=ocRow('Concession gap',fd(c21-off)+' short of full buydown');}
@@ -1318,7 +1316,7 @@ function buildReport(){
       s+=ocRow('Est. cash to close',fd(sCut.cashToClose));
     } else if(key==='perm'){
       s+='<div class="oc-row"><span>Monthly PITI'+(hoa>0?'+HOA':'')+'</span><span class="oc-val blue big">'+fd(pitiPerm)+'</span></div>';
-      s+=ocRow('Rate buydown',fr(rate)+' &rarr; '+(useOvr?'':'~')+fr(permRate));
+      s+=ocRow('Rate buydown',frR(rate)+' &rarr; '+frR(permRate));
       if(permMoSav>0)s+=ocRow('Saves vs. list',fd(permMoSav)+'/mo','green');
       s+=ocRow('Est. cash to close',fd(sPerm.cashToClose));
     } else if(key==='21'){
