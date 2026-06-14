@@ -152,6 +152,38 @@ input[data-fmt]{-moz-appearance:textfield;}
 #reportView .rpt-ceil-row{padding:8px 0;font-size:0.88rem;font-weight:600;margin-top:4px;}
 #reportView .rpt-ceil-row.pass{color:#2E7D32;}
 #reportView .rpt-ceil-row.fail{color:var(--red-c);}
+/* ── Zone 1 verdict components ───────────────────────── */
+#reportView .aff-card{background:white;border-radius:var(--radius);box-shadow:var(--shadow);margin-bottom:20px;overflow:hidden;border-top:4px solid var(--gray-300);}
+#reportView .aff-pass{border-top-color:#2E7D32;}
+#reportView .aff-warn{border-top-color:var(--amber);}
+#reportView .aff-fail{border-top-color:var(--red-c);}
+#reportView .aff-none{border-top-color:var(--blue);}
+#reportView .aff-top{padding:20px 24px 14px;}
+#reportView .aff-status{font-size:1.05rem;font-weight:700;margin-bottom:10px;}
+#reportView .aff-pass .aff-status{color:#2E7D32;}
+#reportView .aff-warn .aff-status{color:var(--amber);}
+#reportView .aff-fail .aff-status{color:var(--red-c);}
+#reportView .aff-none .aff-status{color:var(--blue);}
+#reportView .aff-piti{font-size:2.6rem;font-weight:800;color:var(--pp-dark);line-height:1;}
+#reportView .aff-mo{font-size:1rem;font-weight:400;color:var(--gray-500);}
+#reportView .aff-rows{border-top:1px solid var(--gray-200);padding:0 24px;}
+#reportView .aff-row{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--gray-200);font-size:0.88rem;color:var(--gray-700);}
+#reportView .aff-row:last-child{border-bottom:none;}
+#reportView .aff-green{font-weight:700;color:#2E7D32;}
+#reportView .aff-red{font-weight:700;color:var(--red-c);}
+#reportView .aff-sentence{padding:12px 24px 16px;font-size:0.9rem;color:var(--gray-700);line-height:1.65;}
+#reportView .aff-clears{padding:0 24px 16px;display:flex;flex-wrap:wrap;gap:6px;}
+#reportView .aff-clears-pill{background:var(--green-light);color:#2E7D32;font-size:0.75rem;font-weight:700;padding:4px 12px;border-radius:20px;border:1px solid #c3e6a0;}
+#reportView .aff-maxprice{padding:0 24px 16px;font-size:0.85rem;color:var(--gray-700);}
+#reportView .best-summary{background:linear-gradient(135deg,var(--pp-dark) 0%,var(--mid) 100%);color:white;border-radius:var(--radius);padding:22px 26px;margin-bottom:20px;}
+#reportView .bs-label{font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;opacity:0.6;margin-bottom:8px;}
+#reportView .bs-name{font-size:1.15rem;font-weight:800;margin-bottom:12px;}
+#reportView .bs-piti{font-size:1.7rem;font-weight:800;line-height:1;margin-bottom:4px;}
+#reportView .bs-mo{font-size:0.95rem;font-weight:400;opacity:0.7;}
+#reportView .bs-piti-note{font-size:0.8rem;opacity:0.7;margin-left:4px;}
+#reportView .bs-sav{font-size:0.82rem;font-weight:600;color:#a8dda0;margin-left:10px;}
+#reportView .bs-reason{font-size:0.88rem;line-height:1.7;opacity:0.88;margin-top:12px;border-top:1px solid rgba(255,255,255,0.15);padding-top:12px;}
+#reportView .buyer-question{background:var(--blue-light);border-left:4px solid var(--blue);border-radius:6px;padding:16px 22px;font-size:1rem;font-style:italic;color:var(--pp-dark);line-height:1.6;margin-bottom:24px;font-weight:500;}
 </style>
 </head>
 <body>
@@ -1090,62 +1122,89 @@ function buildReport(){
   h+='<div class="pp-main">';
 
   // ════════════════════════════════════════════
-  // MY BUYER MODE — Affordability first
+  // MY BUYER MODE — Verdict first
   // ════════════════════════════════════════════
   if(MODE==='my'){
 
-    // Zone 1: Affordability Check
-    var aState=!inp.ceil?'none':vd.clears?'pass':'fail';
-    var aTitle=aState==='pass'?'&#10003; This Home Works':aState==='fail'?'&#10007; Over Payment Ceiling':'Payment at '+(off>0?'Offer':'List')+' Price';
+    // ── Pre-compute for Zone 1 ────────────────
+    var recPiti=rec==='cut'?pitiCut:rec==='perm'?pitiPerm:rec==='21'?pitiY1:pitiCC;
+    var recSavBase=pitiBase-recPiti;
+    var curPiti=vd.total; // payment at offer price (or list if no off)
 
-    h+='<div class="pp-card"><div class="pp-card-header">'+aTitle+'</div><div class="pp-card-body">';
-    h+=ocRow('Purchase price',fd(op));
-    h+=ocRow('Down payment',fd(ad)+' ('+dpPct.toFixed(1)+'%)');
-    h+=ocRow('Rate',fr(rate));
-    h+=ocRow('P&amp;I',fd(sCut.PI)+'/mo');
-    if(sCut.mi>0)h+=ocRow('MI',fd(sCut.mi)+'/mo');
-    if(escr)h+=ocRow('Taxes + insurance',fd(sCut.tax+sCut.ins)+'/mo');
-    if(hoa>0)h+=ocRow('HOA',fd(hoa)+'/mo');
-    h+='<div class="oc-row" style="background:#f8faff;margin:4px -14px;padding:8px 14px;"><span style="font-weight:700;">Total PITI'+(hoa>0?'+HOA':'')+'</span><span class="oc-val blue big">'+fd(vd?vd.total:sCut.total+hoa)+'/mo</span></div>';
-    h+=ocRow('Est. cash to close',fd(sCut.cashToClose));
-
-    if(inp.ceil>0){
-      var cDiff=Math.abs((vd?vd.total:sCut.total+hoa)-inp.ceil);
-      h+='<div class="rpt-ceil-row '+(aState==='pass'?'pass':'fail')+'">';
-      h+=aState==='pass'?'&#10003; Clears '+fd(inp.ceil)+'/mo ceiling by '+fd(cDiff)+'/mo':'&#10007; Over '+fd(inp.ceil)+'/mo ceiling by '+fd(cDiff)+'/mo';
-      h+='</div>';
-      if(aState==='fail'){
-        var maxP=calcMaxPrice(inp);
-        if(maxP>0)h+=ocRow('Max purchase price at ceiling','<span style="color:#2d7a2d">'+fd(maxP)+'</span>');
-        if(off>0)h+='<div class="info-box amber" style="margin-top:10px;">The strategies below show how a seller concession could help reduce this payment.</div>';
-      }
-    } else {
-      h+='<div style="margin-top:8px;font-size:0.78rem;color:#888;">Enter a payment ceiling above for an affordability check.</div>';
+    // Which strategies (if any) bring payment under ceiling?
+    var clearingStrats=[];
+    if(inp.ceil>0&&vd&&!vd.clears&&off>0){
+      if(pitiCut<=inp.ceil)clearingStrats.push(sNames.cut);
+      if(pitiPerm<=inp.ceil)clearingStrats.push(sNames.perm);
+      if(pitiY1<=inp.ceil)clearingStrats.push(sNames['21']+' (Year 1)');
     }
-    h+='</div></div>';
+    var aState2=!inp.ceil?'none':vd.clears?'pass':(off>0&&clearingStrats.length>0)?'warn':'fail';
 
-    // Zone 2: Negotiation Strategies (only if off > 0)
+    // ── Zone 1A: Buyer Affordability Check ───
+    var affIcon={pass:'✅',warn:'⚠️',fail:'❌',none:''}[aState2];
+    var affTitle={pass:'Within Comfort Range',warn:'Above Comfort Range',fail:'Outside Comfort Range',none:'Payment Estimate'}[aState2];
+    var affSentence={
+      pass:'This home fits comfortably within the buyer\'s target payment range.',
+      warn:'This property is above the buyer\'s preferred payment range. Explore strategies below to improve affordability.',
+      fail:'Even with available strategies, this property exceeds the buyer\'s target payment range.',
+      none:''
+    }[aState2];
+
+    h+='<div class="aff-card aff-'+aState2+'">';
+    h+='<div class="aff-top">';
+    h+='<div class="aff-status">'+(affIcon?affIcon+' ':'')+affTitle+'</div>';
+    h+='<div class="aff-piti">'+fd(curPiti)+'<span class="aff-mo">/mo</span></div>';
+    h+='</div>';
+    if(inp.ceil>0){
+      var ceilDiff=Math.abs(curPiti-inp.ceil);
+      h+='<div class="aff-rows">';
+      h+='<div class="aff-row"><span>Comfort Target</span><span>'+fd(inp.ceil)+'/mo</span></div>';
+      h+='<div class="aff-row"><span>'+(aState2==='pass'?'Monthly Cushion':'Over Target')+'</span><span class="'+(aState2==='pass'?'aff-green':'aff-red')+'">'+fd(ceilDiff)+'/mo</span></div>';
+      h+='</div>';
+    }
+    if(affSentence)h+='<div class="aff-sentence">'+affSentence+'</div>';
+    if(aState2==='warn'&&clearingStrats.length){
+      h+='<div class="aff-clears">'+clearingStrats.map(function(n){return '<span class="aff-clears-pill">'+n+'</span>';}).join('')+'</div>';
+    }
+    if(aState2==='fail'){
+      var maxP=calcMaxPrice(inp);
+      if(maxP>0)h+='<div class="aff-maxprice">Est. max purchase price at these assumptions: <strong>'+fd(maxP)+'</strong></div>';
+    }
+    h+='</div>'; // aff-card
+
+    // ── Zone 1B: Best Strategy Summary ───────
     if(off>0){
-      h+='<div class="pp-card"><div class="pp-card-header">Offer Negotiation &mdash; '+fd(off)+' Off List</div><div class="pp-card-body">';
+      h+='<div class="best-summary">';
+      h+='<div class="bs-label">&#9670; Recommended Strategy</div>';
+      h+='<div class="bs-name">'+sNames[rec]+'</div>';
+      h+='<div class="bs-piti">'+fd(recPiti)+'<span class="bs-mo">/mo</span>';
+      if(rec==='21')h+='<span class="bs-piti-note"> Year 1</span>';
+      if(recSavBase>0)h+='<span class="bs-sav">saves '+fd(recSavBase)+'/mo vs. list price</span>';
+      h+='</div>';
+      h+='<div class="bs-reason">'+reason+'</div>';
+      h+='</div>';
+
+      // ── Zone 1C: Buyer Conversation ──────
+      h+='<div class="buyer-question">&ldquo;What matters most &mdash; lowest payment long-term, early breathing room, or keeping cash in the bank?&rdquo;</div>';
+
+      // ── Zone 2: Detailed strategy cards ──
+      h+='<div class="pp-card"><div class="pp-card-header">Offer Strategies &mdash; Full Detail</div><div class="pp-card-body">';
       var allKeys=rankings.map(function(r){return r.key;});allKeys.push('cc');
       allKeys.forEach(function(key,idx){h+=renderStratCard(key,key===rec,idx);});
       h+='</div></div>';
-      h+='<div class="talking-point"><div class="tp-label">&#9670; Recommended for '+hl+'-year hold</div><div class="tp-text">'+reason+'</div></div>';
-      h+='<div class="info-box">&ldquo;What matters most &mdash; lowest payment long-term, early breathing room, or keeping cash in the bank?&rdquo;</div>';
       h+='<div class="info-box amber">Seller-paid discount points may be tax deductible for the buyer as mortgage interest (Schedule A). A lower offer price provides no tax benefit to either party. Consult a tax advisor.</div>';
     }
 
   } else {
     // ════════════════════════════════════════════
-    // NOT MY BUYER MODE — Strategy first
+    // NOT MY BUYER MODE — Verdict first
     // ════════════════════════════════════════════
 
     if(off>0){
-      // Zone 1: Top 2 strategies side by side
       var top1key=rankings[0].key,top2key=rankings[1].key;
-      var sav1=rankings[0].moSav,sav2=rankings[1].moSav;
-      var savDiff=sav1-sav2;
+      var savDiff=rankings[0].moSav-rankings[1].moSav;
 
+      // ── Zone 1A: Top 2 strategy comparison ─
       h+='<div class="pp-card"><div class="pp-card-header">'+fd(off)+' from the Seller &mdash; Two Ways</div><div class="pp-card-body">';
       h+='<div class="two-col">';
       h+=renderVsCard(top1key,true);
@@ -1154,13 +1213,21 @@ function buildReport(){
       if(savDiff>1)h+='<div class="oc-highlight"><span><strong>'+sNames[top1key]+' saves '+fd(savDiff)+'/mo more</strong> &mdash; same cost to the seller</span></div>';
       h+='</div></div>';
 
-      // Zone 2: All strategies + recommendation
-      h+='<div class="pp-card"><div class="pp-card-header">All Strategies</div><div class="pp-card-body">';
+      // ── Zone 1B: Best Strategy reason ──────
+      h+='<div class="best-summary">';
+      h+='<div class="bs-label">&#9670; Recommended for '+hl+'-year hold</div>';
+      h+='<div class="bs-name">'+sNames[rec]+'</div>';
+      h+='<div class="bs-reason">'+reason+'</div>';
+      h+='</div>';
+
+      // ── Zone 1C: Buyer Conversation ────────
+      h+='<div class="buyer-question">&ldquo;What matters most &mdash; lowest payment long-term, early breathing room, or keeping cash in the bank?&rdquo;</div>';
+
+      // ── Zone 2: All strategies detail ──────
+      h+='<div class="pp-card"><div class="pp-card-header">All Strategies &mdash; Full Detail</div><div class="pp-card-body">';
       var allKeys2=rankings.map(function(r){return r.key;});allKeys2.push('cc');
       allKeys2.forEach(function(key,idx){h+=renderStratCard(key,key===rec,idx);});
       h+='</div></div>';
-      h+='<div class="talking-point"><div class="tp-label">&#9670; Recommended for '+hl+'-year hold</div><div class="tp-text">'+reason+'</div></div>';
-      h+='<div class="info-box">&ldquo;What matters most &mdash; lowest payment long-term, early breathing room, or keeping cash in the bank?&rdquo;</div>';
       h+='<div class="info-box amber">Seller-paid discount points may be tax deductible for the buyer as mortgage interest (Schedule A). A lower offer price provides no tax benefit to either party. Consult a tax advisor.</div>';
 
     } else {
