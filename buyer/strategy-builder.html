@@ -175,7 +175,7 @@ input[data-fmt]{-moz-appearance:textfield;}
 #reportView .aff-clears{padding:0 24px 16px;display:flex;flex-wrap:wrap;gap:6px;}
 #reportView .aff-clears-pill{background:var(--green-light);color:#2E7D32;font-size:0.75rem;font-weight:700;padding:4px 12px;border-radius:20px;border:1px solid #c3e6a0;}
 #reportView .aff-maxprice{padding:0 24px 16px;font-size:0.85rem;color:var(--gray-700);}
-#reportView .best-summary{background:linear-gradient(135deg,var(--pp-dark) 0%,var(--mid) 100%);color:white;border-radius:var(--radius);padding:22px 26px;margin-bottom:20px;}
+#reportView .best-summary{background:var(--blue);color:white;border-radius:var(--radius);padding:22px 26px;margin-bottom:20px;}
 #reportView .bs-label{font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;opacity:0.6;margin-bottom:8px;}
 #reportView .bs-name{font-size:1.15rem;font-weight:800;margin-bottom:12px;}
 #reportView .bs-piti{font-size:1.7rem;font-weight:800;line-height:1;margin-bottom:4px;}
@@ -735,7 +735,7 @@ function buildStrategy(inp,validData){
     } else {
       var hl=hold===10?'10+':'~7';
       rec='perm';ra1='cut';ra2='21';
-      reason='With a '+hl+'-year hold, the permanent rate reduction ('+fr(rate)+' &rarr; '+fr(permRate)+') saves more over time than a price cut. Break-even is ~'+be+' months &#8212; well within the expected hold.';
+      reason='With a '+hl+'-year hold, the permanent rate reduction ('+frR(rate)+' &rarr; '+frR(permRate)+') saves more over time than a price cut. Break-even is ~'+be+' months &#8212; well within the expected hold.';
     }
   }
 
@@ -754,22 +754,22 @@ function buildStrategy(inp,validData){
       sub:'Offer at list price. '+fd(off)+' seller concession funds a 2-1 temporary buydown. Year 1 payment is '+fd(pitiConc-pitiY1)+'/mo lower.',
       rows:[
         {k:'Offer / list price',v:fd(lp)},{k:'Seller concession',v:fd(off)},
-        {k:'Year 1 rate / payment',v:fr(rate-2)+' &middot; '+fd(pitiY1)+'/mo'},
-        {k:'Year 2 rate / payment',v:fr(rate-1)+' &middot; '+fd(pitiY2)+'/mo'},
-        {k:'Year 3+ rate / payment',v:fr(rate)+' &middot; '+fd(pitiConc)+'/mo'},
+        {k:'Year 1 rate / payment',v:frR(rate-2)+' &middot; '+fd(pitiY1)+'/mo'},
+        {k:'Year 2 rate / payment',v:frR(rate-1)+' &middot; '+fd(pitiY2)+'/mo'},
+        {k:'Year 3+ rate / payment',v:frR(rate)+' &middot; '+fd(pitiConc)+'/mo'},
         {k:'Buydown cost',v:fd(c21)},
         off>=c21?{k:'Concession surplus',v:fd(off-c21)+' &rarr; closing costs'}:{k:'Concession gap',v:fd(c21-off)+' short of full buydown'},
         {k:'Est. cash to close',v:fd(sConc.cashToClose-Math.min(off,c21))}
       ]
     },
     perm:{
-      title:'Permanent Buydown &#8212; '+(useOverride?'':'~')+fr(permRate)+' vs. '+fr(rate),
-      sub:'Offer at list price. '+fd(off)+' seller concession buys the rate from '+fr(rate)+' to '+(useOverride?'':'~')+fr(permRate)+', saving '+fd(piSav)+'/mo for the life of the loan.',
+      title:'Permanent Buydown &#8212; '+frR(rate)+' &rarr; '+frR(permRate),
+      sub:'Offer at list price. '+fd(off)+' seller concession buys the rate from '+frR(rate)+' to '+frR(permRate)+', saving '+fd(piSav)+'/mo for the life of the loan.',
       rows:(function(){
         var r=[
           {k:'Offer / list price',v:fd(lp)},{k:'Seller concession',v:fd(off)},
           {k:'Points purchased (est.)',v:permPts.toFixed(2)+'pts'},
-          {k:'Rate',v:fr(rate)+' &rarr; '+(useOverride?'':'~')+fr(permRate)},
+          {k:'Rate',v:frR(rate)+' &rarr; '+frR(permRate)},
           {k:'P&amp;I savings',v:fd(piSav)+'/mo'},
           {k:'Total PITI'+(hoa>0?'+HOA':''),v:fd(pitiPerm)+'/mo'},
           {k:'Break-even',v:be+' months'}
@@ -791,7 +791,7 @@ function buildStrategy(inp,validData){
   html+='<div class="vs-sub">PITI/mo &middot; offer '+fd(op)+'</div>';
   html+='<div style="font-size:12px;color:var(--gray);margin-top:6px;">Down '+fd(ad)+' &middot; CTC '+fd(sCut.cashToClose)+'</div></div>';
   html+='<div class="vs-card"><div class="vs-label">Concession</div><div class="vs-num">'+fd(pitiPerm)+'</div>';
-  html+='<div class="vs-sub">PITI/mo &middot; perm buydown '+fr(permRate)+'</div>';
+  html+='<div class="vs-sub">PITI/mo &middot; perm buydown '+frR(permRate)+'</div>';
   html+='<div style="font-size:12px;color:var(--gray);margin-top:6px;">Down '+fd(ad)+' &middot; saves '+fd(piSav)+'/mo</div></div>';
   html+='</div>';
 
@@ -1088,7 +1088,7 @@ function buildReport(){
   } else {
     if(cMiss&&c21clears){rec='21';reason='The Permanent Buydown doesn\'t clear the payment ceiling, but Year 1 of the Temporary Buydown ('+fd(pitiY1)+'/mo) brings it within range — buying time to refinance or for income to catch up.';}
     else if(cashTight){rec='cut';reason='Cash is tight — a lower offer reduces both the loan balance and the down payment needed, freeing up more cash at closing than any seller concession strategy.';}
-    else{var hlr=hold===10?'10+':'~7';rec='perm';reason='With a '+hlr+'-year hold, the Permanent Buydown ('+fr(rate)+' → '+(useOvr?'':'~')+fr(permRate)+') saves more over time than a lower offer. Break-even is ~'+be+' months — well within the expected hold. The buyer pays list price, the appraisal holds, and the seller nets the same.';}
+    else{var hlr=hold===10?'10+':'~7';rec='perm';reason='With a '+hlr+'-year hold, the Permanent Buydown ('+frR(rate)+' → '+frR(permRate)+') saves more over time than a lower offer. Break-even is ~'+be+' months — well within the expected hold. The buyer pays list price, the appraisal holds, and the seller nets the same.';}
   }
 
   // ── Short advisor-friendly reason (Zone 1 only — no jargon)
@@ -1102,7 +1102,16 @@ function buildReport(){
 
   var h='';
 
-  // ── Header — property info only (no LO tools in report view)
+  // ── Header — LO tools for Doug only; Realtor view is clean presentation
+  if(!IS_SHARED){
+    h+='<div class="pp-header">';
+    h+='<div style="display:flex;align-items:center;gap:8px;margin-left:auto;">';
+    h+='<button class="pdf-btn" style="background:#f0f4f8;color:#1F2A37;border:1px solid #cbd5e1;" onclick="showInputs()">&#8592; Edit</button>';
+    h+='<button class="pdf-btn" onclick="copyShareLink()" id="rptShareBtn">&#128279; Copy link</button>';
+    h+='<button class="pdf-btn" onclick="window.print()">&#8595; Save PDF</button>';
+    h+='<span class="nmls-badge">NMLS #2742458</span>';
+    h+='</div></div>';
+  }
   h+='<div class="pp-propbar">';
   h+='<div class="pp-propbar-addr">'+(inp.addr?escH(inp.addr):'Address not specified')+'</div>';
   h+='<div class="pp-propbar-price">List Price '+fd(lp)+(off>0?' &middot; Negotiating '+fd(off)+' Off':'')+'</div>';
@@ -1137,12 +1146,12 @@ function buildReport(){
 
     // ── Zone 1A: Buyer Affordability Check ───
     var affIcon={pass:'✅',warn:'⚠️',fail:'❌',none:''}[aState2];
-    var affTitle={pass:'WITHIN COMFORT RANGE',warn:'ABOVE COMFORT RANGE',fail:'OUTSIDE COMFORT RANGE',none:'PAYMENT ESTIMATE'}[aState2];
+    var affTitle={pass:'WITHIN COMFORT RANGE',warn:'ABOVE COMFORT RANGE',fail:'OUTSIDE COMFORT RANGE',none:'CURRENT OFFER PAYMENT'}[aState2];
     var affSentence={
       pass:'This home fits comfortably within the buyer\'s target payment range.',
       warn:'This property is above the buyer\'s preferred payment range. The strategies below can help.',
       fail:'Even with available strategies, this property exceeds the buyer\'s target payment range.',
-      none:''
+      none:'Based on current offer structure. Enter a comfort target above to see affordability context.'
     }[aState2];
 
     h+='<div class="aff-card aff-'+aState2+'">';
@@ -1187,12 +1196,13 @@ function buildReport(){
       // ── Zone 1C: Buyer Conversation ──────
       h+='<div class="buyer-question">&ldquo;What matters most &mdash; lowest payment long-term, early breathing room, or keeping cash in the bank?&rdquo;</div>';
 
-      // ── Zone 2: Detailed strategy cards ──
-      h+='<div class="pp-card"><div class="pp-card-header">Offer Strategies &mdash; Full Detail</div><div class="pp-card-body">';
-      var allKeys=rankings.map(function(r){return r.key;});allKeys.push('cc');
-      allKeys.forEach(function(key,idx){h+=renderStratCard(key,key===rec,idx);});
-      h+='</div></div>';
-      h+='<div class="info-box amber">Seller-paid discount points may be tax deductible for the buyer as mortgage interest (Schedule A). A lower offer price provides no tax benefit to either party. Consult a tax advisor.</div>';
+      // ── Zone 2: Detailed strategy cards (Doug's view only) ──
+      if(!IS_SHARED){
+        h+='<div class="pp-card"><div class="pp-card-header">Offer Strategies &mdash; Full Detail</div><div class="pp-card-body">';
+        var allKeys=rankings.map(function(r){return r.key;});allKeys.push('cc');
+        allKeys.forEach(function(key,idx){h+=renderStratCard(key,key===rec,idx);});
+        h+='</div></div>';
+      }
     }
 
   } else {
@@ -1223,12 +1233,13 @@ function buildReport(){
       // ── Zone 1C: Buyer Conversation ────────
       h+='<div class="buyer-question">&ldquo;What matters most &mdash; lowest payment long-term, early breathing room, or keeping cash in the bank?&rdquo;</div>';
 
-      // ── Zone 2: All strategies detail ──────
-      h+='<div class="pp-card"><div class="pp-card-header">All Strategies &mdash; Full Detail</div><div class="pp-card-body">';
-      var allKeys2=rankings.map(function(r){return r.key;});allKeys2.push('cc');
-      allKeys2.forEach(function(key,idx){h+=renderStratCard(key,key===rec,idx);});
-      h+='</div></div>';
-      h+='<div class="info-box amber">Seller-paid discount points may be tax deductible for the buyer as mortgage interest (Schedule A). A lower offer price provides no tax benefit to either party. Consult a tax advisor.</div>';
+      // ── Zone 2: All strategies detail (Doug's view only) ──
+      if(!IS_SHARED){
+        h+='<div class="pp-card"><div class="pp-card-header">All Strategies &mdash; Full Detail</div><div class="pp-card-body">';
+        var allKeys2=rankings.map(function(r){return r.key;});allKeys2.push('cc');
+        allKeys2.forEach(function(key,idx){h+=renderStratCard(key,key===rec,idx);});
+        h+='</div></div>';
+      }
 
     } else {
       // No negotiation amount — base payment only
@@ -1248,7 +1259,7 @@ function buildReport(){
   }
 
   // ── Compliance footer
-  h+='<div class="compliance">Prepared by Doug Smith, Certified Mortgage Advisor&reg; &middot; HomeWealth Solutions LLC &middot; This communication is for informational and educational purposes only and does not constitute an offer to lend or a commitment to make a loan. All loans are subject to credit approval, underwriting guidelines, and property approval. Interest rates, payment examples, programs, and terms are illustrative, vary by borrower qualification, and are subject to change without notice. Not all applicants will qualify. Examples shown do not reflect all costs of a mortgage transaction. Consult a licensed tax or legal advisor regarding your individual situation. HomeWealth Solutions LLC is licensed by the Florida Office of Financial Regulation, Mortgage Broker License #MBR8082. Verify our licensure at www.nmlsconsumeraccess.org. Equal Housing Opportunity. NMLS #2742458 &middot; Doug Smith NMLS #2609118</div>';
+  h+='<div class="compliance">Prepared by Doug Smith, Certified Mortgage Advisor&reg; &middot; HomeWealth Solutions LLC &middot; This communication is for informational and educational purposes only and does not constitute an offer to lend or a commitment to make a loan. All loans are subject to credit approval, underwriting guidelines, and property approval. Interest rates, payment examples, programs, and terms are illustrative, vary by borrower qualification, and are subject to change without notice. Not all applicants will qualify. Examples shown do not reflect all costs of a mortgage transaction. Tax note: Seller-paid discount points may be deductible by the buyer as mortgage interest (Schedule A); a lower offer price provides no equivalent tax benefit. Consult a licensed tax or legal advisor regarding your individual situation. HomeWealth Solutions LLC is licensed by the Florida Office of Financial Regulation, Mortgage Broker License #MBR8082. Verify our licensure at www.nmlsconsumeraccess.org. Equal Housing Opportunity. NMLS #2742458 &middot; Doug Smith NMLS #2609118</div>';
 
   h+='</div>'; // pp-main
   rv.innerHTML=h;
