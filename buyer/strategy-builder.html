@@ -836,6 +836,7 @@ function buildCS(inp,copyMy,copyNot){
     h+='<button class="copy-btn" onclick="copyText(\'copyNot\')">&#128203; Copy summary to text the agent</button>';
     h+='<textarea id="copyNot" style="position:absolute;left:-9999px;">'+copyNot+'</textarea>';
   }
+  h+='<button class="copy-btn" style="background:var(--blue);color:#fff;font-weight:600;" onclick="buildReport()">&#128196; View shareable report</button>';
   h+='<button class="copy-btn green-btn" onclick="copyShareLink()">&#128279; Copy shareable link</button>';
   return h;
 }
@@ -853,7 +854,7 @@ function copyText(id){
 }
 
 async function copyShareLink(){
-  var btn=document.querySelector('.copy-btn.green-btn');
+  var btn=event&&event.currentTarget?event.currentTarget:(document.getElementById('rptShareBtn')||document.querySelector('.copy-btn.green-btn'));
   var orig=btn?btn.innerHTML:'';
   if(btn){btn.textContent='Saving…';btn.disabled=true;}
   try{
@@ -1044,8 +1045,10 @@ function buildReport(){
   var reportTitle=MODE==='my'?'Buyer Affordability &amp; Offer Strategy':'Offer Strategy Analysis';
   h+='<div class=”pp-header”>';
   h+='<div style=”flex:1”><h1 style=”margin:0;font-size:1.1rem;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;”>'+reportTitle+'</h1></div>';
-  h+='<div style=”display:flex;align-items:center;gap:12px;”>';
-  h+='<button class=”pdf-btn” onclick=”window.print()”>&#8595; Save as PDF</button>';
+  h+='<div style=”display:flex;align-items:center;gap:8px;”>';
+  h+='<button class=”pdf-btn” style=”background:#f0f4f8;color:#1F2A37;border:1px solid #cbd5e1;” onclick=”showInputs()”>&#8592; Edit</button>';
+  h+='<button class=”pdf-btn” onclick=”copyShareLink()” id=”rptShareBtn”>&#128279; Copy link</button>';
+  h+='<button class=”pdf-btn” onclick=”window.print()”>&#8595; Save PDF</button>';
   h+='<span class=”nmls-badge”>NMLS #2742458</span>';
   h+='</div></div>';
 
