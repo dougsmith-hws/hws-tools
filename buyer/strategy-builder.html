@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Offer Strategy Builder — HomeWealth Solutions</title>
+<title>Buyer Offer Strategy — HomeWealth Solutions</title>
 <style>
 :root{--blue:#2491EB;--green:#8EC73F;--dark:#1F2A37;--gray:#6B7280;--line:#E2E8F0;--bg:#F7FAFC;}
 *{box-sizing:border-box;margin:0;padding:0;}
@@ -240,7 +240,7 @@ input[data-fmt]{-moz-appearance:textfield;}
 <div class="wrap">
 
 <div class="header-block" style="text-align:center;">
-  <h1>Offer Strategy Builder</h1>
+  <h1>Buyer Offer Strategy</h1>
 </div>
 
 <div id="editBar" class="edit-bar hidden">
@@ -944,9 +944,9 @@ function buildCS(inp,copyMy,copyNot){
     h+='<button class="copy-btn" onclick="copyText(\'copyNot\')">&#128203; Copy summary to text the agent</button>';
     h+='<textarea id="copyNot" style="position:absolute;left:-9999px;">'+copyNot+'</textarea>';
   }
-  h+='<button class="copy-btn" style="background:var(--blue);color:#fff;font-weight:600;" onclick="buildReportPrototype()">&#128196; View Report</button>';
+  h+='<button class="copy-btn" style="background:var(--blue);color:#fff;font-weight:600;" onclick="buildBuyerOfferStrategy()">&#128196; View Report</button>';
   h+='<button class="copy-btn green-btn" onclick="copyShareLink()">&#128279; Copy shareable link</button>';
-  h+='<button class="copy-btn" onclick="buildReportPrototype();setTimeout(function(){window.print();},400);">&#8595; Save PDF</button>';
+  h+='<button class="copy-btn" onclick="buildBuyerOfferStrategy();setTimeout(function(){window.print();},400);">&#8595; Save PDF</button>';
   h+='<button class="copy-btn" style="color:var(--gray);border-color:var(--line);font-weight:500;" onclick="buildReport()">&#128196; Detailed Analysis</button>';
   return h;
 }
@@ -1386,7 +1386,7 @@ function buildReport(){
 // ── Buyer Offer Strategy Report ────────────────────────────────────────────────
 // Primary report. buildReport() (Detailed Analysis) remains available as legacy.
 // ══════════════════════════════════════════════════════════════════════════════
-function buildReportPrototype(){
+function buildBuyerOfferStrategy(){
   var inp=getInputs();
   if(!inp.lp)return;
 
@@ -1639,7 +1639,7 @@ function buildReportPrototype(){
   } else {
     // No negotiation amount
     h+='<div class="pp-card"><div class="pp-card-header">Payment at List Price</div><div class="pp-card-body">';
-    h+='<div class="prompt-box">&#128161; Enter a negotiation amount above to see the goal-based strategy comparison.</div>';
+    h+='<div class="prompt-box">&#128161; Enter a negotiation amount above to see the strategy comparison.</div>';
     h+=ocR('List price',fd(lp));
     h+=ocR('Rate',frR(rate));
     h+=ocR('Monthly PITI'+(hoa>0?'+HOA':''),fd(pitiBase)+'/mo');
