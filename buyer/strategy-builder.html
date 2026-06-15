@@ -185,8 +185,7 @@ input[data-fmt]{-moz-appearance:textfield;}
 #reportView .bs-reason{font-size:0.88rem;line-height:1.7;opacity:0.88;margin-top:12px;border-top:1px solid rgba(255,255,255,0.15);padding-top:12px;}
 #reportView .buyer-question{background:var(--blue-light);border-left:4px solid var(--blue);border-radius:6px;padding:16px 22px;font-size:1rem;font-style:italic;color:var(--pp-dark);line-height:1.6;margin-bottom:24px;font-weight:500;}
 
-/* ── PROTOTYPE: Goal-Based Report ───────────────────────────────────── */
-#reportView .proto-banner{background:#FEF3C7;border:1px solid #FCD34D;color:#92400E;font-size:0.75rem;font-weight:700;letter-spacing:0.06em;padding:6px 28px;text-align:center;margin-bottom:0;}
+/* ── Buyer Offer Strategy Report ─────────────────────────────────────── */
 #reportView .proto-title{font-size:1.15rem;font-weight:900;letter-spacing:0.03em;text-transform:uppercase;color:var(--pp-dark);padding:22px 28px 2px;background:#fff;}
 #reportView .proto-what-matters{font-size:0.9rem;color:var(--gray-600);padding:4px 28px 16px;background:#fff;border-bottom:1px solid var(--gray-200);}
 #reportView .proto-goals-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;padding:20px 28px;background:#F0F4F7;}
@@ -231,7 +230,6 @@ input[data-fmt]{-moz-appearance:textfield;}
   #reportView .proto-details-body{grid-template-columns:1fr;}
 }
 @media print{
-  #reportView .proto-banner{display:none;}
   #reportView details{display:block;}
   #reportView details summary{display:none;}
   #reportView .proto-details-body{display:grid;grid-template-columns:1fr 1fr;}
@@ -946,10 +944,10 @@ function buildCS(inp,copyMy,copyNot){
     h+='<button class="copy-btn" onclick="copyText(\'copyNot\')">&#128203; Copy summary to text the agent</button>';
     h+='<textarea id="copyNot" style="position:absolute;left:-9999px;">'+copyNot+'</textarea>';
   }
-  h+='<button class="copy-btn" style="background:var(--blue);color:#fff;font-weight:600;" onclick="buildReport()">&#128196; View report</button>';
+  h+='<button class="copy-btn" style="background:var(--blue);color:#fff;font-weight:600;" onclick="buildReportPrototype()">&#128196; View Report</button>';
   h+='<button class="copy-btn green-btn" onclick="copyShareLink()">&#128279; Copy shareable link</button>';
-  h+='<button class="copy-btn" onclick="buildReport();setTimeout(function(){window.print();},400);">&#8595; Save PDF</button>';
-  h+='<button class="copy-btn" style="background:#FEF3C7;color:#92400E;border:1px solid #FCD34D;font-weight:600;" onclick="buildReportPrototype()">&#9879; Goal-Based Report (Prototype)</button>';
+  h+='<button class="copy-btn" onclick="buildReportPrototype();setTimeout(function(){window.print();},400);">&#8595; Save PDF</button>';
+  h+='<button class="copy-btn" style="color:var(--gray);border-color:var(--line);font-weight:500;" onclick="buildReport()">&#128196; Detailed Analysis</button>';
   return h;
 }
 
@@ -1311,7 +1309,7 @@ function buildReport(){
   }
 
   // ── Compliance footer
-  h+='<div class="compliance">Prepared by Doug Smith, Certified Mortgage Advisor&reg; &middot; HomeWealth Solutions LLC &middot; This communication is for informational and educational purposes only and does not constitute an offer to lend or a commitment to make a loan. All loans are subject to credit approval, underwriting guidelines, and property approval. Interest rates, payment examples, programs, and terms are illustrative, vary by borrower qualification, and are subject to change without notice. Not all applicants will qualify. Examples shown do not reflect all costs of a mortgage transaction. Tax note: Seller-paid discount points may be deductible by the buyer as mortgage interest (Schedule A); a lower offer price provides no equivalent tax benefit. Consult a licensed tax or legal advisor regarding your individual situation. HomeWealth Solutions LLC is licensed by the Florida Office of Financial Regulation, Mortgage Broker License #MBR8082. Verify our licensure at www.nmlsconsumeraccess.org. Equal Housing Opportunity. NMLS #2742458 &middot; Doug Smith NMLS #2609118</div>';
+  h+='<div class="compliance">Prepared by Doug Smith, CMA&reg; &middot; HomeWealth Solutions LLC &middot; For informational purposes only. Not an offer to lend. All scenarios are illustrative; actual rates, payments, and terms vary by borrower and are subject to change without notice. Not all applicants will qualify. Consult a licensed tax or legal advisor regarding your individual situation. FL OFR License #MBR8082 &middot; NMLS #2742458 &middot; Doug Smith NMLS #2609118 &middot; nmlsconsumeraccess.org &middot; Equal Housing Opportunity.</div>';
 
   h+='</div>'; // pp-main
   rv.innerHTML=h;
@@ -1385,8 +1383,8 @@ function buildReport(){
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
-// PROTOTYPE: Goal-Based Report — alternate layout for comparison
-// DO NOT CHANGE: buildReport() above is untouched. This is additive only.
+// ── Buyer Offer Strategy Report ────────────────────────────────────────────────
+// Primary report. buildReport() (Detailed Analysis) remains available as legacy.
 // ══════════════════════════════════════════════════════════════════════════════
 function buildReportPrototype(){
   var inp=getInputs();
@@ -1461,7 +1459,7 @@ function buildReportPrototype(){
     else{rec='perm';}
   }
 
-  // Recommendation prose — goal-first language (prototype only)
+  // Recommendation prose — goal-first language
   var recReason='';
   if(rec==='perm'){recReason='Because the buyer plans to own the home approximately '+(hold===10?'10+':hold)+' years, the permanent rate reduction creates the greatest long-term benefit.';}
   else if(rec==='21'){recReason='With a '+hl+'-year expected hold, the temporary rate relief maximizes payment savings during the years they will actually own the home.';}
@@ -1512,7 +1510,6 @@ function buildReportPrototype(){
   if(prepParts.length)h+='<div class="pp-prepfor">'+prepParts.join(' &middot; ')+'</div>';
 
   h+='<div class="pp-main">';
-  h+='<div class="proto-banner">&#9879; PROTOTYPE &mdash; Goal-Based Layout &nbsp;&middot;&nbsp; <a href="#" onclick="buildReport();return false;" style="color:var(--blue);font-weight:700;">Switch to Strategy Report</a></div>';
 
   if(off>0){
 
@@ -1538,13 +1535,7 @@ function buildReportPrototype(){
     }
 
     // ── SECTION 3: FOUR OPTIONS ───────────────────────────────────────────
-    if(MODE==='my'){
-      h+='<div class="proto-title" style="padding-top:20px;">Four Ways To Structure This Offer</div>';
-      h+='<div class="proto-what-matters">The recommended option appears first.</div>';
-    } else {
-      h+='<div class="proto-title" style="padding-top:20px;">Four Ways To Structure This Offer</div>';
-      h+='<div class="proto-what-matters">Which outcome matters most to your buyer?</div>';
-    }
+    h+='<div class="proto-title" style="padding-top:20px;">What Matters Most to Your Buyer?</div>';
 
     h+='<div class="proto-goals-grid">';
 
@@ -1593,7 +1584,7 @@ function buildReportPrototype(){
 
     // ── NMB: Realtor facilitation prompt ─────────────────────────────────
     if(MODE!=='my'){
-      h+='<div class="proto-buyer-q">&ldquo;Which outcome matters most to your buyer &mdash; A, B, C, or D?&rdquo;</div>';
+      h+='<div class="proto-buyer-q">&ldquo;What matters most to your buyer &mdash; A, B, C, or D?&rdquo;</div>';
     }
 
     // ── SECTION 4: MY RECOMMENDATION (MY BUYER only) ─────────────────────
@@ -1656,12 +1647,12 @@ function buildReportPrototype(){
     h+='</div></div>';
   }
 
-  h+='<div class="compliance">Prepared by Doug Smith, Certified Mortgage Advisor&reg; &middot; HomeWealth Solutions LLC &middot; This communication is for informational and educational purposes only and does not constitute an offer to lend or a commitment to make a loan. All loans are subject to credit approval, underwriting guidelines, and property approval. Interest rates, payment examples, programs, and terms are illustrative, vary by borrower qualification, and are subject to change without notice. Not all applicants will qualify. Examples shown do not reflect all costs of a mortgage transaction. Tax note: Seller-paid discount points may be deductible by the buyer as mortgage interest (Schedule A); a lower offer price provides no equivalent tax benefit. Consult a licensed tax or legal advisor regarding your individual situation. HomeWealth Solutions LLC is licensed by the Florida Office of Financial Regulation, Mortgage Broker License #MBR8082. Verify our licensure at www.nmlsconsumeraccess.org. Equal Housing Opportunity. NMLS #2742458 &middot; Doug Smith NMLS #2609118</div>';
+  h+='<div class="compliance">Prepared by Doug Smith, CMA&reg; &middot; HomeWealth Solutions LLC &middot; For informational purposes only. Not an offer to lend. All scenarios are illustrative; actual rates, payments, and terms vary by borrower and are subject to change without notice. Not all applicants will qualify. Consult a licensed tax or legal advisor regarding your individual situation. FL OFR License #MBR8082 &middot; NMLS #2742458 &middot; Doug Smith NMLS #2609118 &middot; nmlsconsumeraccess.org &middot; Equal Housing Opportunity.</div>';
 
   h+='</div>'; // pp-main
   rv.innerHTML=h;
 }
-// ── End prototype ─────────────────────────────────────────────────────────────
+// ── End Buyer Offer Strategy Report ──────────────────────────────────────────
 
 window.addEventListener('DOMContentLoaded',async function(){
   // Short-link: Netlify 200-rewrites /r/abc1234 → this file, path stays /r/abc1234
