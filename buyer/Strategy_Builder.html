@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Offer Strategy Builder — HomeWealth Solutions</title>
+<title>Buyer Offer Strategy — HomeWealth Solutions</title>
 <style>
 :root{--blue:#2491EB;--green:#8EC73F;--dark:#1F2A37;--gray:#6B7280;--line:#E2E8F0;--bg:#F7FAFC;}
 *{box-sizing:border-box;margin:0;padding:0;}
@@ -68,12 +68,52 @@ input[data-fmt]{-moz-appearance:textfield;}
 .divider{border:none;border-top:1px solid var(--line);margin:14px 0;}
 .field-hint{display:block;font-size:11px;color:var(--gray);margin-top:4px;min-height:14px;}
 .field-hint.override{color:var(--blue);}
+/* ── Print / PDF ────────────────────────────────────────────────── */
+@media print{
+  @page{margin:0.3in;}
+  .wrap,.pdf-btn{display:none!important;}
+  #reportView{display:block!important;background:#fff;font-size:11px;}
+  /* Color preservation */
+  #reportView .pp-header,#reportView .pp-card-header,#reportView .oc-hdr,
+  #reportView .talking-point,#reportView .info-box,#reportView .compliance{
+    -webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  /* Tighten header + bars */
+  #reportView .pp-header{padding:8px 16px!important;}
+  #reportView .pp-header h1{font-size:0.95rem!important;}
+  #reportView .pp-propbar{padding:5px 16px!important;}
+  #reportView .pp-prepfor{padding:5px 16px!important;font-size:12px!important;}
+  /* Tighten main layout */
+  #reportView .pp-main{max-width:100%!important;margin:8px auto!important;padding:0 8px 8px!important;}
+  #reportView .pp-card{margin-bottom:8px!important;box-shadow:none!important;border:1px solid #dde3e8;}
+  #reportView .pp-card-header{padding:6px 14px!important;font-size:0.72rem!important;}
+  #reportView .pp-card-body{padding:10px 14px!important;}
+  /* Tighten columns */
+  #reportView .two-col{grid-template-columns:1fr 1fr!important;gap:8px!important;margin-bottom:8px!important;}
+  #reportView .option-col{margin-bottom:0!important;box-shadow:none!important;border:1px solid #dde3e8;}
+  #reportView .oc-hdr{padding:6px 12px!important;font-size:0.72rem!important;}
+  #reportView .oc-body{padding:8px 12px!important;}
+  #reportView .oc-row{padding:3px 0!important;font-size:11px!important;}
+  /* Tighten talking points */
+  #reportView .talking-point{padding:8px 12px!important;margin-bottom:6px!important;}
+  #reportView .tp-label{font-size:0.65rem!important;}
+  #reportView .tp-text{font-size:12px!important;}
+  /* Tighten info boxes */
+  #reportView .info-box{padding:8px 12px!important;font-size:11px!important;margin-bottom:6px!important;}
+  /* Compliance tiny */
+  #reportView .compliance{padding:8px 14px!important;font-size:8.5px!important;line-height:1.4!important;}
+  /* Prevent bad page breaks */
+  #reportView .pp-card{page-break-inside:avoid;}
+  #reportView .two-col{page-break-inside:avoid;}
+  #reportView .talking-point{page-break-inside:avoid;}
+}
 /* ── Report View — paying-points design language ─────────────────── */
 :root{--blue-light:#e8f4fd;--blue-mid:#c5e1fa;--green-light:#f0f8e6;--green-dark:#6aaa1f;--pp-dark:#1c2b3a;--mid:#3a4f62;--red-c:#dc3545;--amber:#e8900a;--gray-100:#f7f8fa;--gray-200:#edf0f4;--gray-300:#d1d8e0;--gray-500:#8892a0;--gray-700:#4a5568;--gray-900:#1a2332;--radius:10px;--shadow:0 2px 12px rgba(0,0,0,0.08);}
 #reportView{display:none;font-family:'Segoe UI',Arial,sans-serif;background:var(--gray-100);color:var(--gray-900);min-height:100vh;}
 #reportView .pp-header{background:var(--pp-dark);color:#fff;padding:16px 28px;display:flex;align-items:center;justify-content:space-between;gap:16px;}
 #reportView .pp-header h1{font-size:1.15rem;font-weight:700;}
 #reportView .nmls-badge{background:var(--blue);color:white;font-size:0.7rem;font-weight:700;padding:4px 10px;border-radius:20px;}
+#reportView .pdf-btn{background:rgba(255,255,255,0.15);color:#fff;border:1px solid rgba(255,255,255,0.4);border-radius:6px;padding:7px 14px;font-size:0.78rem;font-weight:600;cursor:pointer;white-space:nowrap;transition:background 0.15s;}
+#reportView .pdf-btn:hover{background:rgba(255,255,255,0.28);}
 #reportView .pp-propbar{background:#F0F4F7;border-bottom:1px solid #DDE3E8;padding:10px 28px;display:flex;justify-content:space-between;align-items:center;gap:8px;}
 #reportView .pp-propbar-addr{font-size:14px;font-weight:700;color:var(--pp-dark);overflow:hidden;text-overflow:ellipsis;}
 #reportView .pp-propbar-price{font-size:14px;font-weight:700;color:var(--pp-dark);white-space:nowrap;}
@@ -85,7 +125,7 @@ input[data-fmt]{-moz-appearance:textfield;}
 #reportView .two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;}
 @media(max-width:620px){#reportView .two-col{grid-template-columns:1fr;}}
 #reportView .option-col{border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);position:relative;margin-bottom:12px;}
-#reportView .option-col.winner{transform:translateY(-4px);box-shadow:0 8px 24px rgba(36,145,235,0.2);}
+#reportView .option-col.winner{box-shadow:0 8px 24px rgba(36,145,235,0.2);}
 #reportView .oc-hdr{padding:13px 18px;font-size:0.85rem;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;color:white;position:relative;}
 #reportView .oc-hdr.gray{background:#6b7280;}
 #reportView .oc-hdr.blue{background:var(--blue);}
@@ -112,14 +152,95 @@ input[data-fmt]{-moz-appearance:textfield;}
 #reportView .rpt-ceil-row{padding:8px 0;font-size:0.88rem;font-weight:600;margin-top:4px;}
 #reportView .rpt-ceil-row.pass{color:#2E7D32;}
 #reportView .rpt-ceil-row.fail{color:var(--red-c);}
+/* ── Zone 1 verdict components ───────────────────────── */
+#reportView .aff-card{background:white;border-radius:var(--radius);box-shadow:var(--shadow);margin-bottom:20px;overflow:hidden;border-top:4px solid var(--gray-300);}
+#reportView .aff-pass{border-top-color:#2E7D32;}
+#reportView .aff-warn{border-top-color:var(--amber);}
+#reportView .aff-fail{border-top-color:var(--red-c);}
+#reportView .aff-none{border-top-color:var(--blue);}
+#reportView .aff-top{padding:20px 24px 14px;}
+#reportView .aff-status{font-size:1.05rem;font-weight:700;margin-bottom:10px;}
+#reportView .aff-pass .aff-status{color:#2E7D32;}
+#reportView .aff-warn .aff-status{color:var(--amber);}
+#reportView .aff-fail .aff-status{color:var(--red-c);}
+#reportView .aff-none .aff-status{color:var(--blue);}
+#reportView .aff-piti{font-size:2.6rem;font-weight:800;color:var(--pp-dark);line-height:1;}
+#reportView .aff-mo{font-size:1rem;font-weight:400;color:var(--gray-500);}
+#reportView .aff-rows{border-top:1px solid var(--gray-200);padding:0 24px;}
+#reportView .aff-row{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--gray-200);font-size:0.88rem;color:var(--gray-700);}
+#reportView .aff-row:last-child{border-bottom:none;}
+#reportView .aff-green{font-weight:700;color:#2E7D32;}
+#reportView .aff-red{font-weight:700;color:var(--red-c);}
+#reportView .aff-sentence{padding:12px 24px 16px;font-size:0.9rem;color:var(--gray-700);line-height:1.65;}
+#reportView .aff-clears{padding:0 24px 16px;display:flex;flex-wrap:wrap;gap:6px;}
+#reportView .aff-clears-pill{background:var(--green-light);color:#2E7D32;font-size:0.75rem;font-weight:700;padding:4px 12px;border-radius:20px;border:1px solid #c3e6a0;}
+#reportView .aff-maxprice{padding:0 24px 16px;font-size:0.85rem;color:var(--gray-700);}
+#reportView .best-summary{background:var(--blue);color:white;border-radius:var(--radius);padding:22px 26px;margin-bottom:20px;}
+#reportView .bs-label{font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;opacity:0.6;margin-bottom:8px;}
+#reportView .bs-name{font-size:1.15rem;font-weight:800;margin-bottom:12px;}
+#reportView .bs-piti{font-size:1.7rem;font-weight:800;line-height:1;margin-bottom:4px;}
+#reportView .bs-mo{font-size:0.95rem;font-weight:400;opacity:0.7;}
+#reportView .bs-piti-note{font-size:0.8rem;opacity:0.7;margin-left:4px;}
+#reportView .bs-sav{font-size:0.82rem;font-weight:600;color:#a8dda0;margin-left:10px;}
+#reportView .bs-reason{font-size:0.88rem;line-height:1.7;opacity:0.88;margin-top:12px;border-top:1px solid rgba(255,255,255,0.15);padding-top:12px;}
+#reportView .buyer-question{background:var(--blue-light);border-left:4px solid var(--blue);border-radius:6px;padding:16px 22px;font-size:1rem;font-style:italic;color:var(--pp-dark);line-height:1.6;margin-bottom:24px;font-weight:500;}
+
+/* ── Buyer Offer Strategy Report ─────────────────────────────────────── */
+#reportView .proto-title{font-size:1.15rem;font-weight:900;letter-spacing:0.03em;text-transform:uppercase;color:var(--pp-dark);padding:22px 28px 2px;background:#fff;}
+#reportView .proto-what-matters{font-size:0.9rem;color:var(--gray-600);padding:4px 28px 16px;background:#fff;border-bottom:1px solid var(--gray-200);}
+#reportView .proto-goals-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;padding:20px 28px;background:#F0F4F7;}
+#reportView .proto-goal-card{background:#fff;border-radius:var(--radius);box-shadow:var(--shadow);padding:20px 22px;border-top:4px solid var(--gray-300);position:relative;}
+#reportView .proto-goal-card.proto-goal-rec{border-top-color:var(--green);}
+#reportView .proto-goal-rec-badge{position:absolute;top:10px;right:12px;background:var(--green);color:#fff;font-size:0.62rem;font-weight:800;letter-spacing:0.05em;padding:2px 8px;border-radius:20px;}
+#reportView .proto-goal-letter{display:inline-flex;align-items:center;justify-content:center;background:var(--gray-200);color:var(--pp-dark);font-size:0.82rem;font-weight:900;width:26px;height:26px;border-radius:50%;margin-bottom:8px;}
+#reportView .proto-goal-card.proto-goal-rec .proto-goal-letter{background:var(--green);color:#fff;}
+#reportView .proto-goal-header{font-size:0.72rem;font-weight:800;letter-spacing:0.07em;color:var(--blue);text-transform:uppercase;line-height:1.4;margin-bottom:10px;}
+#reportView .proto-goal-payment{font-size:3rem;font-weight:900;color:var(--pp-dark);line-height:1;margin-bottom:3px;letter-spacing:-0.02em;}
+#reportView .proto-goal-unit{font-size:0.8rem;font-weight:600;color:var(--gray-500);margin-left:3px;letter-spacing:0;}
+#reportView .proto-goal-strat{font-size:0.75rem;color:var(--gray-500);margin-bottom:8px;font-style:italic;}
+#reportView .proto-goal-fact{font-size:0.82rem;color:var(--gray-700);padding:2px 0;}
+#reportView .proto-goal-fact.green{color:#2E7D32;font-weight:600;}
+#reportView .proto-goal-fact.blue{color:var(--blue);font-weight:600;}
+#reportView .proto-goal-divider{border:none;border-top:1px solid var(--gray-200);margin:8px 0;}
+#reportView .proto-goal-tagline{font-size:0.78rem;color:var(--gray-500);margin-top:10px;padding-top:10px;border-top:1px solid var(--gray-200);line-height:1.4;}
+#reportView .proto-buyer-q{background:var(--pp-dark);color:#fff;font-size:1rem;font-weight:700;text-align:center;padding:16px 28px;letter-spacing:0.01em;margin:24px 0;}
+#reportView .proto-rec-wrap{padding:0 28px 20px;}
+#reportView .proto-buyer-priority{padding:16px 28px 0;background:#fff;}
+#reportView .proto-priority-label{font-size:0.68rem;font-weight:900;letter-spacing:0.1em;text-transform:uppercase;color:var(--gray-500);margin-bottom:6px;}
+#reportView .proto-priority-value{font-size:1.05rem;font-weight:800;color:var(--pp-dark);line-height:1.3;padding-bottom:16px;border-bottom:1px solid var(--gray-200);}
+#reportView .proto-section-hdr{font-size:0.68rem;font-weight:900;letter-spacing:0.1em;text-transform:uppercase;color:var(--gray-500);padding:20px 28px 0;background:#F0F4F7;}
+#reportView .proto-rec-letter{font-size:0.78rem;font-weight:800;letter-spacing:0.06em;text-transform:uppercase;opacity:0.8;margin-bottom:3px;}
+#reportView .proto-insight{margin:0 28px 20px;background:#EEF6FD;border-radius:var(--radius);padding:16px 20px;border-left:4px solid var(--blue);}
+#reportView .proto-insight-title{font-size:0.68rem;font-weight:900;letter-spacing:0.1em;text-transform:uppercase;color:var(--blue);margin-bottom:8px;}
+#reportView .proto-insight-body{font-size:0.84rem;color:var(--gray-700);line-height:1.5;margin-bottom:12px;}
+#reportView .proto-insight-row{display:flex;align-items:center;gap:10px;padding:4px 0;font-size:0.88rem;color:var(--pp-dark);}
+#reportView .proto-insight-label{flex:1;color:var(--gray-600);}
+#reportView .proto-insight-arrow{color:var(--gray-400);}
+#reportView .proto-insight-val{font-weight:700;}
+#reportView .proto-insight-val.blue{color:#2E7D32;font-weight:800;}
+#reportView .proto-goal-unit-block{font-size:0.82rem;font-weight:600;color:var(--gray-500);display:block;margin-top:2px;margin-bottom:6px;}
+#reportView .proto-details{margin:0 28px 20px;border:1px solid var(--gray-200);border-radius:var(--radius);overflow:hidden;}
+#reportView .proto-details-summary{font-size:0.88rem;font-weight:700;color:var(--blue);padding:14px 18px;cursor:pointer;background:#F8FAFF;list-style:none;user-select:none;}
+#reportView .proto-details-summary::-webkit-details-marker{display:none;}
+#reportView .proto-details-body{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--gray-200);}
+#reportView .proto-detail-card{background:#fff;padding:16px 18px;}
+#reportView .proto-detail-hdr{font-size:0.75rem;font-weight:800;letter-spacing:0.05em;text-transform:uppercase;color:var(--pp-dark);margin-bottom:10px;padding-bottom:8px;border-bottom:2px solid var(--gray-200);}
+@media(max-width:640px){
+  #reportView .proto-goals-grid{grid-template-columns:1fr;}
+  #reportView .proto-details-body{grid-template-columns:1fr;}
+}
+@media print{
+  #reportView details{display:block;}
+  #reportView details summary{display:none;}
+  #reportView .proto-details-body{display:grid;grid-template-columns:1fr 1fr;}
+}
 </style>
 </head>
 <body>
 <div class="wrap">
 
-<div class="header-block">
-  <h1>Offer Strategy Builder</h1>
-  <div class="sub">HomeWealth Solutions — Doug Smith, CMA&reg; &middot; (813) 733-7371</div>
+<div class="header-block" style="text-align:center;">
+  <h1>Buyer Offer Strategy</h1>
 </div>
 
 <div id="editBar" class="edit-bar hidden">
@@ -130,24 +251,24 @@ input[data-fmt]{-moz-appearance:textfield;}
 <div id="inputs">
 
   <div class="mode-toggle">
-    <div class="mode-btn" id="modeMyBuyer" onclick="setMode('my')">My buyer</div>
-    <div class="mode-btn on" id="modeNotMy" onclick="setMode('not')">Not my buyer</div>
+    <div class="mode-btn on" id="modeMyBuyer" onclick="setMode('my')">My buyer</div>
+    <div class="mode-btn" id="modeNotMy" onclick="setMode('not')">Not my buyer</div>
   </div>
 
   <div class="card">
     <div class="card-title">Property &amp; Partner</div>
     <div class="field">
       <label>Realtor name</label>
-      <input type="text" id="agentName" placeholder="e.g. Sarah Kim">
+      <input type="text" id="agentName">
     </div>
     <div class="field">
       <label>Property address <span class="note">(optional)</span></label>
-      <input type="text" id="address" placeholder="e.g. 123 Main St, Tampa FL">
+      <input type="text" id="address">
     </div>
     <div class="row2">
       <div class="field">
         <label>List price</label>
-        <input type="text" id="listPrice" data-fmt="dollar" placeholder="$500,000" inputmode="numeric" oninput="updateTaxHint()">
+        <input type="text" id="listPrice" data-fmt="dollar" placeholder="$0" inputmode="numeric" oninput="updateTaxHint()">
       </div>
       <div class="field">
         <label>County</label>
@@ -164,12 +285,12 @@ input[data-fmt]{-moz-appearance:textfield;}
     <div class="row3">
       <div class="field">
         <label>Tax/yr <span class="note">override</span></label>
-        <input type="text" id="taxYr" data-fmt="dollar" placeholder="auto" inputmode="numeric" oninput="updateTaxHint()">
+        <input type="text" id="taxYr" data-fmt="dollar" placeholder="$0" inputmode="numeric" oninput="updateTaxHint()">
         <span id="taxHint" class="field-hint"></span>
       </div>
       <div class="field">
         <label>Insurance/yr <span class="note">$</span></label>
-        <input type="text" id="hoiYr" data-fmt="dollar" placeholder="$1,800" inputmode="numeric">
+        <input type="text" id="hoiYr" data-fmt="dollar" placeholder="$0" inputmode="numeric">
       </div>
       <div class="field">
         <label>HOA/mo <span class="note">$</span></label>
@@ -185,16 +306,25 @@ input[data-fmt]{-moz-appearance:textfield;}
     </div>
   </div>
 
-  <div id="myBuyerFields" class="card hidden">
+  <div id="myBuyerFields" class="card">
     <div class="card-title">Your Buyer's Situation</div>
     <div class="row2">
       <div class="field">
         <label>Buyer name <span class="note">(optional)</span></label>
-        <input type="text" id="buyerName" placeholder="e.g. Fernando">
+        <input type="text" id="buyerName">
       </div>
       <div class="field">
         <label>Max comfort payment <span class="note">PITI/mo</span></label>
-        <input type="text" id="paymentCeiling" data-fmt="dollar" placeholder="$3,000" inputmode="numeric">
+        <input type="text" id="paymentCeiling" data-fmt="dollar" placeholder="$0" inputmode="numeric">
+      </div>
+    </div>
+    <div class="field">
+      <label>Buyer's stated priority <span class="note">A/B/C/D — what the Realtor collected</span></label>
+      <div class="chips" data-group="buyerGoal">
+        <div class="chip" data-v="21">A. Lowest Payment Today</div>
+        <div class="chip" data-v="perm">B. Lowest Payment Long-Term</div>
+        <div class="chip" data-v="cut">C. Lowest Purchase Price</div>
+        <div class="chip" data-v="cc">D. Keep More Cash at Closing</div>
       </div>
     </div>
     <div class="field">
@@ -204,10 +334,10 @@ input[data-fmt]{-moz-appearance:textfield;}
         <div class="chip" data-v="pct" onclick="setDpMode('pct')">% of Price</div>
       </div>
       <div id="dpDollarWrap">
-        <input type="text" id="downAmt" data-fmt="dollar" placeholder="$100,000" inputmode="numeric">
+        <input type="text" id="downAmt" data-fmt="dollar" placeholder="$0" inputmode="numeric">
       </div>
       <div id="dpPctWrap" class="hidden">
-        <input type="text" id="downPct" data-fmt="pct" placeholder="20%" inputmode="decimal">
+        <input type="text" id="downPct" data-fmt="pct" placeholder="0%" inputmode="decimal">
       </div>
     </div>
     <div id="cashTypeField" class="field">
@@ -219,7 +349,7 @@ input[data-fmt]{-moz-appearance:textfield;}
     </div>
     <div class="field">
       <label>Interest rate <span class="note">%</span></label>
-      <input type="text" id="myRate" data-fmt="pct" placeholder="6.75%" inputmode="decimal">
+      <input type="text" id="myRate" data-fmt="pct" placeholder="0%" inputmode="decimal">
     </div>
     <div class="field">
       <label>Buyer profile</label>
@@ -231,16 +361,16 @@ input[data-fmt]{-moz-appearance:textfield;}
     </div>
   </div>
 
-  <div id="notMyBuyerFields" class="card">
+  <div id="notMyBuyerFields" class="card hidden">
     <div class="card-title">Illustrative Assumptions</div>
     <div class="row2">
       <div class="field">
         <label>Illustrative rate <span class="note">%</span></label>
-        <input type="text" id="ilRate" data-fmt="pct" placeholder="6.75%" inputmode="decimal">
+        <input type="text" id="ilRate" data-fmt="pct" placeholder="0%" inputmode="decimal">
       </div>
       <div class="field">
         <label>Assumed down <span class="note">%</span></label>
-        <input type="text" id="ilDown" data-fmt="pct" placeholder="20%" inputmode="decimal">
+        <input type="text" id="ilDown" data-fmt="pct" placeholder="0%" inputmode="decimal">
       </div>
     </div>
     <div class="field">
@@ -256,8 +386,17 @@ input[data-fmt]{-moz-appearance:textfield;}
   <div class="card">
     <div class="card-title">Offer Negotiation</div>
     <div class="field">
-      <label>Amount buyer wants off list price <span class="note">$ &#8212; leave blank if no negotiation</span></label>
-      <input type="text" id="amtOff" data-fmt="dollar" placeholder="$0" inputmode="numeric">
+      <label>Amount buyer wants off list price <span class="note">leave blank if no negotiation</span></label>
+      <div class="chips" data-group="offMode" style="margin-bottom:8px;">
+        <div class="chip on" data-v="dollar" onclick="setOffMode('dollar')">$ Amount</div>
+        <div class="chip" data-v="pct" onclick="setOffMode('pct')">% of Price</div>
+      </div>
+      <div id="offDollarWrap">
+        <input type="text" id="amtOff" data-fmt="dollar" placeholder="$0" inputmode="numeric">
+      </div>
+      <div id="offPctWrap" class="hidden">
+        <input type="text" id="amtOffPct" data-fmt="pct" placeholder="0%" inputmode="decimal">
+      </div>
     </div>
     <div class="field">
       <label>Expected hold period</label>
@@ -281,8 +420,9 @@ input[data-fmt]{-moz-appearance:textfield;}
 
 </div>
 <script>
-let MODE='not';
+let MODE='my';
 var permOverrideVal=0;
+var IS_SHARED=false; // true when loaded via share link — hides author-only buttons
 
 // ── Input formatting ──────────────────────────────────────────────────────────
 // numVal: strip $ , % and return float
@@ -358,6 +498,10 @@ function setDpMode(m){
   document.getElementById('dpDollarWrap').classList.toggle('hidden', m!=='dollar');
   document.getElementById('dpPctWrap').classList.toggle('hidden', m!=='pct');
   document.getElementById('cashTypeField').classList.toggle('hidden', m!=='dollar');
+}
+function setOffMode(m){
+  document.getElementById('offDollarWrap').classList.toggle('hidden', m!=='dollar');
+  document.getElementById('offPctWrap').classList.toggle('hidden', m!=='pct');
 }
 
 function setMode(m){
@@ -451,6 +595,7 @@ function cost21(loan,rate){
 function fmt(n){return Math.round(n).toLocaleString('en-US');}
 function fd(n){return '$'+fmt(n);}
 function fr(n){return n.toFixed(2)+'%';}
+function frR(n){var r=Math.round(n*8)/8;return r.toFixed(3)+'%';} // display rate rounded to nearest 0.125%
 
 function getInputs(){
   var county=document.getElementById('county').value;
@@ -459,7 +604,8 @@ function getInputs(){
   var hoi=numVal('hoiYr')||1800;
   var hoa=numVal('hoaMo')||0;
   var esc=chipVal('escrow')==='yes';
-  var off=numVal('amtOff');
+  var offMode=chipVal('offMode')||'dollar';
+  var off=offMode==='pct'?(lp>0?lp*( numVal('amtOffPct')||0)/100:0):numVal('amtOff');
   var hold=parseInt(chipVal('holdPeriod'))||7;
   var agent=document.getElementById('agentName').value.trim();
   var addr=document.getElementById('address').value.trim();
@@ -486,9 +632,10 @@ function getInputs(){
     loanType='conv';bacPct=chipVal('bac')==='buyer'?0.03:0;
     ceil=0;buyer='';cashType='dp';dpAmt=lp*dpPct/100;
   }
+  var buyerGoal=MODE==='my'?chipVal('buyerGoal'):'';
   return{lp:lp,tax:tax,hoi:hoi,hoa:hoa,esc:esc,off:off,hold:hold,agent:agent,addr:addr,
     rate:rate,dpPct:dpPct,dpAmt:dpAmt,loanType:loanType,bacPct:bacPct,ceil:ceil,
-    buyer:buyer,cashType:cashType,county:county};
+    buyer:buyer,cashType:cashType,county:county,buyerGoal:buyerGoal};
 }
 
 function resolveDown(inp,offerPrice){
@@ -648,7 +795,7 @@ function buildStrategy(inp,validData){
     } else {
       var hl=hold===10?'10+':'~7';
       rec='perm';ra1='cut';ra2='21';
-      reason='With a '+hl+'-year hold, the permanent rate reduction ('+fr(rate)+' &rarr; '+fr(permRate)+') saves more over time than a price cut. Break-even is ~'+be+' months &#8212; well within the expected hold.';
+      reason='With a '+hl+'-year hold, the permanent rate reduction ('+frR(rate)+' &rarr; '+frR(permRate)+') saves more over time than a price cut. Break-even is ~'+be+' months &#8212; well within the expected hold.';
     }
   }
 
@@ -667,22 +814,22 @@ function buildStrategy(inp,validData){
       sub:'Offer at list price. '+fd(off)+' seller concession funds a 2-1 temporary buydown. Year 1 payment is '+fd(pitiConc-pitiY1)+'/mo lower.',
       rows:[
         {k:'Offer / list price',v:fd(lp)},{k:'Seller concession',v:fd(off)},
-        {k:'Year 1 rate / payment',v:fr(rate-2)+' &middot; '+fd(pitiY1)+'/mo'},
-        {k:'Year 2 rate / payment',v:fr(rate-1)+' &middot; '+fd(pitiY2)+'/mo'},
-        {k:'Year 3+ rate / payment',v:fr(rate)+' &middot; '+fd(pitiConc)+'/mo'},
+        {k:'Year 1 rate / payment',v:frR(rate-2)+' &middot; '+fd(pitiY1)+'/mo'},
+        {k:'Year 2 rate / payment',v:frR(rate-1)+' &middot; '+fd(pitiY2)+'/mo'},
+        {k:'Year 3+ rate / payment',v:frR(rate)+' &middot; '+fd(pitiConc)+'/mo'},
         {k:'Buydown cost',v:fd(c21)},
         off>=c21?{k:'Concession surplus',v:fd(off-c21)+' &rarr; closing costs'}:{k:'Concession gap',v:fd(c21-off)+' short of full buydown'},
         {k:'Est. cash to close',v:fd(sConc.cashToClose-Math.min(off,c21))}
       ]
     },
     perm:{
-      title:'Permanent Buydown &#8212; '+(useOverride?'':'~')+fr(permRate)+' vs. '+fr(rate),
-      sub:'Offer at list price. '+fd(off)+' seller concession buys the rate from '+fr(rate)+' to '+(useOverride?'':'~')+fr(permRate)+', saving '+fd(piSav)+'/mo for the life of the loan.',
+      title:'Permanent Buydown &#8212; '+frR(rate)+' &rarr; '+frR(permRate),
+      sub:'Offer at list price. '+fd(off)+' seller concession buys the rate from '+frR(rate)+' to '+frR(permRate)+', saving '+fd(piSav)+'/mo for the life of the loan.',
       rows:(function(){
         var r=[
           {k:'Offer / list price',v:fd(lp)},{k:'Seller concession',v:fd(off)},
           {k:'Points purchased (est.)',v:permPts.toFixed(2)+'pts'},
-          {k:'Rate',v:fr(rate)+' &rarr; '+(useOverride?'':'~')+fr(permRate)},
+          {k:'Rate',v:frR(rate)+' &rarr; '+frR(permRate)},
           {k:'P&amp;I savings',v:fd(piSav)+'/mo'},
           {k:'Total PITI'+(hoa>0?'+HOA':''),v:fd(pitiPerm)+'/mo'},
           {k:'Break-even',v:be+' months'}
@@ -704,7 +851,7 @@ function buildStrategy(inp,validData){
   html+='<div class="vs-sub">PITI/mo &middot; offer '+fd(op)+'</div>';
   html+='<div style="font-size:12px;color:var(--gray);margin-top:6px;">Down '+fd(ad)+' &middot; CTC '+fd(sCut.cashToClose)+'</div></div>';
   html+='<div class="vs-card"><div class="vs-label">Concession</div><div class="vs-num">'+fd(pitiPerm)+'</div>';
-  html+='<div class="vs-sub">PITI/mo &middot; perm buydown '+fr(permRate)+'</div>';
+  html+='<div class="vs-sub">PITI/mo &middot; perm buydown '+frR(permRate)+'</div>';
   html+='<div style="font-size:12px;color:var(--gray);margin-top:6px;">Down '+fd(ad)+' &middot; saves '+fd(piSav)+'/mo</div></div>';
   html+='</div>';
 
@@ -797,7 +944,10 @@ function buildCS(inp,copyMy,copyNot){
     h+='<button class="copy-btn" onclick="copyText(\'copyNot\')">&#128203; Copy summary to text the agent</button>';
     h+='<textarea id="copyNot" style="position:absolute;left:-9999px;">'+copyNot+'</textarea>';
   }
+  h+='<button class="copy-btn" style="background:var(--blue);color:#fff;font-weight:600;" onclick="buildBuyerOfferStrategy()">&#128196; View Report</button>';
   h+='<button class="copy-btn green-btn" onclick="copyShareLink()">&#128279; Copy shareable link</button>';
+  h+='<button class="copy-btn" onclick="buildBuyerOfferStrategy();setTimeout(function(){window.print();},400);">&#8595; Save PDF</button>';
+  h+='<button class="copy-btn" style="color:var(--gray);border-color:var(--line);font-weight:500;" onclick="buildReport()">&#128196; Detailed Analysis</button>';
   return h;
 }
 
@@ -813,7 +963,30 @@ function copyText(id){
   });
 }
 
-function copyShareLink(){
+async function copyShareLink(){
+  var btn=event&&event.currentTarget?event.currentTarget:(document.getElementById('rptShareBtn')||document.querySelector('.copy-btn.green-btn'));
+  var orig=btn?btn.innerHTML:'';
+  if(btn){btn.textContent='Saving…';btn.disabled=true;}
+  try{
+    var resp=await fetch('/.netlify/functions/save-report',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(collectShareData())
+    });
+    if(!resp.ok)throw new Error('server');
+    var json=await resp.json();
+    await navigator.clipboard.writeText(json.url);
+    if(btn){btn.disabled=false;btn.textContent='✓ Link copied!';}
+    setTimeout(function(){if(btn)btn.innerHTML=orig;},2500);
+  }catch(e){
+    // fallback: legacy URL
+    buildShareURL();
+    navigator.clipboard.writeText(window.location.href);
+    if(btn){btn.innerHTML=orig;btn.disabled=false;}
+    alert('Short link unavailable — copied full URL as fallback.');
+  }
+}
+
+function copyShareLink_legacy(){
   buildShareURL();
   navigator.clipboard.writeText(window.location.href).then(function(){
     document.querySelectorAll('.copy-btn').forEach(function(b){
@@ -825,36 +998,30 @@ function copyShareLink(){
   });
 }
 
-function buildShareURL(){
+function collectShareData(){
   function nv(id){var v=numVal(id);return v?String(v):'';}
   function tv(id){return document.getElementById(id).value||'';}
-  var p=new URLSearchParams();
-  p.set('mode',MODE);
-  p.set('p',nv('listPrice'));
-  p.set('agent',tv('agentName'));
-  p.set('addr',tv('address'));
-  p.set('county',tv('county'));
-  p.set('tax',nv('taxYr'));
-  p.set('hoi',nv('hoiYr'));
-  p.set('hoa',nv('hoaMo'));
-  p.set('esc',chipVal('escrow')||'yes');
-  p.set('off',nv('amtOff'));
-  p.set('hold',chipVal('holdPeriod')||'7');
+  var d={};
+  d.mode=MODE;d.p=nv('listPrice');d.agent=tv('agentName');d.addr=tv('address');
+  d.county=tv('county');d.tax=nv('taxYr');d.hoi=nv('hoiYr');d.hoa=nv('hoaMo');
+  d.esc=chipVal('escrow')||'yes';
+  var _offMode=chipVal('offMode')||'dollar';
+  d.offmode=_offMode;d.off=_offMode==='pct'?nv('amtOffPct'):nv('amtOff');
+  d.hold=chipVal('holdPeriod')||'7';
   if(MODE==='my'){
-    p.set('buyer',tv('buyerName'));
-    p.set('ceil',nv('paymentCeiling'));
+    d.buyer=tv('buyerName');d.ceil=nv('paymentCeiling');
     var dpMode=chipVal('dpMode')||'dollar';
-    p.set('dpmode',dpMode);
-    p.set('down', dpMode==='pct' ? nv('downPct') : nv('downAmt'));
-    p.set('cash',chipVal('cashType')||'dp');
-    p.set('rate',nv('myRate'));
-    p.set('loan',chipVal('loanType')||'conv');
-  } else {
-    p.set('rate',nv('ilRate'));
-    p.set('dp',nv('ilDown'));
-    p.set('bac',chipVal('bac')||'seller');
+    d.dpmode=dpMode;d.down=dpMode==='pct'?nv('downPct'):nv('downAmt');
+    d.cash=chipVal('cashType')||'dp';d.rate=nv('myRate');d.loan=chipVal('loanType')||'conv';
+  }else{
+    d.rate=nv('ilRate');d.dp=nv('ilDown');d.bac=chipVal('bac')||'seller';
   }
-  if(permOverrideVal>0)p.set('permrate',String(permOverrideVal));
+  if(permOverrideVal>0)d.permrate=String(permOverrideVal);
+  return d;
+}
+
+function buildShareURL(){
+  var p=new URLSearchParams(collectShareData());
   history.replaceState(null,'','?'+p.toString());
 }
 
@@ -864,7 +1031,10 @@ function populateFromURL(sp){
   function sv(id,v){var e=document.getElementById(id);if(e&&v!==null&&v!=='')e.value=v;}
   setFmtVal('listPrice',sp.get('p'));sv('agentName',sp.get('agent'));sv('address',sp.get('addr'));
   setFmtVal('taxYr',sp.get('tax'));setFmtVal('hoiYr',sp.get('hoi'));setFmtVal('hoaMo',sp.get('hoa'));
-  setFmtVal('amtOff',sp.get('off'));
+  var _om=sp.get('offmode')||'dollar';
+  sc('offMode',_om);setOffMode(_om);
+  if(_om==='pct'){setFmtVal('amtOffPct',sp.get('off'));}
+  else{setFmtVal('amtOff',sp.get('off'));}
   var permrate=sp.get('permrate');if(permrate)permOverrideVal=parseFloat(permrate)||0;
   var county=sp.get('county');if(county){var ce=document.getElementById('county');if(ce)ce.value=county;}
   function sc(g,v){
@@ -897,241 +1067,611 @@ function buildReport(){
   var inp=getInputs();
   if(!inp.lp)return;
 
-  // Swap views
   document.querySelector('.wrap').style.display='none';
   var rv=document.getElementById('reportView');
   rv.style.display='block';
 
-  // Helpers
   function ocRow(k,v,vcls){return '<div class="oc-row"><span>'+k+'</span><span class="oc-val'+(vcls?' '+vcls:'')+'">'+v+'</span></div>';}
   function escH(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 
-  // Validation (My buyer)
-  var vd=null;
-  if(MODE==='my'){
-    var opV=inp.lp-inp.off||inp.lp;
-    var drV=resolveDown(inp,opV);
-    var stV=inp.tax*(opV/inp.lp);
-    var sV=scenario(opV,drV.dpPct,inp.rate,stV,inp.hoi,inp.loanType,inp.esc,inp.bacPct);
-    var totV=sV.total+inp.hoa;
-    vd={total:totV,clears:inp.ceil>0?totV<=inp.ceil:null,op:opV,ad:drV.ad,dpPct:drV.dpPct};
-  }
-
-  // Strategy calcs
   var lp=inp.lp,off=inp.off,rate=inp.rate,tax=inp.tax,hoi=inp.hoi,hoa=inp.hoa,
       escr=inp.esc,bacPct=inp.bacPct,hold=inp.hold,lt=inp.loanType;
-  var op=lp-off;
+  var holdMos=hold*12;
+  var op=off>0?lp-off:lp;
+  var hl=hold===3?'~3':hold===7?'~7':'10+';
+
+  // ── Base scenario: list price, no negotiation
+  var sBase,adBase;
+  if(MODE==='my'){var drBase=resolveDown(inp,lp);adBase=drBase.ad;sBase=scenario(lp,drBase.dpPct,rate,tax,hoi,lt,escr,bacPct);}
+  else{sBase=scenario(lp,inp.dpPct,rate,tax,hoi,lt,escr,bacPct);adBase=lp*inp.dpPct/100;}
+  var pitiBase=sBase.total+hoa;
+
+  // ── Offer-price down
   var dpPct,ad;
   if(MODE==='my'){var dr=resolveDown(inp,op);dpPct=dr.dpPct;ad=dr.ad;}
   else{dpPct=inp.dpPct;ad=op*dpPct/100;}
-  var dpPctC=ad/lp*100;
   var stax=tax*(op/lp);
 
+  // ── Strategy 1: Lower Offer Strategy
   var sCut=scenario(op,dpPct,rate,stax,hoi,lt,escr,bacPct);
   var pitiCut=sCut.total+hoa;
-  var sConc=scenario(lp,dpPctC,rate,tax,hoi,lt,escr,bacPct);
-  var pitiConc=sConc.total+hoa;
-  var loan=sConc.loan;
-  var c21=cost21(loan,rate);
-  var piY1=pi(loan,rate-2),piY2=pi(loan,rate-1);
-  var pitiY1=piY1+sConc.tax+sConc.ins+sConc.mi+hoa;
-  var pitiY2=piY2+sConc.tax+sConc.ins+sConc.mi+hoa;
-  var c21ok=off>=c21*0.90;
+  var cutMoSav=pitiBase-pitiCut;
 
-  var permPts=off/(loan*0.01);
+  // ── Strategy 2: Permanent Buydown Strategy (offer at list, concession buys rate)
+  var dpPctC=ad/lp*100;
+  var permPts=off>0?off/(sBase.loan*0.01):0;
   var permDrop=Math.min(permPts*0.20,1.5);
   var capped=permPts*0.20>=1.5;
-  var permSurplus=capped?Math.round(off-(1.5/0.20)*loan*0.01):0;
+  var permSurplus=capped?Math.round(off-(1.5/0.20)*sBase.loan*0.01):0;
   var useOvr=permOverrideVal>0;
-  var permRate=useOvr?permOverrideVal:rate-permDrop;
+  var permRate=off>0?(useOvr?permOverrideVal:rate-permDrop):rate;
   var sPerm=scenario(lp,dpPctC,permRate,tax,hoi,lt,escr,bacPct);
   var pitiPerm=sPerm.total+hoa;
-  var piSav=sConc.PI-sPerm.PI;
+  var piSav=sBase.PI-sPerm.PI;
   var be=piSav>0?Math.round(off/piSav):999;
+  var permMoSav=pitiBase-pitiPerm;
 
-  // Base (list price, no negotiation) for savings comparison
-  var sBase=MODE==='my'
-    ?(function(){var drB=resolveDown(inp,lp);return scenario(lp,drB.dpPct,rate,tax,hoi,lt,escr,bacPct);})()
-    :scenario(lp,inp.dpPct,rate,tax,hoi,lt,escr,bacPct);
-  var pitiBase=sBase.total+hoa;
+  // ── Strategy 3: Temporary Buydown Strategy (2-1)
+  var loan=sBase.loan;
+  var c21=cost21(loan,rate);
+  var piY1=pi(loan,rate-2),piY2=pi(loan,rate-1);
+  var pitiY1=piY1+sBase.tax+sBase.ins+sBase.mi+hoa;
+  var pitiY2=piY2+sBase.tax+sBase.ins+sBase.mi+hoa;
+  var sConc=scenario(lp,dpPctC,rate,tax,hoi,lt,escr,bacPct);
+  var pitiConc=sConc.total+hoa;
+  var c21ok=off>=c21*0.90;
+  var tempSavTotal=(pitiBase-pitiY1)*Math.min(12,holdMos)+(pitiBase-pitiY2)*Math.min(12,Math.max(0,holdMos-12));
+  var tempMoAvg=holdMos>0?tempSavTotal/holdMos:0;
 
-  // Recommendation
+  // ── Strategy 4: Closing Cost Strategy (offer at list, concession covers closing)
+  var pitiCC=pitiBase;
+  var ccCashSav=off;
+
+  // ── Dynamic ranking by avg monthly payment savings over hold (CC ranked separately)
+  var rankings=[
+    {key:'cut',moSav:cutMoSav},
+    {key:'perm',moSav:permMoSav},
+    {key:'21',moSav:tempMoAvg}
+  ].sort(function(a,b){return b.moSav-a.moSav;});
+
+  // ── Recommendation
+  var vd=null;
+  if(MODE==='my'){
+    var totAtOp=sCut.total+hoa;
+    vd={total:totAtOp,clears:inp.ceil>0?totAtOp<=inp.ceil:null,op:op,ad:ad,dpPct:dpPct};
+  }
   var cMiss=vd&&vd.clears===false;
   var c21clears=cMiss&&(pitiY1<=(inp.ceil||99999));
   var cashTight=MODE==='my'&&inp.cashType==='total'&&ad<(lp*0.05);
-  var rec,ra1,ra2,reason;
+  var rec,reason;
   if(hold<=3){
-    if(c21ok){rec='21';ra1='cut';ra2='perm';reason='With a ~3-year hold, the 2-1 buydown maximizes payment savings in the years the buyer will actually own the home. The buyer pays full list price, the concession funds the buydown, and any surplus goes toward closing costs.';}
-    else{rec='cut';ra1='21';ra2='perm';reason='The concession ('+fd(off)+') doesn\'t fully cover the 2-1 buydown cost ('+fd(c21)+'), so a price cut is cleaner — it reduces the loan balance and required down payment simultaneously.';}
+    if(c21ok){rec='21';reason='With a ~3-year hold, the Temporary Buydown maximizes payment savings in the years the buyer will actually own the home. Year 1 payment is '+fd(pitiBase-pitiY1)+'/mo lower than the list-price baseline'+(off>c21?' — and the '+fd(off-c21)+' concession surplus goes toward closing costs.':'.');}
+    else{rec='cut';reason='The concession ('+fd(off)+') doesn\'t fully cover the 2-1 buydown cost ('+fd(c21)+'), so a lower offer is cleaner — it reduces the loan balance and down payment simultaneously.';}
   } else {
-    if(cMiss&&c21clears){rec='21';ra1='cut';ra2='perm';reason='The permanent buydown doesn\'t clear the payment ceiling, but Year 1 of the 2-1 buydown ('+fd(pitiY1)+'/mo) brings it within range — buying time to refinance or for income to catch up.';}
-    else if(cashTight){rec='cut';ra1='perm';ra2='21';reason='Cash is tight — a price cut reduces both the loan balance and the down payment needed, freeing up more cash at closing than a seller concession would.';}
-    else{var hlr=hold===10?'10+':'~7';rec='perm';ra1='cut';ra2='21';reason='With a '+hlr+'-year hold, the permanent rate reduction ('+fr(rate)+' → '+(useOvr?'':'~')+fr(permRate)+') saves more over time than a price cut. Break-even is ~'+be+' months — well within the expected hold. The buyer pays full list price, the appraisal holds, and the seller nets the same.';}
+    if(cMiss&&c21clears){rec='21';reason='The Permanent Buydown doesn\'t clear the payment ceiling, but Year 1 of the Temporary Buydown ('+fd(pitiY1)+'/mo) brings it within range — buying time to refinance or for income to catch up.';}
+    else if(cashTight){rec='cut';reason='Cash is tight — a lower offer reduces both the loan balance and the down payment needed, freeing up more cash at closing than any seller concession strategy.';}
+    else{var hlr=hold===10?'10+':'~7';rec='perm';reason='With a '+hlr+'-year hold, the Permanent Buydown ('+frR(rate)+' → '+frR(permRate)+') saves more over time than a lower offer. Break-even is ~'+be+' months — well within the expected hold. The buyer pays list price, the appraisal holds, and the seller nets the same.';}
   }
-  var hl=hold===3?'~3':hold===7?'~7':'10+';
-  var savDiff=Math.abs(pitiCut-pitiPerm);
-  var concWins=pitiPerm<pitiCut;
+
+  // ── Short advisor-friendly reason (Zone 1 only — no jargon)
+  var shortReason='';
+  if(rec==='perm'){shortReason='Best fit for buyers planning to own the home '+(hold===10?'10+':hold>=7?'7+':'long-term')+' years.';}
+  else if(rec==='21'){shortReason='Best fit for buyers who want maximum payment relief in years one and two.';}
+  else if(rec==='cut'){shortReason=cashTight?'Best fit for buyers who need to preserve cash at closing.':'Best fit for buyers focused on the lowest possible long-term payment.';}
+  else if(rec==='cc'){shortReason='Best fit for buyers whose priority is reducing cash needed at closing.';}
+
+  var sNames={cut:'Lower Offer Strategy',perm:'Permanent Buydown Strategy','21':'Temporary Buydown Strategy',cc:'Closing Cost Strategy'};
 
   var h='';
 
-  // ── Header
-  h+='<div class="pp-header">';
-  h+='<div style="flex:1"><h1 style="margin:0;font-size:1.1rem;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;">Offer Strategy Analysis</h1></div>';
-  h+='<div><span class="nmls-badge">NMLS #2742458</span></div>';
-  h+='</div>';
-
-  // ── Property bar
+  // ── Header — property info only; all LO tools live in the worksheet
   h+='<div class="pp-propbar">';
   h+='<div class="pp-propbar-addr">'+(inp.addr?escH(inp.addr):'Address not specified')+'</div>';
-  h+='<div class="pp-propbar-price">List Price '+fd(lp)+'</div>';
+  h+='<div class="pp-propbar-price">List Price '+fd(lp)+(off>0?' &middot; Negotiating '+fd(off)+' Off':'')+'</div>';
   h+='</div>';
 
   // ── Prepared for
-  if(inp.agent)h+='<div class="pp-prepfor">Prepared for <strong>'+escH(inp.agent)+'\'s</strong> client</div>';
+  var prepParts=[];
+  if(inp.agent)prepParts.push('Prepared for <strong>'+escH(inp.agent)+'</strong>');
+  if(MODE==='my'&&inp.buyer)prepParts.push('Buyer: <strong>'+escH(inp.buyer)+'</strong>');
+  if(prepParts.length)h+='<div class="pp-prepfor">'+prepParts.join(' &middot; ')+'</div>';
 
   h+='<div class="pp-main">';
 
-  // ── Section 1: Payment Check (My buyer only)
-  if(MODE==='my'&&vd){
-    h+='<div class="pp-card"><div class="pp-card-header">Payment Check</div><div class="pp-card-body">';
-    h+=ocRow('Purchase price',fd(vd.op));
-    h+=ocRow('Down payment',fd(vd.ad)+' ('+vd.dpPct.toFixed(1)+'%)');
-    h+=ocRow('Rate',fr(inp.rate));
-    h+=ocRow('Monthly payment (PITI'+(hoa>0?'+HOA':'')+')',fd(vd.total)+'/mo','blue');
-    if(vd.clears!==null){
-      var diff=Math.abs(vd.total-inp.ceil);
-      h+='<div class="rpt-ceil-row '+(vd.clears?'pass':'fail')+'">';
-      h+=vd.clears?'&#10003; Clears '+fd(inp.ceil)+' ceiling by '+fd(diff)+'/mo':'&#10007; Over '+fd(inp.ceil)+' ceiling by '+fd(diff)+'/mo';
+  // ════════════════════════════════════════════
+  // MY BUYER MODE — Verdict first
+  // ════════════════════════════════════════════
+  if(MODE==='my'){
+
+    // ── Pre-compute for Zone 1 ────────────────
+    var recPiti=rec==='cut'?pitiCut:rec==='perm'?pitiPerm:rec==='21'?pitiY1:pitiCC;
+    var recSavBase=pitiBase-recPiti;
+    var curPiti=vd.total; // payment at offer price (or list if no off)
+
+    // Which strategies (if any) bring payment under ceiling?
+    var clearingStrats=[];
+    if(inp.ceil>0&&vd&&!vd.clears&&off>0){
+      if(pitiCut<=inp.ceil)clearingStrats.push(sNames.cut);
+      if(pitiPerm<=inp.ceil)clearingStrats.push(sNames.perm);
+      if(pitiY1<=inp.ceil)clearingStrats.push(sNames['21']+' (Year 1)');
+    }
+    var aState2=!inp.ceil?'none':vd.clears?'pass':(off>0&&clearingStrats.length>0)?'warn':'fail';
+
+    // ── Zone 1A: Buyer Affordability Check ───
+    var affIcon={pass:'✅',warn:'⚠️',fail:'❌',none:''}[aState2];
+    var affTitle={pass:'WITHIN COMFORT RANGE',warn:'ABOVE COMFORT RANGE',fail:'OUTSIDE COMFORT RANGE',none:'CURRENT OFFER PAYMENT'}[aState2];
+    var affSentence={
+      pass:'This home fits comfortably within the buyer\'s target payment range.',
+      warn:'This property is above the buyer\'s preferred payment range. The strategies below can help.',
+      fail:'Even with available strategies, this property exceeds the buyer\'s target payment range.',
+      none:'Based on current offer structure. Enter a comfort target above to see affordability context.'
+    }[aState2];
+
+    h+='<div class="aff-card aff-'+aState2+'">';
+    h+='<div class="aff-top">';
+    h+='<div class="aff-status">'+(affIcon?affIcon+' ':'')+affTitle+'</div>';
+    h+='<div class="aff-piti">'+fd(curPiti)+'<span class="aff-mo">/mo</span></div>';
+    h+='</div>';
+    if(inp.ceil>0){
+      var ceilDiff=Math.abs(curPiti-inp.ceil);
+      var diffLabel=aState2==='pass'?fd(ceilDiff)+' Below Target':fd(ceilDiff)+' Above Target';
+      h+='<div class="aff-rows">';
+      h+='<div class="aff-row"><span>Target:</span><span>'+fd(inp.ceil)+'/mo</span></div>';
+      h+='<div class="aff-row"><span>&nbsp;</span><span class="'+(aState2==='pass'?'aff-green':'aff-red')+'">'+diffLabel+'</span></div>';
       h+='</div>';
     }
-    h+='</div></div>';
-  }
+    if(affSentence)h+='<div class="aff-sentence">'+affSentence+'</div>';
+    if(aState2==='warn'&&clearingStrats.length){
+      h+='<div class="aff-clears">'+clearingStrats.map(function(n){return '<span class="aff-clears-pill">'+n+'</span>';}).join('')+'</div>';
+    }
+    if(aState2==='fail'){
+      var maxP=calcMaxPrice(inp);
+      if(maxP>0)h+='<div class="aff-maxprice">Est. max purchase price at these assumptions: <strong>'+fd(maxP)+'</strong></div>';
+    }
+    h+='</div>'; // aff-card
 
-  // ── Section 2: VS (only if off > 0)
-  if(off>0){
-    h+='<div class="pp-card"><div class="pp-card-header">'+fd(off)+' from the Seller — Two Ways</div><div class="pp-card-body">';
-    h+='<div class="two-col">';
+    // ── Zone 1B: Best Strategy Summary ───────
+    if(off>0){
+      h+='<div class="best-summary">';
+      h+='<div class="bs-label">&#9670; Recommended Strategy</div>';
+      h+='<div class="bs-name">'+sNames[rec]+'</div>';
+      if(rec==='cc'){
+        h+='<div class="bs-piti">Reduce cash to close by <span style="color:#a8dda0;font-weight:800;">'+fd(off)+'</span></div>';
+      } else {
+        h+='<div class="bs-piti">'+fd(recPiti)+'<span class="bs-mo">/mo</span>';
+        if(rec==='21')h+='<span class="bs-piti-note"> Year 1</span>';
+        if(recSavBase>0)h+='<span class="bs-sav">saves '+fd(recSavBase)+'/mo</span>';
+        h+='</div>';
+      }
+      h+='<div class="bs-reason">'+shortReason+'</div>';
+      h+='</div>';
 
-    // Price Cut column
-    h+='<div class="option-col'+(concWins?'':' winner')+'">';
-    h+='<div class="oc-hdr gray">Price Cut'+(concWins?'':'<span class="best-badge">Best</span>')+'</div>';
-    h+='<div class="oc-body">';
-    h+='<div class="oc-row"><span>Monthly payment (PITI'+(hoa>0?'+HOA':'')+')</span><span class="oc-val blue big">'+fd(pitiCut)+'</span></div>';
-    h+=ocRow('Offer price',fd(op));
-    h+=ocRow('Saves vs. list price',fd(pitiBase-pitiCut)+'/mo','green');
-    h+='</div></div>';
+      // ── Zone 1C: Buyer Conversation ──────
+      h+='<div class="buyer-question">&ldquo;What matters most &mdash; lowest payment long-term, early breathing room, or keeping cash in the bank?&rdquo;</div>';
 
-    // Concession column
-    h+='<div class="option-col'+(concWins?' winner':'')+'">';
-    h+='<div class="oc-hdr blue">Concession'+(concWins?'<span class="best-badge">Best</span>':'')+'</div>';
-    h+='<div class="oc-body">';
-    h+='<div class="oc-row"><span>Monthly payment (PITI'+(hoa>0?'+HOA':'')+')</span><span class="oc-val blue big">'+fd(pitiPerm)+'</span></div>';
-    h+=ocRow('Rate buydown',fr(rate)+' → '+(useOvr?'':'~')+fr(permRate));
-    h+=ocRow('Saves vs. list price',fd(pitiBase-pitiPerm)+'/mo','green');
-    h+='</div></div>';
+      // ── Zone 2: Strategy options (simplified — no payment breakdown) ──
+      h+='<div class="pp-card"><div class="pp-card-header">All Four Options</div><div class="pp-card-body">';
+      var allKeys=rankings.map(function(r){return r.key;});allKeys.push('cc');
+      allKeys.forEach(function(key,idx){h+=renderStratCard(key,key===rec,idx);});
+      h+='</div></div>';
 
-    h+='</div>'; // two-col
-
-    if(concWins){
-      h+='<div class="oc-highlight"><span><strong>Concession saves '+fd(savDiff)+'/mo more</strong> — same cost to the seller</span></div>';
-    } else if(pitiCut<pitiPerm){
-      h+='<div class="oc-highlight"><span><strong>Price cut saves '+fd(savDiff)+'/mo more</strong> — also reduces loan balance &amp; down payment</span></div>';
     }
 
-    h+='</div></div>'; // pp-card-body + pp-card
+  } else {
+    // ════════════════════════════════════════════
+    // NOT MY BUYER MODE — Verdict first
+    // ════════════════════════════════════════════
+
+    if(off>0){
+      var top1key=rankings[0].key,top2key=rankings[1].key;
+      var savDiff=rankings[0].moSav-rankings[1].moSav;
+
+      // ── Zone 1A: Top 2 strategy comparison ─
+      h+='<div class="pp-card"><div class="pp-card-header">'+fd(off)+' from the Seller &mdash; Two Ways</div><div class="pp-card-body">';
+      h+='<div class="two-col">';
+      h+=renderVsCard(top1key,true);
+      h+=renderVsCard(top2key,false);
+      h+='</div>';
+      if(savDiff>1)h+='<div class="oc-highlight"><span><strong>'+sNames[top1key]+' saves '+fd(savDiff)+'/mo more</strong> &mdash; same cost to the seller</span></div>';
+      h+='</div></div>';
+
+      // ── Zone 1B: Best Strategy reason ──────
+      h+='<div class="best-summary">';
+      h+='<div class="bs-label">&#9670; Recommended for '+hl+'-year hold</div>';
+      h+='<div class="bs-name">'+sNames[rec]+'</div>';
+      h+='<div class="bs-reason">'+shortReason+'</div>';
+      h+='</div>';
+
+      // ── Zone 1C: Buyer Conversation ────────
+      h+='<div class="buyer-question">&ldquo;What matters most &mdash; lowest payment long-term, early breathing room, or keeping cash in the bank?&rdquo;</div>';
+
+      // ── Zone 2: Strategy options (simplified — no payment breakdown) ──
+      h+='<div class="pp-card"><div class="pp-card-header">All Four Options</div><div class="pp-card-body">';
+      var allKeys2=rankings.map(function(r){return r.key;});allKeys2.push('cc');
+      allKeys2.forEach(function(key,idx){h+=renderStratCard(key,key===rec,idx);});
+      h+='</div></div>';
+
+    } else {
+      // No negotiation amount — base payment only
+      h+='<div class="pp-card"><div class="pp-card-header">Payment at List Price</div><div class="pp-card-body">';
+      h+='<div class="prompt-box">&#128161; Enter an amount above to see price cut vs. concession strategy and a recommendation.</div>';
+      h+=ocRow('List price',fd(lp));
+      h+=ocRow('Assumed down',fd(adBase)+' ('+inp.dpPct.toFixed(1)+'%)');
+      h+=ocRow('Rate',frR(rate));
+      h+=ocRow('P&amp;I',fd(sBase.PI)+'/mo');
+      if(sBase.mi>0)h+=ocRow('MI',fd(sBase.mi)+'/mo');
+      if(escr)h+=ocRow('Taxes + insurance',fd(sBase.tax+sBase.ins)+'/mo');
+      if(hoa>0)h+=ocRow('HOA',fd(hoa)+'/mo');
+      h+='<div class="oc-row" style="background:#f8faff;margin:4px -14px;padding:8px 14px;"><span style="font-weight:700;">Total PITI'+(hoa>0?'+HOA':'')+'</span><span class="oc-val blue big">'+fd(pitiBase)+'/mo</span></div>';
+      h+=ocRow('Est. cash to close',fd(sBase.cashToClose));
+      h+='</div></div>';
+    }
   }
-
-  // ── Section 3: Recommended Strategy
-  h+='<div class="pp-card"><div class="pp-card-header">Recommended Strategy</div><div class="pp-card-body">';
-  h+=rptRec(rec);
-  h+='</div></div>';
-
-  // ── Talking point
-  h+='<div class="talking-point"><div class="tp-label">Why This Works</div><div class="tp-text">'+reason+'</div></div>';
-
-  // ── Section 4: Alternatives
-  if(off>0){
-    h+='<div class="pp-card"><div class="pp-card-header">Alternatives</div><div class="pp-card-body">';
-    h+='<div style="display:flex;flex-direction:column;gap:12px;">';
-    h+=rptAlt(ra1);
-    h+=rptAlt(ra2);
-    h+='</div></div></div>';
-  }
-
-  // ── Closing question (info-box blue)
-  h+='<div class="info-box">“What matters most — lowest payment long-term, early breathing room, or keeping cash in the bank?”</div>';
-
-  // ── Tax note (info-box amber)
-  h+='<div class="info-box amber">Seller-paid discount points may be tax deductible for the buyer as mortgage interest (Schedule A). A price cut provides no tax benefit to either party. Consult a tax advisor for individual situations.</div>';
 
   // ── Compliance footer
-  h+='<div class="compliance">Prepared by Doug Smith, Certified Mortgage Advisor · HomeWealth Solutions LLC · This communication is for informational and educational purposes only and does not constitute an offer to lend or a commitment to make a loan. All loans are subject to credit approval, underwriting guidelines, and property approval. Interest rates, payment examples, programs, and terms are illustrative, vary by borrower qualification, and are subject to change without notice. Not all applicants will qualify. Examples shown do not reflect all costs of a mortgage transaction. Consult a licensed tax or legal advisor regarding your individual situation. HomeWealth Solutions LLC is licensed by the Florida Office of Financial Regulation, Mortgage Broker License #MBR8082. Verify our licensure at www.nmlsconsumeraccess.org. Equal Housing Opportunity. NMLS #2742458 · Doug Smith NMLS #2609118</div>';
+  h+='<div class="compliance">Prepared by Doug Smith, CMA&reg; &middot; HomeWealth Solutions LLC &middot; For informational purposes only. Not an offer to lend. All scenarios are illustrative; actual rates, payments, and terms vary by borrower and are subject to change without notice. Not all applicants will qualify. Consult a licensed tax or legal advisor regarding your individual situation. FL OFR License #MBR8082 &middot; NMLS #2742458 &middot; Doug Smith NMLS #2609118 &middot; nmlsconsumeraccess.org &middot; Equal Housing Opportunity.</div>';
 
   h+='</div>'; // pp-main
-
   rv.innerHTML=h;
 
-  // Recommended card — green header, full rows
-  function rptRec(key){
-    var s='<div class="option-col winner"><div class="oc-hdr green">◆ RECOMMENDED — '+hl+'-YEAR HOLD<span class="best-badge">Best</span></div><div class="oc-body">';
+  // ── Full detail strategy card (used in both modes' "All Strategies" section)
+  function renderStratCard(key,isRec,idx){
+    var name=sNames[key];
+    var hdrCls=isRec?'green':idx===0?'blue':'gray';
+    var badge=isRec?'<span class="best-badge">&#9670; Recommended</span>':'';
+    var s='<div class="option-col'+(isRec?' winner':'')+'" style="margin-bottom:12px;">';
+    s+='<div class="oc-hdr '+hdrCls+'">'+name+badge+'</div><div class="oc-body">';
     if(key==='cut'){
-      s+='<div style="font-weight:700;font-size:0.95rem;color:var(--pp-dark);padding-bottom:8px;border-bottom:1px solid var(--gray-200);margin-bottom:4px;">Price Cut to '+fd(op)+'</div>';
       s+=ocRow('Offer price',fd(op));
-      s+=ocRow('P&amp;I',fd(sCut.PI)+'/mo');
-      s+=ocRow('Total PITI'+(hoa>0?'+HOA':''),fd(pitiCut)+'/mo','blue');
+      s+='<div class="oc-row"><span>Monthly PITI'+(hoa>0?'+HOA':'')+'</span><span class="oc-val blue big">'+fd(pitiCut)+'/mo</span></div>';
+      if(cutMoSav>0)s+=ocRow('Saves vs. list price',fd(cutMoSav)+'/mo','green');
       s+=ocRow('Est. cash to close',fd(sCut.cashToClose));
-    } else if(key==='21'){
-      s+='<div style="font-weight:700;font-size:0.95rem;color:var(--pp-dark);padding-bottom:8px;border-bottom:1px solid var(--gray-200);margin-bottom:4px;">2-1 Buydown — '+fd(off)+' Seller Concession</div>';
-      s+=ocRow('Year 1 rate / payment',fr(rate-2)+' · '+fd(pitiY1)+'/mo','blue');
-      s+=ocRow('Year 2 rate / payment',fr(rate-1)+' · '+fd(pitiY2)+'/mo');
-      s+=ocRow('Year 3+ rate / payment',fr(rate)+' · '+fd(pitiConc)+'/mo');
-      s+=ocRow('Buydown cost',fd(c21));
-      s+=(off>=c21?ocRow('Concession surplus',fd(off-c21)+' → closing costs','green'):ocRow('Concession gap',fd(c21-off)+' short'));
-      s+=ocRow('Est. cash to close',fd(sConc.cashToClose-Math.min(off,c21)));
-    } else {
-      s+='<div style="font-weight:700;font-size:0.95rem;color:var(--pp-dark);padding-bottom:8px;border-bottom:1px solid var(--gray-200);margin-bottom:4px;">Permanent Buydown — '+(useOvr?'':'~')+fr(permRate)+' vs. '+fr(rate)+'</div>';
-      s+=ocRow('Seller concession',fd(off));
-      s+=ocRow('Rate',fr(rate)+' → '+(useOvr?'':'~')+fr(permRate));
-      s+=ocRow('P&amp;I savings',fd(piSav)+'/mo','green');
-      s+=ocRow('Total PITI'+(hoa>0?'+HOA':''),fd(pitiPerm)+'/mo','blue');
+    } else if(key==='perm'){
+      s+=ocRow('Rate',frR(rate)+' &rarr; '+frR(permRate));
+      s+='<div class="oc-row"><span>Monthly PITI'+(hoa>0?'+HOA':'')+'</span><span class="oc-val blue big">'+fd(pitiPerm)+'/mo</span></div>';
+      if(permMoSav>0)s+=ocRow('Saves vs. list price',fd(permMoSav)+'/mo','green');
       s+=ocRow('Break-even','~'+be+' months');
-      if(permSurplus>0)s+=ocRow('Concession surplus',fd(permSurplus)+' → closing costs','green');
+      if(permSurplus>0)s+=ocRow('Concession surplus',fd(permSurplus)+' &rarr; closing costs','green');
       s+=ocRow('Est. cash to close',fd(sPerm.cashToClose));
+    } else if(key==='21'){
+      s+=ocRow('Year 1 rate / payment',frR(rate-2)+' &middot; '+fd(pitiY1)+'/mo','blue');
+      s+=ocRow('Year 2 rate / payment',frR(rate-1)+' &middot; '+fd(pitiY2)+'/mo');
+      s+=ocRow('Year 3+ rate / payment',frR(rate)+' &middot; '+fd(pitiConc)+'/mo');
+      if(off>=c21){s+=ocRow('Concession surplus',fd(off-c21)+' &rarr; closing costs','green');}
+      else{s+=ocRow('Concession gap',fd(c21-off)+' short of full buydown');}
+      s+=ocRow('Est. cash to close',fd(sConc.cashToClose-Math.min(off,c21)));
+      if(!c21ok)s+='<div style="font-size:0.75rem;color:#92400E;background:#FFFBEB;border:1px solid #FCD34D;border-radius:5px;padding:6px 8px;margin-top:8px;">&#9888; Concession is short of the full 2-1 buydown cost ('+fd(c21)+').</div>';
+    } else if(key==='cc'){
+      s+='<div class="oc-row"><span>Monthly PITI'+(hoa>0?'+HOA':'')+'</span><span class="oc-val blue big">'+fd(pitiCC)+'/mo</span></div>';
+      s+=ocRow('Cash savings at close',fd(ccCashSav),'green');
+      s+=ocRow('Est. cash to close',fd(sBase.cashToClose-off));
     }
     s+='</div></div>';
     return s;
   }
 
-  // Alternative cards — gray header, compact
-  function rptAlt(key){
-    var s='<div class="option-col"><div class="oc-hdr gray">';
+  // ── Compact VS card (Not My Buyer Zone 1 — top 2 side by side)
+  function renderVsCard(key,isWinner){
+    var name=sNames[key];
+    var hdrCls=isWinner?'green':'gray';
+    var badge=isWinner?'<span class="best-badge">Best</span>':'';
+    var s='<div class="option-col'+(isWinner?' winner':'')+'">';
+    s+='<div class="oc-hdr '+hdrCls+'">'+name+badge+'</div><div class="oc-body">';
     if(key==='cut'){
-      s+='Alternative — Price Cut to '+fd(op)+'</div><div class="oc-body">';
+      s+='<div class="oc-row"><span>Monthly PITI'+(hoa>0?'+HOA':'')+'</span><span class="oc-val blue big">'+fd(pitiCut)+'</span></div>';
       s+=ocRow('Offer price',fd(op));
-      s+=ocRow('Total PITI'+(hoa>0?'+HOA':''),fd(pitiCut)+'/mo');
+      if(cutMoSav>0)s+=ocRow('Saves vs. list',fd(cutMoSav)+'/mo','green');
       s+=ocRow('Est. cash to close',fd(sCut.cashToClose));
+    } else if(key==='perm'){
+      s+='<div class="oc-row"><span>Monthly PITI'+(hoa>0?'+HOA':'')+'</span><span class="oc-val blue big">'+fd(pitiPerm)+'</span></div>';
+      s+=ocRow('Rate buydown',frR(rate)+' &rarr; '+frR(permRate));
+      if(permMoSav>0)s+=ocRow('Saves vs. list',fd(permMoSav)+'/mo','green');
+      s+=ocRow('Est. cash to close',fd(sPerm.cashToClose));
     } else if(key==='21'){
-      s+='Alternative — 2-1 Temporary Buydown</div><div class="oc-body">';
-      s+=ocRow('Year 1 rate / payment',fr(rate-2)+' · '+fd(pitiY1)+'/mo');
-      s+=ocRow('Year 2 rate / payment',fr(rate-1)+' · '+fd(pitiY2)+'/mo');
-      s+=ocRow('Year 3+ rate / payment',fr(rate)+' · '+fd(pitiConc)+'/mo');
-      s+=ocRow('Buydown cost',fd(c21));
-      if(off>=c21)s+=ocRow('Concession surplus',fd(off-c21)+' → closing costs','green');
-    } else {
-      s+='Alternative — Permanent Buydown</div><div class="oc-body">';
-      s+=ocRow('Rate',fr(rate)+' → '+(useOvr?'':'~')+fr(permRate));
-      s+=ocRow('P&amp;I savings',fd(piSav)+'/mo');
-      s+=ocRow('Total PITI'+(hoa>0?'+HOA':''),fd(pitiPerm)+'/mo');
-      s+=ocRow('Break-even','~'+be+' months');
+      s+='<div class="oc-row"><span>Year 1 PITI'+(hoa>0?'+HOA':'')+'</span><span class="oc-val blue big">'+fd(pitiY1)+'</span></div>';
+      s+=ocRow('Year 2',fd(pitiY2)+'/mo');
+      s+=ocRow('Year 3+',fd(pitiConc)+'/mo');
+      if(tempMoAvg>1)s+=ocRow('Avg savings over '+hl+' hold',fd(tempMoAvg)+'/mo','green');
+    } else if(key==='cc'){
+      s+='<div class="oc-row"><span>Monthly PITI'+(hoa>0?'+HOA':'')+'</span><span class="oc-val blue big">'+fd(pitiCC)+'</span></div>';
+      s+=ocRow('Cash savings at close',fd(ccCashSav),'green');
+      s+=ocRow('Est. cash to close',fd(sBase.cashToClose-off));
     }
     s+='</div></div>';
     return s;
   }
 }
 
-window.addEventListener('DOMContentLoaded',function(){
+// ══════════════════════════════════════════════════════════════════════════════
+// ── Buyer Offer Strategy Report ────────────────────────────────────────────────
+// Primary report. buildReport() (Detailed Analysis) remains available as legacy.
+// ══════════════════════════════════════════════════════════════════════════════
+function buildBuyerOfferStrategy(){
+  var inp=getInputs();
+  if(!inp.lp)return;
+
+  document.querySelector('.wrap').style.display='none';
+  var rv=document.getElementById('reportView');
+  rv.style.display='block';
+
+  function ocR(k,v,vcls){return '<div class="oc-row"><span>'+k+'</span><span class="oc-val'+(vcls?' '+vcls:'')+'">'+v+'</span></div>';}
+  function escH(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+  // ── Identical computation block (copied from buildReport, not modified) ──
+  var lp=inp.lp,off=inp.off,rate=inp.rate,tax=inp.tax,hoi=inp.hoi,hoa=inp.hoa,
+      escr=inp.esc,bacPct=inp.bacPct,hold=inp.hold,lt=inp.loanType;
+  var holdMos=hold*12;
+  var op=off>0?lp-off:lp;
+  var hl=hold===3?'~3':hold===7?'~7':'10+';
+
+  var sBase,adBase;
+  if(MODE==='my'){var drBase=resolveDown(inp,lp);adBase=drBase.ad;sBase=scenario(lp,drBase.dpPct,rate,tax,hoi,lt,escr,bacPct);}
+  else{sBase=scenario(lp,inp.dpPct,rate,tax,hoi,lt,escr,bacPct);adBase=lp*inp.dpPct/100;}
+  var pitiBase=sBase.total+hoa;
+
+  var dpPct,ad;
+  if(MODE==='my'){var dr=resolveDown(inp,op);dpPct=dr.dpPct;ad=dr.ad;}
+  else{dpPct=inp.dpPct;ad=op*dpPct/100;}
+  var stax=tax*(op/lp);
+
+  var sCut=scenario(op,dpPct,rate,stax,hoi,lt,escr,bacPct);
+  var pitiCut=sCut.total+hoa;
+  var cutMoSav=pitiBase-pitiCut;
+
+  var dpPctC=ad/lp*100;
+  var permPts=off>0?off/(sBase.loan*0.01):0;
+  var permDrop=Math.min(permPts*0.20,1.5);
+  var capped=permPts*0.20>=1.5;
+  var permSurplus=capped?Math.round(off-(1.5/0.20)*sBase.loan*0.01):0;
+  var useOvr=permOverrideVal>0;
+  var permRate=off>0?(useOvr?permOverrideVal:rate-permDrop):rate;
+  var sPerm=scenario(lp,dpPctC,permRate,tax,hoi,lt,escr,bacPct);
+  var pitiPerm=sPerm.total+hoa;
+  var piSav=sBase.PI-sPerm.PI;
+  var be=piSav>0?Math.round(off/piSav):999;
+  var permMoSav=pitiBase-pitiPerm;
+
+  var loan=sBase.loan;
+  var c21=cost21(loan,rate);
+  var piY1=pi(loan,rate-2),piY2=pi(loan,rate-1);
+  var pitiY1=piY1+sBase.tax+sBase.ins+sBase.mi+hoa;
+  var pitiY2=piY2+sBase.tax+sBase.ins+sBase.mi+hoa;
+  var sConc=scenario(lp,dpPctC,rate,tax,hoi,lt,escr,bacPct);
+  var pitiConc=sConc.total+hoa;
+  var c21ok=off>=c21*0.90;
+  var tempSavTotal=(pitiBase-pitiY1)*Math.min(12,holdMos)+(pitiBase-pitiY2)*Math.min(12,Math.max(0,holdMos-12));
+  var tempMoAvg=holdMos>0?tempSavTotal/holdMos:0;
+  var pitiCC=pitiBase;
+  var ccCashSav=off;
+
+  var vd=null;
+  if(MODE==='my'){var totAtOp=sCut.total+hoa;vd={total:totAtOp,clears:inp.ceil>0?totAtOp<=inp.ceil:null};}
+  var cMiss=vd&&vd.clears===false;
+  var c21clears=cMiss&&(pitiY1<=(inp.ceil||99999));
+  var cashTight=MODE==='my'&&inp.cashType==='total'&&ad<(lp*0.05);
+
+  var rec;
+  if(hold<=3){
+    rec=c21ok?'21':'cut';
+  } else {
+    if(cMiss&&c21clears){rec='21';}
+    else if(cashTight){rec='cut';}
+    else{rec='perm';}
+  }
+
+  // Recommendation prose — goal-first language
+  var recReason='';
+  if(rec==='perm'){recReason='Because the buyer plans to own the home approximately '+(hold===10?'10+':hold)+' years, the permanent rate reduction creates the greatest long-term benefit.';}
+  else if(rec==='21'){recReason='With a '+hl+'-year expected hold, the temporary rate relief maximizes payment savings during the years they will actually own the home.';}
+  else if(rec==='cut'){recReason=cashTight?'Cash preservation is the priority — a lower offer reduces both the loan balance and the down payment needed at closing.':'A lower offer price best matches the buyer\'s expected '+hl+'-year hold, reducing long-term loan cost.';}
+  else if(rec==='cc'){recReason='The buyer\'s priority is preserving cash at closing — this strategy maximizes reserves without changing the monthly payment.';}
+
+  var sNames={cut:'Lower Offer Strategy',perm:'Permanent Buydown Strategy','21':'Temporary Buydown Strategy',cc:'Closing Cost Strategy'};
+  var recPiti=rec==='cut'?pitiCut:rec==='perm'?pitiPerm:rec==='21'?pitiY1:pitiCC;
+  var recSav=pitiBase-recPiti;
+  // ── End computation ──────────────────────────────────────────────────
+
+  var h='';
+
+  // Pre-conversation letter map (fixed — used in Buyer Priority section and Realtor script)
+  var pcLetterMap={'21':'A',perm:'B',cut:'C',cc:'D'};
+  var goalLabels={
+    '21':'Lowest Payment Today (First 2 Years)',
+    perm:'Lowest Payment Long-Term',
+    cut:'Lowest Purchase Price',
+    cc:'Keep More Cash at Closing'
+  };
+  var stratLabels={
+    '21':'Temporary Buydown Strategy',
+    perm:'Permanent Buydown Strategy',
+    cut:'Lower Offer Strategy',
+    cc:'Closing Cost Strategy'
+  };
+  var ccCoveredClosing=Math.min(off,sBase.closing);
+  var ccExcessToDown=Math.max(0,off-sBase.closing);
+
+  // Fixed order and letters — A/B/C/D never move regardless of recommendation
+  var displayOrder=['21','perm','cut','cc'];
+
+  // MY BUYER rec reason — personal, no jargon
+  if(rec==='perm'){recReason='Because I know the buyer\'s comfortable payment range, available cash, and how long they plan to stay in the home, the permanent rate reduction creates the strongest long-term outcome.';}
+  else if(rec==='21'){recReason='Because I know the buyer\'s near-term payment comfort and expected hold period, the temporary rate relief delivers maximum savings during the years they\'ll own this home.';}
+  else if(rec==='cut'){recReason=cashTight?'Because I know the buyer\'s cash position is the priority, a lower offer reduces both the loan balance and cash needed at closing.':'Because I know the buyer\'s expected ownership timeline, a lower offer price reduces the long-term cost of this home.';}
+  else if(rec==='cc'){recReason='Because I know the buyer\'s reserves are the priority right now, this structure keeps more cash available at closing without increasing the monthly payment.';}
+
+  // ── Property bar ──────────────────────────────────────────────────────
+  h+='<div class="pp-propbar">';
+  h+='<div class="pp-propbar-addr">'+(inp.addr?escH(inp.addr):'Address not specified')+'</div>';
+  h+='<div class="pp-propbar-price">List Price '+fd(lp)+(off>0?' &middot; Negotiating '+fd(off)+' Off':'')+'</div>';
+  h+='</div>';
+  var prepParts=[];
+  if(inp.agent)prepParts.push('Prepared for <strong>'+escH(inp.agent)+'</strong>');
+  if(MODE==='my'&&inp.buyer)prepParts.push('Buyer: <strong>'+escH(inp.buyer)+'</strong>');
+  if(prepParts.length)h+='<div class="pp-prepfor">'+prepParts.join(' &middot; ')+'</div>';
+
+  h+='<div class="pp-main">';
+
+  if(off>0){
+
+    // ── SECTION 1: KEY INSIGHT (top — both modes) ─────────────────────────
+    if(permMoSav>0||cutMoSav>0){
+      h+='<div class="proto-insight" style="margin:20px 28px 0;">';
+      h+='<div class="proto-insight-title">Key Insight</div>';
+      h+='<div class="proto-insight-body">The same '+fd(off)+' seller contribution can create very different outcomes depending on how it is structured.</div>';
+      h+='<div class="proto-insight-row"><span class="proto-insight-label">'+fd(off)+' Price Reduction</span><span class="proto-insight-arrow">&rarr;</span><span class="proto-insight-val">'+fd(pitiCut)+'/mo</span></div>';
+      h+='<div class="proto-insight-row"><span class="proto-insight-label">'+fd(off)+' Seller Concession</span><span class="proto-insight-arrow">&rarr;</span><span class="proto-insight-val blue">'+fd(pitiPerm)+'/mo</span></div>';
+      h+='<div style="font-size:1rem;font-weight:600;color:var(--blue);margin-top:16px;letter-spacing:0.01em;">Same seller cost. Different outcome.</div>';
+      h+='</div>';
+    }
+
+    // ── SECTION 2: BUYER PRIORITY (MY BUYER only, if collected) ──────────
+    if(MODE==='my'&&inp.buyerGoal){
+      var bgLetter=pcLetterMap[inp.buyerGoal];
+      var bgLabel=goalLabels[inp.buyerGoal];
+      h+='<div class="proto-buyer-priority">';
+      h+='<div class="proto-priority-label">Buyer Priority</div>';
+      h+='<div class="proto-priority-value">'+bgLetter+'. '+bgLabel+'</div>';
+      h+='</div>';
+    }
+
+    // ── SECTION 3: FOUR OPTIONS ───────────────────────────────────────────
+    h+='<div class="proto-title" style="padding-top:20px;">What Matters Most to Your Buyer?</div>';
+
+    h+='<div class="proto-goals-grid">';
+
+    displayOrder.forEach(function(key,idx){
+      var dispLetter=pcLetterMap[key]; // fixed — letter is always tied to strategy, not position
+      var isRec=(MODE==='my'&&key===rec);
+      var payment,unit,unitBlock,facts,tagline;
+
+      if(key==='perm'){
+        payment=fd(pitiPerm);unit='/mo';unitBlock='';
+        facts=(permMoSav>0?'<div class="proto-goal-fact green">Save '+fd(permMoSav)+'/mo</div>':'');
+        tagline='Best for buyers expecting to stay 7+ years.';
+      } else if(key==='21'){
+        payment=fd(pitiY1);unit='Year 1';unitBlock='';
+        facts='<div class="proto-goal-fact">Year 2: '+fd(pitiY2)+'/mo</div>'+
+              '<div class="proto-goal-fact">Year 3+: '+fd(pitiConc)+'/mo</div>';
+        tagline='Best for buyers wanting maximum breathing room during the first two years.';
+      } else if(key==='cc'){
+        // Unit goes on its own line to prevent "$X,XXX Seller" / "Contribution" wrapping
+        payment=fd(off);unit='';unitBlock='Seller Contribution';
+        facts='<div class="proto-goal-fact">Closing Costs &amp; Prepaids: '+fd(ccCoveredClosing)+'</div>'+
+              (ccExcessToDown>0?'<div class="proto-goal-fact green">Additional Down Payment: '+fd(ccExcessToDown)+'</div>':'')+
+              '<hr class="proto-goal-divider">'+
+              '<div class="proto-goal-fact blue">Est. Cash to Close: '+fd(Math.max(0,sBase.cashToClose-off))+'</div>';
+        tagline='Best for buyers prioritizing liquidity and reserves.';
+      } else {
+        payment=fd(pitiCut);unit='/mo';unitBlock='';
+        facts=(cutMoSav>0?'<div class="proto-goal-fact green">Save '+fd(cutMoSav)+'/mo vs. list price</div>':'')+
+              '<div class="proto-goal-fact">Offer Price: '+fd(op)+'</div>';
+        tagline='Best for buyers focused on reducing the purchase price.';
+      }
+
+      h+='<div class="proto-goal-card'+(isRec?' proto-goal-rec':'')+'">'+
+         (isRec?'<span class="proto-goal-rec-badge">&#9670; Recommended</span>':'')+
+         '<div class="proto-goal-letter">'+dispLetter+'</div>'+
+         '<div class="proto-goal-header">'+goalLabels[key]+'</div>'+
+         '<div class="proto-goal-payment">'+payment+(unit?'<span class="proto-goal-unit">'+unit+'</span>':'')+'</div>'+
+         (unitBlock?'<div class="proto-goal-unit-block">'+unitBlock+'</div>':'')+
+         '<div class="proto-goal-strat">'+stratLabels[key]+'</div>'+
+         facts+
+         '<div class="proto-goal-tagline">'+tagline+'</div>'+
+         '</div>';
+    });
+
+    h+='</div>'; // proto-goals-grid
+
+    // ── NMB: Realtor facilitation prompt ─────────────────────────────────
+    if(MODE!=='my'){
+      h+='<div class="proto-buyer-q">&ldquo;What matters most to your buyer &mdash; A, B, C, or D?&rdquo;</div>';
+    }
+
+    // ── SECTION 4: MY RECOMMENDATION (MY BUYER only) ─────────────────────
+    if(MODE==='my'){
+      var recDisplayLetter=pcLetterMap[rec]; // use pre-conversation letter to match Buyer Priority
+      var recGoalLabel=goalLabels[rec];
+      h+='<div class="proto-rec-wrap">';
+      h+='<div class="best-summary">';
+      h+='<div class="bs-label">&#9670; MY RECOMMENDATION</div>';
+      h+='<div class="proto-rec-letter">'+recDisplayLetter+'. '+recGoalLabel+'</div>';
+      h+='<div class="bs-name">'+stratLabels[rec]+'</div>';
+      if(rec==='cc'){
+        h+='<div class="bs-piti">Reduce cash to close by <span style="color:#a8dda0;font-weight:800;">'+fd(off)+'</span></div>';
+      } else {
+        h+='<div class="bs-piti">'+fd(recPiti)+'<span class="bs-mo">/mo</span>';
+        if(rec==='21')h+='<span class="bs-piti-note"> Year 1</span>';
+        if(recSav>0)h+='<span class="bs-sav">saves '+fd(recSav)+'/mo</span>';
+        h+='</div>';
+      }
+      h+='<div class="bs-reason">'+recReason+'</div>';
+      h+='</div>';
+      h+='</div>'; // proto-rec-wrap
+    }
+
+    // ── Collapsible Strategy Details ─────────────────────────────────────
+    h+='<details class="proto-details">';
+    h+='<summary class="proto-details-summary">&#9660; Show Full Strategy Details</summary>';
+    h+='<div class="proto-details-body">';
+    h+='<div class="proto-detail-card"><div class="proto-detail-hdr">A &mdash; Temporary Buydown</div>'+
+       ocR('Year 1 rate / payment',frR(rate-2)+' &middot; '+fd(pitiY1)+'/mo','blue')+
+       ocR('Year 2 rate / payment',frR(rate-1)+' &middot; '+fd(pitiY2)+'/mo')+
+       ocR('Year 3+ rate / payment',frR(rate)+' &middot; '+fd(pitiConc)+'/mo')+
+       (off>=c21?ocR('Concession surplus',fd(off-c21)+' &rarr; closing costs','green'):ocR('Concession gap',fd(c21-off)+' short of full buydown'))+
+       ocR('Est. cash to close',fd(sConc.cashToClose-Math.min(off,c21)))+'</div>';
+    h+='<div class="proto-detail-card"><div class="proto-detail-hdr">B &mdash; Permanent Buydown</div>'+
+       ocR('Rate',frR(rate)+' &rarr; '+frR(permRate))+
+       ocR('Monthly PITI'+(hoa>0?'+HOA':''),fd(pitiPerm)+'/mo')+
+       (permMoSav>0?ocR('Saves vs. list price',fd(permMoSav)+'/mo','green'):'')+
+       (permSurplus>0?ocR('Concession surplus',fd(permSurplus)+' &rarr; closing costs','green'):'')+
+       ocR('Est. cash to close',fd(sPerm.cashToClose))+'</div>';
+    h+='<div class="proto-detail-card"><div class="proto-detail-hdr">C &mdash; Lower Offer</div>'+
+       ocR('Offer price',fd(op))+
+       ocR('Monthly PITI'+(hoa>0?'+HOA':''),fd(pitiCut)+'/mo')+
+       (cutMoSav>0?ocR('Saves vs. list price',fd(cutMoSav)+'/mo','green'):'')+
+       ocR('Est. cash to close',fd(sCut.cashToClose))+'</div>';
+    h+='<div class="proto-detail-card"><div class="proto-detail-hdr">D &mdash; Closing Cost Strategy</div>'+
+       ocR('Monthly PITI'+(hoa>0?'+HOA':''),fd(pitiCC)+'/mo')+
+       ocR('Cash savings at close',fd(ccCashSav),'green')+
+       ocR('Est. cash to close',fd(sBase.cashToClose-off))+'</div>';
+    h+='</div></details>';
+
+  } else {
+    // No negotiation amount
+    h+='<div class="pp-card"><div class="pp-card-header">Payment at List Price</div><div class="pp-card-body">';
+    h+='<div class="prompt-box">&#128161; Enter a negotiation amount above to see the strategy comparison.</div>';
+    h+=ocR('List price',fd(lp));
+    h+=ocR('Rate',frR(rate));
+    h+=ocR('Monthly PITI'+(hoa>0?'+HOA':''),fd(pitiBase)+'/mo');
+    h+=ocR('Est. cash to close',fd(sBase.cashToClose));
+    h+='</div></div>';
+  }
+
+  h+='<div class="compliance">Prepared by Doug Smith, CMA&reg; &middot; HomeWealth Solutions LLC &middot; For informational purposes only. Not an offer to lend. All scenarios are illustrative; actual rates, payments, and terms vary by borrower and are subject to change without notice. Not all applicants will qualify. Consult a licensed tax or legal advisor regarding your individual situation. FL OFR License #MBR8082 &middot; NMLS #2742458 &middot; Doug Smith NMLS #2609118 &middot; nmlsconsumeraccess.org &middot; Equal Housing Opportunity.</div>';
+
+  h+='</div>'; // pp-main
+  rv.innerHTML=h;
+}
+// ── End Buyer Offer Strategy Report ──────────────────────────────────────────
+
+window.addEventListener('DOMContentLoaded',async function(){
+  // Short-link: Netlify 200-rewrites /r/abc1234 → this file, path stays /r/abc1234
+  var pathParts=window.location.pathname.split('/');
+  var shortId=(pathParts[1]==='r'&&pathParts[2])?pathParts[2]:null;
   var sp=new URLSearchParams(window.location.search);
-  if(sp.has('p')&&sp.get('p')){
+  if(shortId){
+    try{
+      var resp=await fetch('/.netlify/functions/get-report?id='+encodeURIComponent(shortId));
+      if(resp.ok){
+        var data=await resp.json();
+        IS_SHARED=true;
+        populateFromURL(new URLSearchParams(data));
+        buildReport();
+      }
+    }catch(e){}
+  }else if(sp.has('p')&&sp.get('p')){
+    // Legacy encoded-URL format — still supported
+    IS_SHARED=true;
     populateFromURL(sp);
     buildReport();
   }
