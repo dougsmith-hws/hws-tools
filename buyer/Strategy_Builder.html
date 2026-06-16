@@ -1055,7 +1055,7 @@ function renderPropertyReviewHTML(inp,pr,listTotal){
     h+='<div class="pr-payment-num">'+fd(Math.round(total))+'<span class="pr-payment-suf">/mo</span></div></div>';
     h+='<div class="pr-scenario-verdict">';
     h+='<div class="pr-comfort-status '+(fitsO?'fits':'exceeds')+'">'+(fitsO?'&#9989; Fits Comfort Range':'&#9888; Exceeds Comfort Range')+'</div>';
-    h+='<div class="pr-comfort-diff '+(fitsO?'below':'above')+'">'+fd(diffO)+'/month '+(fitsO?'below':'above')+' target</div>';
+    h+='<div class="pr-comfort-diff '+(fitsO?'below':'above')+'">'+fd(diffO)+'/month '+(fitsO?'below':'above')+' max comfort payment</div>';
     h+='</div>';
 
     h+='<div class="pr-scenario-divider" aria-hidden="true"></div>';
@@ -1067,7 +1067,7 @@ function renderPropertyReviewHTML(inp,pr,listTotal){
     h+='<div class="pr-payment-num pr-payment-num--secondary">'+fd(Math.round(listTotal))+'<span class="pr-payment-suf">/mo</span></div></div>';
     h+='<div class="pr-scenario-verdict">';
     h+='<div class="pr-comfort-status '+(fitsL?'fits':'exceeds')+'">'+(fitsL?'&#9989; Fits Comfort Range':'&#9888; Exceeds Comfort Range')+'</div>';
-    h+='<div class="pr-comfort-diff '+(fitsL?'below':'above')+'">'+fd(diffL)+'/month '+(fitsL?'below':'above')+' target</div>';
+    h+='<div class="pr-comfort-diff '+(fitsL?'below':'above')+'">'+fd(diffL)+'/month '+(fitsL?'below':'above')+' max comfort payment</div>';
     h+='</div>';
   }else{
     h+='<div class="pr-block"><div class="pr-subscenario-hdr">'+(op<inp.lp?'Offer Price':'List Price')+'</div>';
@@ -1077,7 +1077,7 @@ function renderPropertyReviewHTML(inp,pr,listTotal){
       var diffAmt=Math.round(Math.abs(total-inp.ceil));
       h+='<div class="pr-scenario-verdict">';
       h+='<div class="pr-comfort-status '+(fits?'fits':'exceeds')+'">'+(fits?'&#9989; Fits Comfort Range':'&#9888; Exceeds Comfort Range')+'</div>';
-      h+='<div class="pr-comfort-diff '+(fits?'below':'above')+'">'+fd(diffAmt)+'/month '+(fits?'below':'above')+' target</div>';
+      h+='<div class="pr-comfort-diff '+(fits?'below':'above')+'">'+fd(diffAmt)+'/month '+(fits?'below':'above')+' max comfort payment</div>';
       h+='</div>';
     }
     h+='<div class="pr-payment-wrap"><div class="pr-payment-k">Housing payment</div>';
