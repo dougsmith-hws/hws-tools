@@ -68,35 +68,6 @@
     padding: 32px 20px 72px;
   }
 
-  /* ── FLAGSHIP ── */
-  .flagship {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 20px;
-    background: linear-gradient(135deg, var(--blue) 0%, var(--blue-dark) 100%);
-    border-radius: 14px;
-    padding: 28px 32px;
-    text-decoration: none;
-    margin-bottom: 44px;
-    box-shadow: 0 6px 24px rgba(36,145,235,.22);
-    transition: transform .15s ease, box-shadow .15s ease;
-  }
-  .flagship:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 10px 36px rgba(36,145,235,.32);
-  }
-  .flagship-badge {
-    display: inline-block;
-    font-size: 10px; font-weight: 700; text-transform: uppercase;
-    letter-spacing: 1.2px; color: rgba(255,255,255,.7);
-    background: rgba(255,255,255,.15); border-radius: 20px;
-    padding: 3px 10px; margin-bottom: 10px;
-  }
-  .flagship-title { color: #fff; font-size: 26px; font-weight: 700; line-height: 1.2; }
-  .flagship-desc  { color: rgba(255,255,255,.8); font-size: 14px; margin-top: 7px; line-height: 1.5; max-width: 520px; }
-  .flagship-arrow { color: rgba(255,255,255,.5); font-size: 40px; font-weight: 300; flex-shrink: 0; transition: color .15s, transform .15s; }
-  .flagship:hover .flagship-arrow { color: #fff; transform: translateX(5px); }
 
   /* ── SECTION ── */
   .section { margin-bottom: 44px; }
@@ -205,9 +176,6 @@
   /* ── RESPONSIVE ── */
   @media (max-width: 640px) {
     .header-contact { display: none; }
-    .flagship { padding: 22px 20px; flex-wrap: wrap; }
-    .flagship-title { font-size: 21px; }
-    .flagship-arrow { display: none; }
     .tools-grid { grid-template-columns: 1fr; }
     .container { padding: 24px 14px 56px; }
   }
@@ -234,21 +202,20 @@
 
 <div class="container">
 
-  <!-- ── SECTION 1: FLAGSHIP ── -->
-  <a href="/buyer/Strategy_Builder.html" class="flagship">
-    <div>
-      <div class="flagship-badge">Flagship Tool</div>
-      <div class="flagship-title">Strategy Builder</div>
-      <div class="flagship-desc">Buyer offer strategy — compare scenarios, seller concessions, and payment outcomes in a shareable client report</div>
-    </div>
-    <div class="flagship-arrow">›</div>
-  </a>
-
-  <!-- ── SECTION 2: AFFORDABILITY & QUALIFICATION ── -->
+  <!-- ── SECTION 1: AFFORDABILITY & QUALIFICATION ── -->
   <div class="section">
     <div class="section-eyebrow">Buyer Tools</div>
     <div class="section-heading">Affordability &amp; Qualification</div>
     <div class="tools-grid">
+
+      <a href="/buyer/Strategy_Builder.html" class="card">
+        <div class="card-icon ci-blue">📋</div>
+        <div class="card-info">
+          <div class="card-name">Strategy Builder</div>
+          <div class="card-desc">Buyer offer strategy — compare scenarios, seller concessions, and payment outcomes in a shareable client report</div>
+        </div>
+        <div class="card-arrow">›</div>
+      </a>
 
       <a href="/buyer/comfort-calculator.html" class="card">
         <div class="card-icon ci-blue">🎯</div>
