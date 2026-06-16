@@ -242,7 +242,7 @@ input[data-fmt]{-moz-appearance:textfield;}
 .pr-panel{position:relative;width:100%;max-width:420px;max-height:92vh;overflow-y:auto;background:#fff;border:1px solid var(--line);border-radius:16px 16px 0 0;box-shadow:0 -4px 24px rgba(0,0,0,.12);}
 @media(min-width:480px){.pr-panel{border-radius:16px;max-height:90vh;}}
 .pr-panel-head{display:flex;align-items:center;justify-content:space-between;padding:14px 16px 10px;border-bottom:1px solid var(--line);}
-.pr-title{font-size:12px;font-weight:800;letter-spacing:.12em;color:var(--gray);margin:0;}
+.pr-title{font-size:13px;font-weight:800;letter-spacing:.12em;color:#2491EB;margin:0;}
 .pr-close{width:44px;height:44px;margin:-8px -6px -8px 0;border:none;background:transparent;font-size:28px;line-height:1;color:var(--gray);cursor:pointer;border-radius:10px;}
 .pr-close:hover{color:var(--dark);background:var(--bg);}
 .pr-body{padding:10px 16px 14px;}
@@ -250,23 +250,28 @@ input[data-fmt]{-moz-appearance:textfield;}
 .pr-block.pr-price-block{margin-bottom:6px;}
 .pr-block:last-child{margin-bottom:0;}
 .pr-k{font-size:11px;font-weight:700;letter-spacing:.08em;color:var(--gray);text-transform:uppercase;margin-bottom:3px;}
-.pr-block.pr-price-block .pr-k{text-transform:none;letter-spacing:.04em;font-size:12px;}
-.pr-v{font-size:15px;font-weight:700;color:var(--dark);line-height:1.3;}
+.pr-v{font-size:17px;font-weight:700;color:var(--dark);line-height:1.3;}
 .pr-payment-wrap{text-align:center;padding:10px 12px 10px;margin:6px -8px 8px;background:var(--bg);border-radius:12px;border:1px solid var(--line);}
 .pr-payment-k{font-size:11px;font-weight:700;letter-spacing:.08em;color:var(--gray);text-transform:uppercase;margin-bottom:6px;}
+.pr-scenario-bar{display:block;color:#fff;font-size:15px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;padding:12px 14px;margin:8px -8px 0;border-radius:8px 8px 0 0;}
+.pr-scenario-bar--primary{background:#2491EB;}
+.pr-scenario-bar--fallback{background:#1a2535;}
 .pr-payment-num{font-size:clamp(1.65rem,7vw,2.1rem);font-weight:800;color:var(--dark);line-height:1.05;letter-spacing:-.02em;}
 .pr-payment-suf{font-size:.95rem;font-weight:600;color:var(--gray);margin-left:2px;}
-.pr-comfort-status{font-size:.95rem;font-weight:700;margin-top:5px;color:var(--dark);}
-.pr-comfort-diff{font-size:1rem;font-weight:800;margin-top:4px;color:var(--dark);}
+.pr-scenario-verdict{margin:6px 0 8px;}
+.pr-comfort-status{display:inline-block;font-size:.9rem;font-weight:700;line-height:1.4;}
+.pr-comfort-status.fits{color:#2E7D32;}
+.pr-comfort-status.exceeds{background:#FEF9EC;color:#92400E;padding:5px 12px;border-radius:20px;}
+.pr-comfort-diff{font-size:.95rem;font-weight:700;margin-top:5px;color:var(--dark);}
 .pr-comfort-diff.below{color:#2E7D32;}
-.pr-comfort-diff.above{color:#B45309;}
+.pr-comfort-diff.above{color:#92400E;}
 .pr-note{font-size:11px;color:var(--gray);line-height:1.4;margin-top:10px;padding-top:10px;border-top:1px solid var(--line);}
 .pr-scenario-divider{height:0;margin:16px 0 14px;border:0;border-top:2px solid #CBD5E0;padding:0;}
-.pr-subscenario-hdr{font-size:14px;font-weight:800;color:var(--blue);line-height:1.3;margin-top:2px;margin-bottom:8px;letter-spacing:.02em;}
-.pr-subscenario-hdr--fallback{font-size:14px;font-weight:800;color:var(--dark);line-height:1.3;margin-top:2px;margin-bottom:8px;letter-spacing:.01em;}
-.pr-payment-wrap--primary{margin-top:4px;border-left:3px solid var(--blue)!important;background:#EBF5FF!important;}
-.pr-payment-wrap--secondary{text-align:center;padding:8px 12px 8px;margin:6px -8px 6px;background:var(--bg);border-radius:10px;border:1px solid var(--line);}
-.pr-payment-num--secondary{font-size:clamp(1.4rem,5.5vw,1.85rem);font-weight:800;color:var(--dark);line-height:1.08;letter-spacing:-.02em;}
+.pr-subscenario-hdr{font-size:11px;font-weight:700;letter-spacing:.08em;color:var(--gray);text-transform:uppercase;line-height:1.3;margin-top:0;margin-bottom:4px;}
+.pr-payment-wrap--primary{margin-top:0!important;border-radius:0 0 12px 12px!important;background:#EBF5FF!important;}
+.pr-payment-wrap--secondary{text-align:center;padding:10px 12px 10px;margin:6px -8px 8px;background:var(--bg);border-radius:12px;border:1px solid var(--line);}
+.pr-payment-wrap--fallback{margin-top:0!important;border-radius:0 0 12px 12px!important;}
+.pr-payment-num--secondary{font-size:clamp(1.65rem,7vw,2.1rem);font-weight:800;color:var(--dark);line-height:1.05;letter-spacing:-.02em;}
 .pr-scenario-tail{margin-top:3px;margin-bottom:1px;}
 </style>
 </head>
@@ -1043,41 +1048,40 @@ function renderPropertyReviewHTML(inp,pr,listTotal){
     h+='<div class="pr-block"><div class="pr-k">Comfort payment</div>';
     h+='<div class="pr-v">'+fd(Math.round(inp.ceil))+'<span class="pr-payment-suf">/mo</span></div></div>';
 
-    h+='<div class="pr-block"><div class="pr-subscenario-hdr">Offer Price</div>';
-    h+='<div class="pr-v">'+fd(op)+'</div></div>';
+    var fitsO=total<=inp.ceil,diffO=Math.round(Math.abs(total-inp.ceil));
+    h+='<div class="pr-scenario-bar pr-scenario-bar--primary">Offer Price</div>';
+    h+='<div class="pr-block" style="margin-top:10px;"><div class="pr-v">'+fd(op)+'</div></div>';
     h+='<div class="pr-payment-wrap pr-payment-wrap--primary"><div class="pr-payment-k">Housing payment</div>';
     h+='<div class="pr-payment-num">'+fd(Math.round(total))+'<span class="pr-payment-suf">/mo</span></div></div>';
-    var fitsO=total<=inp.ceil,diffO=Math.round(Math.abs(total-inp.ceil));
-    h+='<div class="pr-scenario-tail"><div class="pr-comfort-status">'+(fitsO?'&#9989; Fits Comfort Range':'&#9888; Exceeds Comfort Range')+'</div>';
-    h+='<div class="pr-comfort-diff '+(fitsO?'below':'above')+'">'+fd(diffO)+'/month '+(fitsO?'below':'above')+' target</div></div>';
+    h+='<div class="pr-scenario-verdict">';
+    h+='<div class="pr-comfort-status '+(fitsO?'fits':'exceeds')+'">'+(fitsO?'&#9989; Fits Comfort Range':'&#9888; Exceeds Comfort Range')+'</div>';
+    h+='<div class="pr-comfort-diff '+(fitsO?'below':'above')+'">'+fd(diffO)+'/month '+(fitsO?'below':'above')+' target</div>';
+    h+='</div>';
 
     h+='<div class="pr-scenario-divider" aria-hidden="true"></div>';
-    h+='<div class="pr-subscenario-hdr--fallback">If Seller Does Not Accept Offer</div>';
-    h+='<div class="pr-block pr-price-block"><div class="pr-k">List Price</div>';
-    h+='<div class="pr-v">'+fd(inp.lp)+'</div></div>';
-    h+='<div class="pr-payment-wrap pr-payment-wrap--secondary"><div class="pr-payment-k">Housing payment</div>';
-    h+='<div class="pr-payment-num pr-payment-num--secondary">'+fd(Math.round(listTotal))+'<span class="pr-payment-suf">/mo</span></div></div>';
     var fitsL=listTotal<=inp.ceil,diffL=Math.round(Math.abs(listTotal-inp.ceil));
-    h+='<div class="pr-scenario-tail"><div class="pr-comfort-status">'+(fitsL?'&#9989; Fits Comfort Range':'&#9888; Exceeds Comfort Range')+'</div>';
-    h+='<div class="pr-comfort-diff '+(fitsL?'below':'above')+'">'+fd(diffL)+'/month '+(fitsL?'below':'above')+' target</div></div>';
+    h+='<div class="pr-scenario-bar pr-scenario-bar--fallback">If Seller Does Not Accept</div>';
+    h+='<div class="pr-block" style="margin-top:10px;"><div class="pr-subscenario-hdr">List Price</div>';
+    h+='<div class="pr-v">'+fd(inp.lp)+'</div></div>';
+    h+='<div class="pr-payment-wrap pr-payment-wrap--secondary pr-payment-wrap--fallback"><div class="pr-payment-k">Housing payment</div>';
+    h+='<div class="pr-payment-num pr-payment-num--secondary">'+fd(Math.round(listTotal))+'<span class="pr-payment-suf">/mo</span></div></div>';
+    h+='<div class="pr-scenario-verdict">';
+    h+='<div class="pr-comfort-status '+(fitsL?'fits':'exceeds')+'">'+(fitsL?'&#9989; Fits Comfort Range':'&#9888; Exceeds Comfort Range')+'</div>';
+    h+='<div class="pr-comfort-diff '+(fitsL?'below':'above')+'">'+fd(diffL)+'/month '+(fitsL?'below':'above')+' target</div>';
+    h+='</div>';
   }else{
-    if(op<inp.lp){
-      h+='<div class="pr-block"><div class="pr-subscenario-hdr">Offer Price</div>';
-      h+='<div class="pr-v">'+fd(useOffer?op:inp.lp)+'</div></div>';
-    }else{
-      h+='<div class="pr-block pr-price-block"><div class="pr-k">List Price</div>';
-      h+='<div class="pr-v">'+fd(useOffer?op:inp.lp)+'</div></div>';
-    }
-    h+='<div class="pr-payment-wrap"><div class="pr-payment-k">Housing payment</div>';
-    h+='<div class="pr-payment-num">'+fd(Math.round(total))+'<span class="pr-payment-suf">/mo</span></div></div>';
+    h+='<div class="pr-block"><div class="pr-subscenario-hdr">'+(op<inp.lp?'Offer Price':'List Price')+'</div>';
+    h+='<div class="pr-v">'+fd(useOffer?op:inp.lp)+'</div></div>';
     if(MODE==='my'&&inp.ceil>0){
       var fits=total<=inp.ceil;
       var diffAmt=Math.round(Math.abs(total-inp.ceil));
-      h+='<div class="pr-block"><div class="pr-k">Comfort payment</div>';
-      h+='<div class="pr-v">'+fd(Math.round(inp.ceil))+'<span class="pr-payment-suf">/mo</span></div>';
-      h+='<div class="pr-comfort-status">'+(fits?'&#9989; Fits Comfort Range':'&#9888; Exceeds Comfort Range')+'</div>';
-      h+='<div class="pr-comfort-diff '+(fits?'below':'above')+'">'+fd(diffAmt)+'/month '+(fits?'below':'above')+' target</div></div>';
+      h+='<div class="pr-scenario-verdict">';
+      h+='<div class="pr-comfort-status '+(fits?'fits':'exceeds')+'">'+(fits?'&#9989; Fits Comfort Range':'&#9888; Exceeds Comfort Range')+'</div>';
+      h+='<div class="pr-comfort-diff '+(fits?'below':'above')+'">'+fd(diffAmt)+'/month '+(fits?'below':'above')+' target</div>';
+      h+='</div>';
     }
+    h+='<div class="pr-payment-wrap"><div class="pr-payment-k">Housing payment</div>';
+    h+='<div class="pr-payment-num">'+fd(Math.round(total))+'<span class="pr-payment-suf">/mo</span></div></div>';
   }
   h+='<div class="pr-note">Payment estimate based on current estimated property taxes, insurance, and HOA.</div>';
   return h;
@@ -1841,7 +1845,7 @@ window.addEventListener('DOMContentLoaded',async function(){
   <div class="pr-backdrop" onclick="closePropertyReview()"></div>
   <div class="pr-panel" role="dialog" aria-labelledby="prDialogTitle">
     <div class="pr-panel-head">
-      <h2 id="prDialogTitle" class="pr-title">PROPERTY REVIEW</h2>
+      <h2 id="prDialogTitle" class="pr-title">MONTHLY PAYMENT REVIEW</h2>
       <button type="button" class="pr-close" onclick="closePropertyReview()" aria-label="Close">&times;</button>
     </div>
     <div id="propertyReviewBody" class="pr-body"></div>
