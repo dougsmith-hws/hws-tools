@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>HWS Tool Hub — HomeWealth Solutions</title>
+<title>HomeWealth Tools Hub — HomeWealth Solutions</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -14,335 +14,583 @@
     --blue-dark: #1a7ad4;
     --green: #8EC73F;
     --green-dark: #7ab532;
-    --slate-900: #0f172a;
+    --dark: #1a2535;
     --slate-700: #334155;
     --slate-500: #64748b;
+    --slate-400: #94a3b8;
+    --slate-300: #cbd5e1;
     --slate-200: #e2e8f0;
     --slate-100: #f1f5f9;
     --slate-50: #f8fafc;
     --white: #ffffff;
     --radius: 10px;
-    --shadow-sm: 0 1px 3px rgba(15,23,42,0.06), 0 1px 2px rgba(15,23,42,0.04);
-    --shadow-md: 0 4px 12px rgba(15,23,42,0.08), 0 2px 4px rgba(15,23,42,0.04);
-    --shadow-hover: 0 8px 24px rgba(36,145,235,0.12), 0 4px 8px rgba(15,23,42,0.06);
   }
 
   body {
     font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
     background: var(--slate-50);
-    color: var(--slate-900);
+    color: var(--dark);
     min-height: 100vh;
     -webkit-font-smoothing: antialiased;
   }
 
+  /* ── HEADER ── */
   .header {
-    background: var(--white);
-    border-bottom: 1px solid var(--slate-200);
-    padding: 20px 24px;
+    background: var(--dark);
+    padding: 16px 24px;
   }
-
   .header-inner {
-    max-width: 960px;
+    max-width: 1020px;
     margin: 0 auto;
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 16px;
+    flex-wrap: wrap;
   }
-
-  .header h1 {
-    font-size: 20px;
-    font-weight: 700;
-    color: var(--slate-900);
-    letter-spacing: -0.3px;
+  .brand { display: flex; align-items: center; gap: 12px; }
+  .brand-dot {
+    width: 36px; height: 36px; border-radius: 8px;
+    background: linear-gradient(135deg, var(--blue), var(--green));
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800; color: #fff; font-size: 13px; flex-shrink: 0;
+    letter-spacing: -0.5px;
   }
+  .brand-name { color: #fff; font-size: 16px; font-weight: 700; line-height: 1.2; }
+  .brand-sub  { color: #94a3b8; font-size: 11px; margin-top: 1px; }
+  .header-contact { color: #94a3b8; font-size: 12px; line-height: 1.7; text-align: right; }
+  .header-contact strong { color: #fff; }
 
-  .header h1 span {
-    color: var(--blue);
-  }
-
-  .header .tag {
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--green-dark);
-    background: rgba(142,199,63,0.12);
-    padding: 4px 10px;
-    border-radius: 20px;
-    letter-spacing: 0.3px;
-    text-transform: uppercase;
-  }
-
+  /* ── CONTAINER ── */
   .container {
-    max-width: 960px;
+    max-width: 1020px;
     margin: 0 auto;
-    padding: 32px 24px 64px;
+    padding: 32px 20px 72px;
   }
 
-  .section {
-    margin-bottom: 36px;
-  }
-
-  .section-header {
+  /* ── FLAGSHIP ── */
+  .flagship {
     display: flex;
     align-items: center;
-    gap: 10px;
+    justify-content: space-between;
+    gap: 20px;
+    background: linear-gradient(135deg, var(--blue) 0%, var(--blue-dark) 100%);
+    border-radius: 14px;
+    padding: 28px 32px;
+    text-decoration: none;
+    margin-bottom: 44px;
+    box-shadow: 0 6px 24px rgba(36,145,235,.22);
+    transition: transform .15s ease, box-shadow .15s ease;
+  }
+  .flagship:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 36px rgba(36,145,235,.32);
+  }
+  .flagship-badge {
+    display: inline-block;
+    font-size: 10px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 1.2px; color: rgba(255,255,255,.7);
+    background: rgba(255,255,255,.15); border-radius: 20px;
+    padding: 3px 10px; margin-bottom: 10px;
+  }
+  .flagship-title { color: #fff; font-size: 26px; font-weight: 700; line-height: 1.2; }
+  .flagship-desc  { color: rgba(255,255,255,.8); font-size: 14px; margin-top: 7px; line-height: 1.5; max-width: 520px; }
+  .flagship-arrow { color: rgba(255,255,255,.5); font-size: 40px; font-weight: 300; flex-shrink: 0; transition: color .15s, transform .15s; }
+  .flagship:hover .flagship-arrow { color: #fff; transform: translateX(5px); }
+
+  /* ── SECTION ── */
+  .section { margin-bottom: 44px; }
+  .section-eyebrow {
+    font-size: 11px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 1.1px; color: var(--blue);
+    margin-bottom: 4px;
+  }
+  .section-eyebrow.green { color: var(--green-dark); }
+  .section-eyebrow.gray  { color: var(--slate-400); }
+  .section-heading {
+    font-size: 17px; font-weight: 700; color: var(--dark);
     margin-bottom: 16px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .section-heading::after {
+    content: ''; flex: 1; height: 1px; background: var(--slate-200);
   }
 
-  .section-icon {
-    width: 32px;
-    height: 32px;
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 15px;
-    flex-shrink: 0;
-  }
-
-  .section-icon.buyer { background: rgba(36,145,235,0.1); }
-  .section-icon.realtor { background: rgba(142,199,63,0.1); }
-  .section-icon.internal { background: rgba(100,116,139,0.1); }
-
-  .section-title {
-    font-size: 14px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.8px;
-    color: var(--slate-500);
-  }
-
+  /* ── GRID ── */
   .tools-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 12px;
+    grid-template-columns: repeat(auto-fill, minmax(268px, 1fr));
+    gap: 10px;
   }
 
-  .tool-card {
-    display: flex;
-    align-items: center;
-    gap: 14px;
+  /* ── LIVE CARD ── */
+  .card {
+    display: flex; align-items: center; gap: 13px;
     background: var(--white);
     border: 1px solid var(--slate-200);
+    border-left: 3px solid var(--blue);
     border-radius: var(--radius);
-    padding: 16px 18px;
+    padding: 14px 15px;
     text-decoration: none;
-    color: var(--slate-900);
-    transition: all 0.15s ease;
-    box-shadow: var(--shadow-sm);
+    color: var(--dark);
+    box-shadow: 0 1px 3px rgba(15,23,42,.05);
+    transition: all .15s ease;
   }
-
-  .tool-card:hover {
+  .card:hover {
     border-color: var(--blue);
-    box-shadow: var(--shadow-hover);
+    border-left-color: var(--blue);
+    box-shadow: 0 4px 16px rgba(36,145,235,.13);
     transform: translateY(-1px);
   }
+  .card.green-card { border-left-color: var(--green); }
+  .card.green-card:hover { border-color: var(--green); box-shadow: 0 4px 16px rgba(142,199,63,.15); }
+  .card.gray-card  { border-left-color: var(--slate-400); }
+  .card.gray-card:hover  { border-color: var(--slate-400); box-shadow: 0 4px 12px rgba(100,116,139,.12); }
 
-  .tool-card:active {
-    transform: translateY(0);
+  .card-icon {
+    width: 36px; height: 36px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 17px; flex-shrink: 0;
   }
+  .ci-blue  { background: rgba(36,145,235,.1); }
+  .ci-green { background: rgba(142,199,63,.12); }
+  .ci-gray  { background: rgba(100,116,139,.08); }
 
-  .tool-dot {
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
+  .card-info { flex: 1; min-width: 0; }
+  .card-name { font-size: 14px; font-weight: 600; color: var(--dark); line-height: 1.3; }
+  .card-desc { font-size: 12px; color: var(--slate-500); margin-top: 2px; line-height: 1.4; }
+  .card-arrow { color: var(--slate-300); font-size: 20px; flex-shrink: 0; transition: color .15s, transform .15s; }
+  .card:hover .card-arrow { color: var(--blue); transform: translateX(2px); }
+  .card.green-card:hover .card-arrow { color: var(--green); }
+  .card.gray-card:hover  .card-arrow { color: var(--slate-500); }
+
+  /* ── COMING SOON CARD ── */
+  .card-soon {
+    display: flex; align-items: center; gap: 13px;
+    background: var(--slate-50);
+    border: 1px solid var(--slate-200);
+    border-left: 3px solid var(--slate-200);
+    border-radius: var(--radius);
+    padding: 14px 15px;
+    cursor: default;
+    user-select: none;
+  }
+  .soon-icon {
+    width: 36px; height: 36px; border-radius: 8px;
+    background: var(--slate-200);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 17px; flex-shrink: 0; opacity: .6;
+  }
+  .soon-info { flex: 1; min-width: 0; }
+  .soon-name { font-size: 14px; font-weight: 600; color: var(--slate-400); line-height: 1.3; }
+  .soon-desc { font-size: 12px; color: var(--slate-300); margin-top: 2px; line-height: 1.4; }
+  .soon-badge {
     flex-shrink: 0;
+    font-size: 10px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .5px; color: var(--slate-400);
+    background: var(--slate-200); border-radius: 4px;
+    padding: 2px 7px;
   }
 
-  .tool-dot.buyer { background: var(--blue); }
-  .tool-dot.realtor { background: var(--green); }
-  .tool-dot.internal { background: var(--slate-500); }
-
-  .tool-info {
-    flex: 1;
-    min-width: 0;
-  }
-
-  .tool-name {
-    font-size: 15px;
-    font-weight: 600;
-    line-height: 1.3;
-    color: var(--slate-900);
-  }
-
-  .tool-desc {
-    font-size: 13px;
-    color: var(--slate-500);
-    line-height: 1.4;
-    margin-top: 2px;
-  }
-
-  .tool-arrow {
-    color: var(--slate-300);
-    font-size: 18px;
-    flex-shrink: 0;
-    transition: color 0.15s ease, transform 0.15s ease;
-  }
-
-  .tool-card:hover .tool-arrow {
-    color: var(--blue);
-    transform: translateX(2px);
-  }
-
+  /* ── FOOTER ── */
   .footer {
     text-align: center;
-    padding: 24px;
-    font-size: 12px;
-    color: var(--slate-500);
+    padding: 24px 20px;
+    font-size: 11px;
+    color: var(--slate-400);
     border-top: 1px solid var(--slate-200);
-    margin-top: 12px;
+    line-height: 1.8;
   }
 
+  /* ── RESPONSIVE ── */
   @media (max-width: 640px) {
-    .tools-grid {
-      grid-template-columns: 1fr;
-    }
-    .header h1 { font-size: 18px; }
-    .container { padding: 24px 16px 48px; }
+    .header-contact { display: none; }
+    .flagship { padding: 22px 20px; flex-wrap: wrap; }
+    .flagship-title { font-size: 21px; }
+    .flagship-arrow { display: none; }
+    .tools-grid { grid-template-columns: 1fr; }
+    .container { padding: 24px 14px 56px; }
   }
 </style>
 </head>
 <body>
 
+<!-- HEADER -->
 <div class="header">
   <div class="header-inner">
-    <h1><span>HWS</span> Tool Hub</h1>
-    <div class="tag">12 Tools Live</div>
+    <div class="brand">
+      <div class="brand-dot">HW</div>
+      <div>
+        <div class="brand-name">HomeWealth Solutions</div>
+        <div class="brand-sub">NMLS #2742458 · Florida MBR8082</div>
+      </div>
+    </div>
+    <div class="header-contact">
+      <strong>Doug Smith, CMA®</strong> · 813-733-7371<br>
+      NMLS #2609118 · tools.homewealthsolutions.com
+    </div>
   </div>
 </div>
 
 <div class="container">
 
-  <!-- BUYER TOOLS -->
-  <div class="section">
-    <div class="section-header">
-      <div class="section-icon buyer">🏠</div>
-      <div class="section-title">Buyer Tools</div>
+  <!-- ── SECTION 1: FLAGSHIP ── -->
+  <a href="/buyer/Strategy_Builder.html" class="flagship">
+    <div>
+      <div class="flagship-badge">Flagship Tool</div>
+      <div class="flagship-title">Strategy Builder</div>
+      <div class="flagship-desc">Buyer offer strategy — compare scenarios, seller concessions, and payment outcomes in a shareable client report</div>
     </div>
+    <div class="flagship-arrow">›</div>
+  </a>
+
+  <!-- ── SECTION 2: AFFORDABILITY & QUALIFICATION ── -->
+  <div class="section">
+    <div class="section-eyebrow">Buyer Tools</div>
+    <div class="section-heading">Affordability &amp; Qualification</div>
     <div class="tools-grid">
-      <a href="buyer/comfort-calculator.html" class="tool-card">
-        <div class="tool-dot buyer"></div>
-        <div class="tool-info">
-          <div class="tool-name">Comfort Calculator</div>
-          <div class="tool-desc">Monthly payment comfort zone with DTI analysis</div>
+
+      <a href="/buyer/comfort-calculator.html" class="card">
+        <div class="card-icon ci-blue">🎯</div>
+        <div class="card-info">
+          <div class="card-name">Comfort Calculator</div>
+          <div class="card-desc">Find the right purchase price from a target monthly payment</div>
         </div>
-        <div class="tool-arrow">›</div>
+        <div class="card-arrow">›</div>
       </a>
-      <a href="buyer/strategy-builder.html" class="tool-card">
-        <div class="tool-dot buyer"></div>
-        <div class="tool-info">
-          <div class="tool-name">Strategy Builder</div>
-          <div class="tool-desc">Pre-offer strategy scenarios by buyer priority</div>
+
+      <div class="card-soon">
+        <div class="soon-icon">📊</div>
+        <div class="soon-info">
+          <div class="soon-name">Down Payment Analyzer</div>
+          <div class="soon-desc">How down payment affects payment, PMI, and cash to close</div>
         </div>
-        <div class="tool-arrow">›</div>
-      </a>
-      <a href="buyer/closing-cost.html" class="tool-card">
-        <div class="tool-dot buyer"></div>
-        <div class="tool-info">
-          <div class="tool-name">Closing Cost Estimator</div>
-          <div class="tool-desc">Cash-to-close breakdown for Florida purchases</div>
+        <div class="soon-badge">Soon</div>
+      </div>
+
+      <div class="card-soon">
+        <div class="soon-icon">📋</div>
+        <div class="soon-info">
+          <div class="soon-name">Loan Types Guide</div>
+          <div class="soon-desc">Conv, FHA, VA, USDA — eligibility and tradeoffs side by side</div>
         </div>
-        <div class="tool-arrow">›</div>
-      </a>
-      <a href="buyer/tax-calc.html" class="tool-card">
-        <div class="tool-dot buyer"></div>
-        <div class="tool-info">
-          <div class="tool-name">Tax Calculator</div>
-          <div class="tool-desc">Property tax estimates and escrow impact</div>
+        <div class="soon-badge">Soon</div>
+      </div>
+
+      <div class="card-soon">
+        <div class="soon-icon">🧾</div>
+        <div class="soon-info">
+          <div class="soon-name">Closing Cost Estimator</div>
+          <div class="soon-desc">Total cash-to-close breakdown by loan type and purchase price</div>
         </div>
-        <div class="tool-arrow">›</div>
-      </a>
-      <a href="buyer/blended-rate.html" class="tool-card">
-        <div class="tool-dot buyer"></div>
-        <div class="tool-info">
-          <div class="tool-name">Blended Rate Calculator</div>
-          <div class="tool-desc">Refinance vs. keep analysis for existing homeowners</div>
-        </div>
-        <div class="tool-arrow">›</div>
-      </a>
-      <a href="buyer/debt-consolidation.html" class="tool-card">
-        <div class="tool-dot buyer"></div>
-        <div class="tool-info">
-          <div class="tool-name">Debt Consolidation</div>
-          <div class="tool-desc">Cash-out refi payment comparison and savings</div>
-        </div>
-        <div class="tool-arrow">›</div>
-      </a>
-      <a href="buyer/multi-unit-investment-calculator.html" class="tool-card">
-        <div class="tool-dot buyer"></div>
-        <div class="tool-info">
-          <div class="tool-name">Multi-Unit Investment Calculator</div>
-          <div class="tool-desc">Loan comparison, cash flow, and IRR for multi-unit properties</div>
-        </div>
-        <div class="tool-arrow">›</div>
-      </a>
-      <a href="buyer/multifamily-financing-analysis.html" class="tool-card">
-        <div class="tool-dot buyer"></div>
-        <div class="tool-info">
-          <div class="tool-name">Multifamily Financing &amp; Return Analysis</div>
-          <div class="tool-desc">NOI, Cap Rate, DSCR, Cash-on-Cash, and IRR across three financing scenarios</div>
-        </div>
-        <div class="tool-arrow">›</div>
-      </a>
+        <div class="soon-badge">Soon</div>
+      </div>
+
     </div>
   </div>
 
-  <!-- REALTOR TOOLS -->
+  <!-- ── SECTION 3: STRATEGY & COST ANALYSIS ── -->
   <div class="section">
-    <div class="section-header">
-      <div class="section-icon realtor">🤝</div>
-      <div class="section-title">Realtor Tools</div>
-    </div>
+    <div class="section-eyebrow">Buyer Tools</div>
+    <div class="section-heading">Strategy &amp; Cost Analysis</div>
     <div class="tools-grid">
-      <a href="realtor/flyer-generator.html" class="tool-card">
-        <div class="tool-dot realtor"></div>
-        <div class="tool-info">
-          <div class="tool-name">Flyer Generator</div>
-          <div class="tool-desc">Listing-specific financing flyers for Realtor marketing</div>
+
+      <div class="card-soon">
+        <div class="soon-icon">💡</div>
+        <div class="soon-info">
+          <div class="soon-name">Total Cost Analysis</div>
+          <div class="soon-desc">Compare loan options by total interest, equity, and opportunity cost over time</div>
         </div>
-        <div class="tool-arrow">›</div>
-      </a>
-      <a href="realtor/jumbo-flyer-generator.html" class="tool-card">
-        <div class="tool-dot realtor"></div>
-        <div class="tool-info">
-          <div class="tool-name">Jumbo Flyer Generator</div>
-          <div class="tool-desc">Financing scenarios for jumbo loan listings</div>
+        <div class="soon-badge">Soon</div>
+      </div>
+
+      <div class="card-soon">
+        <div class="soon-icon">🏘️</div>
+        <div class="soon-info">
+          <div class="soon-name">Rent vs. Own</div>
+          <div class="soon-desc">Full cost comparison of renting vs. owning over a defined time horizon</div>
         </div>
-        <div class="tool-arrow">›</div>
-      </a>
-      <a href="realtor/realtor-planning.html" class="tool-card">
-        <div class="tool-dot realtor"></div>
-        <div class="tool-info">
-          <div class="tool-name">Realtor Business Planner</div>
-          <div class="tool-desc">GCI, transaction goals, and strategic partner ROI</div>
+        <div class="soon-badge">Soon</div>
+      </div>
+
+      <div class="card-soon">
+        <div class="soon-icon">⏱️</div>
+        <div class="soon-info">
+          <div class="soon-name">Cost of Waiting</div>
+          <div class="soon-desc">The real cost of delaying a purchase as prices and rates change</div>
         </div>
-        <div class="tool-arrow">›</div>
+        <div class="soon-badge">Soon</div>
+      </div>
+
+      <a href="/buyer/debt-consolidation.html" class="card">
+        <div class="card-icon ci-blue">💳</div>
+        <div class="card-info">
+          <div class="card-name">Debt Consolidation</div>
+          <div class="card-desc">Net savings from rolling high-interest debt into a mortgage</div>
+        </div>
+        <div class="card-arrow">›</div>
       </a>
+
+      <div class="card-soon">
+        <div class="soon-icon">📉</div>
+        <div class="soon-info">
+          <div class="soon-name">Buydown Analyzer</div>
+          <div class="soon-desc">Model seller-paid temporary and permanent rate buydowns</div>
+        </div>
+        <div class="soon-badge">Soon</div>
+      </div>
+
+      <div class="card-soon">
+        <div class="soon-icon">🛡️</div>
+        <div class="soon-info">
+          <div class="soon-name">MI Options</div>
+          <div class="soon-desc">Monthly PMI vs. LPMI vs. single-premium — total cost comparison</div>
+        </div>
+        <div class="soon-badge">Soon</div>
+      </div>
+
+      <a href="/buyer/blended-rate.html" class="card">
+        <div class="card-icon ci-blue">🔀</div>
+        <div class="card-info">
+          <div class="card-name">Blended Rate Calculator</div>
+          <div class="card-desc">Effective rate when combining an existing and new mortgage</div>
+        </div>
+        <div class="card-arrow">›</div>
+      </a>
+
+      <div class="card-soon">
+        <div class="soon-icon">⚖️</div>
+        <div class="soon-info">
+          <div class="soon-name">Scenario Compare</div>
+          <div class="soon-desc">Side-by-side loan comparison by payment and total cost</div>
+        </div>
+        <div class="soon-badge">Soon</div>
+      </div>
+
+      <div class="card-soon">
+        <div class="soon-icon">🤝</div>
+        <div class="soon-info">
+          <div class="soon-name">Seller Contribution</div>
+          <div class="soon-desc">Concession vs. price reduction — what actually helps the buyer more</div>
+        </div>
+        <div class="soon-badge">Soon</div>
+      </div>
+
+      <div class="card-soon">
+        <div class="soon-icon">📐</div>
+        <div class="soon-info">
+          <div class="soon-name">Appraisal Gap</div>
+          <div class="soon-desc">Coverage options and buyer cost in a low-appraisal situation</div>
+        </div>
+        <div class="soon-badge">Soon</div>
+      </div>
+
+      <div class="card-soon">
+        <div class="soon-icon">🏆</div>
+        <div class="soon-info">
+          <div class="soon-name">Bid Over Asking</div>
+          <div class="soon-desc">True monthly cost of bidding over asking vs. losing and buying later</div>
+        </div>
+        <div class="soon-badge">Soon</div>
+      </div>
+
+      <div class="card-soon">
+        <div class="soon-icon">⬆️</div>
+        <div class="soon-info">
+          <div class="soon-name">Move Up Buyer</div>
+          <div class="soon-desc">Sell, apply equity, and qualify for the next purchase</div>
+        </div>
+        <div class="soon-badge">Soon</div>
+      </div>
+
+      <div class="card-soon">
+        <div class="soon-icon">💵</div>
+        <div class="soon-info">
+          <div class="soon-name">Cash vs. Mortgage</div>
+          <div class="soon-desc">All-cash vs. financed on cash flow and opportunity cost</div>
+        </div>
+        <div class="soon-badge">Soon</div>
+      </div>
+
+      <div class="card-soon">
+        <div class="soon-icon">🎟️</div>
+        <div class="soon-info">
+          <div class="soon-name">Paying Points</div>
+          <div class="soon-desc">Breakeven and lifetime savings from buying down the rate</div>
+        </div>
+        <div class="soon-badge">Soon</div>
+      </div>
+
+      <div class="card-soon">
+        <div class="soon-icon">🔄</div>
+        <div class="soon-info">
+          <div class="soon-name">Refinance Risk of Waiting</div>
+          <div class="soon-desc">Cost of delaying a refinance while rates are favorable</div>
+        </div>
+        <div class="soon-badge">Soon</div>
+      </div>
+
+      <div class="card-soon">
+        <div class="soon-icon">📈</div>
+        <div class="soon-info">
+          <div class="soon-name">Refinance Breakeven</div>
+          <div class="soon-desc">True breakeven on a refinance including all costs</div>
+        </div>
+        <div class="soon-badge">Soon</div>
+      </div>
+
+      <a href="/buyer/tax-calc.html" class="card">
+        <div class="card-icon ci-blue">🧾</div>
+        <div class="card-info">
+          <div class="card-name">Tax Benefit Calculator</div>
+          <div class="card-desc">Mortgage interest deduction and estimated annual tax savings</div>
+        </div>
+        <div class="card-arrow">›</div>
+      </a>
+
     </div>
   </div>
 
-  <!-- INTERNAL TOOLS -->
+  <!-- ── SECTION 4: INVESTMENT ANALYSIS ── -->
   <div class="section">
-    <div class="section-header">
-      <div class="section-icon internal">⚙️</div>
-      <div class="section-title">Internal</div>
-    </div>
+    <div class="section-eyebrow">Buyer Tools</div>
+    <div class="section-heading">Investment Analysis</div>
     <div class="tools-grid">
-      <a href="internal/rate-board.html" class="tool-card">
-        <div class="tool-dot internal"></div>
-        <div class="tool-info">
-          <div class="tool-name">Rate Board</div>
-          <div class="tool-desc">Current rate scenarios for quick reference</div>
+
+      <a href="/buyer/multi-unit-investment-calculator.html" class="card">
+        <div class="card-icon ci-blue">🏢</div>
+        <div class="card-info">
+          <div class="card-name">Multi-Unit Investment Calculator</div>
+          <div class="card-desc">Cash vs. financing — cash flow, cash-on-cash return, and IRR</div>
         </div>
-        <div class="tool-arrow">›</div>
+        <div class="card-arrow">›</div>
       </a>
+
+      <div class="card-soon">
+        <div class="soon-icon">📊</div>
+        <div class="soon-info">
+          <div class="soon-name">IRR Calculator</div>
+          <div class="soon-desc">Investment property internal rate of return over a holding period</div>
+        </div>
+        <div class="soon-badge">Soon</div>
+      </div>
+
+      <div class="card-soon">
+        <div class="soon-icon">🏦</div>
+        <div class="soon-info">
+          <div class="soon-name">Cap Rate Calculator</div>
+          <div class="soon-desc">NOI and cap rate for evaluating investment property returns</div>
+        </div>
+        <div class="soon-badge">Soon</div>
+      </div>
+
+      <div class="card-soon">
+        <div class="soon-icon">📈</div>
+        <div class="soon-info">
+          <div class="soon-name">Equity Gained</div>
+          <div class="soon-desc">Projected equity accumulation over your holding period</div>
+        </div>
+        <div class="soon-badge">Soon</div>
+      </div>
+
+      <div class="card-soon">
+        <div class="soon-icon">🏠</div>
+        <div class="soon-info">
+          <div class="soon-name">Appreciation Calculator</div>
+          <div class="soon-desc">Property value projection by appreciation rate and time horizon</div>
+        </div>
+        <div class="soon-badge">Soon</div>
+      </div>
+
+      <div class="card-soon">
+        <div class="soon-icon">♻️</div>
+        <div class="soon-info">
+          <div class="soon-name">Reinvestment Calculator</div>
+          <div class="soon-desc">Returns from repositioning home equity into investments</div>
+        </div>
+        <div class="soon-badge">Soon</div>
+      </div>
+
+      <div class="card-soon">
+        <div class="soon-icon" style="font-size:13px;font-weight:800;color:#94a3b8;">72</div>
+        <div class="soon-info">
+          <div class="soon-name">Rule of 72</div>
+          <div class="soon-desc">How long equity or an investment takes to double at a given rate</div>
+        </div>
+        <div class="soon-badge">Soon</div>
+      </div>
+
+      <div class="card-soon">
+        <div class="soon-icon">📋</div>
+        <div class="soon-info">
+          <div class="soon-name">Amortization Calculator</div>
+          <div class="soon-desc">Full amortization schedule with extra payment modeling</div>
+        </div>
+        <div class="soon-badge">Soon</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── SECTION 5: REALTOR PARTNER TOOLS ── -->
+  <div class="section">
+    <div class="section-eyebrow green">Realtor Partner Tools</div>
+    <div class="section-heading">Partner Resources</div>
+    <div class="tools-grid">
+
+      <a href="/realtor/flyer-generator.html" class="card green-card">
+        <div class="card-icon ci-green">📄</div>
+        <div class="card-info">
+          <div class="card-name">Open House Payment Flyer</div>
+          <div class="card-desc">Generate branded 3-scenario payment flyers for any listing</div>
+        </div>
+        <div class="card-arrow">›</div>
+      </a>
+
+      <a href="/realtor/jumbo-flyer-generator.html" class="card green-card">
+        <div class="card-icon ci-green">📄</div>
+        <div class="card-info">
+          <div class="card-name">Jumbo Payment Flyer</div>
+          <div class="card-desc">Payment flyers optimized for jumbo loan properties</div>
+        </div>
+        <div class="card-arrow">›</div>
+      </a>
+
+      <a href="/realtor/realtor-planning.html" class="card green-card">
+        <div class="card-icon ci-green">💰</div>
+        <div class="card-info">
+          <div class="card-name">Referral Value Calculator</div>
+          <div class="card-desc">What consistent referrals are worth annually to a Realtor partner</div>
+        </div>
+        <div class="card-arrow">›</div>
+      </a>
+
+    </div>
+  </div>
+
+  <!-- ── SECTION 6: RATE & MARKET ── -->
+  <div class="section">
+    <div class="section-eyebrow gray">Rate &amp; Market</div>
+    <div class="section-heading">Current Pricing</div>
+    <div class="tools-grid">
+
+      <a href="/internal/rate-board.html" class="card gray-card">
+        <div class="card-icon ci-gray">📊</div>
+        <div class="card-info">
+          <div class="card-name">Current Rate Board</div>
+          <div class="card-desc">Live rate scenarios by loan type for buyer consultations</div>
+        </div>
+        <div class="card-arrow">›</div>
+      </a>
+
     </div>
   </div>
 
 </div>
 
+<!-- FOOTER -->
 <div class="footer">
-  HomeWealth Solutions LLC &nbsp;·&nbsp; NMLS #2742458 &nbsp;·&nbsp; tools.homewealthsolutions.com
+  HomeWealth Solutions LLC &nbsp;·&nbsp; NMLS #2609118 &nbsp;·&nbsp; Company NMLS #2742458 &nbsp;·&nbsp; Florida OFR MBR8082 &nbsp;·&nbsp; Equal Housing Opportunity
 </div>
 
 </body>
