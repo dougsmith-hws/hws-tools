@@ -234,33 +234,6 @@ input[data-fmt]{-moz-appearance:textfield;}
   #reportView details summary{display:none;}
   #reportView .proto-details-body{display:grid;grid-template-columns:1fr 1fr;}
 }
-/* ── Property Review (Realtor overlay) ───────────────────────────── */
-.pr-overlay{position:fixed;inset:0;z-index:9999;display:flex;align-items:flex-end;justify-content:center;padding:0;box-sizing:border-box;}
-@media(min-width:480px){.pr-overlay{align-items:center;padding:16px;}}
-.pr-overlay.hidden{display:none!important;}
-.pr-backdrop{position:absolute;inset:0;background:rgba(31,42,55,.45);}
-.pr-panel{position:relative;width:100%;max-width:420px;max-height:92vh;overflow-y:auto;background:#fff;border:1px solid var(--line);border-radius:16px 16px 0 0;box-shadow:0 -4px 24px rgba(0,0,0,.12);}
-@media(min-width:480px){.pr-panel{border-radius:16px;max-height:90vh;}}
-.pr-panel-head{display:flex;align-items:center;justify-content:space-between;padding:14px 16px 10px;border-bottom:1px solid var(--line);}
-.pr-title{font-size:12px;font-weight:800;letter-spacing:.12em;color:var(--gray);margin:0;}
-.pr-close{width:44px;height:44px;margin:-8px -6px -8px 0;border:none;background:transparent;font-size:28px;line-height:1;color:var(--gray);cursor:pointer;border-radius:10px;}
-.pr-close:hover{color:var(--dark);background:var(--bg);}
-.pr-body{padding:16px 18px 20px;}
-.pr-block{margin-bottom:14px;}
-.pr-block.pr-price-block{margin-bottom:10px;}
-.pr-block:last-child{margin-bottom:0;}
-.pr-k{font-size:11px;font-weight:700;letter-spacing:.08em;color:var(--gray);text-transform:uppercase;margin-bottom:4px;}
-.pr-block.pr-price-block .pr-k{text-transform:none;letter-spacing:.04em;font-size:12px;}
-.pr-v{font-size:16px;font-weight:700;color:var(--dark);line-height:1.35;}
-.pr-payment-wrap{text-align:center;padding:22px 12px 20px;margin:12px -8px 10px;background:var(--bg);border-radius:14px;border:1px solid var(--line);}
-.pr-payment-k{font-size:11px;font-weight:700;letter-spacing:.08em;color:var(--gray);text-transform:uppercase;margin-bottom:10px;}
-.pr-payment-num{font-size:clamp(2.25rem,10vw,3.1rem);font-weight:800;color:var(--dark);line-height:1.05;letter-spacing:-.02em;}
-.pr-payment-suf{font-size:1.1rem;font-weight:600;color:var(--gray);margin-left:2px;}
-.pr-comfort-status{font-size:1.15rem;font-weight:700;margin-top:6px;color:var(--dark);}
-.pr-comfort-diff{font-size:1.35rem;font-weight:800;margin-top:10px;color:var(--dark);}
-.pr-comfort-diff.below{color:#2E7D32;}
-.pr-comfort-diff.above{color:#B45309;}
-.pr-note{font-size:12px;color:var(--gray);line-height:1.45;margin-top:14px;padding-top:14px;border-top:1px solid var(--line);}
 </style>
 </head>
 <body>
@@ -972,75 +945,10 @@ function buildCS(inp,copyMy,copyNot){
     h+='<textarea id="copyNot" style="position:absolute;left:-9999px;">'+copyNot+'</textarea>';
   }
   h+='<button class="copy-btn" style="background:var(--blue);color:#fff;font-weight:600;" onclick="buildBuyerOfferStrategy()">&#128196; View Report</button>';
-  h+='<button type="button" class="copy-btn pr-open-btn" onclick="openPropertyReview()">PROPERTY REVIEW</button>';
   h+='<button class="copy-btn green-btn" onclick="copyShareLink()">&#128279; Copy shareable link</button>';
   h+='<button class="copy-btn" onclick="buildBuyerOfferStrategy();setTimeout(function(){window.print();},400);">&#8595; Save PDF</button>';
   h+='<button class="copy-btn" style="color:var(--gray);border-color:var(--line);font-weight:500;" onclick="buildReport()">&#128196; Detailed Analysis</button>';
   return h;
-}
-
-function prEscH(s){
-  return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-}
-
-function getPropertyReviewPayment(inp){
-  var lp=inp.lp,off=inp.off,rate=inp.rate,tax=inp.tax,hoi=inp.hoi,hoa=inp.hoa,
-      escr=inp.esc,bacPct=inp.bacPct,lt=inp.loanType;
-  var op=off>0?lp-off:lp;
-  var dpPct,ad;
-  if(MODE==='my'){var dr=resolveDown(inp,op);dpPct=dr.dpPct;ad=dr.ad;}
-  else{dpPct=inp.dpPct;ad=op*dpPct/100;}
-  var stax=tax*(op/lp);
-  var s=scenario(op,dpPct,rate,stax,hoi,lt,escr,bacPct);
-  return{total:s.total+hoa,op:op};
-}
-
-function propertyReviewKeydown(e){
-  if(e.key==='Escape')closePropertyReview();
-}
-
-function renderPropertyReviewHTML(inp,total,op){
-  var useOffer=inp.off>0;
-  var h='';
-  h+='<div class="pr-block"><div class="pr-k">Property address</div>';
-  h+='<div class="pr-v">'+(inp.addr?prEscH(inp.addr):'Not specified')+'</div></div>';
-  h+='<div class="pr-block pr-price-block"><div class="pr-k">'+(useOffer?'Purchase Price':'List price')+'</div>';
-  h+='<div class="pr-v">'+fd(useOffer?op:inp.lp)+'</div></div>';
-  h+='<div class="pr-payment-wrap"><div class="pr-payment-k">Estimated housing payment</div>';
-  h+='<div class="pr-payment-num">'+fd(Math.round(total))+'<span class="pr-payment-suf">/mo</span></div></div>';
-  if(MODE==='my'&&inp.ceil>0){
-    var fits=total<=inp.ceil;
-    var diffAmt=Math.round(Math.abs(total-inp.ceil));
-    h+='<div class="pr-block"><div class="pr-k">Comfort payment</div>';
-    h+='<div class="pr-v">'+fd(Math.round(inp.ceil))+'<span class="pr-payment-suf">/mo</span></div>';
-    h+='<div class="pr-comfort-status">'+(fits?'&#9989; Fits Comfort Range':'&#9888; Exceeds Comfort Range')+'</div>';
-    h+='<div class="pr-comfort-diff '+(fits?'below':'above')+'">'+fd(diffAmt)+'/month '+(fits?'below':'above')+' target</div></div>';
-  }
-  h+='<div class="pr-note">Payment estimate based on current estimated property taxes, insurance, and HOA.</div>';
-  return h;
-}
-
-function openPropertyReview(){
-  var inp=getInputs();
-  if(!inp.lp){alert('Please enter a list price.');return;}
-  var pr=getPropertyReviewPayment(inp);
-  var body=document.getElementById('propertyReviewBody');
-  var ov=document.getElementById('propertyReviewOverlay');
-  if(!body||!ov)return;
-  body.innerHTML=renderPropertyReviewHTML(inp,pr.total,pr.op);
-  ov.classList.remove('hidden');
-  ov.setAttribute('aria-hidden','false');
-  document.body.style.overflow='hidden';
-  document.addEventListener('keydown',propertyReviewKeydown);
-}
-
-function closePropertyReview(){
-  var ov=document.getElementById('propertyReviewOverlay');
-  if(!ov)return;
-  ov.classList.add('hidden');
-  ov.setAttribute('aria-hidden','true');
-  document.body.style.overflow='';
-  document.removeEventListener('keydown',propertyReviewKeydown);
 }
 
 function copyText(id){
@@ -1770,15 +1678,5 @@ window.addEventListener('DOMContentLoaded',async function(){
 });
 </script>
 <div id="reportView"></div>
-<div id="propertyReviewOverlay" class="pr-overlay hidden" aria-hidden="true">
-  <div class="pr-backdrop" onclick="closePropertyReview()"></div>
-  <div class="pr-panel" role="dialog" aria-labelledby="prDialogTitle">
-    <div class="pr-panel-head">
-      <h2 id="prDialogTitle" class="pr-title">PROPERTY REVIEW</h2>
-      <button type="button" class="pr-close" onclick="closePropertyReview()" aria-label="Close">&times;</button>
-    </div>
-    <div id="propertyReviewBody" class="pr-body"></div>
-  </div>
-</div>
 </body>
 </html>
