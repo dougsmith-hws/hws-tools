@@ -741,11 +741,19 @@ function submitSession() {
   }
   document.getElementById('modal-err').style.display = 'none';
   setSession(name, phone4);
-  hideModal();
   if (_pendingUrl) {
+    // Keep the modal overlay up as a full-screen cover through navigation so the
+    // tool page never flashes in behind it. The overlay is replaced when the
+    // destination page loads.
+    const btn = document.getElementById('modal-submit');
+    btn.textContent = 'Starting…';
+    btn.disabled = true;
+    const dest = _pendingUrl + '?client=' + encodeURIComponent(name);
     logRun(name, phone4, _pendingUrl);
-    window.location.href = _pendingUrl + '?client=' + encodeURIComponent(name);
     _pendingUrl = null;
+    window.location.href = dest;
+  } else {
+    hideModal();
   }
 }
 
@@ -764,7 +772,9 @@ function logRun(name, phone4, url) {
 function interceptBuyerCards() {
   document.querySelectorAll('#tab-buyer .card').forEach(card => {
     card.addEventListener('click', function(e) {
+      // Fully block the anchor's default navigation before anything else can fire.
       e.preventDefault();
+      e.stopImmediatePropagation();
       const url = this.getAttribute('href');
       if (!url) return;
       if (_session) {
@@ -773,7 +783,7 @@ function interceptBuyerCards() {
       } else {
         showModal(url);
       }
-    });
+    }, true);
   });
 }
 
