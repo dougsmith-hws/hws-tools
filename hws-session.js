@@ -15,7 +15,7 @@
   'use strict';
 
   // ─── CONFIGURATION ────────────────────────────────────────────────────────
-  const HWS_SCRIPT_URL = 'PASTE_APPS_SCRIPT_URL_HERE';  // Replace after deploying Apps Script
+  const HWS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbylPGtxYpbKBaqqmkR21tmJ4vd13oB2FRriFqMQBRQ3KUGEImORdGZbcG6rUWusw19qYQ/exec';  // Replace after deploying Apps Script
   const STORAGE_KEY    = 'hws_session_tag';
   const TOOL_NAME      = document.title.split('|')[0].split('—')[0].trim() || 'Unknown Tool';
   const TOOL_URL       = window.location.pathname;
