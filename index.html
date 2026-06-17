@@ -742,7 +742,7 @@ function submitSession() {
   hideModal();
   if (_pendingUrl) {
     logRun(name, phone4, _pendingUrl);
-    window.location.href = _pendingUrl;
+    window.location.href = _pendingUrl + '?client=' + encodeURIComponent(name);
     _pendingUrl = null;
   }
 }
@@ -767,7 +767,7 @@ function interceptBuyerCards() {
       if (!url) return;
       if (_session) {
         logRun(_session.name, _session.phone4, url);
-        window.location.href = url;
+        window.location.href = url + '?client=' + encodeURIComponent(_session.name);
       } else {
         showModal(url);
       }
