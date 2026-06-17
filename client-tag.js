@@ -18,45 +18,65 @@
 
   function inject() {
     var el = document.createElement('span');
+    el.id = 'hws-client-tag';
+    el.textContent = '\u{1F464} ' + client;
 
-    // Try to insert before the ← Hub back-link (present in all buyer tools)
-    var backLink = document.querySelector('a.back-link');
-    if (backLink && backLink.parentNode) {
+    // The Hub button is the anchor point (top-right in all buyer tools).
+    var hub = document.getElementById('hws-hub-btn')
+           || document.querySelector('a.btn-hub')
+           || document.querySelector('a.back-link');
+
+    var fixedHub = hub && getComputedStyle(hub).position === 'fixed';
+
+    if (hub && !fixedHub && hub.parentNode) {
+      // In-flow hub (inside a flex header): drop a small chip just before it.
       el.style.cssText = [
-        'font-size:11px',
-        'font-weight:600',
-        'color:rgba(255,255,255,0.85)',
-        'background:rgba(0,0,0,0.18)',
-        'border-radius:12px',
-        'padding:3px 10px',
-        'white-space:nowrap',
-        'flex-shrink:0',
-        'align-self:center',
-        'margin-right:4px',
+        'display:inline-flex','align-items:center',
+        'font-size:12px','font-weight:600',
+        'color:#94a3b8',
+        'border:1px solid #475569','border-radius:6px',
+        'padding:5px 11px','margin-right:8px',
+        'white-space:nowrap','flex-shrink:0',
         'font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif',
       ].join(';');
-      el.textContent = '\u{1F464} ' + client;
-      backLink.parentNode.insertBefore(el, backLink);
+      hub.parentNode.insertBefore(el, hub);
       return;
     }
 
-    // Fallback: fixed pill bottom-left
+    if (fixedHub) {
+      // Fixed hub (position:fixed top-right): place a matching pill to its left.
+      var position = function () {
+        var r = hub.getBoundingClientRect();
+        el.style.top    = r.top + 'px';
+        el.style.right  = (window.innerWidth - r.left + 8) + 'px';
+        el.style.height = r.height + 'px';
+      };
+      el.style.cssText = [
+        'position:fixed','z-index:9999',
+        'display:inline-flex','align-items:center','box-sizing:border-box',
+        'background:rgba(28,43,58,0.92)',
+        'color:rgba(255,255,255,0.92)',
+        'font-size:12px','font-weight:600',
+        'padding:0 12px','border-radius:8px',
+        'white-space:nowrap',
+        'box-shadow:0 2px 8px rgba(0,0,0,0.25)',
+        'font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif',
+      ].join(';');
+      document.body.appendChild(el);
+      position();
+      window.addEventListener('resize', position);
+      return;
+    }
+
+    // Last-resort fallback: small fixed pill, top-right corner.
     el.style.cssText = [
-      'position:fixed',
-      'bottom:16px',
-      'left:16px',
-      'z-index:9998',
-      'background:#1a2332',
-      'color:white',
-      'font-size:11px',
-      'font-weight:600',
-      'padding:5px 13px',
-      'border-radius:20px',
-      'box-shadow:0 2px 10px rgba(0,0,0,0.2)',
-      'pointer-events:none',
+      'position:fixed','top:14px','right:16px','z-index:9998',
+      'background:#1a2332','color:white',
+      'font-size:12px','font-weight:600',
+      'padding:5px 13px','border-radius:8px',
+      'box-shadow:0 2px 10px rgba(0,0,0,0.2)','pointer-events:none',
       'font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif',
     ].join(';');
-    el.textContent = '\u{1F464} ' + client;
     document.body.appendChild(el);
   }
 
