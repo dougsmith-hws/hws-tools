@@ -44,13 +44,9 @@
     }
 
     if (fixedHub) {
-      // Fixed hub (position:fixed top-right): place a matching pill to its left.
-      var position = function () {
-        var r = hub.getBoundingClientRect();
-        el.style.top    = r.top + 'px';
-        el.style.right  = (window.innerWidth - r.left + 8) + 'px';
-        el.style.height = r.height + 'px';
-      };
+      // Fixed hub (position:fixed top-right): place a matching pill to its left,
+      // and reserve right-padding on the header so existing header text (e.g.
+      // "Doug Smith, CMA® | President") shifts clear and nothing overlaps.
       el.style.cssText = [
         'position:fixed','z-index:9999',
         'display:inline-flex','align-items:center','box-sizing:border-box',
@@ -63,6 +59,22 @@
         'font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif',
       ].join(';');
       document.body.appendChild(el);
+
+      var header = hub.closest('.header') || hub.parentElement;
+      var prevPadR = header ? parseFloat(getComputedStyle(header).paddingRight) || 0 : 0;
+
+      var position = function () {
+        var r = hub.getBoundingClientRect();
+        el.style.top    = r.top + 'px';
+        el.style.height = r.height + 'px';
+        el.style.right  = (window.innerWidth - r.left + 10) + 'px'; // 10px gap left of Hub
+        if (header) {
+          var t = el.getBoundingClientRect();
+          // push header content to clear the tag's left edge (+12px breathing room)
+          var needed = Math.ceil(window.innerWidth - t.left + 12);
+          header.style.paddingRight = Math.max(prevPadR, needed) + 'px';
+        }
+      };
       position();
       window.addEventListener('resize', position);
       return;
