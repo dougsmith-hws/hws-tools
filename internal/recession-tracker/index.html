@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Recession Indicator Tracker — HomeWealth Solutions</title>
+<style>
+:root {
+  --blue:  #2491EB;
+  --green: #8EC73F;
+  --dark:  #1c2b3a;
+  --mid:   #3a4f62;
+  --red:   #dc3545;
+  --amber: #e8900a;
+  --c-safe:   #28a745;
+  --c-watch:  #e8900a;
+  --c-warn:   #dc3545;
+  --bg-safe:  #f0f9e4;
+  --bg-watch: #fff8ee;
+  --bg-warn:  #fff0f0;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+  background: #f5f7fa;
+  color: #222;
+  font-size: 14px;
+}
+
+/* ── Header ── */
+.hdr {
+  background: var(--dark);
+  color: white;
+  padding: 18px 28px 16px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+}
+.hdr-brand { font-size: 12px; color: rgba(255,255,255,.5); letter-spacing: .4px; }
+.hdr-title { font-size: 21px; font-weight: 700; margin-top: 3px; }
+.hdr-sub   { font-size: 12px; color: rgba(255,255,255,.45); margin-top: 3px; }
+.hdr-right { text-align: right; font-size: 12px; color: rgba(255,255,255,.5); }
+.hdr-right strong { display: block; color: rgba(255,255,255,.85); font-size: 13px; }
+.print-btn {
+  background: transparent;
+  border: 1.5px solid rgba(255,255,255,.4);
+  color: rgba(255,255,255,.85);
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-size: 12px;
+  cursor: pointer;
+  margin-bottom: 6px;
+  white-space: nowrap;
+}
+.print-btn:hover { background: rgba(255,255,255,.1); }
+
+/* ── Main ── */
+.main { max-width: 960px; margin: 0 auto; padding: 22px 18px 48px; }
+
+/* ── Section label ── */
+.section-title {
+  font-size: 11px; font-weight: 700; letter-spacing: 1px;
+  text-transform: uppercase; color: var(--mid);
+  border-bottom: 2px solid #e0e4ea;
+  padding-bottom: 7px; margin-bottom: 16px; margin-top: 28px;
+}
+
+/* ── Confluence meter ── */
+.meter-wrap {
+  background: white;
+  border-radius: 12px;
+  padding: 20px 24px;
+  box-shadow: 0 2px 10px rgba(0,0,0,.08);
+  display: flex;
+  gap: 28px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.meter-score-block { text-align: center; flex-shrink: 0; }
+.meter-score {
+  font-size: 64px;
+  font-weight: 900;
+  line-height: 1;
+  transition: color .3s;
+}
+.meter-score-label { font-size: 12px; color: #888; margin-top: 4px; }
+.meter-bar-block { flex: 1; min-width: 200px; }
+.meter-verdict {
+  font-size: 20px;
+  font-weight: 800;
+  margin-bottom: 8px;
+  transition: color .3s;
+}
+.meter-desc { font-size: 13px; color: #555; line-height: 1.55; margin-bottom: 12px; }
+.bar-track {
+  height: 12px;
+  background: #e8ecf0;
+  border-radius: 6px;
+  overflow: hidden;
+}
+.bar-fill {
+  height: 100%;
+  border-radius: 6px;
+  transition: width .5s ease, background .3s;
+}
+.meter-dots { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+.meter-dot {
+  width: 10px; height: 10px; border-radius: 50%;
+  background: #ddd;
+  transition: background .3s;
+}
+.meter-dot.active-safe  { background: var(--c-safe); }
+.meter-dot.active-watch { background: var(--c-watch); }
+.meter-dot.active-warn  { background: var(--c-warn); }
+
+/* ── Strategy banner ── */
+.strategy-banner {
+  border-radius: 8px;
+  padding: 12px 16px;
+  font-size: 13px;
+  line-height: 1.55;
+  margin-top: 14px;
+  transition: background .3s, border-color .3s;
+  border-left: 4px solid;
+}
+.strategy-banner strong { display: block; font-size: 13px; margin-bottom: 3px; }
+
+/* ── Indicator cards ── */
+.indicators-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+.ind-card {
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 1px 5px rgba(0,0,0,.07);
+  overflow: hidden;
+  transition: box-shadow .2s;
+}
+.ind-card:hover { box-shadow: 0 3px 12px rgba(0,0,0,.11); }
+.ind-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px 12px;
+  border-bottom: 1px solid #f0f0f0;
+}
+.ind-num {
+  width: 30px; height: 30px;
+  border-radius: 50%;
+  background: var(--dark);
+  color: white;
+  font-weight: 800;
+  font-size: 14px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.ind-title { font-weight: 800; font-size: 14px; color: #111; flex: 1; line-height: 1.3; }
+.ind-status-badge {
+  font-size: 11px; font-weight: 800;
+  padding: 3px 10px;
+  border-radius: 20px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.ind-body { padding: 12px 16px 14px; }
+.ind-explain { font-size: 12px; color: #555; line-height: 1.55; margin-bottom: 12px; }
+.ind-signal-label { font-size: 11px; font-weight: 700; color: var(--mid); text-transform: uppercase; letter-spacing: .4px; margin-bottom: 6px; }
+.toggle-row {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.toggle-btn {
+  flex: 1;
+  min-width: 70px;
+  padding: 7px 10px;
+  border-radius: 6px;
+  border: 2px solid #e0e4ea;
+  background: white;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all .15s;
+  text-align: center;
+  color: #888;
+}
+.toggle-btn:hover { border-color: #bbb; color: #555; }
+.toggle-btn.active-safe  { background: var(--bg-safe);  border-color: var(--c-safe);  color: #2a6e12; }
+.toggle-btn.active-watch { background: var(--bg-watch); border-color: var(--c-watch); color: #7a4a00; }
+.toggle-btn.active-warn  { background: var(--bg-warn);  border-color: var(--c-warn);  color: #b00020; }
+.ind-note-area {
+  margin-top: 10px;
+}
+.ind-note {
+  width: 100%;
+  border: 1px solid #e8e8e8;
+  border-radius: 6px;
+  padding: 7px 10px;
+  font-size: 12px;
+  color: #444;
+  font-family: inherit;
+  resize: none;
+  line-height: 1.5;
+  background: #fafafa;
+}
+.ind-note:focus { outline: none; border-color: var(--blue); background: white; }
+.ind-note::placeholder { color: #bbb; }
+
+/* ── Context bar ── */
+.context-bar {
+  background: white;
+  border-radius: 10px;
+  padding: 14px 18px;
+  box-shadow: 0 1px 5px rgba(0,0,0,.07);
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  flex-wrap: wrap;
+  font-size: 13px;
+}
+.context-field { display: flex; align-items: center; gap: 8px; }
+.context-label { font-weight: 700; color: var(--mid); font-size: 12px; white-space: nowrap; }
+.context-input {
+  border: 1px solid #dde2ea;
+  border-radius: 6px;
+  padding: 5px 10px;
+  font-size: 12px;
+  font-family: inherit;
+  color: #222;
+  background: white;
+}
+.context-input:focus { outline: none; border-color: var(--blue); }
+
+/* ── What to watch ── */
+.wtw-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; }
+.wtw-card {
+  background: white;
+  border-radius: 8px;
+  padding: 14px 14px;
+  box-shadow: 0 1px 4px rgba(0,0,0,.06);
+  font-size: 12px;
+}
+.wtw-card h4 { font-size: 12px; font-weight: 800; color: #111; margin-bottom: 6px; }
+.wtw-card ul { padding-left: 14px; color: #555; line-height: 1.7; }
+
+/* ── Print ── */
+@media print {
+  body { background: white; }
+  .main { padding: 0; max-width: 100%; }
+  .print-btn { display: none !important; }
+  .ind-card, .meter-wrap, .context-bar, .wtw-card { box-shadow: none; border: 1px solid #ddd; }
+  .ind-note { border: 1px solid #ddd; background: white; }
+}
+
+/* ── Mobile ── */
+@media (max-width: 640px) {
+  .indicators-grid { grid-template-columns: 1fr; }
+  .wtw-grid { grid-template-columns: 1fr 1fr; }
+  .hdr-right { display: none; }
+}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div>
+    <div class="hdr-brand">HomeWealth Solutions LLC &nbsp;·&nbsp; NMLS #2742458</div>
+    <div class="hdr-title">Recession Indicator Tracker</div>
+    <div class="hdr-sub">Barry Habib's 5-Indicator Framework &nbsp;·&nbsp; Application to Loan Strategy</div>
+  </div>
+  <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px">
+    <button class="print-btn" onclick="window.print()">🖨 Print / Save PDF</button>
+    <div class="hdr-right">
+      Doug Smith, CMA®<br>
+      <strong>813-733-7371</strong><br>
+      doug@homewealthsolutions.com
+    </div>
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- Context bar -->
+  <div class="context-bar" style="margin-bottom:18px">
+    <div class="context-field">
+      <div class="context-label">Updated</div>
+      <input type="date" id="asOfDate" class="context-input">
+    </div>
+    <div class="context-field">
+      <div class="context-label">Source / Notes</div>
+      <input type="text" id="sourceNote" class="context-input" style="width:260px" placeholder="e.g. MBS Highway, BLS.gov, Fed minutes">
+    </div>
+    <div style="margin-left:auto;font-size:11px;color:#aaa">Set each indicator below, then review the confluence score above.</div>
+  </div>
+
+  <!-- Confluence Meter -->
+  <div class="meter-wrap">
+    <div class="meter-score-block">
+      <div class="meter-score" id="scoreNum">0</div>
+      <div class="meter-score-label">of 5 warning</div>
+    </div>
+    <div class="meter-bar-block">
+      <div class="meter-verdict" id="verdictText">Loading…</div>
+      <div class="meter-desc" id="verdictDesc"></div>
+      <div class="bar-track"><div class="bar-fill" id="barFill" style="width:0%"></div></div>
+      <div class="meter-dots" id="meterDots">
+        <div class="meter-dot" id="dot0"></div>
+        <div class="meter-dot" id="dot1"></div>
+        <div class="meter-dot" id="dot2"></div>
+        <div class="meter-dot" id="dot3"></div>
+        <div class="meter-dot" id="dot4"></div>
+      </div>
+      <div class="strategy-banner" id="stratBanner"></div>
+    </div>
+  </div>
+
+  <!-- Indicators -->
+  <div class="section-title">The 5 Recession Indicators</div>
+  <div class="indicators-grid" id="indicatorGrid">
+
+    <!-- 1: Unemployment -->
+    <div class="ind-card" id="card0">
+      <div class="ind-header">
+        <div class="ind-num">1</div>
+        <div class="ind-title">Unemployment Rate Trending Up</div>
+        <div class="ind-status-badge" id="badge0">—</div>
+      </div>
+      <div class="ind-body">
+        <div class="ind-explain">
+          Recessions occur <em>after</em> unemployment hits its cyclical low and begins rising — not when unemployment is already high. The signal is the directional change, not the level. Historically 100% accurate as a recession precursor.
+        </div>
+        <div class="ind-signal-label">Current Signal</div>
+        <div class="toggle-row">
+          <button class="toggle-btn" data-ind="0" data-val="safe"  onclick="setStatus(0,'safe')">🟢 Still Falling / Stable</button>
+          <button class="toggle-btn" data-ind="0" data-val="watch" onclick="setStatus(0,'watch')">🟡 Near Cycle Low</button>
+          <button class="toggle-btn" data-ind="0" data-val="warn"  onclick="setStatus(0,'warn')">🔴 Trending Up</button>
+        </div>
+        <div class="ind-note-area">
+          <textarea class="ind-note" rows="2" placeholder="Current U3 rate, trend, source…"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2: Corporate Debt -->
+    <div class="ind-card" id="card1">
+      <div class="ind-header">
+        <div class="ind-num">2</div>
+        <div class="ind-title">Corporate Debt Increasing</div>
+        <div class="ind-status-badge" id="badge1">—</div>
+      </div>
+      <div class="ind-body">
+        <div class="ind-explain">
+          Rising corporate leverage makes companies more vulnerable to economic slowdowns. When businesses are heavily indebted, any revenue drop triggers faster layoffs and tighter credit — amplifying a downturn.
+        </div>
+        <div class="ind-signal-label">Current Signal</div>
+        <div class="toggle-row">
+          <button class="toggle-btn" data-ind="1" data-val="safe"  onclick="setStatus(1,'safe')">🟢 Stable / Deleveraging</button>
+          <button class="toggle-btn" data-ind="1" data-val="watch" onclick="setStatus(1,'watch')">🟡 Moderately Rising</button>
+          <button class="toggle-btn" data-ind="1" data-val="warn"  onclick="setStatus(1,'warn')">🔴 Sharply Rising</button>
+        </div>
+        <div class="ind-note-area">
+          <textarea class="ind-note" rows="2" placeholder="Investment grade spreads, debt levels, Fed data…"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3: Yield Curve -->
+    <div class="ind-card" id="card2">
+      <div class="ind-header">
+        <div class="ind-num">3</div>
+        <div class="ind-title">Inverted Yield Curve</div>
+        <div class="ind-status-badge" id="badge2">—</div>
+      </div>
+      <div class="ind-body">
+        <div class="ind-explain">
+          When the 10-year Treasury yield falls below the 2-year Treasury yield (negative spread), bond investors are pricing in future Fed rate cuts — which only happen in a slowdown. One of the most reliable historical recession precursors, typically leading by 12–18 months.
+        </div>
+        <div class="ind-signal-label">Current Signal</div>
+        <div class="toggle-row">
+          <button class="toggle-btn" data-ind="2" data-val="safe"  onclick="setStatus(2,'safe')">🟢 Normal (10yr &gt; 2yr)</button>
+          <button class="toggle-btn" data-ind="2" data-val="watch" onclick="setStatus(2,'watch')">🟡 Flattening</button>
+          <button class="toggle-btn" data-ind="2" data-val="warn"  onclick="setStatus(2,'warn')">🔴 Inverted (10yr &lt; 2yr)</button>
+        </div>
+        <div class="ind-note-area">
+          <textarea class="ind-note" rows="2" placeholder="Current 10yr yield, 2yr yield, spread…"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4: Synchronized Recessions -->
+    <div class="ind-card" id="card3">
+      <div class="ind-header">
+        <div class="ind-num">4</div>
+        <div class="ind-title">Synchronized Global Recessions</div>
+        <div class="ind-status-badge" id="badge3">—</div>
+      </div>
+      <div class="ind-body">
+        <div class="ind-explain">
+          When 50%+ of global economies are contracting simultaneously, the US can't export its way out of trouble. COVID was 93% synchronicity — the highest on record — contributing to its severity. The more countries in recession, the deeper and longer the US contraction tends to be.
+        </div>
+        <div class="ind-signal-label">Current Signal</div>
+        <div class="toggle-row">
+          <button class="toggle-btn" data-ind="3" data-val="safe"  onclick="setStatus(3,'safe')">🟢 &lt; 30% in recession</button>
+          <button class="toggle-btn" data-ind="3" data-val="watch" onclick="setStatus(3,'watch')">🟡 30–50% contracting</button>
+          <button class="toggle-btn" data-ind="3" data-val="warn"  onclick="setStatus(3,'warn')">🔴 50%+ in recession</button>
+        </div>
+        <div class="ind-note-area">
+          <textarea class="ind-note" rows="2" placeholder="IMF global outlook, EU/China/EM data…"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- 5: World Trade -->
+    <div class="ind-card" id="card4" style="grid-column: span 2">
+      <div class="ind-header">
+        <div class="ind-num">5</div>
+        <div class="ind-title">World Trade Declining (Cass Freight / Dutch Data)</div>
+        <div class="ind-status-badge" id="badge4">—</div>
+      </div>
+      <div class="ind-body">
+        <div class="ind-explain">
+          When global trade volume breaks below zero and continues trending lower, a recession typically follows. This doesn't occur on flat trade — it requires a sustained decline. The Cass Freight Index and Dutch Bureau for Economic Policy Analysis (CPB) are the key sources. Habib used this to forecast the 2020 recession before COVID hit.
+        </div>
+        <div style="display:flex;gap:20px;flex-wrap:wrap">
+          <div style="flex:1;min-width:200px">
+            <div class="ind-signal-label">Current Signal</div>
+            <div class="toggle-row">
+              <button class="toggle-btn" data-ind="4" data-val="safe"  onclick="setStatus(4,'safe')">🟢 Positive / Stable Growth</button>
+              <button class="toggle-btn" data-ind="4" data-val="watch" onclick="setStatus(4,'watch')">🟡 Slowing / Near Zero</button>
+              <button class="toggle-btn" data-ind="4" data-val="warn"  onclick="setStatus(4,'warn')">🔴 Below Zero &amp; Declining</button>
+            </div>
+            <div class="ind-note-area">
+              <textarea class="ind-note" rows="2" placeholder="Cass Freight Index, CPB world trade monitor, shipping data…"></textarea>
+            </div>
+          </div>
+          <div style="flex:1;min-width:200px;font-size:12px;color:#666;background:#f9f9f9;border-radius:8px;padding:12px;line-height:1.6">
+            <strong style="color:#111;display:block;margin-bottom:5px">Where to check:</strong>
+            <div>📦 <strong>Cass Freight Index</strong> — cassinfo.com (monthly, freight shipment volume)</div>
+            <div style="margin-top:4px">🌍 <strong>CPB World Trade Monitor</strong> — cpb.nl (monthly, Netherlands Bureau)</div>
+            <div style="margin-top:4px">🚢 <strong>Baltic Dry Index</strong> — additional shipping demand gauge</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- What to watch -->
+  <div class="section-title">Loan Strategy Based on Recession Outlook</div>
+  <div class="wtw-grid">
+    <div class="wtw-card" style="border-top:3px solid var(--c-safe)">
+      <h4>🟢 Low Risk (0–1 indicators)</h4>
+      <ul>
+        <li>Economy is healthy — rates may stay elevated</li>
+        <li>Points buydowns can make sense if client holds long-term</li>
+        <li>Floating rate loans carry more risk</li>
+        <li>Focus conversation on payment strategy, not refi timing</li>
+      </ul>
+    </div>
+    <div class="wtw-card" style="border-top:3px solid var(--c-watch)">
+      <h4>🟡 Elevated Risk (2–3 indicators)</h4>
+      <ul>
+        <li>Rate cut cycle may be on the horizon</li>
+        <li>Caution on heavy buydowns — refi opportunity may come</li>
+        <li>Favor lender credits or low-point options</li>
+        <li>Discuss "plan loans two at a time" with clients</li>
+        <li>Monitor monthly; position for rate environment shift</li>
+      </ul>
+    </div>
+    <div class="wtw-card" style="border-top:3px solid var(--c-warn)">
+      <h4>🔴 High Risk (4–5 indicators)</h4>
+      <ul>
+        <li>Recession likely — Fed rate cuts probable within 12–18 months</li>
+        <li>Strongly favor lender credits over paying points</li>
+        <li>Refi opportunity is likely coming — don't overpay upfront</li>
+        <li>Habib framework: "right strategy beats lowest rate every time"</li>
+        <li>Realtor conversation: undersupply + low foreclosures = no bubble</li>
+      </ul>
+    </div>
+  </div>
+
+  <div style="margin-top:20px;font-size:11px;color:#aaa;text-align:center;line-height:1.6">
+    Framework: Barry Habib, CMA® / MBS Highway &nbsp;·&nbsp; This is an educational reference tool, not investment advice &nbsp;·&nbsp; HomeWealth Solutions LLC, NMLS #2742458 &nbsp;·&nbsp; Doug Smith, CMA® NMLS #2609118
+  </div>
+
+</div>
+
+<script>
+// State
+const statuses = ['','','','',''];
+
+const VERDICTS = [
+  { score: 0, label: 'No Warning Signals', color: '#28a745', bar: '#28a745', pct: 4,
+    desc: 'None of the 5 indicators are flashing. Economy appears healthy. Recession risk is low based on this framework.',
+    strat: { bg: '#f0f9e4', border: '#28a745', color: '#2a6e12', head: 'Loan Strategy: Standard Approach', body: 'Economy looks solid. Points buydowns can make sense for long-term holds. No strong signal to avoid upfront costs based on rate-cut anticipation.' }
+  },
+  { score: 1, label: '1 of 5 — Low Risk', color: '#28a745', bar: '#28a745', pct: 20,
+    desc: 'One indicator is elevated. Worth monitoring, but no confluence yet. Economy is generally healthy.',
+    strat: { bg: '#f0f9e4', border: '#28a745', color: '#2a6e12', head: 'Loan Strategy: Proceed Normally', body: 'Single signal is not enough confluence to change strategy. Continue evaluating buydowns on a case-by-case basis using client holding period.' }
+  },
+  { score: 2, label: '2 of 5 — Watch Closely', color: '#e8900a', bar: '#e8900a', pct: 40,
+    desc: 'Two indicators are elevated. Confluence is building. Rate cuts may be in the future — start factoring this into loan strategy conversations.',
+    strat: { bg: '#fff8ee', border: '#e8900a', color: '#7a4a00', head: 'Loan Strategy: Caution on Heavy Buydowns', body: 'Consider lender credit options. If a refi window opens in 12–18 months, clients who paid heavy points will be frustrated. "Plan loans two at a time."' }
+  },
+  { score: 3, label: '3 of 5 — Elevated Risk', color: '#e8900a', bar: '#e8900a', pct: 60,
+    desc: 'Majority of indicators showing concern. Habib\'s framework would call this a meaningful recession signal. A rate-cut cycle may be on the horizon.',
+    strat: { bg: '#fff8ee', border: '#e8900a', color: '#7a4a00', head: 'Loan Strategy: Favor Low Points / Credits', body: 'Lean toward lender credits or near-par pricing. Refi opportunity is increasingly likely. Clients who hold 30+ years: points may still pencil. Everyone else — protect cash.' }
+  },
+  { score: 4, label: '4 of 5 — High Risk', color: '#dc3545', bar: '#dc3545', pct: 82,
+    desc: 'Strong confluence across indicators. Historical precedent suggests recession is probable. Fed rate cuts likely within 12–18 months. Take this seriously in every rate conversation.',
+    strat: { bg: '#fff0f0', border: '#dc3545', color: '#b00020', head: 'Loan Strategy: Take Lender Credits', body: 'Strongly avoid buying points. Refi opportunity is coming — clients who overpay upfront now will leave money on the table. "Right strategy beats lowest rate every time." — Habib' }
+  },
+  { score: 5, label: '5 of 5 — All Indicators Flashing', color: '#dc3545', bar: '#dc3545', pct: 100,
+    desc: 'All five indicators are in warning territory. This is maximum confluence — the scenario Habib used to forecast the 2020 recession. Recession risk is very high.',
+    strat: { bg: '#fff0f0', border: '#dc3545', color: '#b00020', head: 'Loan Strategy: Strongly Favor Credits — Refi is Coming', body: 'Full confluence. Position every client for a likely refi within 12–18 months. Avoid points entirely. Focus conversations on payment and cash-to-close, not rate optimization.' }
+  }
+];
+
+function setStatus(i, val) {
+  statuses[i] = val;
+  // Update toggle buttons
+  document.querySelectorAll(`[data-ind="${i}"]`).forEach(btn => {
+    btn.classList.remove('active-safe','active-watch','active-warn');
+    if (btn.dataset.val === val) btn.classList.add('active-' + val);
+  });
+  // Update card border
+  const card = document.getElementById('card'+i);
+  card.style.borderTop = '3px solid ' + (val === 'safe' ? 'var(--c-safe)' : val === 'watch' ? 'var(--c-watch)' : val === 'warn' ? 'var(--c-warn)' : '');
+  // Update badge
+  const badge = document.getElementById('badge'+i);
+  if (val === 'safe') {
+    badge.textContent = '✓ Safe';
+    badge.style.cssText = 'background:var(--bg-safe);color:var(--c-safe)';
+  } else if (val === 'watch') {
+    badge.textContent = '⚠ Watch';
+    badge.style.cssText = 'background:var(--bg-watch);color:var(--c-watch)';
+  } else if (val === 'warn') {
+    badge.textContent = '⚑ Warning';
+    badge.style.cssText = 'background:var(--bg-warn);color:var(--c-warn)';
+  }
+  updateMeter();
+  saveState();
+}
+
+function updateMeter() {
+  const warns  = statuses.filter(s => s === 'warn').length;
+  const watchs = statuses.filter(s => s === 'watch').length;
+  // Score = warnings + 0.5 per watch, rounded, capped at 5
+  const rawScore = Math.min(5, warns + Math.round(watchs * 0.5));
+  const v = VERDICTS[rawScore];
+
+  document.getElementById('scoreNum').textContent = warns;
+  document.getElementById('scoreNum').style.color = v.color;
+  document.getElementById('verdictText').textContent = v.label;
+  document.getElementById('verdictText').style.color = v.color;
+  document.getElementById('verdictDesc').textContent = v.desc;
+  document.getElementById('barFill').style.width = v.pct + '%';
+  document.getElementById('barFill').style.background = v.bar;
+
+  // Dots
+  for (let d = 0; d < 5; d++) {
+    const dot = document.getElementById('dot'+d);
+    dot.className = 'meter-dot';
+    if (statuses[d] === 'safe')  dot.classList.add('active-safe');
+    if (statuses[d] === 'watch') dot.classList.add('active-watch');
+    if (statuses[d] === 'warn')  dot.classList.add('active-warn');
+  }
+
+  // Strategy banner
+  const sb = document.getElementById('stratBanner');
+  sb.style.cssText = `background:${v.strat.bg};border-color:${v.strat.border};color:${v.strat.color}`;
+  sb.innerHTML = `<strong>${v.strat.head}</strong>${v.strat.body}`;
+}
+
+function saveState() {
+  try {
+    const notes = [];
+    document.querySelectorAll('.ind-note').forEach(n => notes.push(n.value));
+    localStorage.setItem('recession_statuses', JSON.stringify(statuses));
+    localStorage.setItem('recession_notes', JSON.stringify(notes));
+    localStorage.setItem('recession_date', document.getElementById('asOfDate').value);
+    localStorage.setItem('recession_source', document.getElementById('sourceNote').value);
+  } catch(e) {}
+}
+
+function loadState() {
+  try {
+    const s = localStorage.getItem('recession_statuses');
+    const n = localStorage.getItem('recession_notes');
+    const d = localStorage.getItem('recession_date');
+    const src = localStorage.getItem('recession_source');
+    if (s) {
+      JSON.parse(s).forEach((val, i) => { if (val) setStatus(i, val); });
+    }
+    if (n) {
+      const notes = JSON.parse(n);
+      document.querySelectorAll('.ind-note').forEach((el, i) => { if (notes[i]) el.value = notes[i]; });
+    }
+    if (d) document.getElementById('asOfDate').value = d;
+    if (src) document.getElementById('sourceNote').value = src;
+  } catch(e) {}
+}
+
+// Auto-save notes and context on change
+document.querySelectorAll('.ind-note, #asOfDate, #sourceNote').forEach(el => {
+  el.addEventListener('input', saveState);
+  el.addEventListener('change', saveState);
+});
+
+// Set today's date as default
+const today = new Date();
+document.getElementById('asOfDate').value = today.toISOString().split('T')[0];
+
+// Init
+updateMeter();
+loadState();
+</script>
+<a href="javascript:window.close()" id="hws-hub-btn" style="position:fixed;top:14px;right:16px;z-index:9999;background:#1c2b3a;color:rgba(255,255,255,0.9);text-decoration:none;font-size:12px;font-weight:700;padding:6px 14px;border-radius:8px;font-family:-apple-system,BlinkMacSystemFont,sans-serif;letter-spacing:0.2px;box-shadow:0 2px 8px rgba(0,0,0,0.25);">← Hub</a>
+
+<!-- HWS Hub back button -->
+<div id="hws-back-btn" style="position:fixed;bottom:20px;right:20px;z-index:99999;">
+  <button onclick="window.close()" style="
+    background:#1a2332;
+    color:white;
+    border:none;
+    border-radius:8px;
+    padding:9px 16px;
+    font-size:13px;
+    font-weight:600;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    gap:7px;
+    box-shadow:0 2px 12px rgba(0,0,0,0.25);
+    opacity:0.85;
+    transition:opacity .15s;
+  " onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.85'">
+    ← Hub
+  </button>
+</div>
+</body>
+</html>

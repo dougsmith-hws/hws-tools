@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MI Options Comparison — HomeWealth Solutions</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root {
+  --blue:  #2491EB;
+  --green: #8EC73F;
+  --dark:  #1c2b3a;
+  --mid:   #3a4f62;
+  --red:   #dc3545;
+  --amber: #e8900a;
+  --bg-green: #f0f9e4;
+  --bg-blue:  #eaf5fe;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+  background: #f5f7fa; color: #222; font-size: 14px;
+}
+
+/* Header */
+.hdr {
+  background: var(--dark); color: white;
+  padding: 18px 28px 16px;
+  display: flex; align-items: flex-end; justify-content: space-between;
+}
+.hdr-brand { font-size: 12px; color: rgba(255,255,255,.5); letter-spacing: .4px; }
+.hdr-title { font-size: 21px; font-weight: 700; margin-top: 3px; }
+.hdr-sub   { font-size: 12px; color: rgba(255,255,255,.45); margin-top: 3px; }
+.hdr-right { text-align: right; font-size: 12px; color: rgba(255,255,255,.5); }
+.hdr-right strong { display: block; color: rgba(255,255,255,.85); font-size: 13px; }
+.print-btn {
+  background: transparent; border: 1.5px solid rgba(255,255,255,.4);
+  color: rgba(255,255,255,.85); padding: 6px 14px; border-radius: 6px;
+  font-size: 12px; cursor: pointer; margin-bottom: 6px; white-space: nowrap;
+}
+.print-btn:hover { background: rgba(255,255,255,.1); }
+
+/* Main */
+.main { max-width: 1100px; margin: 0 auto; padding: 22px 18px 48px; }
+
+/* Section title */
+.section-title {
+  font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
+  color: var(--mid); border-bottom: 2px solid #e0e4ea;
+  padding-bottom: 7px; margin-bottom: 16px; margin-top: 28px;
+}
+
+/* Cards */
+.card { background: white; border-radius: 10px; padding: 18px 20px; box-shadow: 0 1px 5px rgba(0,0,0,.07); }
+
+/* Inputs */
+.inputs-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; align-items: start; }
+.inputs-grid-4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 16px; align-items: start; }
+.input-group { background: white; border-radius: 10px; padding: 16px 18px; box-shadow: 0 1px 5px rgba(0,0,0,.07); }
+.input-group-title {
+  font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: .5px;
+  margin-bottom: 14px; padding-bottom: 8px; border-bottom: 2px solid;
+  display: flex; align-items: center; gap: 7px; color: var(--dark); border-color: var(--dark);
+}
+.field { margin-bottom: 11px; }
+.field:last-child { margin-bottom: 0; }
+.field label { display: block; font-size: 11px; font-weight: 700; color: #555; margin-bottom: 4px; letter-spacing: .2px; }
+.field input, .field select {
+  width: 100%; border: 1.5px solid #dde2ea; border-radius: 7px;
+  padding: 8px 11px; font-size: 13px; font-family: inherit; color: #222;
+  background: white;
+}
+.field input:focus, .field select:focus { outline: none; border-color: var(--blue); }
+
+/* Year quick buttons */
+.yr-btns { display: flex; gap: 6px; flex-wrap: wrap; }
+.yr-btn {
+  padding: 5px 12px; border-radius: 5px; border: 1.5px solid #dde2ea;
+  background: white; font-size: 12px; font-weight: 700; cursor: pointer;
+  color: #666; transition: all .15s;
+}
+.yr-btn:hover  { border-color: var(--blue); color: var(--blue); }
+.yr-btn.active { background: var(--blue); border-color: var(--blue); color: white; }
+
+/* Comparison columns */
+.compare-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+.col-card {
+  background: white; border-radius: 10px; box-shadow: 0 1px 5px rgba(0,0,0,.07);
+  overflow: hidden;
+}
+.col-header {
+  padding: 13px 16px; font-size: 13px; font-weight: 800; text-transform: uppercase;
+  letter-spacing: .5px; color: white;
+}
+.col-header.blue  { background: var(--blue); }
+.col-header.dark  { background: var(--dark); }
+.col-header.mid   { background: var(--mid); }
+.col-header.green { background: #2d7a1f; }
+.col-header.amber { background: var(--amber); }
+.col-body { padding: 14px 16px; }
+.stat-row {
+  display: flex; justify-content: space-between; align-items: baseline;
+  padding: 7px 0; border-bottom: 1px solid #f0f0f0; font-size: 13px;
+}
+.stat-row:last-child { border-bottom: none; }
+.stat-label { color: #666; font-size: 12px; }
+.stat-val { font-weight: 700; color: #222; }
+.stat-val.highlight { color: var(--blue); font-size: 15px; }
+.stat-val.green { color: #2d7a1f; }
+.stat-val.amber { color: var(--amber); }
+.stat-val.red { color: var(--red); }
+
+.insight-box {
+  background: var(--bg-green); border-left: 4px solid var(--green);
+  border-radius: 0 8px 8px 0; padding: 10px 13px; font-size: 12px;
+  color: #2d5a1b; line-height: 1.6; margin-top: 12px;
+}
+.insight-box.blue { background: var(--bg-blue); border-color: var(--blue); color: #0a3d6e; }
+
+/* Disclosure */
+.disclosure {
+  font-size: 11px; color: #aaa; line-height: 1.6; margin-top: 24px;
+  text-align: center; padding: 0 10px;
+}
+
+/* Print */
+@media print {
+  body { background: white; font-size: 12px; }
+  .main { padding: 0; max-width: 100%; }
+  .print-btn { display: none !important; }
+  .card, .input-group, .col-card { box-shadow: none; border: 1px solid #ddd; }
+}
+@media (max-width: 780px) {
+  .inputs-grid, .inputs-grid-4, .compare-grid { grid-template-columns: 1fr; }
+  .hdr-right { display: none; }
+}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div>
+    <div class="hdr-brand">HomeWealth Solutions LLC &nbsp;·&nbsp; NMLS #2742458</div>
+    <div class="hdr-title">MI Options Comparison</div>
+    <div class="hdr-sub">Monthly MI · LPMI · Split MI · Single Premium · Single Premium Financed</div>
+  </div>
+  <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px">
+    <button class="print-btn" onclick="window.print()">Print / Save PDF</button>
+    <div class="hdr-right">Doug Smith, CMA®<br><strong>813-733-7371</strong><br>doug@homewealthsolutions.com</div>
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- SHARED INPUTS -->
+  <div class="section-title">Loan Inputs</div>
+  <div class="inputs-grid">
+    <div class="input-group">
+      <div class="input-group-title">Loan Details</div>
+      <div class="field"><label>Loan Amount</label>
+        <input type="text" id="loanAmt" value="$350,000" oninput="fmtDollarLive(this);calculate()">
+      </div>
+      <div class="field"><label>Interest Rate</label>
+        <input type="text" id="baseRate" value="7.000%" oninput="calculate()">
+      </div>
+      <div class="field"><label>Loan Term (Years)</label>
+        <input type="text" id="loanTerm" value="30" oninput="calculate()">
+      </div>
+    </div>
+
+    <div class="input-group">
+      <div class="input-group-title">MI Structure Inputs</div>
+      <div class="field"><label>Monthly MI — Annual Rate %</label>
+        <input type="text" id="miRate" value="0.65%" oninput="calculate()">
+      </div>
+      <div class="field"><label>LPMI — Rate Premium Added to Base %</label>
+        <input type="text" id="lpmiPremium" value="0.50%" oninput="calculate()">
+      </div>
+      <div class="field"><label>Split MI — Upfront Amount ($)</label>
+        <input type="text" id="splitUpfront" value="$2,000" oninput="fmtDollarLive(this);calculate()">
+      </div>
+      <div class="field"><label>Split MI — Reduced Annual MI Rate %</label>
+        <input type="text" id="splitMiRate" value="0.30%" oninput="calculate()">
+      </div>
+    </div>
+
+    <div class="input-group">
+      <div class="input-group-title">Analysis Period &amp; SPMI</div>
+      <div class="field"><label>SPMI % of Loan (Single Premium Rate)</label>
+        <input type="text" id="spmiPct" value="1.75%" oninput="calculate()">
+      </div>
+      <div class="field" style="margin-bottom:14px"><label>Analysis Period</label>
+        <div class="yr-btns" id="periodBtns">
+          <button class="yr-btn" onclick="setPeriod(3)">3 yr</button>
+          <button class="yr-btn" onclick="setPeriod(5)">5 yr</button>
+          <button class="yr-btn active" onclick="setPeriod(7)">7 yr</button>
+          <button class="yr-btn" onclick="setPeriod(10)">10 yr</button>
+        </div>
+      </div>
+      <div id="periodDisplay" style="font-size:13px;font-weight:700;color:var(--mid);margin-top:4px">
+        Analysis: <span id="periodLabel" style="color:var(--dark)">7 Years</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- FRAMEWORK A -->
+  <div class="section-title">Framework A — Monthly MI vs. LPMI vs. Split MI</div>
+  <div class="compare-grid">
+
+    <div class="col-card">
+      <div class="col-header blue">Monthly MI</div>
+      <div class="col-body" id="colA1"></div>
+    </div>
+
+    <div class="col-card">
+      <div class="col-header dark">LPMI (Lender-Paid MI)</div>
+      <div class="col-body" id="colA2"></div>
+    </div>
+
+    <div class="col-card">
+      <div class="col-header mid">Split MI</div>
+      <div class="col-body" id="colA3"></div>
+    </div>
+
+  </div>
+
+  <!-- FRAMEWORK B -->
+  <div class="section-title">Framework B — Monthly MI vs. Single Premium (Upfront) vs. Single Premium Financed</div>
+  <div class="compare-grid">
+
+    <div class="col-card">
+      <div class="col-header blue">Monthly MI</div>
+      <div class="col-body" id="colB1"></div>
+    </div>
+
+    <div class="col-card">
+      <div class="col-header amber">Single Premium — Upfront</div>
+      <div class="col-body" id="colB2"></div>
+    </div>
+
+    <div class="col-card">
+      <div class="col-header green">Single Premium — Financed</div>
+      <div class="col-body" id="colB3">
+        <div class="insight-box" style="margin-top:0">Roll the MI premium into the loan — $0 out of pocket, no monthly MI charge.</div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="disclosure">
+    This communication is for informational and educational purposes only and does not constitute an offer to lend or a commitment to make a loan. All loans are subject to credit approval, underwriting guidelines, and property approval. Interest rates, payment examples, programs, and terms are illustrative, vary by borrower qualification, and are subject to change without notice. Not all applicants will qualify. Examples shown do not reflect all costs of a mortgage transaction. Consult a licensed tax or legal advisor regarding your individual situation. HomeWealth Solutions LLC is licensed by the Florida Office of Financial Regulation, Mortgage Broker License #MBR8082. Verify our licensure at www.nmlsconsumeraccess.org. Equal Housing Opportunity.
+  </div>
+
+</div>
+
+<script>
+/* ── Helpers ── */
+function parseDollar(v) { return parseFloat(String(v).replace(/[$,\s]/g,'')) || 0; }
+function parsePct(v)    { return parseFloat(String(v).replace(/[%\s]/g,'')) || 0; }
+function fmtD(v)  { return '$' + Math.round(v).toLocaleString('en-US'); }
+function fmtD2(v) { return '$' + v.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2}); }
+function fmtPct(v, d) { return v.toFixed(d || 3) + '%'; }
+
+function fmtDollarLive(el) {
+  const raw = parseDollar(el.value);
+  if (!isNaN(raw) && raw > 0) el.value = '$' + Math.round(raw).toLocaleString('en-US');
+}
+
+/* ── Period ── */
+let _period = 7;
+function setPeriod(yr) {
+  _period = yr;
+  document.getElementById('periodLabel').textContent = yr + ' Year' + (yr > 1 ? 's' : '');
+  document.querySelectorAll('#periodBtns .yr-btn').forEach(b => {
+    b.classList.toggle('active', parseInt(b.textContent) === yr);
+  });
+  calculate();
+}
+
+/* ── Mortgage payment ── */
+function pmt(principal, annualRate, termYears) {
+  if (principal <= 0 || annualRate <= 0) return 0;
+  const r = annualRate / 12;
+  const n = termYears * 12;
+  return principal * (r * Math.pow(1+r,n)) / (Math.pow(1+r,n) - 1);
+}
+
+/* ── Total interest over N months ── */
+function totalInterest(principal, annualRate, termYears, months) {
+  if (principal <= 0 || annualRate <= 0) return 0;
+  const r = annualRate / 12;
+  const n = termYears * 12;
+  const payment = principal * (r * Math.pow(1+r,n)) / (Math.pow(1+r,n) - 1);
+  let bal = principal;
+  let interest = 0;
+  for (let i = 0; i < Math.min(months, n); i++) {
+    const intCharge = bal * r;
+    interest += intCharge;
+    bal = Math.max(0, bal - (payment - intCharge));
+  }
+  return interest;
+}
+
+/* ── Stat row builder ── */
+function statRow(label, val, cls) {
+  return `<div class="stat-row"><span class="stat-label">${label}</span><span class="stat-val${cls ? ' ' + cls : ''}">${val}</span></div>`;
+}
+
+/* ── MAIN CALCULATE ── */
+function calculate() {
+  const loan       = parseDollar(document.getElementById('loanAmt').value);
+  const baseRate   = parsePct(document.getElementById('baseRate').value);
+  const termYrs    = parseFloat(document.getElementById('loanTerm').value) || 30;
+  const miRateAnn  = parsePct(document.getElementById('miRate').value);
+  const lpmiPrem   = parsePct(document.getElementById('lpmiPremium').value);
+  const splitUp    = parseDollar(document.getElementById('splitUpfront').value);
+  const splitMiAnn = parsePct(document.getElementById('splitMiRate').value);
+  const spmiPct    = parsePct(document.getElementById('spmiPct').value);
+  const months     = _period * 12;
+
+  if (!loan || !baseRate) return;
+
+  // ── FRAMEWORK A ──
+
+  // Monthly MI
+  const piA1     = pmt(loan, baseRate/100, termYrs);
+  const miMoA1   = loan * miRateAnn / 100 / 12;
+  const totalMoA1 = piA1 + miMoA1;
+  const totalMiA1 = miMoA1 * months;
+  const totalIntA1 = totalInterest(loan, baseRate/100, termYrs, months);
+
+  // LPMI
+  const lpmiRate  = baseRate + lpmiPrem;
+  const piA2      = pmt(loan, lpmiRate/100, termYrs);
+  const totalMoA2 = piA2;
+  const totalIntA2 = totalInterest(loan, lpmiRate/100, termYrs, months);
+  const totalCostA2 = totalMoA2 * months + 0; // no MI cost
+  const totalCostA1_for_be = totalMoA1 * months;
+  // Break-even LPMI: months where LPMI total > monthly MI total
+  const beMonthsA2 = breakEven(totalMoA1, 0, totalMoA2, 0, months);
+
+  // Split MI
+  const piA3      = pmt(loan, baseRate/100, termYrs);
+  const miMoA3    = loan * splitMiAnn / 100 / 12;
+  const totalMoA3  = piA3 + miMoA3;
+  const totalMiA3  = splitUp + miMoA3 * months;
+  const totalIntA3 = totalInterest(loan, baseRate/100, termYrs, months);
+  const beMonthsA3 = breakEvenSplit(totalMoA1, 0, totalMoA3, splitUp, months);
+
+  document.getElementById('colA1').innerHTML =
+    statRow('Effective Rate', fmtPct(baseRate, 3)) +
+    statRow('Monthly P&I', fmtD(piA1)) +
+    statRow('Monthly MI', fmtD(miMoA1)) +
+    statRow('Total Monthly Payment', fmtD(totalMoA1), 'highlight') +
+    statRow('Total MI Paid (' + _period + ' yr)', fmtD(totalMiA1)) +
+    statRow('Total Interest (' + _period + ' yr)', fmtD(totalIntA1));
+
+  document.getElementById('colA2').innerHTML =
+    statRow('Effective Rate', fmtPct(lpmiRate, 3)) +
+    statRow('Monthly P&I', fmtD(piA2)) +
+    statRow('Monthly MI', '$0 (rolled into rate)') +
+    statRow('Total Monthly Payment', fmtD(totalMoA2), 'highlight') +
+    statRow('Total MI Paid (' + _period + ' yr)', '$0') +
+    statRow('Total Interest (' + _period + ' yr)', fmtD(totalIntA2)) +
+    statRow('Break-even vs Monthly MI', beMonthsA2 === null ? 'Never breaks even' : (beMonthsA2 + ' mo (' + (beMonthsA2/12).toFixed(1) + ' yr)'), beMonthsA2 === null ? 'red' : (beMonthsA2 <= months ? 'green' : 'amber')) +
+    `<div class="insight-box blue" style="margin-top:10px">Higher rate eliminates monthly MI charge — best when MI would last many years.</div>`;
+
+  document.getElementById('colA3').innerHTML =
+    statRow('Effective Rate', fmtPct(baseRate, 3)) +
+    statRow('Monthly P&I', fmtD(piA3)) +
+    statRow('Monthly MI (reduced)', fmtD(miMoA3)) +
+    statRow('Total Monthly Payment', fmtD(totalMoA3), 'highlight') +
+    statRow('Upfront MI', fmtD(splitUp)) +
+    statRow('Total MI Cost (' + _period + ' yr)', fmtD(totalMiA3)) +
+    statRow('Total Interest (' + _period + ' yr)', fmtD(totalIntA3)) +
+    statRow('Break-even vs Monthly MI', beMonthsA3 === null ? 'Beyond period' : (beMonthsA3 + ' mo (' + (beMonthsA3/12).toFixed(1) + ' yr)'), beMonthsA3 !== null && beMonthsA3 <= months ? 'green' : 'amber');
+
+  // ── FRAMEWORK B ──
+
+  // B col 1: same as A col 1
+  document.getElementById('colB1').innerHTML =
+    statRow('Loan Amount', fmtD(loan)) +
+    statRow('Monthly P&I', fmtD(piA1)) +
+    statRow('Monthly MI', fmtD(miMoA1)) +
+    statRow('Cash Needed for MI at Closing', '$0') +
+    statRow('Total Monthly Payment', fmtD(totalMoA1), 'highlight') +
+    statRow('Total MI Paid (' + _period + ' yr)', fmtD(totalMiA1)) +
+    statRow('Total Interest (' + _period + ' yr)', fmtD(totalIntA1));
+
+  // B col 2: Single premium upfront
+  const spmiDollar = loan * spmiPct / 100;
+  const piB2       = pmt(loan, baseRate/100, termYrs);
+  const totalMoB2  = piB2;
+  const totalIntB2 = totalInterest(loan, baseRate/100, termYrs, months);
+  const beB2 = breakEvenSPMI(totalMoA1, miMoA1, totalMoB2, spmiDollar, months);
+
+  document.getElementById('colB2').innerHTML =
+    statRow('Loan Amount', fmtD(loan)) +
+    statRow('SPMI Premium', fmtD(spmiDollar)) +
+    statRow('Monthly P&I', fmtD(piB2)) +
+    statRow('Monthly MI', '$0 (paid upfront)') +
+    statRow('Cash Needed for MI at Closing', fmtD(spmiDollar), 'amber') +
+    statRow('Total Monthly Payment', fmtD(totalMoB2), 'highlight') +
+    statRow('Total Interest (' + _period + ' yr)', fmtD(totalIntB2)) +
+    statRow('Break-even vs Monthly MI', beB2 === null ? 'Beyond period' : (beB2 + ' mo (' + (beB2/12).toFixed(1) + ' yr)'), beB2 !== null && beB2 <= months ? 'green' : 'amber');
+
+  // B col 3: Single premium financed
+  const loanB3   = loan + spmiDollar;
+  const piB3     = pmt(loanB3, baseRate/100, termYrs);
+  const totalMoB3 = piB3;
+  const totalIntB3 = totalInterest(loanB3, baseRate/100, termYrs, months);
+  const beB3 = breakEvenSPMIFinanced(totalMoA1, miMoA1, totalMoB3, months);
+
+  document.getElementById('colB3').innerHTML =
+    `<div class="insight-box" style="margin-bottom:12px">Roll the MI premium into the loan — $0 out of pocket, no monthly MI charge.</div>` +
+    statRow('Loan Amount (+ SPMI)', fmtD(loanB3)) +
+    statRow('SPMI Financed', fmtD(spmiDollar)) +
+    statRow('Monthly P&I', fmtD(piB3)) +
+    statRow('Monthly MI', '$0 (financed)') +
+    statRow('Cash Needed for MI at Closing', '$0', 'green') +
+    statRow('Total Monthly Payment', fmtD(totalMoB3), 'highlight') +
+    statRow('Total Interest (' + _period + ' yr)', fmtD(totalIntB3)) +
+    statRow('vs Monthly MI Total Monthly', fmtD(totalMoB3 - totalMoA1).replace('$-', '-$'), totalMoB3 < totalMoA1 ? 'green' : 'amber');
+}
+
+/* Break-even helpers */
+function breakEven(mo1, upfront1, mo2, upfront2, maxMonths) {
+  // Find month where cumulative cost of option2 > option1 (option2 is more expensive at start)
+  for (let m = 1; m <= Math.max(maxMonths, 360); m++) {
+    const cost1 = upfront1 + mo1 * m;
+    const cost2 = upfront2 + mo2 * m;
+    if (cost2 <= cost1) return m;
+  }
+  return null;
+}
+
+function breakEvenSplit(moBase, upfrontBase, moSplit, upfrontSplit, maxMonths) {
+  // Split has higher upfront but lower monthly — find when cumulative split < cumulative base
+  for (let m = 1; m <= Math.max(maxMonths, 360); m++) {
+    const costBase  = upfrontBase + moBase * m;
+    const costSplit = upfrontSplit + moSplit * m;
+    if (costSplit <= costBase) return m;
+  }
+  return null;
+}
+
+function breakEvenSPMI(moBase, miMo, moSPMI, spmiCost, maxMonths) {
+  for (let m = 1; m <= Math.max(maxMonths, 360); m++) {
+    const costBase = miMo * m;
+    const costSPMI = spmiCost;
+    if (costSPMI <= costBase) return m;
+  }
+  return null;
+}
+
+function breakEvenSPMIFinanced(moBase, miMo, moFinanced, maxMonths) {
+  // Financed has higher P&I (no monthly MI). Find when savings from no monthly MI offsets extra P&I cost
+  const extraPandI = moFinanced - (moBase - miMo); // extra P&I vs base P&I
+  if (extraPandI <= 0) return 1;
+  for (let m = 1; m <= Math.max(maxMonths, 360); m++) {
+    const savedMI   = miMo * m;
+    const extraCost = extraPandI * m;
+    if (savedMI >= extraCost) return m;
+  }
+  return null;
+}
+
+window.addEventListener('load', calculate);
+</script>
+<a href="https://tools.homewealthsolutions.com" id="hws-hub-btn" style="position:fixed;top:14px;right:16px;z-index:9999;background:#1c2b3a;color:rgba(255,255,255,0.9);text-decoration:none;font-size:12px;font-weight:700;padding:6px 14px;border-radius:8px;font-family:-apple-system,BlinkMacSystemFont,sans-serif;letter-spacing:0.2px;box-shadow:0 2px 8px rgba(0,0,0,0.25);">← Hub</a>
+
+<!-- HWS Hub back button -->
+<div id="hws-back-btn" style="position:fixed;bottom:20px;right:20px;z-index:99999;">
+  <button onclick="window.close()" style="
+    background:#1a2332;
+    color:white;
+    border:none;
+    border-radius:8px;
+    padding:9px 16px;
+    font-size:13px;
+    font-weight:600;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    gap:7px;
+    box-shadow:0 2px 12px rgba(0,0,0,0.25);
+    opacity:0.85;
+    transition:opacity .15s;
+  " onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.85'">
+    ← Hub
+  </button>
+</div>
+<script src="/hws-session.js"></script>
+</body>
+</html>

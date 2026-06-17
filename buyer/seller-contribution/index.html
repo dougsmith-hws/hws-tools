@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Seller Contribution Analyzer — HomeWealth Solutions</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root {
+  --blue: #2491EB;
+  --green: #8EC73F;
+  --dark: #1c2b3a;
+  --mid: #3a4f62;
+  --light: #f0f4f8;
+  --border: #dde3ea;
+  --white: #ffffff;
+  --red: #dc3545;
+  --amber: #e8900a;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--light); color: var(--dark); font-size: 14px; }
+
+/* HEADER */
+.hdr { background: var(--dark); color: #fff; padding: 14px 24px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.hdr-left { display: flex; align-items: center; gap: 14px; }
+.logo-bar { width: 4px; height: 36px; background: linear-gradient(to bottom, var(--blue), var(--green)); border-radius: 2px; }
+.hdr-brand { font-size: 13px; font-weight: 700; color: #fff; letter-spacing: 0.5px; }
+.hdr-sub { font-size: 11px; color: #8fa3bc; margin-top: 2px; }
+.hdr-nmls { font-size: 10px; color: #6a85a0; margin-top: 1px; }
+.btn-print { background: rgba(255,255,255,0.12); color: #fff; border: 1px solid rgba(255,255,255,0.25); padding: 7px 16px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600; transition: background 0.15s; }
+.btn-print:hover { background: rgba(255,255,255,0.22); }
+
+/* PRINT HEADER */
+.print-header { display: none; padding: 0 0 12px; border-bottom: 2px solid var(--blue); margin-bottom: 16px; }
+.print-header .ph-name { font-size: 18px; font-weight: 800; color: var(--blue); }
+.print-header .ph-meta { font-size: 12px; color: #666; margin-top: 4px; display: flex; gap: 20px; }
+
+/* LAYOUT */
+.main { max-width: 1300px; margin: 0 auto; padding: 20px 20px 40px; }
+
+/* INPUTS PANEL */
+.inputs-panel { background: var(--white); border-radius: 10px; border: 1px solid var(--border); padding: 20px 24px; margin-bottom: 20px; }
+.panel-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: var(--blue); margin-bottom: 14px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+.inputs-grid { display: grid; grid-template-columns: repeat(4, 1fr) auto; gap: 14px; align-items: end; }
+.inputs-grid-row2 { display: grid; grid-template-columns: repeat(4, 1fr) 1fr; gap: 14px; align-items: end; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border); }
+.ig { }
+.ig label { display: block; font-size: 11px; font-weight: 700; color: var(--mid); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 4px; }
+.ig input, .ig select { width: 100%; padding: 8px 10px; border: 1.5px solid var(--border); border-radius: 6px; font-size: 13px; color: var(--dark); background: #fafbfc; }
+.ig input:focus, .ig select:focus { outline: none; border-color: var(--blue); }
+.slider-wrap { grid-column: 5; }
+.slider-wrap label { display: block; font-size: 11px; font-weight: 700; color: var(--mid); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 4px; }
+.slider-row { display: flex; align-items: center; gap: 10px; }
+.slider-row input[type=range] { flex: 1; accent-color: var(--blue); }
+.slider-val { font-size: 15px; font-weight: 800; color: var(--blue); min-width: 40px; text-align: right; }
+
+/* PRINT FIELDS */
+.print-fields { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border); }
+.print-fields label { font-size: 11px; font-weight: 700; color: var(--mid); text-transform: uppercase; letter-spacing: 0.04em; display: block; margin-bottom: 4px; }
+.print-fields input { width: 100%; padding: 7px 10px; border: 1.5px solid var(--border); border-radius: 5px; font-size: 13px; }
+
+/* COLUMNS */
+.cols-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 20px; }
+.col-card { background: var(--white); border-radius: 10px; border: 2px solid var(--border); overflow: hidden; }
+.col-card.c-base  { border-color: var(--mid); }
+.col-card.c-price { border-color: var(--red); }
+.col-card.c-perm  { border-color: var(--blue); }
+.col-card.c-temp  { border-color: var(--green); }
+.col-head { padding: 12px 14px; display: flex; flex-direction: column; gap: 4px; }
+.col-card.c-base  .col-head { background: var(--mid); }
+.col-card.c-price .col-head { background: var(--red); }
+.col-card.c-perm  .col-head { background: var(--blue); }
+.col-card.c-temp  .col-head { background: var(--green); }
+.col-head-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: rgba(255,255,255,0.75); }
+.col-title-input { background: transparent; border: none; border-bottom: 1px solid rgba(255,255,255,0.3); color: #fff; font-size: 14px; font-weight: 700; width: 100%; padding: 2px 0; }
+.col-title-input:focus { outline: none; border-bottom-color: rgba(255,255,255,0.7); }
+.col-contrib-wrap { padding: 10px 14px; background: rgba(0,0,0,0.04); border-bottom: 1px solid var(--border); display: flex; gap: 8px; align-items: center; }
+.col-contrib-wrap label { font-size: 11px; font-weight: 700; color: var(--mid); white-space: nowrap; }
+.col-contrib-wrap input { flex: 1; padding: 6px 8px; border: 1.5px solid var(--border); border-radius: 5px; font-size: 13px; font-weight: 700; }
+.col-contrib-wrap input:focus { outline: none; border-color: var(--blue); }
+.col-rate-wrap { padding: 8px 14px; background: rgba(0,0,0,0.02); border-bottom: 1px solid var(--border); }
+.col-rate-wrap label { font-size: 10px; font-weight: 700; color: #888; text-transform: uppercase; letter-spacing: 0.04em; display: block; margin-bottom: 3px; }
+.col-rate-wrap input { width: 100%; padding: 5px 8px; border: 1.5px solid var(--border); border-radius: 5px; font-size: 13px; font-weight: 700; color: var(--blue); background: #fafbfc; }
+.col-rate-wrap input:focus { outline: none; border-color: var(--blue); }
+.col-body { padding: 12px 14px; }
+.col-row { display: flex; justify-content: space-between; align-items: baseline; padding: 5px 0; border-bottom: 1px solid var(--border); font-size: 12.5px; }
+.col-row:last-child { border-bottom: none; }
+.col-row-lbl { color: var(--mid); font-weight: 500; }
+.col-row-val { font-weight: 700; color: var(--dark); font-variant-numeric: tabular-nums; }
+.col-row-val.pos { color: var(--green); }
+.col-row-val.best { color: var(--green); font-size: 14px; }
+.col-row.highlight { background: #f5fdf0; margin: 0 -14px; padding: 5px 14px; border-radius: 4px; }
+.col-row.highlight .col-row-val { color: var(--green); }
+.col-sav-header { font-size: 10px; font-weight: 700; color: #888; text-transform: uppercase; letter-spacing: 0.05em; margin: 8px 0 4px; }
+.vpk { background: #eef6ff; border-radius: 6px; padding: 8px 10px; margin-top: 8px; text-align: center; }
+.vpk-label { font-size: 10px; font-weight: 700; color: var(--blue); text-transform: uppercase; letter-spacing: 0.05em; }
+.vpk-val { font-size: 18px; font-weight: 800; color: var(--blue); margin-top: 2px; }
+.vpk-sub { font-size: 10px; color: #888; margin-top: 1px; }
+.temp-breakdown { background: #f5fdf0; border-radius: 6px; padding: 8px 10px; margin: 6px 0; }
+.temp-breakdown-lbl { font-size: 10px; font-weight: 700; color: #3a7a00; margin-bottom: 4px; }
+.temp-breakdown-row { display: flex; justify-content: space-between; font-size: 11.5px; padding: 2px 0; }
+.covered-badge { display: inline-block; padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; margin-top: 6px; }
+.covered-badge.yes { background: #e8f5e9; color: #2e7d32; }
+.covered-badge.no  { background: #fff3e0; color: var(--amber); }
+
+/* INSIGHT */
+.insight { background: #f0f9ff; border: 1px solid var(--blue); border-left: 4px solid var(--blue); border-radius: 0 8px 8px 0; padding: 14px 18px; margin-bottom: 20px; font-size: 13.5px; line-height: 1.7; color: var(--dark); }
+.insight-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--blue); margin-bottom: 6px; }
+
+/* CHART */
+.chart-wrap { background: var(--white); border-radius: 10px; border: 1px solid var(--border); padding: 18px 20px; margin-bottom: 20px; }
+.chart-title { font-size: 13px; font-weight: 700; color: var(--mid); margin-bottom: 14px; }
+.chart-canvas { position: relative; height: 280px; }
+
+/* COMPLIANCE */
+.compliance { font-size: 10.5px; color: #888; line-height: 1.6; border-top: 1px solid var(--border); padding-top: 14px; margin-top: 24px; }
+
+/* PRINT */
+@media print {
+  body { background: #fff; font-size: 12px; }
+  .hdr { display: none; }
+  .print-header { display: block !important; }
+  .btn-print, .print-fields { display: none !important; }
+  .inputs-panel { display: none !important; }
+  .cols-grid { grid-template-columns: repeat(4,1fr) !important; }
+  .col-card, .insight, .chart-wrap { break-inside: avoid; }
+  .chart-canvas { height: 220px !important; }
+  @page { margin: 0.6in; }
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="hdr">
+  <div class="hdr-left">
+    <div class="logo-bar"></div>
+    <div>
+      <div class="hdr-brand">HOMEWEALTH SOLUTIONS</div>
+      <div class="hdr-sub">Seller Contribution Analyzer</div>
+      <div class="hdr-nmls">NMLS #2742458</div>
+    </div>
+  </div>
+  <button class="btn-print" onclick="printView()">&#9113; Print / Save PDF</button>
+</div>
+
+<!-- PRINT HEADER -->
+<div class="print-header" id="printHdr">
+  <div class="ph-name">HomeWealth Solutions — Seller Contribution Analyzer</div>
+  <div class="ph-meta">
+    <span id="ph_client"></span>
+    <span id="ph_agent"></span>
+    <span id="ph_date"></span>
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- INPUTS -->
+  <div class="inputs-panel">
+    <div class="panel-title">Global Assumptions</div>
+    <div class="inputs-grid">
+      <div class="ig">
+        <label>Purchase Price</label>
+        <input type="text" id="g_price" value="$400,000" oninput="fmtDollarLive(this);calc()">
+      </div>
+      <div class="ig">
+        <label>Base Rate (%)</label>
+        <input type="text" id="g_rate" value="7.000%" oninput="fmtPctLive(this);calc()">
+      </div>
+      <div class="ig">
+        <label>Loan Term (yrs)</label>
+        <select id="g_term" onchange="calc()">
+          <option value="30" selected>30 Years</option>
+          <option value="15">15 Years</option>
+          <option value="20">20 Years</option>
+          <option value="25">25 Years</option>
+        </select>
+      </div>
+      <div class="ig">
+        <label>Down Payment (%)</label>
+        <input type="text" id="g_dp" value="5%" oninput="fmtPctLive(this);calc()">
+      </div>
+      <div class="slider-wrap">
+        <label>Horizon: <span id="horizVal" style="color:var(--blue);">5 yrs</span></label>
+        <div class="slider-row">
+          <input type="range" id="g_horiz" min="1" max="10" step="1" value="5" oninput="onHorizSlider();calc()">
+          <span class="slider-val" id="horizSliderVal">5</span>
+        </div>
+      </div>
+    </div>
+    <div class="inputs-grid-row2">
+      <div class="ig">
+        <label>Monthly Taxes ($)</label>
+        <input type="text" id="g_taxes" value="$400" oninput="fmtDollarLive(this);calc()">
+      </div>
+      <div class="ig">
+        <label>Monthly HOI ($)</label>
+        <input type="text" id="g_hoi" value="$120" oninput="fmtDollarLive(this);calc()">
+      </div>
+      <div class="ig">
+        <label>Annual MI Rate (%)</label>
+        <input type="text" id="g_mi" value="0.65%" oninput="fmtPctLive(this);calc()">
+      </div>
+      <div class="ig">
+        <label>&nbsp;</label>
+      </div>
+      <div class="ig">
+        <label>&nbsp;</label>
+      </div>
+    </div>
+    <div class="print-fields">
+      <div>
+        <label>Prepared For</label>
+        <input type="text" id="print_client" placeholder="Client name">
+      </div>
+      <div>
+        <label>Prepared By</label>
+        <input type="text" id="print_agent" placeholder="Your name" value="Doug Smith, CMA&#174;">
+      </div>
+      <div>
+        <label>Property Address</label>
+        <input type="text" id="print_addr" placeholder="Optional">
+      </div>
+    </div>
+  </div>
+
+  <!-- COLUMNS -->
+  <div class="cols-grid" id="colsGrid">
+
+    <!-- COL 0: No Contribution -->
+    <div class="col-card c-base">
+      <div class="col-head">
+        <div class="col-head-label">Scenario 1</div>
+        <input class="col-title-input" id="lbl0" value="As-Is">
+      </div>
+      <div class="col-contrib-wrap" style="background:#f7f9fb;">
+        <label>Seller Contribution:</label>
+        <span style="font-weight:700;color:var(--mid);">$0</span>
+      </div>
+      <div class="col-body" id="body0"></div>
+    </div>
+
+    <!-- COL 1: Price Reduction -->
+    <div class="col-card c-price">
+      <div class="col-head">
+        <div class="col-head-label">Scenario 2 — Price Reduction</div>
+        <input class="col-title-input" id="lbl1" value="Price Break">
+      </div>
+      <div class="col-contrib-wrap">
+        <label>Contribution:</label>
+        <input type="text" id="contrib1" value="$10,000" oninput="fmtDollarLive(this);calc()">
+      </div>
+      <div class="col-body" id="body1"></div>
+    </div>
+
+    <!-- COL 2: Permanent Buydown -->
+    <div class="col-card c-perm">
+      <div class="col-head">
+        <div class="col-head-label">Scenario 3 — Permanent Rate Buydown</div>
+        <input class="col-title-input" id="lbl2" value="Rate Buydown">
+      </div>
+      <div class="col-contrib-wrap">
+        <label>Contribution:</label>
+        <input type="text" id="contrib2" value="$10,000" oninput="fmtDollarLive(this);calc()">
+      </div>
+      <div class="col-rate-wrap">
+        <label>Resulting Rate After Buydown (%)</label>
+        <input type="text" id="rate2" value="6.625%" oninput="fmtPctLive(this);calc()">
+      </div>
+      <div class="col-body" id="body2"></div>
+    </div>
+
+    <!-- COL 3: 2-1 Buydown -->
+    <div class="col-card c-temp">
+      <div class="col-head">
+        <div class="col-head-label">Scenario 4 — 2/1 Temp Buydown</div>
+        <input class="col-title-input" id="lbl3" value="2-1 Buydown">
+      </div>
+      <div class="col-contrib-wrap">
+        <label>Contribution:</label>
+        <input type="text" id="contrib3" value="$10,000" oninput="fmtDollarLive(this);calc()">
+      </div>
+      <div class="col-body" id="body3"></div>
+    </div>
+
+  </div><!-- /cols-grid -->
+
+  <!-- INSIGHT -->
+  <div class="insight" id="insightBox">
+    <div class="insight-title">Key Talking Point</div>
+    <div id="insightText">Enter inputs above to generate analysis.</div>
+  </div>
+
+  <!-- CHART -->
+  <div class="chart-wrap">
+    <div class="chart-title">Cumulative PITI Cost Over Analysis Horizon (lower = better)</div>
+    <div class="chart-canvas">
+      <canvas id="cumChart"></canvas>
+    </div>
+  </div>
+
+  <p class="compliance">
+    This communication is for informational and educational purposes only and does not constitute an offer to lend or a commitment to make a loan. All loans are subject to credit approval, underwriting guidelines, and property approval. Interest rates, payment examples, programs, and terms are illustrative, vary by borrower qualification, and are subject to change without notice. Not all applicants will qualify. Examples shown do not reflect all costs of a mortgage transaction. Consult a licensed tax or legal advisor regarding your individual situation. HomeWealth Solutions LLC is licensed by the Florida Office of Financial Regulation, Mortgage Broker License #MBR8082. Verify our licensure at www.nmlsconsumeraccess.org. Equal Housing Opportunity.
+  </p>
+
+</div><!-- /main -->
+
+<script>
+// ── FORMAT HELPERS ──
+function stripDollar(v) { return parseFloat((v||'').toString().replace(/[$,\s]/g,'')) || 0; }
+function stripPct(v)    { return parseFloat((v||'').toString().replace(/[%\s]/g,''))   || 0; }
+
+function fmtDollarLive(el) {
+  const raw = (el.value||'').replace(/[$,]/g,'');
+  const n = parseFloat(raw);
+  if (!isNaN(n) && raw.trim() !== '') {
+    const cursor = el.selectionStart;
+    const oldLen = el.value.length;
+    el.value = '$' + Math.round(n).toLocaleString('en-US');
+    const newLen = el.value.length;
+    el.setSelectionRange(cursor + (newLen - oldLen), cursor + (newLen - oldLen));
+  }
+}
+function fmtPctLive(el) {
+  // Allow free-form typing with % appended
+  const raw = (el.value||'').replace(/[%\s]/g,'');
+  if (raw === '' || raw === '.') return;
+  // Don't reformat while user is typing digits
+}
+
+function fmt$(v) { return isNaN(v) ? '—' : '$' + Math.round(v).toLocaleString(); }
+function fmtPct(v,d=3) { return isNaN(v) ? '—' : v.toFixed(d)+'%'; }
+
+// ── MORTGAGE MATH ──
+function calcPI(loan, annRate, termYrs) {
+  const n = termYrs * 12;
+  const r = annRate / 100 / 12;
+  if (r === 0) return loan / n;
+  return loan * r * Math.pow(1+r,n) / (Math.pow(1+r,n) - 1);
+}
+
+// ── SLIDER ──
+function onHorizSlider() {
+  const v = parseInt(document.getElementById('g_horiz').value);
+  document.getElementById('horizVal').textContent = v + ' yr' + (v !== 1 ? 's' : '');
+  document.getElementById('horizSliderVal').textContent = v;
+}
+
+// ── CHART ──
+let _chart = null;
+function buildChart(horiz, data0, data1, data2, data3) {
+  const labels = [];
+  for (let m = 1; m <= horiz * 12; m++) {
+    if (m % 12 === 0) labels.push('Yr ' + (m/12));
+    else labels.push('');
+  }
+  const cfg = {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        { label: document.getElementById('lbl0').value || 'As-Is',       data: data0, borderColor: '#3a4f62', borderWidth: 2, pointRadius: 0, tension: 0.2, fill: false },
+        { label: document.getElementById('lbl1').value || 'Price Break',  data: data1, borderColor: '#dc3545', borderWidth: 2, pointRadius: 0, tension: 0.2, fill: false },
+        { label: document.getElementById('lbl2').value || 'Rate Buydown', data: data2, borderColor: '#2491EB', borderWidth: 2.5, pointRadius: 0, tension: 0.2, fill: false },
+        { label: document.getElementById('lbl3').value || '2-1 Buydown',  data: data3, borderColor: '#8EC73F', borderWidth: 2.5, pointRadius: 0, tension: 0.2, fill: false },
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 }, padding: 12 } },
+        tooltip: { callbacks: { label: c => ' ' + c.dataset.label + ': ' + fmt$(c.raw) } }
+      },
+      scales: {
+        x: { ticks: { color: '#888', font: { size: 10 }, maxRotation: 0 }, grid: { color: 'rgba(0,0,0,0.04)' } },
+        y: { ticks: { color: '#888', font: { size: 10 }, callback: v => '$' + (Math.abs(v)>=1000 ? Math.round(v/1000)+'k' : Math.round(v)) }, grid: { color: 'rgba(0,0,0,0.05)' } }
+      }
+    }
+  };
+  if (_chart) _chart.destroy();
+  _chart = new Chart(document.getElementById('cumChart').getContext('2d'), cfg);
+}
+
+// ── MAIN CALC ──
+function calc() {
+  const price   = stripDollar(document.getElementById('g_price').value);
+  const baseRate= stripPct(document.getElementById('g_rate').value);
+  const term    = parseInt(document.getElementById('g_term').value);
+  const dpPct   = stripPct(document.getElementById('g_dp').value);
+  const taxMo   = stripDollar(document.getElementById('g_taxes').value);
+  const hoiMo   = stripDollar(document.getElementById('g_hoi').value);
+  const miRate  = stripPct(document.getElementById('g_mi').value);
+  const horiz   = parseInt(document.getElementById('g_horiz').value) || 5;
+
+  if (!price || !baseRate || term <= 0) return;
+
+  const dp       = price * dpPct / 100;
+  const baseLoan = price - dp;
+  const miMo     = (dpPct < 20) ? baseLoan * miRate / 100 / 12 : 0;
+
+  // COL 0: As-Is
+  const s0 = calcScenario(baseLoan, baseRate, term, taxMo, hoiMo, miMo);
+
+  // COL 1: Price Reduction
+  const c1       = stripDollar(document.getElementById('contrib1').value);
+  const newPrice1= Math.max(0, price - c1);
+  const loan1    = newPrice1 * (1 - dpPct/100);
+  const mi1      = (dpPct < 20) ? loan1 * miRate / 100 / 12 : 0;
+  const s1       = calcScenario(loan1, baseRate, term, taxMo, hoiMo, mi1);
+  s1.contrib     = c1;
+
+  // COL 2: Permanent Buydown
+  const c2       = stripDollar(document.getElementById('contrib2').value);
+  const rate2    = stripPct(document.getElementById('rate2').value) || baseRate;
+  const s2       = calcScenario(baseLoan, rate2, term, taxMo, hoiMo, miMo);
+  s2.contrib     = c2;
+  s2.rate        = rate2;
+  s2.points      = c2 / (baseLoan * 0.01);
+
+  // COL 3: 2-1 Buydown
+  const c3        = stripDollar(document.getElementById('contrib3').value);
+  const yr1Rate   = baseRate - 2;
+  const yr2Rate   = baseRate - 1;
+  const yr1PI     = calcPI(baseLoan, yr1Rate, term);
+  const yr2PI     = calcPI(baseLoan, yr2Rate, term);
+  const fullPI    = calcPI(baseLoan, baseRate, term);
+  const bdCost    = 12 * (fullPI - yr1PI) + 12 * (fullPI - yr2PI);
+  const covered   = c3 >= bdCost - 0.01;
+  const s3 = {
+    loan: baseLoan,
+    yr1Rate, yr2Rate, fullRate: baseRate,
+    yr1PI, yr2PI, fullPI,
+    yr1PITI: yr1PI + taxMo + hoiMo + miMo,
+    yr2PITI: yr2PI + taxMo + hoiMo + miMo,
+    fullPITI: fullPI + taxMo + hoiMo + miMo,
+    bdCost, covered,
+    contrib: c3,
+    piti: yr1PI + taxMo + hoiMo + miMo // year 1 display
+  };
+
+  // Cumulative PITI arrays
+  const horizMo = horiz * 12;
+  const cum0 = [], cum1 = [], cum2 = [], cum3 = [];
+  let t0=0,t1=0,t2=0,t3=0;
+  for (let m = 1; m <= horizMo; m++) {
+    t0 += s0.piti;
+    t1 += s1.piti;
+    t2 += s2.piti;
+    // Col 3: year 1 = yr1PITI, year 2 = yr2PITI, year 3+ = fullPITI
+    const t3piti = m <= 12 ? s3.yr1PITI : m <= 24 ? s3.yr2PITI : s3.fullPITI;
+    t3 += t3piti;
+    cum0.push(t0); cum1.push(t1); cum2.push(t2); cum3.push(t3);
+  }
+
+  // Monthly savings vs col 0
+  s1.monthlySav = s0.piti - s1.piti;
+  s2.monthlySav = s0.piti - s2.piti;
+  s3.monthlySavYr1 = s0.piti - s3.yr1PITI;
+  s3.monthlySavYr2 = s0.piti - s3.yr2PITI;
+
+  // Cumulative savings
+  const finalIdx = horizMo - 1;
+  s1.cumSav = cum0[finalIdx] - cum1[finalIdx];
+  s2.cumSav = cum0[finalIdx] - cum2[finalIdx];
+  s3.cumSav = cum0[finalIdx] - cum3[finalIdx];
+
+  // Value per $1k
+  s1.vpk = c1 > 0 ? (s1.monthlySav / (c1/1000)) : 0;
+  s2.vpk = c2 > 0 ? (s2.monthlySav / (c2/1000)) : 0;
+  s3.vpk3 = c3 > 0 ? (s3.monthlySavYr1 / (c3/1000)) : 0;
+
+  // Render
+  renderCol0(s0, horiz);
+  renderCol1(s1, s0, horiz);
+  renderCol2(s2, s0, horiz);
+  renderCol3(s3, s0, horiz);
+  renderInsight(s1, s2, s3, horiz);
+  buildChart(horiz, cum0, cum1, cum2, cum3);
+}
+
+function calcScenario(loan, rate, term, taxMo, hoiMo, miMo) {
+  const pi   = calcPI(loan, rate, term);
+  const piti = pi + taxMo + hoiMo + miMo;
+  return { loan, rate, pi, piti, taxMo, hoiMo, miMo };
+}
+
+function renderCol0(s, horiz) {
+  document.getElementById('body0').innerHTML = `
+    <div class="col-row"><span class="col-row-lbl">Loan Amount</span><span class="col-row-val">${fmt$(s.loan)}</span></div>
+    <div class="col-row"><span class="col-row-lbl">Interest Rate</span><span class="col-row-val">${fmtPct(s.rate)}</span></div>
+    <div class="col-row"><span class="col-row-lbl">Monthly P&amp;I</span><span class="col-row-val">${fmt$(s.pi)}</span></div>
+    <div class="col-row"><span class="col-row-lbl">Monthly PITI</span><span class="col-row-val">${fmt$(s.piti)}</span></div>
+    ${s.miMo > 0 ? `<div class="col-row"><span class="col-row-lbl" style="color:#888;font-size:11px;">incl. MI ${fmt$(s.miMo)}/mo</span><span class="col-row-val"></span></div>` : ''}
+    <div class="col-row"><span class="col-row-lbl">Monthly Savings</span><span class="col-row-val" style="color:#888;">Baseline</span></div>
+    <div class="col-row"><span class="col-row-lbl">Cumulative Savings (${horiz} yr)</span><span class="col-row-val" style="color:#888;">—</span></div>
+    <div class="col-row"><span class="col-row-lbl">Value per $1k</span><span class="col-row-val" style="color:#888;">—</span></div>
+  `;
+}
+
+function renderCol1(s, s0, horiz) {
+  document.getElementById('body1').innerHTML = `
+    <div class="col-row"><span class="col-row-lbl">Loan Amount</span><span class="col-row-val">${fmt$(s.loan)}</span></div>
+    <div class="col-row"><span class="col-row-lbl">Interest Rate</span><span class="col-row-val">${fmtPct(s.rate)}</span></div>
+    <div class="col-row"><span class="col-row-lbl">Monthly P&amp;I</span><span class="col-row-val">${fmt$(s.pi)}</span></div>
+    <div class="col-row highlight"><span class="col-row-lbl">Monthly PITI</span><span class="col-row-val">${fmt$(s.piti)}</span></div>
+    <div class="col-row"><span class="col-row-lbl">Monthly Savings</span><span class="col-row-val pos">${s.monthlySav >= 0 ? '+' : ''}${fmt$(s.monthlySav)}/mo</span></div>
+    <div class="col-row"><span class="col-row-lbl">Cum. Savings (${horiz} yr)</span><span class="col-row-val pos">${s.cumSav >= 0 ? '+' : ''}${fmt$(s.cumSav)}</span></div>
+    <div class="vpk">
+      <div class="vpk-label">Value per $1,000 Contribution</div>
+      <div class="vpk-val">${s.vpk > 0 ? fmt$(s.vpk).replace('$','') : '—'}</div>
+      <div class="vpk-sub">monthly savings per $1k</div>
+    </div>
+  `;
+}
+
+function renderCol2(s, s0, horiz) {
+  document.getElementById('body2').innerHTML = `
+    <div class="col-row"><span class="col-row-lbl">Loan Amount</span><span class="col-row-val">${fmt$(s.loan)}</span></div>
+    <div class="col-row"><span class="col-row-lbl">Effective Rate</span><span class="col-row-val" style="color:var(--blue);">${fmtPct(s.rate)}</span></div>
+    <div class="col-row"><span class="col-row-lbl">Points Purchased</span><span class="col-row-val">${s.points.toFixed(3)} pts</span></div>
+    <div class="col-row"><span class="col-row-lbl">Monthly P&amp;I</span><span class="col-row-val">${fmt$(s.pi)}</span></div>
+    <div class="col-row highlight"><span class="col-row-lbl">Monthly PITI</span><span class="col-row-val">${fmt$(s.piti)}</span></div>
+    <div class="col-row"><span class="col-row-lbl">Monthly Savings</span><span class="col-row-val pos">${s.monthlySav >= 0 ? '+' : ''}${fmt$(s.monthlySav)}/mo</span></div>
+    <div class="col-row"><span class="col-row-lbl">Cum. Savings (${horiz} yr)</span><span class="col-row-val pos">${s.cumSav >= 0 ? '+' : ''}${fmt$(s.cumSav)}</span></div>
+    <div class="vpk">
+      <div class="vpk-label">Value per $1,000 Contribution</div>
+      <div class="vpk-val">${s.vpk > 0 ? fmt$(s.vpk).replace('$','') : '—'}</div>
+      <div class="vpk-sub">monthly savings per $1k</div>
+    </div>
+  `;
+}
+
+function renderCol3(s, s0, horiz) {
+  document.getElementById('body3').innerHTML = `
+    <div class="col-row"><span class="col-row-lbl">Loan Amount</span><span class="col-row-val">${fmt$(s.loan)}</span></div>
+    <div class="temp-breakdown">
+      <div class="temp-breakdown-lbl">Year-by-Year Payments</div>
+      <div class="temp-breakdown-row"><span>Yr 1 (${fmtPct(s.yr1Rate)})</span><span style="font-weight:700;">${fmt$(s.yr1PITI)}/mo</span></div>
+      <div class="temp-breakdown-row"><span>Yr 2 (${fmtPct(s.yr2Rate)})</span><span style="font-weight:700;">${fmt$(s.yr2PITI)}/mo</span></div>
+      <div class="temp-breakdown-row"><span>Yr 3+ (${fmtPct(s.fullRate)})</span><span style="font-weight:700;">${fmt$(s.fullPITI)}/mo</span></div>
+    </div>
+    <div class="col-row"><span class="col-row-lbl">Buydown Cost</span><span class="col-row-val">${fmt$(s.bdCost)}</span></div>
+    <div class="col-row"><span class="col-row-lbl">Yr 1 Savings</span><span class="col-row-val pos">${s.monthlySavYr1 >= 0 ? '+' : ''}${fmt$(s.monthlySavYr1)}/mo</span></div>
+    <div class="col-row"><span class="col-row-lbl">Yr 2 Savings</span><span class="col-row-val pos">${s.monthlySavYr2 >= 0 ? '+' : ''}${fmt$(s.monthlySavYr2)}/mo</span></div>
+    <div class="col-row"><span class="col-row-lbl">Cum. Savings (${horiz} yr)</span><span class="col-row-val pos">${s.cumSav >= 0 ? '+' : ''}${fmt$(s.cumSav)}</span></div>
+    <div class="covered-badge ${s.covered ? 'yes' : 'no'}">${s.covered ? '&#10003; Contribution covers buydown' : '&#9888; Short ' + fmt$(s.bdCost - s.contrib)}</div>
+    <div class="vpk">
+      <div class="vpk-label">Value per $1,000 (Yr 1)</div>
+      <div class="vpk-val">${s.vpk3 > 0 ? fmt$(s.vpk3).replace('$','') : '—'}</div>
+      <div class="vpk-sub">yr 1 monthly savings per $1k</div>
+    </div>
+  `;
+}
+
+function renderInsight(s1, s2, s3, horiz) {
+  const box = document.getElementById('insightText');
+  if (!s1.monthlySav || !s2.monthlySav) { box.textContent = 'Enter contributions above to generate talking points.'; return; }
+  const diff = s2.monthlySav - s1.monthlySav;
+  const cumDiff = s2.cumSav - s1.cumSav;
+  const lbl2 = document.getElementById('lbl2').value || 'Rate Buydown';
+  const lbl1 = document.getElementById('lbl1').value || 'Price Break';
+  const horizLbl = horiz + ' year' + (horiz !== 1 ? 's' : '');
+  box.innerHTML = `
+    <strong>${lbl2} vs. ${lbl1}:</strong> The rate buydown saves <strong>${fmt$(Math.abs(diff))}/month ${diff >= 0 ? 'more' : 'less'}</strong> than the equivalent price reduction —
+    delivering <strong>${fmt$(Math.abs(cumDiff))} ${cumDiff >= 0 ? 'more' : 'less'} in cumulative savings</strong> over ${horizLbl}.
+    ${diff > 0 ? `That's because a lower rate reduces every payment for the life of the loan, while a price reduction only modestly reduces the payment.` : `A price reduction provides more immediate relief in this scenario.`}
+    ${s3.covered ? ` The 2/1 buydown is fully funded by the contribution and gives the buyer <strong>${fmt$(s3.monthlySavYr1)}/mo</strong> in Year 1 payment relief.` : ''}
+  `;
+}
+
+function printView() {
+  const client = (document.getElementById('print_client').value||'').trim();
+  const agent  = (document.getElementById('print_agent').value||'').trim();
+  const addr   = (document.getElementById('print_addr').value||'').trim();
+  const now    = new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
+  document.getElementById('ph_client').innerHTML = client ? `<strong>Prepared for:</strong> ${client}` : '';
+  document.getElementById('ph_agent').innerHTML  = agent  ? `<strong>Prepared by:</strong> ${agent}`  : '';
+  document.getElementById('ph_date').innerHTML   = `<strong>Date:</strong> ${now}` + (addr ? ` &nbsp;|&nbsp; <strong>Property:</strong> ${addr}` : '');
+  if (_chart) { _chart.resize(); _chart.update('none'); }
+  window.print();
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+  onHorizSlider();
+  calc();
+});
+</script>
+<a href="https://tools.homewealthsolutions.com" id="hws-hub-btn" style="position:fixed;top:14px;right:16px;z-index:9999;background:#1c2b3a;color:rgba(255,255,255,0.9);text-decoration:none;font-size:12px;font-weight:700;padding:6px 14px;border-radius:8px;font-family:-apple-system,BlinkMacSystemFont,sans-serif;letter-spacing:0.2px;box-shadow:0 2px 8px rgba(0,0,0,0.25);">← Hub</a>
+
+<!-- HWS Hub back button -->
+<div id="hws-back-btn" style="position:fixed;bottom:20px;right:20px;z-index:99999;">
+  <button onclick="window.close()" style="
+    background:#1a2332;
+    color:white;
+    border:none;
+    border-radius:8px;
+    padding:9px 16px;
+    font-size:13px;
+    font-weight:600;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    gap:7px;
+    box-shadow:0 2px 12px rgba(0,0,0,0.25);
+    opacity:0.85;
+    transition:opacity .15s;
+  " onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.85'">
+    ← Hub
+  </button>
+</div>
+<script src="/hws-session.js"></script>
+</body>
+</html>

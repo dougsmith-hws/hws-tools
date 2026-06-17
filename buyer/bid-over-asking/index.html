@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bid Over Asking Analyzer — HomeWealth Solutions</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root {
+    --blue: #2491EB;
+    --green: #8EC73F;
+    --dark: #1c2b3a;
+    --mid: #3a4f62;
+    --light: #f0f4f8;
+    --border: #dde3ea;
+    --white: #ffffff;
+    --red: #dc3545;
+    --amber: #e8900a;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--light); color: var(--dark); font-size: 15px; }
+
+  /* HEADER */
+  .hdr { background: var(--dark); color: #fff; padding: 16px 28px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+  .hdr-left { display: flex; align-items: center; gap: 14px; }
+  .hdr-logo { background: var(--blue); color: #fff; font-weight: 800; font-size: 18px; padding: 6px 12px; border-radius: 6px; letter-spacing: -0.5px; }
+  .hdr-title { font-size: 17px; font-weight: 600; opacity: 0.95; }
+  .hdr-sub { font-size: 12px; opacity: 0.55; margin-top: 2px; }
+  .btn-print { background: rgba(255,255,255,0.12); color: #fff; border: 1px solid rgba(255,255,255,0.25); padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600; transition: background 0.15s; }
+  .btn-print:hover { background: rgba(255,255,255,0.22); }
+
+  /* PRINT HEADER */
+  .print-header { display: none; padding: 0 0 12px 0; border-bottom: 2px solid var(--blue); margin-bottom: 18px; }
+  .print-header .ph-logo { color: var(--blue); font-size: 20px; font-weight: 800; }
+  .print-header .ph-meta { display: flex; gap: 24px; margin-top: 6px; font-size: 13px; color: #555; }
+
+  /* LAYOUT */
+  .main { max-width: 1060px; margin: 0 auto; padding: 24px 20px 40px; }
+  .two-col { display: grid; grid-template-columns: 320px 1fr; gap: 20px; align-items: start; }
+
+  /* PANELS */
+  .panel { background: var(--white); border-radius: 10px; border: 1px solid var(--border); padding: 22px 24px; }
+  .panel-title { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--blue); margin-bottom: 16px; padding-bottom: 10px; border-bottom: 1px solid var(--border); }
+
+  /* INPUTS */
+  .field { margin-bottom: 14px; }
+  .field label { display: block; font-size: 13px; font-weight: 600; color: var(--mid); margin-bottom: 5px; }
+  .field label .hint { font-weight: 400; color: #888; font-size: 12px; }
+  .field input, .field select { width: 100%; padding: 9px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 14px; color: var(--dark); background: #fafbfc; transition: border-color 0.15s; }
+  .field input:focus { outline: none; border-color: var(--blue); background: #fff; }
+  .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+  /* PREMIUM BADGE */
+  .premium-badge { background: var(--dark); color: #fff; border-radius: 8px; padding: 14px 16px; margin-bottom: 16px; text-align: center; }
+  .premium-badge .pb-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; opacity: 0.6; margin-bottom: 4px; }
+  .premium-badge .pb-val { font-size: 28px; font-weight: 800; color: var(--amber); }
+  .premium-badge .pb-pct { font-size: 14px; font-weight: 600; color: #aaa; margin-left: 8px; }
+
+  /* CONCEPT */
+  .concept { background: #eef6ff; border-left: 4px solid var(--blue); border-radius: 0 8px 8px 0; padding: 14px 16px; margin-bottom: 18px; font-size: 13px; line-height: 1.6; color: var(--mid); }
+  .concept strong { color: var(--blue); }
+
+  /* PRINT FIELDS */
+  .print-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border); }
+  .print-fields label { font-size: 12px; font-weight: 600; color: var(--mid); display: block; margin-bottom: 4px; }
+  .print-fields input { width: 100%; padding: 7px 10px; border: 1px solid var(--border); border-radius: 5px; font-size: 13px; }
+
+  /* RESULT CARDS */
+  .cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
+  .card { background: var(--white); border-radius: 10px; border: 2px solid var(--border); padding: 16px 12px; text-align: center; }
+  .card.blue  { border-color: var(--blue); }
+  .card.green { border-color: var(--green); }
+  .card.red   { border-color: var(--red); }
+  .card.amber { border-color: var(--amber); }
+  .card-label { font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #888; margin-bottom: 6px; }
+  .card-val { font-size: 22px; font-weight: 800; color: var(--dark); line-height: 1; }
+  .card-val.blue  { color: var(--blue); }
+  .card-val.green { color: var(--green); }
+  .card-val.red   { color: var(--red); }
+  .card-val.amber { color: var(--amber); }
+  .card-sub { font-size: 11px; color: #888; margin-top: 5px; }
+
+  /* OPTIONS TABLE */
+  .opt-table { background: var(--white); border-radius: 10px; border: 1px solid var(--border); padding: 18px 20px; margin-bottom: 20px; }
+  .opt-title { font-size: 13px; font-weight: 700; color: var(--mid); margin-bottom: 12px; }
+  .opt-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .opt-card { border: 2px solid var(--border); border-radius: 8px; padding: 16px; }
+  .opt-card.a { border-color: var(--blue); }
+  .opt-card.b { border-color: var(--amber); }
+  .opt-card-title { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 10px; }
+  .opt-card.a .opt-card-title { color: var(--blue); }
+  .opt-card.b .opt-card-title { color: var(--amber); }
+  .opt-row { display: flex; justify-content: space-between; padding: 4px 0; font-size: 13px; border-bottom: 1px solid rgba(0,0,0,0.05); }
+  .opt-row:last-child { border-bottom: none; }
+  .opt-row .lbl { color: var(--mid); }
+  .opt-row .val { font-weight: 700; }
+
+  /* VERDICT */
+  .verdict { border-radius: 10px; padding: 18px 20px; margin-bottom: 20px; font-size: 14px; line-height: 1.7; }
+  .verdict.green-v { background: #f5fdf0; border: 1px solid var(--green); }
+  .verdict.amber-v { background: #fff9f0; border: 1px solid var(--amber); }
+  .verdict.red-v   { background: #fff5f5; border: 1px solid var(--red); }
+  .verdict-title { font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; }
+  .verdict.green-v .verdict-title { color: #3a7a00; }
+  .verdict.amber-v .verdict-title { color: var(--amber); }
+  .verdict.red-v   .verdict-title { color: var(--red); }
+
+  /* CHART */
+  .chart-wrap { background: var(--white); border-radius: 10px; border: 1px solid var(--border); padding: 18px 20px; margin-bottom: 20px; }
+  .chart-title { font-size: 13px; font-weight: 700; color: var(--mid); margin-bottom: 14px; }
+  .chart-canvas-wrap { position: relative; height: 280px; }
+
+  /* DISCLAIMER */
+  .disclaimer { font-size: 11px; color: #999; line-height: 1.6; border-top: 1px solid var(--border); padding-top: 14px; margin-top: 20px; font-style: italic; }
+
+  /* PRINT */
+  @media print {
+    body { background: #fff; font-size: 13px; }
+    .hdr { display: none; }
+    .print-header { display: block !important; }
+    .two-col { grid-template-columns: 1fr !important; }
+    .left-col { display: none !important; }
+    .btn-print, .print-fields { display: none !important; }
+    .panel, .card, .chart-wrap, .verdict, .opt-table { break-inside: avoid; }
+    .chart-canvas-wrap { height: 220px !important; }
+    .cards { grid-template-columns: repeat(4,1fr); }
+    @page { margin: 0.6in; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="hdr">
+  <div class="hdr-left">
+    <div class="hdr-logo">HWS</div>
+    <div>
+      <div class="hdr-title">Bid Over Asking Analyzer</div>
+      <div class="hdr-sub">HomeWealth Solutions — NMLS #2742458</div>
+    </div>
+  </div>
+  <button class="btn-print" onclick="printView()">⎙ Print / Save PDF</button>
+</div>
+
+<!-- PRINT HEADER -->
+<div class="print-header" id="printHdr">
+  <div class="ph-logo">HomeWealth Solutions</div>
+  <div class="ph-meta">
+    <span id="ph_client"></span>
+    <span id="ph_agent"></span>
+    <span id="ph_date"></span>
+  </div>
+</div>
+
+<div class="main">
+  <div class="two-col">
+
+    <!-- LEFT: INPUTS -->
+    <div class="left-col">
+      <div class="panel">
+        <div class="panel-title">Offer Details</div>
+
+        <div class="concept">
+          <strong>Is Overbidding Rational?</strong><br>
+          In competitive markets, paying over asking can be the only way to win. This tool calculates how quickly appreciation makes you whole — and what the real monthly cost is.
+        </div>
+
+        <div class="field">
+          <label>Asking Price</label>
+          <input type="text" id="askPrice" value="$400,000" onblur="fmtDollar(this)" onfocus="clearFmt(this,'$')" oninput="calc()">
+        </div>
+        <div class="field">
+          <label>Your Bid</label>
+          <input type="text" id="bidPrice" value="$415,000" onblur="fmtDollar(this)" onfocus="clearFmt(this,'$')" oninput="calc()">
+        </div>
+
+        <!-- Premium display -->
+        <div class="premium-badge">
+          <div class="pb-label">Bid Premium</div>
+          <span class="pb-val" id="premiumAmt">—</span><span class="pb-pct" id="premiumPct"></span>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label>Down Payment %</label>
+            <input type="text" id="downPct" value="5%" onblur="fmtPct(this)" onfocus="clearFmt(this,'%')" oninput="calc()">
+          </div>
+          <div class="field">
+            <label>Interest Rate %</label>
+            <input type="text" id="rate" value="7.0%" onblur="fmtPct(this)" onfocus="clearFmt(this,'%')" oninput="calc()">
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>Loan Term (years)</label>
+            <input type="text" id="term" value="30" oninput="calc()">
+          </div>
+          <div class="field">
+            <label>Appreciation Rate %</label>
+            <input type="text" id="appRate" value="4.0%" onblur="fmtPct(this)" onfocus="clearFmt(this,'%')" oninput="calc()">
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>Monthly Taxes</label>
+            <input type="text" id="taxes" value="$400" onblur="fmtDollar(this)" onfocus="clearFmt(this,'$')" oninput="calc()">
+          </div>
+          <div class="field">
+            <label>Monthly HOI</label>
+            <input type="text" id="hoi" value="$120" onblur="fmtDollar(this)" onfocus="clearFmt(this,'$')" oninput="calc()">
+          </div>
+        </div>
+
+        <!-- Print fields -->
+        <div class="print-fields">
+          <div>
+            <label>Prepared For</label>
+            <input type="text" id="print_client" placeholder="Client name">
+          </div>
+          <div>
+            <label>Prepared By</label>
+            <input type="text" id="print_agent" placeholder="Your name" value="Doug Smith, CMA®">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: RESULTS -->
+    <div class="right-col">
+
+      <!-- SUMMARY CARDS -->
+      <div class="cards">
+        <div class="card amber">
+          <div class="card-label">Premium Paid</div>
+          <div class="card-val amber" id="c_premium">—</div>
+          <div class="card-sub" id="c_premiumPct">over asking</div>
+        </div>
+        <div class="card blue">
+          <div class="card-label">Break-Even</div>
+          <div class="card-val blue" id="c_breakeven">—</div>
+          <div class="card-sub">appreciation months</div>
+        </div>
+        <div class="card red">
+          <div class="card-label">Extra Monthly Cost</div>
+          <div class="card-val red" id="c_extraPmt">—</div>
+          <div class="card-sub">vs. asking price P&I</div>
+        </div>
+        <div class="card green">
+          <div class="card-label">Extra Cash to Close</div>
+          <div class="card-val green" id="c_extraCash">—</div>
+          <div class="card-sub">Option A (finance premium)</div>
+        </div>
+      </div>
+
+      <!-- VERDICT -->
+      <div class="verdict green-v" id="verdictBox">
+        <div class="verdict-title" id="verdictTitle">Analysis</div>
+        <div id="verdictText">Enter offer details to see analysis.</div>
+      </div>
+
+      <!-- FINANCING OPTIONS -->
+      <div class="opt-table">
+        <div class="opt-title">Financing Structure Comparison</div>
+        <div class="opt-grid">
+          <div class="opt-card a">
+            <div class="opt-card-title">Option A — Finance the Premium</div>
+            <div class="opt-row"><span class="lbl">Down Payment</span><span class="val" id="a_down">—</span></div>
+            <div class="opt-row"><span class="lbl">Loan Amount</span><span class="val" id="a_loan">—</span></div>
+            <div class="opt-row"><span class="lbl">Monthly P&I</span><span class="val" id="a_pmt">—</span></div>
+            <div class="opt-row"><span class="lbl">Total PITI</span><span class="val" id="a_piti">—</span></div>
+            <div class="opt-row"><span class="lbl">LTV</span><span class="val" id="a_ltv">—</span></div>
+          </div>
+          <div class="opt-card b">
+            <div class="opt-card-title">Option B — Cash the Premium</div>
+            <div class="opt-row"><span class="lbl">Down Payment</span><span class="val" id="b_down">—</span></div>
+            <div class="opt-row"><span class="lbl">Loan Amount</span><span class="val" id="b_loan">—</span></div>
+            <div class="opt-row"><span class="lbl">Monthly P&I</span><span class="val" id="b_pmt">—</span></div>
+            <div class="opt-row"><span class="lbl">Total PITI</span><span class="val" id="b_piti">—</span></div>
+            <div class="opt-row"><span class="lbl">LTV</span><span class="val" id="b_ltv">—</span></div>
+          </div>
+        </div>
+        <p style="font-size:12px; color:#888; margin-top:10px;">Option A: down% of bid price. Option B: down% of asking price — lower cash but higher LTV on the loan.</p>
+      </div>
+
+      <!-- CHART -->
+      <div class="chart-wrap">
+        <div class="chart-title">Home Value vs. Bid Price — Break-Even Visualization</div>
+        <div class="chart-canvas-wrap">
+          <canvas id="bidChart"></canvas>
+        </div>
+      </div>
+
+      <p class="disclaimer">
+        This analysis is for educational purposes. Appreciation rates are not guaranteed. Past performance does not predict future results. The ability to win a home at asking price is not guaranteed, and market conditions vary. Consult your real estate agent and loan officer for guidance specific to your situation.
+      </p>
+
+    </div><!-- /right-col -->
+  </div><!-- /two-col -->
+</div><!-- /main -->
+
+<script>
+/* FORMAT HELPERS */
+function stripDollar(v) { return parseFloat((v||'').toString().replace(/[$,\s]/g,'')) || 0; }
+function stripPct(v)    { return parseFloat((v||'').toString().replace(/[%\s]/g,''))    || 0; }
+function fmtDollar(el)  { const v = stripDollar(el.value); el.value = v ? '$' + Math.round(v).toLocaleString() : ''; }
+function fmtPct(el)     { const v = stripPct(el.value);    el.value = isNaN(v) ? '' : v + '%'; }
+function clearFmt(el, type) {
+  const v = type === '$' ? stripDollar(el.value) : stripPct(el.value);
+  el.value = (!v) ? '' : v;
+}
+function fmt$(v) { return '$' + Math.round(v).toLocaleString(); }
+function fmtMo(m) {
+  if (!isFinite(m) || m <= 0) return '< 1 mo';
+  const mo = Math.ceil(m);
+  if (mo > 360) return '> 30 yr';
+  const y = Math.floor(mo/12), r = mo%12;
+  if (y === 0) return mo + ' mo';
+  return y + ' yr' + (r ? ' ' + r + ' mo' : '');
+}
+function calcPI(loan, annRate, n) {
+  const r = annRate / 100 / 12;
+  if (r === 0) return loan / n;
+  return loan * r * Math.pow(1+r, n) / (Math.pow(1+r, n) - 1);
+}
+
+let bidChartInst = null;
+
+function calc() {
+  const ask   = stripDollar(document.getElementById('askPrice').value);
+  const bid   = stripDollar(document.getElementById('bidPrice').value);
+  const down  = stripPct(document.getElementById('downPct').value);
+  const rate  = stripPct(document.getElementById('rate').value);
+  const term  = parseInt(document.getElementById('term').value) || 30;
+  const app   = stripPct(document.getElementById('appRate').value);
+  const taxes = stripDollar(document.getElementById('taxes').value);
+  const hoi   = stripDollar(document.getElementById('hoi').value);
+
+  if (!ask || !bid || !rate) return;
+
+  const n = term * 12;
+  const premium = bid - ask;
+  const premiumPct = (premium / ask * 100);
+
+  // Premium badge
+  document.getElementById('premiumAmt').textContent = fmt$(premium);
+  document.getElementById('premiumPct').textContent = '(' + premiumPct.toFixed(1) + '% over)';
+
+  // Option A: finance premium — down% of bid
+  const aDown = bid * down / 100;
+  const aLoan = bid - aDown;
+  const aPmt  = calcPI(aLoan, rate, n);
+  const aPITI = aPmt + taxes + hoi;
+  const aLTV  = aLoan / bid * 100;
+
+  // Option B: cash premium — down% of asking, loan = bid - ask*down%
+  const bDown = ask * down / 100;
+  const bLoan = bid - bDown;
+  const bPmt  = calcPI(bLoan, rate, n);
+  const bPITI = bPmt + taxes + hoi;
+  const bLTV  = bLoan / bid * 100;
+
+  // Asking scenario for comparison
+  const askDown = ask * down / 100;
+  const askLoan = ask - askDown;
+  const askPmt  = calcPI(askLoan, rate, n);
+
+  // Extra monthly vs asking (using Option A)
+  const extraPmt = aPmt - askPmt;
+
+  // Break-even: months until home value reaches bid price
+  // bid = ask * (1 + app/12)^months → months = ln(bid/ask) / ln(1 + app/12)
+  const monthlyApp = app / 100 / 12;
+  const beMonths = monthlyApp > 0
+    ? Math.log(bid / ask) / Math.log(1 + monthlyApp)
+    : Infinity;
+
+  // Extra cash at close (Option A vs. hypothetical at asking)
+  const extraCash = aDown - askDown;
+
+  // Update cards
+  document.getElementById('c_premium').textContent    = fmt$(premium);
+  document.getElementById('c_premiumPct').textContent = premiumPct.toFixed(1) + '% over asking';
+  document.getElementById('c_breakeven').textContent  = fmtMo(beMonths);
+  document.getElementById('c_extraPmt').textContent   = fmt$(extraPmt) + '/mo';
+  document.getElementById('c_extraCash').textContent  = fmt$(extraCash);
+
+  // Options
+  document.getElementById('a_down').textContent = fmt$(aDown);
+  document.getElementById('a_loan').textContent = fmt$(aLoan);
+  document.getElementById('a_pmt').textContent  = fmt$(aPmt) + '/mo';
+  document.getElementById('a_piti').textContent = fmt$(aPITI) + '/mo';
+  document.getElementById('a_ltv').textContent  = aLTV.toFixed(1) + '%';
+
+  document.getElementById('b_down').textContent = fmt$(bDown);
+  document.getElementById('b_loan').textContent = fmt$(bLoan);
+  document.getElementById('b_pmt').textContent  = fmt$(bPmt) + '/mo';
+  document.getElementById('b_piti').textContent = fmt$(bPITI) + '/mo';
+  document.getElementById('b_ltv').textContent  = bLTV.toFixed(1) + '%';
+
+  // Verdict
+  const vBox   = document.getElementById('verdictBox');
+  const vTitle = document.getElementById('verdictTitle');
+  const vText  = document.getElementById('verdictText');
+
+  const beYrs = beMonths / 12;
+  let html = `You're bidding <strong>${fmt$(premium)}</strong> (${premiumPct.toFixed(1)}%) above asking. At ${app}% annual appreciation, this home reaches your bid price in <strong>${fmtMo(beMonths)}</strong> — meaning appreciation covers the premium by then. Your monthly P&I increases by <strong>${fmt$(extraPmt)}/mo</strong> compared to buying at asking.`;
+
+  if (beMonths <= 18) {
+    vBox.className = 'verdict green-v';
+    vTitle.textContent = 'Strong Bid — Appreciation Covers the Premium Quickly';
+    html += ' At under 18 months, this is a financially sound overbid in a market with normal appreciation.';
+  } else if (beMonths <= 36) {
+    vBox.className = 'verdict amber-v';
+    vTitle.textContent = 'Reasonable Bid — Break-Even Within 3 Years';
+    html += ' The premium is recovered within 3 years of normal appreciation.';
+  } else {
+    vBox.className = 'verdict red-v';
+    vTitle.textContent = 'Long Break-Even — Consider Negotiating or Re-Evaluating';
+    html += ` With a ${fmtMo(beMonths)} break-even, the overbid is substantial relative to projected appreciation. Consider whether the home is worth this premium or if negotiation is possible.`;
+  }
+
+  vText.innerHTML = html;
+
+  // Chart
+  buildChart(ask, bid, app, beMonths);
+}
+
+function buildChart(ask, bid, appRate, beMonths) {
+  const months = Math.max(Math.ceil(beMonths) + 24, 60);
+  const labels = [];
+  const values = [];
+
+  for (let mo = 0; mo <= months; mo++) {
+    const value = ask * Math.pow(1 + appRate/100/12, mo);
+    if (mo % 6 === 0) labels.push('Mo ' + mo);
+    else labels.push('');
+    values.push(Math.round(value));
+  }
+
+  const bidLine = values.map(() => Math.round(bid));
+  const askLine = values.map(() => Math.round(ask));
+
+  const ctx = document.getElementById('bidChart').getContext('2d');
+  if (bidChartInst) bidChartInst.destroy();
+  bidChartInst = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        {
+          label: 'Home Value (appreciation)',
+          data: values,
+          borderColor: '#8EC73F',
+          backgroundColor: 'rgba(142,199,63,0.10)',
+          borderWidth: 2.5,
+          pointRadius: 0,
+          tension: 0.3,
+          fill: true
+        },
+        {
+          label: 'Your Bid Price',
+          data: bidLine,
+          borderColor: '#e8900a',
+          backgroundColor: 'transparent',
+          borderWidth: 2,
+          borderDash: [6, 4],
+          pointRadius: 0,
+          tension: 0,
+          fill: false
+        },
+        {
+          label: 'Asking Price',
+          data: askLine,
+          borderColor: '#2491EB',
+          backgroundColor: 'transparent',
+          borderWidth: 1.5,
+          borderDash: [3, 3],
+          pointRadius: 0,
+          tension: 0,
+          fill: false
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { position: 'bottom', labels: { boxWidth: 14, font: { size: 12 }, padding: 14 } },
+        tooltip: {
+          callbacks: {
+            label: ctx => ' ' + ctx.dataset.label + ': $' + ctx.raw.toLocaleString()
+          }
+        }
+      },
+      scales: {
+        x: { ticks: { color: '#888', font: { size: 11 }, maxRotation: 0 }, grid: { color: 'rgba(0,0,0,0.04)' } },
+        y: {
+          ticks: { color: '#888', font: { size: 11 }, callback: v => '$' + Math.round(v/1000) + 'k' },
+          grid: { color: 'rgba(0,0,0,0.05)' }
+        }
+      }
+    }
+  });
+}
+
+function printView() {
+  const client = (document.getElementById('print_client').value || '').trim();
+  const agent  = (document.getElementById('print_agent').value  || '').trim();
+  const now    = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+  document.getElementById('ph_client').innerHTML = client ? `<strong>Prepared for:</strong> ${client}` : '';
+  document.getElementById('ph_agent').innerHTML  = agent  ? `<strong>Prepared by:</strong> ${agent}`   : '';
+  document.getElementById('ph_date').innerHTML   = `<strong>Date:</strong> ${now}`;
+  if (bidChartInst) { bidChartInst.resize(); bidChartInst.update('none'); }
+  window.print();
+}
+
+window.addEventListener('DOMContentLoaded', () => { calc(); });
+</script>
+<a href="https://tools.homewealthsolutions.com" id="hws-hub-btn" style="position:fixed;top:14px;right:16px;z-index:9999;background:#1c2b3a;color:rgba(255,255,255,0.9);text-decoration:none;font-size:12px;font-weight:700;padding:6px 14px;border-radius:8px;font-family:-apple-system,BlinkMacSystemFont,sans-serif;letter-spacing:0.2px;box-shadow:0 2px 8px rgba(0,0,0,0.25);">← Hub</a>
+
+<!-- HWS Hub back button -->
+<div id="hws-back-btn" style="position:fixed;bottom:20px;right:20px;z-index:99999;">
+  <button onclick="window.close()" style="
+    background:#1a2332;
+    color:white;
+    border:none;
+    border-radius:8px;
+    padding:9px 16px;
+    font-size:13px;
+    font-weight:600;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    gap:7px;
+    box-shadow:0 2px 12px rgba(0,0,0,0.25);
+    opacity:0.85;
+    transition:opacity .15s;
+  " onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.85'">
+    ← Hub
+  </button>
+</div>
+<script src="/hws-session.js"></script>
+</body>
+</html>

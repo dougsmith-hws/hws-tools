@@ -1,0 +1,2650 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Income Calculation Guide — HWS</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: #f0f4f9;
+    color: #1a2332;
+    min-height: 100vh;
+  }
+
+/* ── HWS Dark Nav ── */
+.hws-header {
+  background: #1a2332; color: #fff; padding: 0 20px; height: 52px;
+  display: flex; align-items: center; gap: 12px;
+  position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 8px rgba(0,0,0,.3);
+}
+.hws-logo { font-size: 15px; font-weight: 700; color: #fff; white-space: nowrap; }
+.hws-logo span { color: #8EC73F; }
+.tool-badge {
+  background: rgba(36,145,235,.25); border: 1px solid rgba(36,145,235,.4);
+  color: #7ec8fa; font-size: 11px; font-weight: 600;
+  padding: 2px 8px; border-radius: 4px; letter-spacing: .4px; text-transform: uppercase;
+}
+.header-nav { margin-left: auto; display: flex; gap: 2px; align-items: center; }
+.header-nav > a {
+  color: rgba(255,255,255,.6); text-decoration: none; font-size: 12px;
+  padding: 5px 10px; border-radius: 5px; transition: background .15s, color .15s; white-space: nowrap;
+}
+.header-nav > a:hover { background: rgba(255,255,255,.1); color: #fff; }
+.header-nav > a.active { color: #fff; background: rgba(255,255,255,.12); }
+.nav-dropdown { position: relative; }
+.nav-dd-btn {
+  background: none; border: none; cursor: pointer; font-family: inherit;
+  color: rgba(255,255,255,.6); font-size: 12px;
+  padding: 5px 10px; border-radius: 5px; transition: background .15s, color .15s;
+  display: flex; align-items: center; gap: 4px; white-space: nowrap;
+}
+.nav-dd-btn:hover, .nav-dropdown.open .nav-dd-btn { background: rgba(255,255,255,.1); color: #fff; }
+.nav-dd-caret { font-size: 8px; opacity: .6; transition: transform .15s; }
+.nav-dropdown.open .nav-dd-caret { transform: rotate(180deg); }
+.nav-dd-menu {
+  display: none; position: absolute; top: calc(100% + 6px); right: 0;
+  background: #1e2d42; border: 1px solid rgba(255,255,255,.12); border-radius: 10px;
+  min-width: 210px; padding: 6px; box-shadow: 0 10px 30px rgba(0,0,0,.5); z-index: 999;
+}
+.nav-dropdown.open .nav-dd-menu { display: block; }
+.nav-dd-label {
+  font-size: 9px; font-weight: 800; color: rgba(255,255,255,.3); letter-spacing: 1px;
+  text-transform: uppercase; padding: 6px 10px 4px;
+}
+.nav-dd-menu a {
+  display: block; padding: 7px 12px; color: rgba(255,255,255,.7);
+  text-decoration: none; font-size: 12px; border-radius: 6px;
+  transition: background .1s, color .1s; white-space: nowrap;
+}
+.nav-dd-menu a:hover { background: rgba(255,255,255,.1); color: #fff; }
+.nav-dd-menu a.active { background: rgba(36,145,235,.2); color: #7ec8fa; }
+.nav-dd-divider { height: 1px; background: rgba(255,255,255,.07); margin: 4px 0; }
+
+/* ── Borrower bar ── */
+.borrower-bar {
+  background: #fff; border-bottom: 1.5px solid #e2e8f0;
+  padding: 8px 20px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  position: sticky; top: 52px; z-index: 90;
+  box-shadow: 0 2px 6px rgba(0,0,0,.06);
+}
+.borrower-bar label { font-size: 11px; font-weight: 700; color: #64748b; white-space: nowrap; }
+.borrower-search-wrap { position: relative; flex: 1; max-width: 280px; }
+.borrower-search-wrap input {
+  width: 100%; padding: 6px 10px; border: 1.5px solid #e2e8f0;
+  border-radius: 6px; font-size: 13px; color: #1e293b; outline: none;
+  transition: border-color .15s;
+}
+.borrower-search-wrap input:focus { border-color: #2491EB; }
+.borrower-sugg {
+  display: none; position: absolute; top: calc(100% + 4px); left: 0; right: 0;
+  background: #fff; border: 1.5px solid #e2e8f0; border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0,0,0,.12); z-index: 200; overflow: hidden;
+}
+.borrower-sugg.open { display: block; }
+.bsugg-item {
+  padding: 8px 12px; font-size: 12px; color: #1e293b; cursor: pointer;
+  transition: background .1s;
+}
+.bsugg-item:hover, .bsugg-item.hi { background: #f0f7ff; }
+.bsugg-create { color: #2491EB; font-weight: 700; border-top: 1px solid #f1f5f9; }
+.bb-divider { width: 1px; height: 28px; background: #e2e8f0; flex-shrink: 0; }
+.slot-label { font-size: 11px; font-weight: 700; color: #64748b; white-space: nowrap; }
+.slot-options { display: flex; gap: 10px; align-items: center; }
+.slot-options label { display: flex; align-items: center; gap: 5px; cursor: pointer; font-size: 12px; font-weight: 600; white-space: nowrap; }
+#borrower-slot-badge {
+  margin-left: 4px; font-size: 10px; font-weight: 800;
+  padding: 3px 10px; border-radius: 12px; letter-spacing: .4px; text-transform: uppercase;
+  background: #8EC73F; color: white;
+}
+.export-btn {
+  margin-left: auto; background: #8EC73F; color: #fff; border: none; border-radius: 6px;
+  padding: 7px 13px; font-size: 12px; font-weight: 800; cursor: pointer;
+  display: flex; align-items: center; gap: 6px; white-space: nowrap; transition: background .15s;
+}
+.export-btn:hover { background: #7ab535; }
+
+  .main { max-width: 720px; margin: 0 auto; padding: 20px 16px 90px; }
+
+/* ── Income Summary Bar ── */
+#income-summary-bar {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  background: #1a2332; border-top: 2px solid #2491EB;
+  display: flex; align-items: stretch; z-index: 50; min-height: 64px;
+}
+.isb-slot {
+  flex: 1; display: flex; flex-direction: column; justify-content: center;
+  padding: 8px 20px; gap: 2px; min-width: 0;
+}
+.isb-slot-label {
+  font-size: 9px; font-weight: 800; letter-spacing: 1px;
+  text-transform: uppercase; color: rgba(255,255,255,.4);
+}
+.isb-slot-amount {
+  font-size: 19px; font-weight: 800; color: #fff; line-height: 1.1; white-space: nowrap;
+}
+.isb-slot-amount.isb-empty { color: rgba(255,255,255,.2); font-size: 15px; }
+.isb-slot-source {
+  font-size: 10px; color: rgba(255,255,255,.4);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.isb-divider { width: 1px; background: rgba(255,255,255,.1); margin: 10px 0; flex-shrink: 0; }
+.isb-total { background: rgba(36,145,235,.12); border-left: 1.5px solid rgba(36,145,235,.5); }
+.isb-total .isb-slot-amount { color: #7ec8fa; font-size: 21px; }
+.isb-total .isb-slot-label { color: rgba(126,200,250,.45); }
+.isb-flag {
+  font-size: 10px; padding: 1px 6px; border-radius: 4px;
+  font-weight: 700; letter-spacing: .3px; white-space: nowrap;
+}
+.isb-flag.ytdpl { background: rgba(245,158,11,.2); color: #fcd34d; }
+
+  /* Tab bar */
+  .tabs {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 18px;
+    flex-wrap: wrap;
+  }
+  .tab-btn {
+    padding: 8px 14px;
+    border-radius: 8px;
+    border: 1.5px solid #e2e8f0;
+    background: white;
+    font-size: 12px;
+    font-weight: 700;
+    color: #64748b;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .tab-btn:hover { border-color: #2491EB; color: #2491EB; }
+  .tab-btn.active {
+    background: #2491EB;
+    border-color: #2491EB;
+    color: white;
+  }
+
+  /* Panels */
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  /* Section cards */
+  .card {
+    background: white;
+    border-radius: 14px;
+    border: 1.5px solid #e2e8f0;
+    padding: 20px 22px;
+    margin-bottom: 14px;
+  }
+  .card-title {
+    font-size: 13px;
+    font-weight: 800;
+    color: #2491EB;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+  }
+
+  /* Formula display */
+  .formula {
+    background: #f0f4f9;
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 12px;
+    color: #475569;
+    margin-bottom: 14px;
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    line-height: 1.6;
+  }
+  .formula strong { color: #1a2332; }
+
+  /* Inputs */
+  .field-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+  .field-label {
+    font-size: 12px;
+    color: #475569;
+    flex: 1;
+    min-width: 0;
+  }
+  .field-label small {
+    display: block;
+    font-size: 10px;
+    color: #94a3b8;
+    margin-top: 1px;
+  }
+  .field-input {
+    width: 130px;
+    padding: 7px 10px;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 13px;
+    text-align: right;
+    color: #1a2332;
+    outline: none;
+    transition: border-color 0.15s;
+    flex-shrink: 0;
+  }
+  .field-input:focus { border-color: #2491EB; }
+  .field-input.add { background: #f0fdf4; border-color: #bbf7d0; }
+  .field-input.sub { background: #fff7f7; border-color: #fecaca; }
+  .field-input.result-field {
+    background: #eff6ff;
+    border-color: #bfdbfe;
+    font-weight: 700;
+    color: #1d4ed8;
+    pointer-events: none;
+  }
+
+  .sign {
+    font-size: 14px;
+    font-weight: 700;
+    width: 18px;
+    text-align: center;
+    flex-shrink: 0;
+  }
+  .sign.plus { color: #16a34a; }
+  .sign.minus { color: #dc2626; }
+
+  /* Result box */
+  .result-box {
+    background: linear-gradient(135deg, #eff6ff 0%, #f0fdf4 100%);
+    border: 2px solid #2491EB;
+    border-radius: 12px;
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 16px;
+  }
+  .result-label { font-size: 13px; font-weight: 700; color: #1a2332; }
+  .result-value {
+    font-size: 22px;
+    font-weight: 800;
+    color: #2491EB;
+  }
+
+  /* Calc button */
+  .calc-btn {
+    width: 100%;
+    padding: 11px;
+    background: #2491EB;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    margin-top: 14px;
+    transition: background 0.15s;
+  }
+  .calc-btn:hover { background: #1a7fd4; }
+
+  /* Alert / note */
+  .note {
+    background: #fefce8;
+    border: 1.5px solid #fde047;
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-size: 12px;
+    color: #713f12;
+    line-height: 1.5;
+    margin-bottom: 12px;
+  }
+  .note strong { color: #713f12; }
+
+  .alert {
+    background: #fff1f2;
+    border: 1.5px solid #fecdd3;
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-size: 12px;
+    color: #881337;
+    line-height: 1.5;
+    margin-top: 10px;
+  }
+
+  /* Liquidity test */
+  .liq-result {
+    border-radius: 10px;
+    padding: 12px 16px;
+    font-size: 13px;
+    font-weight: 700;
+    text-align: center;
+    margin-top: 12px;
+  }
+  .liq-pass { background: #dcfce7; color: #166534; }
+  .liq-fail { background: #fee2e2; color: #991b1b; }
+
+  /* Method selector */
+  .method-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+  }
+  .method-btn {
+    padding: 7px 13px;
+    border-radius: 8px;
+    border: 1.5px solid #e2e8f0;
+    background: white;
+    font-size: 12px;
+    font-weight: 600;
+    color: #64748b;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .method-btn.active {
+    background: #eff6ff;
+    border-color: #2491EB;
+    color: #1d4ed8;
+  }
+
+  /* Sub-panel */
+  .sub-panel { display: none; }
+  .sub-panel.active { display: block; }
+
+  hr.divider {
+    border: none;
+    border-top: 1px solid #e2e8f0;
+    margin: 14px 0;
+  }
+
+  .two-year-note {
+    font-size: 11px;
+    color: #94a3b8;
+    margin-top: 6px;
+    font-style: italic;
+  }
+
+  .section-label {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: #94a3b8;
+    margin: 10px 0 6px;
+  }
+
+  .reset-btn {
+    background: none;
+    border: none;
+    color: #94a3b8;
+    font-size: 11px;
+    cursor: pointer;
+    text-decoration: underline;
+    padding: 0;
+    margin-top: 4px;
+  }
+  .reset-btn:hover { color: #64748b; }
+
+  /* Multi-business Schedule C */
+  .sc-biz-block + .sc-biz-block { margin-top: 8px; }
+  .sc-biz-header {
+    display: flex; align-items: center; gap: 7px;
+    background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 7px;
+    padding: 6px 10px; cursor: pointer; user-select: none;
+    transition: background .12s;
+  }
+  .sc-biz-header:hover { background: #f0f7ff; border-color: #bfdbfe; }
+  .sc-toggle-arrow {
+    font-size: 13px; font-weight: 700; color: #64748b; flex-shrink: 0;
+    width: 16px; text-align: center; line-height: 1;
+  }
+  .sc-biz-num { font-size: 11px; font-weight: 700; color: #2491EB; white-space: nowrap; flex-shrink: 0; }
+  .sc-biz-name-input {
+    flex: 1; font-size: 11px; padding: 2px 6px;
+    border: 1px solid transparent; border-radius: 4px; color: #475569;
+    background: transparent; outline: none; cursor: text;
+    min-width: 0;
+  }
+  .sc-biz-name-input:focus { border-color: #2491EB; background: #fff; }
+  .sc-biz-hdr-mo { font-size: 12px; font-weight: 700; color: #1e293b; white-space: nowrap; margin-left: auto; }
+  .sc-biz-hdr-mo.has-value { color: #2491EB; }
+  .sc-remove-btn {
+    background: none; border: none; color: #cbd5e1; font-size: 12px;
+    cursor: pointer; padding: 0 2px; flex-shrink: 0; line-height: 1;
+  }
+  .sc-remove-btn:hover { color: #ef4444; }
+  .sc-biz-fields { padding: 8px 2px 2px; }
+  .sc-add-btn {
+    display: block; width: 100%; margin-top: 10px; padding: 7px;
+    background: none; border: 1.5px dashed #cbd5e1; border-radius: 8px;
+    color: #2491EB; font-size: 12px; font-weight: 600; cursor: pointer;
+    text-align: center; transition: border-color .15s, background .15s;
+  }
+  .sc-add-btn:hover { border-color: #2491EB; background: #f0f7ff; }
+
+  /* Reference table */
+  table.ref {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+    margin-top: 8px;
+  }
+  table.ref th {
+    background: #f8fafc;
+    padding: 7px 10px;
+    text-align: left;
+    font-weight: 700;
+    color: #475569;
+    border-bottom: 1px solid #e2e8f0;
+  }
+  table.ref td {
+    padding: 7px 10px;
+    border-bottom: 1px solid #f1f5f9;
+    color: #1a2332;
+    vertical-align: top;
+  }
+  table.ref tr:last-child td { border-bottom: none; }
+
+  .badge {
+    display: inline-block;
+    padding: 2px 7px;
+    border-radius: 6px;
+    font-size: 10px;
+    font-weight: 700;
+  }
+  .badge-blue { background: #dbeafe; color: #1d4ed8; }
+  .badge-green { background: #dcfce7; color: #166534; }
+  .badge-amber { background: #fef3c7; color: #92400e; }
+
+  /* ── Prefill banner (AI handoff from Scrubber) ───────── */
+  #prefill-banner {
+    background: #fffbeb;
+    border-bottom: 2px solid #fcd34d;
+    padding: 11px 20px;
+    display: none;
+    align-items: center;
+    gap: 12px;
+    font-size: 12px;
+    color: #78350f;
+    position: sticky;
+    top: 94px;
+    z-index: 89;
+  }
+  #prefill-banner.visible { display: flex; }
+  #prefill-banner-icon { font-size: 18px; flex-shrink: 0; }
+  #prefill-banner-text { flex: 1; line-height: 1.5; }
+  #prefill-banner-text strong { color: #92400e; }
+  #prefill-clear {
+    padding: 4px 10px; border-radius: 6px; border: 1px solid #f59e0b;
+    background: white; color: #78350f; font-size: 11px; font-weight: 700;
+    cursor: pointer; white-space: nowrap; flex-shrink: 0;
+  }
+  #prefill-clear:hover { background: #fef3c7; }
+  /* Fields pre-filled by AI get an amber left accent */
+  .field-input.ai-prefilled {
+    border-left: 3px solid #f59e0b !important;
+    background-color: #fffbeb !important;
+  }
+  .field-input.ai-prefilled.add { border-left: 3px solid #f59e0b !important; }
+  .field-input.ai-prefilled.sub { border-left: 3px solid #f59e0b !important; }
+</style>
+</head>
+<body>
+
+<header class="hws-header">
+  <div class="hws-logo">HomeWealth<span>.</span></div>
+  <div class="tool-badge">Income Calc</div>
+  <nav class="header-nav">
+    <a href="/hub.html" id="nav-hub">Hub</a>
+    <a href="/pipeline.html" id="nav-pipeline">Pipeline</a>
+    <div class="nav-dropdown" id="dd-discovery">
+      <button class="nav-dd-btn" onclick="toggleDD('dd-discovery')">Discovery <span class="nav-dd-caret">▼</span></button>
+      <div class="nav-dd-menu">
+        <div class="nav-dd-label">Lead Stage</div>
+        <a href="/comfort-calc.html" id="nav-comfort-calc">Comfort Calc</a>
+        <a href="/credit-intake.html" id="nav-credit-intake">Credit Intake</a>
+      </div>
+    </div>
+    <div class="nav-dropdown" id="dd-ops">
+      <button class="nav-dd-btn" onclick="toggleDD('dd-ops')">UW &amp; Ops <span class="nav-dd-caret">▼</span></button>
+      <div class="nav-dd-menu">
+        <div class="nav-dd-label">Qualification</div>
+        <a href="/pre-approval.html" id="nav-pre-approval">Pre-Approval</a>
+        <a href="/income-calc.html" id="nav-income-calc" class="active">Income Calculator</a>
+        <div class="nav-dd-divider"></div>
+        <div class="nav-dd-label">Processing</div>
+        <a href="/arive-entry.html" id="nav-arive-entry">Arive Entry</a>
+        <a href="/" id="nav-uw-prep">UW Prep Scrubber</a>
+      </div>
+    </div>
+    <div class="nav-dropdown" id="dd-strategy">
+      <button class="nav-dd-btn" onclick="toggleDD('dd-strategy')">Client Strategy <span class="nav-dd-caret">▼</span></button>
+      <div class="nav-dd-menu">
+        <div class="nav-dd-label">Buyer Tools</div>
+        <a href="/net-worth-dp.html" id="nav-net-worth-dp">Net Worth vs Down Payment</a>
+        <a href="/seller-buydown.html" id="nav-seller-buydown">Seller Buydown Helper</a>
+        <div class="nav-dd-divider"></div>
+        <div class="nav-dd-label">Property</div>
+        <a href="/property-tax.html" id="nav-property-tax">Property Tax Estimator</a>
+        <a href="/insurance-est.html" id="nav-insurance-est">Insurance Estimator</a>
+      </div>
+    </div>
+  </nav>
+</header>
+
+<!-- Borrower bar (sticky, below nav) -->
+<div class="borrower-bar">
+  <label>CLIENT</label>
+  <div class="borrower-search-wrap">
+    <input id="borrower-input" type="text" placeholder="Search clients…"
+           autocomplete="off"
+           oninput="icSearchInput()"
+           onkeydown="icSearchKeydown(event)"
+           onfocus="icSearchInput(true)"
+           onblur="setTimeout(()=>{ const s=document.getElementById('ic-sugg'); if(s) s.classList.remove('open'); },180)">
+    <div class="borrower-sugg" id="ic-sugg"></div>
+  </div>
+  <!-- Swap + Co-Borrower (right after CLIENT, matching all other tools) -->
+  <div style="width:1px;height:28px;background:#e2e8f0;margin:0 2px;flex-shrink:0;"></div>
+  <button onclick="swapBorrowers()" title="Swap borrower and co-borrower"
+    style="padding:4px 8px;border:1.5px solid #e2e8f0;border-radius:6px;background:#f8fafc;color:#64748b;font-size:14px;cursor:pointer;line-height:1;flex-shrink:0;transition:all .15s;"
+    onmouseover="this.style.borderColor='#2491EB';this.style.color='#2491EB';this.style.background='#eff6ff';"
+    onmouseout="this.style.borderColor='#e2e8f0';this.style.color='#64748b';this.style.background='#f8fafc';">⇄</button>
+  <label>CO-BORROWER</label>
+  <input type="text" id="cb-first" placeholder="First"
+    style="width:90px;padding:6px 9px;border:1.5px solid #e2e8f0;border-radius:6px;font-size:12px;color:#1e293b;outline:none;"
+    onfocus="this.style.borderColor='#2491EB'" onblur="this.style.borderColor='#e2e8f0'">
+  <input type="text" id="cb-last" placeholder="Last"
+    style="width:90px;padding:6px 9px;border:1.5px solid #e2e8f0;border-radius:6px;font-size:12px;color:#1e293b;outline:none;"
+    onfocus="this.style.borderColor='#2491EB'" onblur="this.style.borderColor='#e2e8f0'">
+  <!-- INCOME FOR centered in remaining space -->
+  <div style="flex:1;display:flex;align-items:center;justify-content:center;gap:8px;">
+    <div class="bb-divider"></div>
+    <span class="slot-label">INCOME FOR</span>
+    <div class="slot-options">
+      <label>
+        <input type="radio" name="borrower_slot" value="borrower1" checked
+               onchange="setBorrowerSlot('borrower1')"
+               style="accent-color:#8EC73F;width:14px;height:14px;">
+        <span id="b1-label" style="color:#8EC73F;">Borrower 1</span>
+      </label>
+      <label>
+        <input type="radio" name="borrower_slot" value="coborrower"
+               onchange="setBorrowerSlot('coborrower')"
+               style="accent-color:#f59e0b;width:14px;height:14px;">
+        <span id="b2-label" style="color:#64748b;">Co-Borrower</span>
+      </label>
+      <span id="borrower-slot-badge">Borrower 1</span>
+    </div>
+    <div class="bb-divider"></div>
+  </div>
+  <!-- Export far right -->
+  <button class="export-btn" onclick="exportForUWReview()">⟶ Export for UW Review</button>
+</div>
+
+<!-- AI Prefill Banner — shown when launched from the Pre-Submission Scrubber -->
+<div id="prefill-banner">
+  <div id="prefill-banner-icon">🤖</div>
+  <div id="prefill-banner-text">
+    <strong>AI-extracted values pre-filled</strong> — amber-bordered fields were populated by the scrubber.
+    Review every field before calculating. Correct any values you disagree with.
+    <span id="prefill-banner-borrower"></span>
+  </div>
+  <button id="prefill-clear" onclick="clearPrefill()">Clear pre-fill</button>
+</div>
+
+<div class="main">
+
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('f1040')">📑 Form 1040</button>
+    <button class="tab-btn" onclick="switchTab('w2')">📋 W-2 / Paystub</button>
+    <button class="tab-btn" onclick="switchTab('schc')">📊 Schedule C</button>
+    <button class="tab-btn" onclick="switchTab('scorp')">🏢 S-Corp (1120S)</button>
+    <button class="tab-btn" onclick="switchTab('rental')">🏘 Rental (Sch E)</button>
+    <button class="tab-btn" onclick="switchTab('ref')">📖 Reference</button>
+  </div>
+
+  <!-- ========================= W-2 / PAYSTUB ========================= -->
+  <div class="panel" id="panel-w2">
+
+    <div class="card" style="background:linear-gradient(135deg,#eff6ff,#f0fdf4);border-color:#bfdbfe;">
+      <div class="card-title" style="color:#1d4ed8;">🗺️ What Am I Looking At?</div>
+      <p style="font-size:12px;color:#1e3a5f;line-height:1.7;margin-bottom:10px;"><strong>A W-2 is the annual wage statement from the borrower's employer.</strong> Every employer issues one. You need the most recent two years of W-2s plus current paystubs. The key number is <strong>Box 1</strong> — that's the taxable wages reported to the IRS. Do NOT use Box 5 (Medicare wages) — it can be higher because it includes pre-tax benefits that Box 1 excludes.</p>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:10px;font-size:11px;">
+        <div style="background:rgba(255,255,255,0.8);border-radius:8px;padding:8px;text-align:center;"><strong>Box 1</strong><br><span style="color:#16a34a;">✅ Use this</span><br>Taxable wages</div>
+        <div style="background:rgba(255,255,255,0.8);border-radius:8px;padding:8px;text-align:center;"><strong>Box 2</strong><br><span style="color:#94a3b8;">Info only</span><br>Fed tax withheld</div>
+        <div style="background:rgba(255,255,255,0.8);border-radius:8px;padding:8px;text-align:center;"><strong>Box 5</strong><br><span style="color:#dc2626;">⚠️ Don't use</span><br>Medicare wages (higher)</div>
+        <div style="background:rgba(255,255,255,0.8);border-radius:8px;padding:8px;text-align:center;"><strong>Box 12</strong><br><span style="color:#94a3b8;">Review</span><br>401k, HSA, etc.</div>
+      </div>
+      <div style="margin-top:10px;font-size:11px;color:#1e3a5f;background:rgba(255,255,255,0.7);border-radius:8px;padding:10px;">
+        <strong>Red flags to note:</strong> Gap between Box 1 and Box 5 is normal (pre-tax contributions). But if the borrower's W-2 income is decreasing year over year — document and flag. Multiple W-2s from different employers in the same year = calculate each separately, then total. Two jobs with one employer = fine if same line of work.
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">📋 Select Pay Type</div>
+      <div class="method-row">
+        <button class="method-btn active" onclick="switchMethod('w2','hourly')">Hourly</button>
+        <button class="method-btn" onclick="switchMethod('w2','salary')">Salaried (Bi-Weekly)</button>
+        <button class="method-btn" onclick="switchMethod('w2','variable')">Variable / Bonus</button>
+      </div>
+
+      <!-- HOURLY -->
+      <div class="sub-panel active" id="w2-hourly">
+        <div class="formula">
+          <strong>Guaranteed 40 hrs:</strong> Hourly Rate × 2,080 ÷ 12<br>
+          <strong>Guaranteed hours (not 40):</strong> Hourly Rate × Avg Weekly Hrs × 52 ÷ 12
+        </div>
+        <div class="field-row">
+          <div class="field-label">Hourly rate</div>
+          <input class="field-input" id="h-rate" type="text" inputmode="decimal" placeholder="0.00" oninput="calcHourly()" onblur="fmtInput(this)" onfocus="clearFmt(this)">
+        </div>
+        <div class="field-row">
+          <div class="field-label">Weekly hours
+            <small>Use 40 if guaranteed 40 hrs/wk</small>
+          </div>
+          <input class="field-input" id="h-hours" type="number" placeholder="40" value="40" oninput="calcHourly()">
+        </div>
+        <div class="note">⚠️ If hours <strong>fluctuate</strong>, treat as variable base income — use 12-month average. Do not use guaranteed method.</div>
+        <div class="result-box">
+          <div class="result-label">Qualifying Monthly Income</div>
+          <div class="result-value" id="h-result">—</div>
+        </div>
+        <button class="reset-btn" onclick="resetPanel('h-rate','h-hours','h-result'); document.getElementById('h-hours').value=40;">reset</button>
+      </div>
+
+      <!-- SALARY BI-WEEKLY -->
+      <div class="sub-panel" id="w2-salary">
+        <div class="formula">
+          <strong>Bi-weekly salary:</strong> Gross Pay Per Check × 26 ÷ 12
+        </div>
+        <div class="field-row">
+          <div class="field-label">Gross pay per check (bi-weekly)</div>
+          <input class="field-input" id="s-check" type="text" inputmode="decimal" placeholder="0.00" oninput="calcSalary()" onblur="fmtInput(this)" onfocus="clearFmt(this)">
+        </div>
+        <div class="note">✅ Verify qualifying income is consistent with YTD earnings on paystub.</div>
+        <div class="result-box">
+          <div class="result-label">Qualifying Monthly Income</div>
+          <div class="result-value" id="s-result">—</div>
+        </div>
+        <button class="reset-btn" onclick="resetPanel('s-check',null,'s-result')">reset</button>
+      </div>
+
+      <!-- VARIABLE -->
+      <div class="sub-panel" id="w2-variable">
+        <div class="formula">
+          <strong>Variable / Overtime / Bonus / Commission:</strong> Requires 2-year history<br>
+          If current year ≥ prior year → (Yr1 + Yr2) ÷ 24<br>
+          If current year &lt; prior year → Current year ÷ 12 (declining trend = use lower)
+        </div>
+        <div class="field-row">
+          <div class="field-label">Year 1 variable income — prior year (annual)</div>
+          <input class="field-input" id="v-yr1" type="text" inputmode="decimal" placeholder="0.00" oninput="calcVariable()" onblur="fmtInput(this)" onfocus="clearFmt(this)">
+        </div>
+        <div class="field-row">
+          <div class="field-label">Year 2 variable income — current year (annual)</div>
+          <input class="field-input" id="v-yr2" type="text" inputmode="decimal" placeholder="0.00" oninput="calcVariable()" onblur="fmtInput(this)" onfocus="clearFmt(this)">
+        </div>
+        <div id="v-method-note" class="note" style="display:none;"></div>
+        <div class="result-box">
+          <div class="result-label">Qualifying Monthly Variable Income</div>
+          <div class="result-value" id="v-result">—</div>
+        </div>
+        <button class="reset-btn" onclick="resetPanel('v-yr1','v-yr2','v-result'); document.getElementById('v-method-note').style.display='none';">reset</button>
+      </div>
+    </div>
+
+    <!-- YTD CROSS-CHECK -->
+    <div class="card" style="margin-top:14px;">
+      <div class="card-title">📅 YTD Cross-Check <span style="font-size:10px;font-weight:500;color:#94a3b8;text-transform:none;letter-spacing:0;">— verify your income figure against actual paystub YTD data</span></div>
+      <div class="formula">
+        <strong>YTD Monthly:</strong> YTD Earnings ÷ Months from Jan 1<br>
+        <strong>YTD + 1 W2 Avg:</strong> (YTD Earnings + W2 Yr1) ÷ (Months from Jan 1 + 12)<br>
+        <strong>YTD + 2 W2 Avg:</strong> (YTD Earnings + W2 Yr1 + W2 Yr2) ÷ (Months from Jan 1 + 24)
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 20px;">
+        <div>
+          <div class="section-label">Paystub Data</div>
+          <div class="field-row">
+            <div class="field-label">YTD Earnings ($)</div>
+            <input class="field-input add" id="ytd-earn" type="text" inputmode="decimal" placeholder="0.00" oninput="calcYTD()" onblur="fmtInput(this)" onfocus="clearFmt(this)">
+          </div>
+          <div class="field-row">
+            <div class="field-label">Paid Through Date
+              <small id="ytd-months-display" style="color:#2491EB;font-weight:600;"></small>
+            </div>
+            <input class="field-input add" id="ytd-paid-thru" type="date" oninput="calcYTD()">
+          </div>
+        </div>
+        <div>
+          <div class="section-label">Prior Year W-2s</div>
+          <div class="field-row">
+            <div class="field-label">W-2 Year 1 (most recent, annual)</div>
+            <input class="field-input" id="ytd-w2y1" type="text" inputmode="decimal" placeholder="0.00" oninput="calcYTD()" onblur="fmtInput(this)" onfocus="clearFmt(this)">
+          </div>
+          <div class="field-row">
+            <div class="field-label">W-2 Year 2 (prior year, annual)</div>
+            <input class="field-input" id="ytd-w2y2" type="text" inputmode="decimal" placeholder="0.00" oninput="calcYTD()" onblur="fmtInput(this)" onfocus="clearFmt(this)">
+          </div>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:14px;" id="ytd-results-grid">
+        <div style="background:#f8fafc;border-radius:8px;padding:10px 12px;text-align:center;">
+          <div style="font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">YTD Monthly</div>
+          <div style="font-size:16px;font-weight:800;color:#1a2332;" id="ytd-r1">—</div>
+        </div>
+        <div style="background:#f8fafc;border-radius:8px;padding:10px 12px;text-align:center;">
+          <div style="font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">YTD + W2 Yr1 Avg</div>
+          <div style="font-size:16px;font-weight:800;color:#1a2332;" id="ytd-r2">—</div>
+        </div>
+        <div style="background:#f8fafc;border-radius:8px;padding:10px 12px;text-align:center;">
+          <div style="font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">YTD + 2 W2 Avg</div>
+          <div style="font-size:16px;font-weight:800;color:#1a2332;" id="ytd-r3">—</div>
+        </div>
+      </div>
+
+      <div class="result-box" id="ytd-lowest-box" style="margin-top:14px;display:none;">
+        <div>
+          <div class="result-label">✅ Lowest Qualifying (use this)</div>
+          <div style="font-size:10px;color:#475569;margin-top:2px;">Per AUS — always use the most conservative figure</div>
+        </div>
+        <div class="result-value" id="ytd-lowest">—</div>
+      </div>
+      <button class="reset-btn" onclick="resetYTD()">reset</button>
+    </div>
+
+  </div><!-- /panel-w2 -->
+
+  <!-- ========================= SCHEDULE C ========================= -->
+  <div class="panel" id="panel-schc">
+
+    <div class="card" style="background:linear-gradient(135deg,#eff6ff,#f0fdf4);border-color:#bfdbfe;">
+      <div class="card-title" style="color:#1d4ed8;">🗺️ What Am I Looking At?</div>
+      <p style="font-size:12px;color:#1e3a5f;line-height:1.7;margin-bottom:10px;"><strong>Schedule C is the profit/loss statement for a sole proprietor or single-member LLC.</strong> Think of it as a simplified business P&L. The IRS sees Line 31 (Net Profit) as what the borrower earned. But for mortgage purposes, we add back certain non-cash expenses — because those deductions reduced the tax bill but the money never actually left the bank.</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:11px;color:#1e3a5f;">
+        <div style="background:rgba(255,255,255,0.8);border-radius:8px;padding:10px;line-height:1.7;">
+          <strong>What to request:</strong><br>
+          • 2 years of 1040s with Schedule C attached<br>
+          • Business bank statements if income is declining<br>
+          • Form 4562 (if depreciation is large)
+        </div>
+        <div style="background:rgba(255,255,255,0.8);border-radius:8px;padding:10px;line-height:1.7;">
+          <strong>Red flags:</strong><br>
+          • Losses two years in a row (cannot use, may be a liability)<br>
+          • Business income declining sharply year over year<br>
+          • Borrower claims income but files no Schedule C
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">📊 Schedule C Income Calculation</div>
+      <div class="formula">
+        Monthly = sum of [(Yr 1 + Yr 2) ÷ 2 ÷ 12] across all Schedule C businesses
+      </div>
+      <div class="note">📌 Must own business for <strong>2 years</strong> with 2 years tax returns. Exception: DU auto-approval with 1 year return — must be highly qualified.</div>
+
+      <!-- Hidden combined totals (read by export) -->
+      <input type="hidden" id="sc1-total" value="$0">
+      <input type="hidden" id="sc2-total" value="$0">
+
+      <div id="sc-biz-container">
+
+        <!-- ── Business #1 (always visible, starts expanded) ── -->
+        <div class="sc-biz-block" id="sc-biz-1">
+          <div class="sc-biz-header" onclick="toggleSchCBiz(1)">
+            <span class="sc-toggle-arrow" id="sc-b1-arrow">−</span>
+            <span class="sc-biz-num">Biz #1</span>
+            <input type="text" class="sc-biz-name-input" id="sc-b1-name" placeholder="Business name (optional)" oninput="_icAutoSave()" onclick="event.stopPropagation()">
+            <span class="sc-biz-hdr-mo" id="sc-b1-monthly">—</span>
+          </div>
+          <div class="sc-biz-fields" id="sc-b1-fields">
+            <div class="section-label" id="sc-yr1-label">YEAR 1 — Most Recent</div>
+            <div class="field-row"><div class="field-label">Net Profit (Schedule C, Line 31)</div><span class="sign plus">+</span><input class="field-input add" id="sc1-np" type="text" inputmode="decimal" placeholder="0" oninput="calcSchC()" onblur="fmtInput(this)" onfocus="clearFmt(this)"></div>
+            <div class="field-row"><div class="field-label">Depreciation / Depletion (Sch C, Line 13 / Form 4562)</div><span class="sign plus">+</span><input class="field-input add" id="sc1-dep" type="text" inputmode="decimal" placeholder="0" oninput="calcSchC()" onblur="fmtInput(this)" onfocus="clearFmt(this)"></div>
+            <div class="field-row"><div class="field-label">Mileage add-back (Sch C, Line 9 — enter miles, × $0.30)</div><span class="sign plus">+</span><input class="field-input add" id="sc1-mil" type="text" inputmode="numeric" placeholder="miles" oninput="calcSchC()" onblur="fmtMiles(this)" onfocus="clearFmt(this)"></div>
+            <div class="field-row"><div class="field-label">Business use of home (Sch C, Line 30)</div><span class="sign plus">+</span><input class="field-input add" id="sc1-home" type="text" inputmode="decimal" placeholder="0" oninput="calcSchC()" onblur="fmtInput(this)" onfocus="clearFmt(this)"></div>
+            <div class="field-row"><div class="field-label">Meals add-back (Sch C, Line 24b — typically 50%)</div><span class="sign minus">−</span><input class="field-input sub" id="sc1-meals" type="text" inputmode="decimal" placeholder="0" oninput="calcSchC()" onblur="fmtInput(this)" onfocus="clearFmt(this)"></div>
+            <hr class="divider">
+            <div class="section-label" id="sc-yr2-label">YEAR 2 — Prior Year</div>
+            <div class="field-row"><div class="field-label">Net Profit (Schedule C, Line 31)</div><span class="sign plus">+</span><input class="field-input add" id="sc2-np" type="text" inputmode="decimal" placeholder="0" oninput="calcSchC()" onblur="fmtInput(this)" onfocus="clearFmt(this)"></div>
+            <div class="field-row"><div class="field-label">Depreciation / Depletion (Sch C, Line 13 / Form 4562)</div><span class="sign plus">+</span><input class="field-input add" id="sc2-dep" type="text" inputmode="decimal" placeholder="0" oninput="calcSchC()" onblur="fmtInput(this)" onfocus="clearFmt(this)"></div>
+            <div class="field-row"><div class="field-label">Mileage add-back (Sch C, Line 9 — enter miles, × $0.30)</div><span class="sign plus">+</span><input class="field-input add" id="sc2-mil" type="text" inputmode="numeric" placeholder="miles" oninput="calcSchC()" onblur="fmtMiles(this)" onfocus="clearFmt(this)"></div>
+            <div class="field-row"><div class="field-label">Business use of home (Sch C, Line 30)</div><span class="sign plus">+</span><input class="field-input add" id="sc2-home" type="text" inputmode="decimal" placeholder="0" oninput="calcSchC()" onblur="fmtInput(this)" onfocus="clearFmt(this)"></div>
+            <div class="field-row"><div class="field-label">Meals add-back (Sch C, Line 24b — typically 50%)</div><span class="sign minus">−</span><input class="field-input sub" id="sc2-meals" type="text" inputmode="decimal" placeholder="0" oninput="calcSchC()" onblur="fmtInput(this)" onfocus="clearFmt(this)"></div>
+          </div>
+        </div>
+
+        <!-- ── Business #2 ── -->
+        <div class="sc-biz-block" id="sc-biz-2" style="display:none;">
+          <div class="sc-biz-header" onclick="toggleSchCBiz(2)">
+            <span class="sc-toggle-arrow" id="sc-b2-arrow">−</span>
+            <span class="sc-biz-num">Biz #2</span>
+            <input type="text" class="sc-biz-name-input" id="sc-b2-name" placeholder="Business name (optional)" oninput="_icAutoSave()" onclick="event.stopPropagation()">
+            <span class="sc-biz-hdr-mo" id="sc-b2-monthly">—</span>
+            <button type="button" class="sc-remove-btn" onclick="event.stopPropagation();removeSchCBiz(2)">✕</button>
+          </div>
+          <div class="sc-biz-fields" id="sc-b2-fields">
+            <div class="section-label">YEAR 1 — Most Recent</div>
+            <div class="field-row"><div class="field-label">Net Profit (Schedule C, Line 31)</div><span class="sign plus">+</span><input class="field-input add" id="sc-b2-y1-np" type="text" inputmode="decimal" placeholder="0" oninput="calcSchC()" onblur="fmtInput(this)" onfocus="clearFmt(this)"></div>
+            <div class="field-row"><div class="field-label">Depreciation / Depletion (Line 13 / Form 4562)</div><span class="sign plus">+</span><input class="field-input add" id="sc-b2-y1-dep" type="text" inputmode="decimal" placeholder="0" oninput="calcSchC()" onblur="fmtInput(this)" onfocus="clearFmt(this)"></div>
+            <div class="field-row"><div class="field-label">Mileage add-back (enter miles, × $0.30)</div><span class="sign plus">+</span><input class="field-input add" id="sc-b2-y1-mil" type="text" inputmode="numeric" placeholder="miles" oninput="calcSchC()" onblur="fmtMiles(this)" onfocus="clearFmt(this)"></div>
+            <div class="field-row"><div class="field-label">Business use of home (Line 30)</div><span class="sign plus">+</span><input class="field-input add" id="sc-b2-y1-home" type="text" inputmode="decimal" placeholder="0" oninput="calcSchC()" onblur="fmtInput(this)" onfocus="clearFmt(this)"></div>
+            <div class="field-row"><div class="field-label">Meals add-back (Line 24b)</div><span class="sign minus">−</span><input class="field-input sub" id="sc-b2-y1-meals" type="text" inputmode="decimal" placeholder="0" oninput="calcSchC()" onblur="fmtInput(this)" onfocus="clearFmt(this)"></div>
+            <hr class="divider">
+            <div class="section-label">YEAR 2 — Prior Year</div>
+            <div class="field-row"><div class="field-label">Net Profit (Schedule C, Line 31)</div><span class="sign plus">+</span><input class="field-input add" id="sc-b2-y2-np" type="text" inputmode="decimal" placeholder="0" oninput="calcSchC()" onblur="fmtInput(this)" onfocus="clearFmt(this)"></div>
+            <div class="field-row"><div class="field-label">Depreciation / Depletion (Line 13 / Form 4562)</div><span class="sign plus">+</span><input class="field-input add" id="sc-b2-y2-dep" type="text" inputmode="decimal" placeholder="0" oninput="calcSchC()" onblur="fmtInput(this)" onfocus="clearFmt(this)"></div>
+            <div class="field-row"><div class="field-label">Mileage add-back (enter miles, × $0.30)</div><span class="sign plus">+</span><input class="field-input add" id="sc-b2-y2-mil" type="text" inputmode="numeric" placeholder="miles" oninput="calcSchC()" onblur="fmtMiles(this)" onfocus="clearFmt(this)"></div>
+            <div class="field-row"><div class="field-label">Business use of home (Line 30)</div><span class="sign plus">+</span><input class="field-input add" id="sc-b2-y2-home" type="text" inputmode="decimal" placeholder="0" oninput="calcSchC()" onblur="fmtInput(this)" onfocus="clearFmt(this)"></div>
+            <div class="field-row"><div class="field-label">Meals add-back (Line 24b)</div><span class="sign minus">−</span><input class="field-input sub" id="sc-b2-y2-meals" type="text" inputmode="decimal" placeholder="0" oninput="calcSchC()" onblur="fmtInput(this)" onfocus="clearFmt(this)"></div>
+          </div>
+        </div>
+
+        <!-- ── Business #3 ── -->
+        <div class="sc-biz-block" id="sc-biz-3" style="display:none;">
+          <div class="sc-biz-header" onclick="toggleSchCBiz(3)">
+            <span class="sc-toggle-arrow" id="sc-b3-arrow">−</span>
+            <span class="sc-biz-num">Biz #3</span>
+            <input type="text" class="sc-biz-name-input" id="sc-b3-name" placeholder="Business name (optional)" oninput="_icAutoSave()" onclick="event.stopPropagation()">
+            <span class="sc-biz-hdr-mo" id="sc-b3-monthly">—</span>
+            <button type="button" class="sc-remove-btn" onclick="event.stopPropagation();removeSchCBiz(3)">✕</button>
+          </div>
+          <div class="sc-biz-fields" id="sc-b3-fields">
+            <div class="section-label">YEAR 1 — Most Recent</div>
+            <div class="field-row"><div class="field-label">Net Profit (Schedule C, Line 31)</div><span class="sign plus">+</span><input class="field-input add" id="sc-b3-y1-np" type="text" inputmode="decimal" placeholder="0" oninput="calcSchC()" onblur="fmtInput(this)" onfocus="clearFmt(this)"></div>
+            <div class="field-row"><div class="field-label">Depreciation / Depletion (Line 13 / Form 4562)</div><span class="sign plus">+</span><input class="field-input add" id="sc-b3-y1-dep" type="text" inputmode="decimal" placeholder="0" oninput="calcSchC()" onblur="fmtInput(this)" onfocus="clearFmt(this)"></div>
+            <div class="field-row"><div class="field-label">Mileage add-back (enter miles, × $0.30)</div><span class="sign plus">+</span><input class="field-input add" id="sc-b3-y1-mil" type="text" inputmode="numeric" placeholder="miles" oninput="calcSchC()" onblur="fmtMiles(this)" onfocus="clearFmt(this)"></div>
+            <div class="field-row"><div class="field-label">Business use of home (Line 30)</div><span class="sign plus">+</span><input class="field-input add" id="sc-b3-y1-home" type="text" inputmode="decimal" placeholder="0" oninput="calcSchC()" onblur="fmtInput(this)" onfocus="clearFmt(this)"></div>
+            <div class="field-row"><div class="field-label">Meals add-back (Line 24b)</div><span class="sign minus">−</span><input class="field-input sub" id="sc-b3-y1-meals" type="text" inputmode="decimal" placeholder="0" oninput="calcSchC()" onblur="fmtInput(this)" onfocus="clearFmt(this)"></div>
+            <hr class="divider">
+            <div class="section-label">YEAR 2 — Prior Year</div>
+            <div class="field-row"><div class="field-label">Net Profit (Schedule C, Line 31)</div><span class="sign plus">+</span><input class="field-input add" id="sc-b3-y2-np" type="text" inputmode="decimal" placeholder="0" oninput="calcSchC()" onblur="fmtInput(this)" onfocus="clearFmt(this)"></div>
+            <div class="field-row"><div class="field-label">Depreciation / Depletion (Line 13 / Form 4562)</div><span class="sign plus">+</span><input class="field-input add" id="sc-b3-y2-dep" type="text" inputmode="decimal" placeholder="0" oninput="calcSchC()" onblur="fmtInput(this)" onfocus="clearFmt(this)"></div>
+            <div class="field-row"><div class="field-label">Mileage add-back (enter miles, × $0.30)</div><span class="sign plus">+</span><input class="field-input add" id="sc-b3-y2-mil" type="text" inputmode="numeric" placeholder="miles" oninput="calcSchC()" onblur="fmtMiles(this)" onfocus="clearFmt(this)"></div>
+            <div class="field-row"><div class="field-label">Business use of home (Line 30)</div><span class="sign plus">+</span><input class="field-input add" id="sc-b3-y2-home" type="text" inputmode="decimal" placeholder="0" oninput="calcSchC()" onblur="fmtInput(this)" onfocus="clearFmt(this)"></div>
+            <div class="field-row"><div class="field-label">Meals add-back (Line 24b)</div><span class="sign minus">−</span><input class="field-input sub" id="sc-b3-y2-meals" type="text" inputmode="decimal" placeholder="0" oninput="calcSchC()" onblur="fmtInput(this)" onfocus="clearFmt(this)"></div>
+          </div>
+        </div>
+
+        <!-- ── Business #4 ── -->
+        <div class="sc-biz-block" id="sc-biz-4" style="display:none;">
+          <div class="sc-biz-header" onclick="toggleSchCBiz(4)">
+            <span class="sc-toggle-arrow" id="sc-b4-arrow">−</span>
+            <span class="sc-biz-num">Biz #4</span>
+            <input type="text" class="sc-biz-name-input" id="sc-b4-name" placeholder="Business name (optional)" oninput="_icAutoSave()" onclick="event.stopPropagation()">
+            <span class="sc-biz-hdr-mo" id="sc-b4-monthly">—</span>
+            <button type="button" class="sc-remove-btn" onclick="event.stopPropagation();removeSchCBiz(4)">✕</button>
+          </div>
+          <div class="sc-biz-fields" id="sc-b4-fields">
+            <div class="section-label">YEAR 1 — Most Recent</div>
+            <div class="field-row"><div class="field-label">Net Profit (Schedule C, Line 31)</div><span class="sign plus">+</span><input class="field-input add" id="sc-b4-y1-np" type="text" inputmode="decimal" placeholder="0" oninput="calcSchC()" onblur="fmtInput(this)" onfocus="clearFmt(this)"></div>
+            <div class="field-row"><div class="field-label">Depreciation / Depletion (Line 13 / Form 4562)</div><span class="sign plus">+</span><input class="field-input add" id="sc-b4-y1-dep" type="text" inputmode="decimal" placeholder="0" oninput="calcSchC()" onblur="fmtInput(this)" onfocus="clearFmt(this)"></div>
+            <div class="field-row"><div class="field-label">Mileage add-back (enter miles, × $0.30)</div><span class="sign plus">+</span><input class="field-input add" id="sc-b4-y1-mil" type="text" inputmode="numeric" placeholder="miles" oninput="calcSchC()" onblur="fmtMiles(this)" onfocus="clearFmt(this)"></div>
+            <div class="field-row"><div class="field-label">Business use of home (Line 30)</div><span class="sign plus">+</span><input class="field-input add" id="sc-b4-y1-home" type="text" inputmode="decimal" placeholder="0" oninput="calcSchC()" onblur="fmtInput(this)" onfocus="clearFmt(this)"></div>
+            <div class="field-row"><div class="field-label">Meals add-back (Line 24b)</div><span class="sign minus">−</span><input class="field-input sub" id="sc-b4-y1-meals" type="text" inputmode="decimal" placeholder="0" oninput="calcSchC()" onblur="fmtInput(this)" onfocus="clearFmt(this)"></div>
+            <hr class="divider">
+            <div class="section-label">YEAR 2 — Prior Year</div>
+            <div class="field-row"><div class="field-label">Net Profit (Schedule C, Line 31)</div><span class="sign plus">+</span><input class="field-input add" id="sc-b4-y2-np" type="text" inputmode="decimal" placeholder="0" oninput="calcSchC()" onblur="fmtInput(this)" onfocus="clearFmt(this)"></div>
+            <div class="field-row"><div class="field-label">Depreciation / Depletion (Line 13 / Form 4562)</div><span class="sign plus">+</span><input class="field-input add" id="sc-b4-y2-dep" type="text" inputmode="decimal" placeholder="0" oninput="calcSchC()" onblur="fmtInput(this)" onfocus="clearFmt(this)"></div>
+            <div class="field-row"><div class="field-label">Mileage add-back (enter miles, × $0.30)</div><span class="sign plus">+</span><input class="field-input add" id="sc-b4-y2-mil" type="text" inputmode="numeric" placeholder="miles" oninput="calcSchC()" onblur="fmtMiles(this)" onfocus="clearFmt(this)"></div>
+            <div class="field-row"><div class="field-label">Business use of home (Line 30)</div><span class="sign plus">+</span><input class="field-input add" id="sc-b4-y2-home" type="text" inputmode="decimal" placeholder="0" oninput="calcSchC()" onblur="fmtInput(this)" onfocus="clearFmt(this)"></div>
+            <div class="field-row"><div class="field-label">Meals add-back (Line 24b)</div><span class="sign minus">−</span><input class="field-input sub" id="sc-b4-y2-meals" type="text" inputmode="decimal" placeholder="0" oninput="calcSchC()" onblur="fmtInput(this)" onfocus="clearFmt(this)"></div>
+          </div>
+        </div>
+
+      </div><!-- /sc-biz-container -->
+
+      <button type="button" id="sc-add-btn" class="sc-add-btn" onclick="addSchCBiz()">
+        ＋ Add another Schedule C business
+      </button>
+
+      <div class="result-box">
+        <div class="result-label">Combined Qualifying Monthly — All Businesses</div>
+        <div class="result-value" id="schc-result">—</div>
+      </div>
+      <button class="reset-btn" onclick="resetSchC()">reset</button>
+    </div>
+
+    <div class="card">
+      <div class="card-title">⚠️ Mixed Year Note</div>
+      <p style="font-size:12px;color:#475569;line-height:1.6;">If borrower has <strong>Schedule C one year and 1120S the other</strong> — calculate each year separately, then average <em>only if</em> it's the same business and the income trend supports it. Flag for Doug if trend is declining.</p>
+    </div>
+
+    <div class="card">
+      <div class="card-title">💡 Why We Add Back Depreciation &amp; Amortization</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:12px;">
+        <div style="background:#eff6ff;border-radius:8px;padding:12px;">
+          <div style="font-size:11px;font-weight:700;color:#1d4ed8;margin-bottom:6px;">TANGIBLE ASSETS → Depreciation</div>
+          <div style="font-size:11px;color:#475569;line-height:1.6;">Equipment · Machinery · Buildings · Vehicles · Land<br><em>Physical — you can touch it</em></div>
+        </div>
+        <div style="background:#f0fdf4;border-radius:8px;padding:12px;">
+          <div style="font-size:11px;font-weight:700;color:#166534;margin-bottom:6px;">INTANGIBLE ASSETS → Amortization</div>
+          <div style="font-size:11px;color:#475569;line-height:1.6;">Trademarks · Patents · Goodwill · Licenses · Brands<br><em>Non-physical — you can't touch it</em></div>
+        </div>
+      </div>
+      <p style="font-size:12px;color:#475569;line-height:1.6;">Both are <strong>non-cash expenses</strong> — the business expensed the asset on the return, but no cash actually left the bank account that year. The asset still has value. Since we care about <em>cash available to repay the loan</em>, we add these back to qualifying income.</p>
+    </div>
+
+  </div><!-- /panel-schc -->
+
+  <!-- ========================= S-CORP (1120S / K-1) ========================= -->
+  <div class="panel" id="panel-scorp">
+
+    <div class="card" style="background:linear-gradient(135deg,#eff6ff,#f0fdf4);border-color:#bfdbfe;">
+      <div class="card-title" style="color:#1d4ed8;">🗺️ What Am I Looking At?</div>
+      <p style="font-size:12px;color:#1e3a5f;line-height:1.7;margin-bottom:10px;"><strong>An S-Corporation is a separate legal entity that files its own tax return (Form 1120-S).</strong> The business income doesn't appear on the 1040 directly — it passes through to the owner via a <strong>K-1</strong> form. You need both: the 1120-S (business return) AND the personal 1040. The K-1 is usually attached to the personal return.</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:11px;color:#1e3a5f;">
+        <div style="background:rgba(255,255,255,0.8);border-radius:8px;padding:10px;line-height:1.7;">
+          <strong>What to request:</strong><br>
+          • 2 years personal 1040s (with K-1 attached)<br>
+          • 2 years 1120-S business returns<br>
+          • K-1 separately if not attached<br>
+          • Schedule G or CPA letter if &lt;25% ownership showing
+        </div>
+        <div style="background:rgba(255,255,255,0.8);border-radius:8px;padding:10px;line-height:1.7;">
+          <strong>Key concept:</strong><br>
+          The borrower pays themselves a W-2 salary from the business <em>and</em> receives a share of the business profit via K-1. Both count toward qualifying income. The W-2 appears on the 1040; the K-1 passes through Schedule E → Schedule 1 → Line 8 of 1040.
+        </div>
+      </div>
+      <div style="margin-top:10px;font-size:11px;color:#1e3a5f;background:rgba(255,255,255,0.7);border-radius:8px;padding:10px;">
+        <strong>Ownership %:</strong> The K-1 shows the borrower's percentage of ownership. Income is multiplied by that %. A 50% owner of a business earning $200K gets $100K K-1 income. If ownership isn't clear on the return, request a <strong>Schedule G</strong> (1120-S) or a CPA letter confirming ownership percentage.
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">🏢 1120S — K-1 Income Calculation</div>
+      <div class="formula">
+        Annual = K-1 Line 1 + W-2 Box 5 + (Depr × Own%) + (Amort × Own%) − (Sch L × Own%) − (Meals × Own%)<br>
+        Monthly = [(Yr 1 + Yr 2) ÷ 2] ÷ 12<br>
+        <span style="font-size:11px;color:#64748b;">K-1 Line 1 is already the owner's allocated share. Dep/Amort/SchedL/Meals are raw 1120-S amounts — ownership% applied automatically.</span>
+      </div>
+      <div class="note">📌 <strong>Fiscal year note:</strong> If the business uses a fiscal year, prior-year business K-1 pairs with next personal return (e.g., 2023 business → 2024 personal). K-1 dates will tell you. Confirm with client.</div>
+
+      <div class="field-row">
+        <div class="field-label">Ownership %</div>
+        <input class="field-input" id="kp-own" type="text" inputmode="decimal" placeholder="100" value="100" style="width:130px" oninput="calcKone()" onblur="fmtPct(this)" onfocus="clearPct(this)">
+      </div>
+
+      <hr class="divider">
+      <div class="section-label" id="kp-yr1-label">YEAR 1 — Most Recent</div>
+      <div class="field-row">
+        <div class="field-label">Months in Service</div>
+        <select class="field-input" id="k1-months" style="width:130px" onchange="calcKone()">
+          <option value="12" selected>12 Months</option>
+          <option value="11">11 Months</option>
+          <option value="10">10 Months</option>
+          <option value="9">9 Months</option>
+          <option value="8">8 Months</option>
+          <option value="7">7 Months</option>
+          <option value="6">6 Months</option>
+          <option value="5">5 Months</option>
+          <option value="4">4 Months</option>
+          <option value="3">3 Months</option>
+          <option value="2">2 Months</option>
+          <option value="1">1 Month</option>
+        </select>
+      </div>
+      <div class="field-row"><div class="field-label">K-1 Line 1 (Ordinary Business Income)</div><span class="sign plus">+</span><input class="field-input add" id="k1-line1" type="text" inputmode="decimal" placeholder="0" oninput="calcKone()" onblur="fmtInput(this)" onfocus="clearFmt(this)"></div>
+      <div class="field-row"><div class="field-label">W-2 wages from business (W-2, Box 5 — Medicare wages)</div><span class="sign plus">+</span><input class="field-input add" id="k1-w2" type="text" inputmode="decimal" placeholder="0" oninput="calcKone()" onblur="fmtInput(this)" onfocus="clearFmt(this)"></div>
+      <div class="field-row"><div class="field-label">Depreciation / Depletion (1120-S Line 14 + 8825 — enter raw amount, ownership% applied)</div><span class="sign plus">+</span><input class="field-input add" id="k1-dep" type="text" inputmode="decimal" placeholder="0" oninput="calcKone()" onblur="fmtInput(this)" onfocus="clearFmt(this)"></div>
+      <div class="field-row"><div class="field-label">Amortization (1120-S Box 17 AD — enter raw amount, ownership% applied)</div><span class="sign plus">+</span><input class="field-input add" id="k1-amort" type="text" inputmode="decimal" placeholder="0" oninput="calcKone()" onblur="fmtInput(this)" onfocus="clearFmt(this)"></div>
+      <div class="field-row"><div class="field-label">Schedule L Line 17(d) — enter raw amount, ownership% applied</div><span class="sign minus">−</span><input class="field-input sub" id="k1-sch17" type="text" inputmode="decimal" placeholder="0" oninput="calcKone()" onblur="fmtInput(this)" onfocus="clearFmt(this)"></div>
+      <div class="field-row"><div class="field-label">Travel &amp; Entertainment (Sch M-1 Line 3b — enter raw amount, ownership% applied)</div><span class="sign minus">−</span><input class="field-input sub" id="k1-meals" type="text" inputmode="decimal" placeholder="0" oninput="calcKone()" onblur="fmtInput(this)" onfocus="clearFmt(this)"></div>
+      <div class="field-row">
+        <div class="field-label"><strong>Year 1 Qualifying Annual</strong></div>
+        <input class="field-input result-field" id="k1-total" type="text" value="$0" readonly>
+      </div>
+
+      <hr class="divider">
+      <div class="section-label" id="kp-yr2-label">YEAR 2 — Prior Year</div>
+      <div class="field-row">
+        <div class="field-label">Months in Service</div>
+        <select class="field-input" id="k2-months" style="width:130px" onchange="calcKone()">
+          <option value="12" selected>12 Months</option>
+          <option value="11">11 Months</option>
+          <option value="10">10 Months</option>
+          <option value="9">9 Months</option>
+          <option value="8">8 Months</option>
+          <option value="7">7 Months</option>
+          <option value="6">6 Months</option>
+          <option value="5">5 Months</option>
+          <option value="4">4 Months</option>
+          <option value="3">3 Months</option>
+          <option value="2">2 Months</option>
+          <option value="1">1 Month</option>
+        </select>
+      </div>
+      <div class="field-row"><div class="field-label">K-1 Line 1 (Ordinary Business Income)</div><span class="sign plus">+</span><input class="field-input add" id="k2-line1" type="text" inputmode="decimal" placeholder="0" oninput="calcKone()" onblur="fmtInput(this)" onfocus="clearFmt(this)"></div>
+      <div class="field-row"><div class="field-label">W-2 wages from business (W-2, Box 5 — Medicare wages)</div><span class="sign plus">+</span><input class="field-input add" id="k2-w2" type="text" inputmode="decimal" placeholder="0" oninput="calcKone()" onblur="fmtInput(this)" onfocus="clearFmt(this)"></div>
+      <div class="field-row"><div class="field-label">Depreciation / Depletion (1120-S Line 14 + 8825 — enter raw amount, ownership% applied)</div><span class="sign plus">+</span><input class="field-input add" id="k2-dep" type="text" inputmode="decimal" placeholder="0" oninput="calcKone()" onblur="fmtInput(this)" onfocus="clearFmt(this)"></div>
+      <div class="field-row"><div class="field-label">Amortization (1120-S Box 17 AD — enter raw amount, ownership% applied)</div><span class="sign plus">+</span><input class="field-input add" id="k2-amort" type="text" inputmode="decimal" placeholder="0" oninput="calcKone()" onblur="fmtInput(this)" onfocus="clearFmt(this)"></div>
+      <div class="field-row"><div class="field-label">Schedule L Line 17(d) — enter raw amount, ownership% applied</div><span class="sign minus">−</span><input class="field-input sub" id="k2-sch17" type="text" inputmode="decimal" placeholder="0" oninput="calcKone()" onblur="fmtInput(this)" onfocus="clearFmt(this)"></div>
+      <div class="field-row"><div class="field-label">Travel &amp; Entertainment (Sch M-1 Line 3b — enter raw amount, ownership% applied)</div><span class="sign minus">−</span><input class="field-input sub" id="k2-meals" type="text" inputmode="decimal" placeholder="0" oninput="calcKone()" onblur="fmtInput(this)" onfocus="clearFmt(this)"></div>
+      <div class="field-row">
+        <div class="field-label"><strong>Year 2 Qualifying Annual</strong></div>
+        <input class="field-input result-field" id="k2-total" type="text" value="$0" readonly>
+      </div>
+
+      <div class="field-row" style="margin-top:12px">
+        <div class="field-label">Averaging Method</div>
+        <select class="field-input" id="kp-avg-method" style="width:220px" onchange="calcKone()">
+          <option value="2yr">2-Year Average (÷ total months)</option>
+          <option value="1yr">1-Year — Most Recent Only</option>
+          <option value="lower">Lower of 2 Years</option>
+        </select>
+      </div>
+      <div class="result-box">
+        <div class="result-label" id="scorp-result-label">Qualifying Monthly Income</div>
+        <div class="result-value" id="scorp-result">—</div>
+      </div>
+      <button class="reset-btn" onclick="resetScorp()">reset</button>
+    </div>
+
+    <!-- Liquidity Test -->
+    <div class="card">
+      <div class="card-title">🧪 Schedule L — Liquidity Test</div>
+      <div class="formula">
+        Assets: Lines 1 + 2 + 3 must be &gt; Liabilities: Lines 16 + 17 + 18<br>
+        If FAIL → use lower of K-1 Line 1 vs Line 16(d)
+      </div>
+
+      <div class="section-label">Assets</div>
+      <div class="field-row"><div class="field-label">Schedule L, Line 1 (Cash)</div><span class="sign plus">+</span><input class="field-input add" id="la1" type="text" inputmode="decimal" placeholder="0" oninput="calcLiq()" onblur="fmtInput(this)" onfocus="clearFmt(this)"></div>
+      <div class="field-row"><div class="field-label">Schedule L, Line 2 (Receivables)</div><span class="sign plus">+</span><input class="field-input add" id="la2" type="text" inputmode="decimal" placeholder="0" oninput="calcLiq()" onblur="fmtInput(this)" onfocus="clearFmt(this)"></div>
+      <div class="field-row"><div class="field-label">Schedule L, Line 3 (Other liquid assets)</div><span class="sign plus">+</span><input class="field-input add" id="la3" type="text" inputmode="decimal" placeholder="0" oninput="calcLiq()" onblur="fmtInput(this)" onfocus="clearFmt(this)"></div>
+
+      <div class="section-label" style="margin-top:12px;">Liabilities</div>
+      <div class="field-row"><div class="field-label">Schedule L, Line 16</div><span class="sign minus">−</span><input class="field-input sub" id="ll16" type="text" inputmode="decimal" placeholder="0" oninput="calcLiq()" onblur="fmtInput(this)" onfocus="clearFmt(this)"></div>
+      <div class="field-row"><div class="field-label">Schedule L, Line 17</div><span class="sign minus">−</span><input class="field-input sub" id="ll17" type="text" inputmode="decimal" placeholder="0" oninput="calcLiq()" onblur="fmtInput(this)" onfocus="clearFmt(this)"></div>
+      <div class="field-row"><div class="field-label">Schedule L, Line 18</div><span class="sign minus">−</span><input class="field-input sub" id="ll18" type="text" inputmode="decimal" placeholder="0" oninput="calcLiq()" onblur="fmtInput(this)" onfocus="clearFmt(this)"></div>
+
+      <div id="liq-result-box" class="liq-result" style="display:none;"></div>
+      <div id="liq-fail-note" class="alert" style="display:none;">
+        ⛔ Liquidity test FAILED — request from borrower:<br>
+        • 3 months business bank statements<br>
+        • Balance sheet<br>
+        • P&amp;L statement<br>
+        Also use the <strong>lower</strong> of K-1 Line 1 or Schedule L Line 16(d) in your income calculation.
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">📊 Schedule E Page 2 — How Business Income Accumulates</div>
+      <p style="font-size:12px;color:#475569;line-height:1.6;margin-bottom:12px;">Schedule E Page 2 is where Partnership K-1s and S-Corp K-1s are listed. The IRS combines all of them — their net income flows to Schedule 1 Line 5, which then hits 1040 Line 8.</p>
+      <div style="background:#f8fafc;border-radius:8px;padding:12px;font-size:12px;line-height:2;font-family:'SF Mono','Fira Code',monospace;">
+        <strong>Net Partnership Income</strong> (K-1 1065 × ownership%) → Sch E Pg 2, Line 32<br>
+        <strong>Net S-Corp Income</strong> (K-1 1120-S × ownership%) → Sch E Pg 2, Line 32<br>
+        <strong>Net Rental Income</strong> (Sch E Pg 1, Line 26)<br>
+        ─────────────────────────────<br>
+        <strong>Schedule E Line 41</strong> (Grand Total) → <strong>Schedule 1 Line 5</strong> → <strong>1040 Line 8</strong>
+      </div>
+      <div class="note" style="margin-top:10px;">⚠️ The IRS compares amounts reported on your 1040 against amounts shown on individual K-1s. If they don't match, expect underwriter questions or a 4506-C request.</div>
+    </div>
+
+  </div><!-- /panel-scorp -->
+
+  <!-- ========================= RENTAL (SCHEDULE E) ========================= -->
+  <div class="panel" id="panel-rental">
+
+    <div class="card" style="background:linear-gradient(135deg,#eff6ff,#f0fdf4);border-color:#bfdbfe;">
+      <div class="card-title" style="color:#1d4ed8;">🗺️ What Am I Looking At?</div>
+      <p style="font-size:12px;color:#1e3a5f;line-height:1.7;margin-bottom:10px;"><strong>Schedule E Page 1 lists rental property income and expenses.</strong> Each property gets its own section. The IRS nets everything down to a bottom-line gain or loss per property — but for mortgage qualifying, we can't just use that number. We start fresh: take gross rent, subtract real expenses, then add back items the IRS lets them deduct that aren't actual cash costs (depreciation, mortgage interest, taxes, insurance — since those are already in the borrower's PITI).</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:11px;color:#1e3a5f;">
+        <div style="background:rgba(255,255,255,0.8);border-radius:8px;padding:10px;line-height:1.7;">
+          <strong>Why we add back mortgage interest &amp; taxes:</strong><br>
+          These show as expenses on the return — but the rental property's PITI payment is already being counted in the borrower's total liabilities (DTI). Adding them back avoids double-counting against the borrower.
+        </div>
+        <div style="background:rgba(255,255,255,0.8);border-radius:8px;padding:10px;line-height:1.7;">
+          <strong>Negative cash flow rule:</strong><br>
+          If the rental income doesn't cover the mortgage payment, the <em>difference</em> becomes a monthly liability on the borrower's DTI — the same as a car payment or credit card. It works against them.
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">🏘 Rental Income — Schedule E</div>
+      <div class="formula">
+        Monthly Net = (Gross Rent − Line 20 Expenses + Add-backs) ÷ Months Rented<br>
+        Cash Flow = Monthly Net − Mortgage Payment − HOA
+      </div>
+
+      <div class="field-row">
+        <div class="field-label">Months rented (use 12 if full year)
+          <small>Adjust if not rented full year</small>
+        </div>
+        <input class="field-input" id="r-months" type="number" placeholder="12" value="12" oninput="calcRental()">
+      </div>
+
+      <hr class="divider">
+      <div class="section-label">Income &amp; Add-Backs</div>
+      <div class="field-row"><div class="field-label">Gross Rent (annual) (Sch E, Line 3)</div><span class="sign plus">+</span><input class="field-input add" id="r-gross" type="text" inputmode="decimal" placeholder="0" oninput="calcRental()" onblur="fmtInput(this)" onfocus="clearFmt(this)"></div>
+      <div class="field-row"><div class="field-label">Depreciation add-back (Sch E, Line 18)</div><span class="sign plus">+</span><input class="field-input add" id="r-dep" type="text" inputmode="decimal" placeholder="0" oninput="calcRental()" onblur="fmtInput(this)" onfocus="clearFmt(this)"></div>
+      <div class="field-row"><div class="field-label">Property Taxes add-back (Sch E, Line 16)</div><span class="sign plus">+</span><input class="field-input add" id="r-tax" type="text" inputmode="decimal" placeholder="0" oninput="calcRental()" onblur="fmtInput(this)" onfocus="clearFmt(this)"></div>
+      <div class="field-row"><div class="field-label">Mortgage Interest add-back (Sch E, Line 12)</div><span class="sign plus">+</span><input class="field-input add" id="r-mint" type="text" inputmode="decimal" placeholder="0" oninput="calcRental()" onblur="fmtInput(this)" onfocus="clearFmt(this)"></div>
+      <div class="field-row"><div class="field-label">Insurance add-back (Sch E, Line 9)</div><span class="sign plus">+</span><input class="field-input add" id="r-ins" type="text" inputmode="decimal" placeholder="0" oninput="calcRental()" onblur="fmtInput(this)" onfocus="clearFmt(this)"></div>
+      <div class="field-row"><div class="field-label">HOA Dues add-back (Sch E, Line 19)</div><span class="sign plus">+</span><input class="field-input add" id="r-hoa" type="text" inputmode="decimal" placeholder="0" oninput="calcRental()" onblur="fmtInput(this)" onfocus="clearFmt(this)"></div>
+      <div class="field-row"><div class="field-label">Schedule E Line 20 (Total Expenses)</div><span class="sign minus">−</span><input class="field-input sub" id="r-exp" type="text" inputmode="decimal" placeholder="0" oninput="calcRental()" onblur="fmtInput(this)" onfocus="clearFmt(this)"></div>
+
+      <div class="field-row" style="margin-top:10px;">
+        <div class="field-label"><strong>Monthly Net Rental Income</strong></div>
+        <input class="field-input result-field" id="r-net" type="text" value="$0" readonly>
+      </div>
+
+      <hr class="divider">
+      <div class="section-label">Cash Flow Test</div>
+      <div class="field-row"><div class="field-label">Monthly Mortgage Payment on rental</div><span class="sign minus">−</span><input class="field-input sub" id="r-mtg" type="text" inputmode="decimal" placeholder="0" oninput="calcRental()" onblur="fmtInput(this)" onfocus="clearFmt(this)"></div>
+      <div class="field-row"><div class="field-label">Monthly HOA on rental</div><span class="sign minus">−</span><input class="field-input sub" id="r-hoamtg" type="text" inputmode="decimal" placeholder="0" oninput="calcRental()" onblur="fmtInput(this)" onfocus="clearFmt(this)"></div>
+
+      <div class="result-box" id="r-cashflow-box">
+        <div class="result-label">Monthly Net Cash Flow</div>
+        <div class="result-value" id="r-cashflow">—</div>
+      </div>
+      <div id="r-neg-note" class="alert" style="display:none;">
+        ⚠️ Negative cash flow — this amount is added to the borrower's monthly liabilities (DTI).
+      </div>
+      <button class="reset-btn" onclick="resetRental()">reset</button>
+    </div>
+
+    <div class="card" style="margin-top:14px;">
+      <div class="card-title">✅ Rental Property Review Checklist</div>
+      <p style="font-size:12px;color:#475569;line-height:1.6;margin-bottom:12px;">Ask these questions for every rental property before qualifying the income. Inconsistencies = document and flag.</p>
+      <table class="ref">
+        <thead><tr><th>#</th><th>Question</th><th>Why It Matters</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td>When was the property acquired?</td><td>Must appear on 2 years of returns; new acquisitions need 2-yr history</td></tr>
+          <tr><td>2</td><td>Do signed leases exist?</td><td>Verifies rental is active and at market; required if Sch E shows rental income</td></tr>
+          <tr><td>3</td><td>Is it still owned? If not, when sold?</td><td>Can't use income from a property that's been sold</td></tr>
+          <tr><td>4</td><td>Is income consistent year-over-year?</td><td>Large swings in rents or expenses = underwriting scrutiny; declining = use lower year</td></tr>
+          <tr><td>5</td><td>Any new properties since last tax return?</td><td>Won't appear on returns yet — may need different documentation path</td></tr>
+        </tbody>
+      </table>
+      <div class="note" style="margin-top:12px;">📌 <strong>1031 Exchange note:</strong> If borrower sold a rental and bought a replacement property via 1031 exchange, the deferred gain is NOT income — it does not appear on the return as taxable income. Do not include it in qualifying calculations.</div>
+    </div>
+
+  </div><!-- /panel-rental -->
+
+  <!-- ========================= FORM 1040 REFERENCE ========================= -->
+  <div class="panel active" id="panel-f1040">
+
+    <div class="card" style="background:linear-gradient(135deg,#eff6ff,#f0fdf4);border-color:#bfdbfe;">
+      <div class="card-title" style="color:#1d4ed8;">🗺️ How to Read a 1040 — Start Here</div>
+      <p style="font-size:12px;color:#1e3a5f;line-height:1.7;margin-bottom:10px;"><strong>Form 1040 is the borrower's annual federal tax return.</strong> It's a one or two-page summary that pulls income from every other form and schedule into a single total. Think of it as the table of contents — you'll still need to go to the supporting schedules for details, but the 1040 tells you what categories of income exist and approximately how much.</p>
+      <p style="font-size:12px;color:#1e3a5f;line-height:1.7;margin-bottom:10px;"><strong>What to do first:</strong> Flip to <em>Schedule 1</em> (attached behind the 1040). Line 8 on the 1040 pulls from Schedule 1 Line 10 — which is where all self-employment, rental, and business income lands. If Line 8 is blank or small and the borrower claims to be self-employed, something is wrong.</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px;">
+        <div style="background:rgba(255,255,255,0.7);border-radius:8px;padding:10px;font-size:11px;color:#1e3a5f;line-height:1.7;">
+          <strong>Lines 1a–1z:</strong> W-2 wages (one or more employers)<br>
+          <strong>Lines 2b, 3b:</strong> Interest and dividends (Schedule B)<br>
+          <strong>Lines 4b, 5b:</strong> IRA / pension distributions (1099-R)<br>
+          <strong>Lines 6a/6b:</strong> Social Security — see SS guide below
+        </div>
+        <div style="background:rgba(255,255,255,0.7);border-radius:8px;padding:10px;font-size:11px;color:#1e3a5f;line-height:1.7;">
+          <strong>Line 7:</strong> Capital gains (Schedule D) — often one-time<br>
+          <strong>Line 8:</strong> Schedule 1 — ALL self-employment, rental, business<br>
+          <strong>Line 9:</strong> Total income — the grand total<br>
+          <strong>Line 11:</strong> AGI — after adjustments, use for verification
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">📌 Social Security — How to Know If It's Taxable</div>
+
+      <div style="background:#f8fafc;border-radius:10px;padding:14px;margin-bottom:14px;font-size:12px;color:#1a2332;line-height:1.8;">
+        <strong style="font-size:13px;">Look at Lines 6a and 6b side by side.</strong><br>
+        <strong>Line 6a</strong> = Gross SS benefit (total amount received from Social Security)<br>
+        <strong>Line 6b</strong> = Taxable portion (what the IRS makes them pay tax on)<br><br>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:6px;">
+          <div style="background:#dcfce7;border-radius:8px;padding:10px;text-align:center;">
+            <div style="font-weight:700;color:#166534;font-size:11px;margin-bottom:4px;">6b = $0 or blank</div>
+            <div style="font-size:11px;color:#166534;">SS is <strong>fully non-taxable</strong> — gross up the entire 6a amount by 25%</div>
+          </div>
+          <div style="background:#fef3c7;border-radius:8px;padding:10px;text-align:center;">
+            <div style="font-weight:700;color:#92400e;font-size:11px;margin-bottom:4px;">6b &lt; 6a</div>
+            <div style="font-size:11px;color:#92400e;">SS is <strong>partially taxable</strong> — gross up only the non-taxable portion (6a − 6b)</div>
+          </div>
+          <div style="background:#fee2e2;border-radius:8px;padding:10px;text-align:center;">
+            <div style="font-weight:700;color:#991b1b;font-size:11px;margin-bottom:4px;">6b = 6a</div>
+            <div style="font-size:11px;color:#991b1b;">SS is <strong>fully taxable</strong> — no gross-up allowed; use 6a as-is</div>
+          </div>
+        </div>
+        <div style="margin-top:12px;font-size:11px;color:#475569;background:white;border-radius:8px;padding:10px;border:1px solid #e2e8f0;">
+          <strong>Why does this happen?</strong> The IRS uses "combined income" (AGI + tax-exempt interest + ½ of SS) to determine taxability.<br>
+          • <strong>Single filer:</strong> Under $25,000 combined → 0% taxable. $25K–$34K → up to 50% taxable. Over $34K → up to 85% taxable.<br>
+          • <strong>Married filing jointly:</strong> Under $32,000 → 0% taxable. $32K–$44K → up to 50%. Over $44K → up to 85%.<br>
+          • The maximum SS that can ever be taxable is 85% — the remaining 15% minimum is always non-taxable.<br>
+          • <strong>Practical shortcut:</strong> High earners (large W-2, business income) → expect 6b ≈ 6a. Retired-only income → often 6b is $0 or much less than 6a.
+        </div>
+      </div>
+
+      <div class="note">📐 Gross-up formula: Non-taxable SS ÷ 0.80 = grossed-up amount (same as multiplying by 1.25). Always verify the guideline — some lenders allow grossing up the full SS benefit if 6b = $0.</div>
+
+      <div class="field-row">
+        <div class="field-label">Total SS Gross Benefit (annual) <small>1040 Line 6a</small></div>
+        <input class="field-input add" id="ss-6a" type="text" inputmode="decimal" placeholder="0" oninput="calcSS()" onblur="fmtInput(this)" onfocus="clearFmt(this)">
+      </div>
+      <div class="field-row">
+        <div class="field-label">Taxable SS Amount (annual) <small>1040 Line 6b</small></div>
+        <input class="field-input" id="ss-6b" type="text" inputmode="decimal" placeholder="0" oninput="calcSS()" onblur="fmtInput(this)" onfocus="clearFmt(this)">
+      </div>
+      <div class="field-row">
+        <div class="field-label">Gross-up rate <small>Typically 25% — verify with guidelines</small></div>
+        <input class="field-input" id="ss-rate" type="text" inputmode="decimal" placeholder="25" value="25%" oninput="calcSS()" onblur="fmtPct(this)" onfocus="clearPct(this)" style="width:90px">
+      </div>
+
+      <div id="ss-detail" style="background:#f8fafc;border-radius:8px;padding:10px 14px;font-size:12px;color:#475569;margin-top:10px;display:none;line-height:1.8;">
+        <span id="ss-detail-txt"></span>
+      </div>
+
+      <div class="result-box" style="margin-top:12px;">
+        <div>
+          <div class="result-label">Qualifying Monthly SS Income</div>
+          <div style="font-size:10px;color:#64748b;margin-top:2px;" id="ss-method-label"></div>
+        </div>
+        <div class="result-value" id="ss-result">—</div>
+      </div>
+      <button class="reset-btn" onclick="resetSS()">reset</button>
+    </div>
+
+    <div class="card">
+      <div class="card-title">📈 Capital Gains &amp; Investment Income</div>
+      <div class="note" style="background:#fff1f2;border-color:#fecdd3;color:#881337;">⛔ <strong>One-Time Capital Gains (Schedule D, Line 7):</strong> If borrower sold an investment property or assets and shows a large capital gain — this is a <em>one-time event</em> and <strong>cannot be used</strong> as qualifying income. Note for client: "Should've done a 1031 Exchange."</div>
+
+      <div class="section-label" style="margin-top:14px;">On-Going Investment / Capital Gains Income</div>
+      <p style="font-size:12px;color:#475569;line-height:1.6;margin-bottom:12px;">If borrower has 2+ years of recurring capital gains/dividends from investment accounts, <em>and the account balance remains after the purchase</em>, you may use the adjusted asset × ROI%.</p>
+      <div class="field-row">
+        <div class="field-label">Total investment account balance</div>
+        <input class="field-input add" id="cg-assets" type="text" inputmode="decimal" placeholder="0" oninput="calcCG()" onblur="fmtInput(this)" onfocus="clearFmt(this)">
+      </div>
+      <div class="field-row">
+        <div class="field-label">Amount used for down payment / closing costs</div>
+        <input class="field-input sub" id="cg-dp" type="text" inputmode="decimal" placeholder="0" oninput="calcCG()" onblur="fmtInput(this)" onfocus="clearFmt(this)">
+      </div>
+      <div class="field-row">
+        <div class="field-label">Expected annual ROI % <small>Use historical return from tax returns</small></div>
+        <input class="field-input" id="cg-roi" type="text" inputmode="decimal" placeholder="8" value="8%" oninput="calcCG()" onblur="fmtPct(this)" onfocus="clearPct(this)" style="width:90px">
+      </div>
+      <div id="cg-detail" style="background:#f8fafc;border-radius:8px;padding:10px 14px;font-size:12px;color:#475569;margin-top:10px;display:none;line-height:1.8;"></div>
+      <div class="result-box" style="margin-top:12px;">
+        <div>
+          <div class="result-label">Qualifying Monthly Investment Income</div>
+          <div style="font-size:10px;color:#64748b;margin-top:2px;">Verify with guideline — some allow only % of assets or a reduced ROI</div>
+        </div>
+        <div class="result-value" id="cg-result">—</div>
+      </div>
+      <button class="reset-btn" onclick="resetCG()">reset</button>
+    </div>
+
+    <div class="card">
+      <div class="card-title">📑 Form 1040 — Income Line Map</div>
+      <p style="font-size:12px;color:#475569;line-height:1.6;margin-bottom:14px;">Use this as a quick reference when reviewing a borrower's 1040. Each line below shows where income is reported and which supporting schedule feeds it.</p>
+
+      <table class="ref">
+        <thead>
+          <tr>
+            <th>1040 Line</th>
+            <th>Income Type</th>
+            <th>Source / Notes</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>1a</strong></td><td>W-2 Wages</td><td>W-2, Box 1 — each employer separately</td></tr>
+          <tr><td><strong>1z</strong></td><td>Total Wages (sum)</td><td>Add 1a through 1h</td></tr>
+          <tr><td><strong>2b</strong></td><td>Taxable Interest</td><td>Schedule B, Line 4 — generally not qualifying income</td></tr>
+          <tr><td><strong>3b</strong></td><td>Ordinary Dividends</td><td>Schedule B, Line 6 — generally not qualifying income</td></tr>
+          <tr><td><strong>4b</strong></td><td>IRA Distributions (taxable)</td><td>Form 1099-R — taxable amount only; check if recurring</td></tr>
+          <tr><td><strong>5b</strong></td><td>Pensions &amp; Annuities (taxable)</td><td>Form 1099-R — can qualify if recurring for 3+ yrs</td></tr>
+          <tr><td><strong>6a / 6b</strong></td><td>Social Security Benefits</td><td>6a = gross; 6b = taxable. Use gross (6a) for qualifying — may gross up 125% if non-taxable</td></tr>
+          <tr><td><strong>7</strong></td><td>Capital Gain / (Loss)</td><td>Schedule D — only qualifying if 2-year history &amp; likely to continue</td></tr>
+          <tr><td><strong>8</strong></td><td>Other Income (Schedule 1, Line 10)</td><td>This is where Sch C, Sch E, K-1, and partnership income roll up to</td></tr>
+          <tr><td><strong>9</strong></td><td>Total Income</td><td>Sum of 1z + 2b + 3b + 4b + 5b + 6b + 7 + 8</td></tr>
+          <tr><td><strong>10</strong></td><td>Adjustments (Schedule 1, Line 26)</td><td>SE tax, student loan interest, HSA deductions, etc.</td></tr>
+          <tr><td><strong>11</strong></td><td>Adjusted Gross Income (AGI)</td><td>Line 9 minus Line 10 — cross-check with lender's qualifying income</td></tr>
+          <tr><td><strong>15</strong></td><td>Taxable Income</td><td>After standard/itemized deductions — useful for tax bracket analysis</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <div class="card-title">📊 Schedule 1 — Where Self-Employment Income Flows</div>
+      <p style="font-size:12px;color:#475569;line-height:1.6;margin-bottom:14px;">Schedule 1 is the bridge between supporting schedules and the main 1040. All business/rental/self-employment income passes through here before landing on 1040 Line 8.</p>
+      <table class="ref">
+        <thead>
+          <tr>
+            <th>Sch 1 Line</th>
+            <th>Income Type</th>
+            <th>Comes From</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>3</strong></td><td>Business Income (Sch C)</td><td>Schedule C, Line 31 (net profit) — sole proprietor/freelancer</td></tr>
+          <tr><td><strong>5</strong></td><td>Rental / Partnership / S-Corp</td><td>Schedule E, Line 26 (rentals) and Line 41 (partnerships &amp; S-Corps)</td></tr>
+          <tr><td><strong>7</strong></td><td>Farm Income</td><td>Schedule F — not common for residential mortgage files</td></tr>
+          <tr><td><strong>8</strong></td><td>Other Income</td><td>Social Security, gambling, other — see sub-lines</td></tr>
+          <tr><td><strong>10</strong></td><td>Total Additional Income</td><td>Sum of Lines 1–9 → flows to 1040 Line 8</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <div class="card-title">🏢 Schedule E — Where Business Income Flows</div>
+      <table class="ref">
+        <thead>
+          <tr>
+            <th>Sch E Line</th>
+            <th>What It Shows</th>
+            <th>Notes</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>Page 1</strong></td><td>Rental Real Estate &amp; Royalties</td><td>Each property listed separately — analyze each independently</td></tr>
+          <tr><td><strong>Line 3</strong></td><td>Rents Received (per property)</td><td>Gross rental income before expenses</td></tr>
+          <tr><td><strong>Line 18</strong></td><td>Depreciation (per property)</td><td>Add back to qualifying income</td></tr>
+          <tr><td><strong>Line 20</strong></td><td>Total Expenses (per property)</td><td>Verify against lease agreements if possible</td></tr>
+          <tr><td><strong>Line 21</strong></td><td>Net Income / (Loss) per property</td><td>Starting point — then add back depreciation</td></tr>
+          <tr><td><strong>Line 26</strong></td><td>Total Rental Income/Loss (Page 1)</td><td>Feeds to Schedule 1, Line 5</td></tr>
+          <tr><td><strong>Page 2 — Part II</strong></td><td>Partnerships &amp; S Corporations</td><td>List of K-1 entities</td></tr>
+          <tr><td><strong>Line 28</strong></td><td>Entity list with income/loss columns</td><td>Nonpassive income from K-1 goes in column (k)</td></tr>
+          <tr><td><strong>Line 32</strong></td><td>Total Partnership &amp; S-Corp Income</td><td>Feeds to Schedule 1, Line 5 combined with rental</td></tr>
+          <tr><td><strong>Line 41</strong></td><td>Grand Total Schedule E</td><td>All rental + partnership + S-Corp → Schedule 1, Line 5</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <div class="card-title">📋 K-1 Line Reference</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+        <div>
+          <div class="section-label">K-1 (Form 1120-S) — S Corporation</div>
+          <table class="ref">
+            <thead><tr><th>Box</th><th>What It Is</th></tr></thead>
+            <tbody>
+              <tr><td><strong>Box 1</strong></td><td>Ordinary Business Income / (Loss)</td></tr>
+              <tr><td><strong>Box 2</strong></td><td>Net Rental Real Estate Income</td></tr>
+              <tr><td><strong>Box 11</strong></td><td>Section 179 Deduction (subtract)</td></tr>
+              <tr><td><strong>Box 12</strong></td><td>Other Deductions (may include meals)</td></tr>
+              <tr><td><strong>Box 17 AC</strong></td><td>Depreciation — add back</td></tr>
+              <tr><td><strong>Box 17 AD</strong></td><td>Amortization — add back</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div>
+          <div class="section-label">K-1 (Form 1065) — Partnership</div>
+          <table class="ref">
+            <thead><tr><th>Box</th><th>What It Is</th></tr></thead>
+            <tbody>
+              <tr><td><strong>Box 1</strong></td><td>Ordinary Business Income / (Loss)</td></tr>
+              <tr><td><strong>Box 4</strong></td><td>Guaranteed Payments — add to income</td></tr>
+              <tr><td><strong>Box 9a</strong></td><td>Net Long-Term Capital Gain</td></tr>
+              <tr><td><strong>Box 13 W</strong></td><td>Other Deductions — check for depreciation</td></tr>
+              <tr><td><strong>Box 19</strong></td><td>Distributions — not qualifying income</td></tr>
+              <tr><td><strong>Box 20 Z</strong></td><td>Section 199A information (QBI deduction)</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+
+  </div><!-- /panel-f1040 -->
+
+  <!-- ========================= REFERENCE ========================= -->
+  <div class="panel" id="panel-ref">
+
+    <div class="card">
+      <div class="card-title">🔍 How to Identify Income Type From the Return</div>
+      <p style="font-size:12px;color:#475569;line-height:1.6;margin-bottom:12px;">Before you calculate anything, you need to know what kind of income you're looking at. Use this guide when you open a tax return cold.</p>
+      <table class="ref">
+        <thead><tr><th>If you see this on the 1040...</th><th>Income type is...</th><th>Go to this tab</th></tr></thead>
+        <tbody>
+          <tr><td>Lines 1a–1z have dollar amounts, and borrower has W-2s</td><td>Wages / Salary</td><td>📋 W-2 / Paystub</td></tr>
+          <tr><td>Line 8 has a number AND Schedule 1 shows Line 3 (Sch C)</td><td>Self-employed / sole prop</td><td>📊 Schedule C</td></tr>
+          <tr><td>Line 8 has a number AND Schedule 1 shows Line 5 from Sch E</td><td>Rental income or business K-1</td><td>🏘 Rental or 🏢 S-Corp</td></tr>
+          <tr><td>K-1 form attached — Form 1120-S in the header</td><td>S-Corporation</td><td>🏢 S-Corp (1120S)</td></tr>
+          <tr><td>K-1 form attached — Form 1065 in the header</td><td>Partnership (1065)</td><td>🏢 S-Corp tab (use K-1 calc)</td></tr>
+          <tr><td>Lines 6a and 6b both have amounts</td><td>Social Security</td><td>📑 Form 1040 → SS calc</td></tr>
+          <tr><td>Lines 4b or 5b have amounts</td><td>IRA / Pension / Annuity</td><td>📑 Form 1040 → Line Map</td></tr>
+          <tr><td>Line 7 has a large one-time number</td><td>Capital gain — likely one-time</td><td>📑 Form 1040 → Capital Gains</td></tr>
+          <tr><td>Schedule B attached with recurring amounts</td><td>Interest / Dividends</td><td>Reference only (rarely qualifying)</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <div class="card-title">🚩 Underwriter Red Flags — What Triggers Questions</div>
+      <table class="ref">
+        <thead><tr><th>What you see</th><th>What the underwriter will ask</th></tr></thead>
+        <tbody>
+          <tr><td>Income declining year over year (any type)</td><td>Why is it declining? Use the lower year. May be declined.</td></tr>
+          <tr><td>Large Schedule D capital gain (Line 7)</td><td>Is this one-time? Verify Schedule D — likely not qualifying.</td></tr>
+          <tr><td>Business income on 1040 but no business return attached</td><td>Need 1120-S or 1065 and K-1s to verify.</td></tr>
+          <tr><td>Schedule C shows a loss</td><td>Losses add to liabilities — can tank DTI.</td></tr>
+          <tr><td>Multiple Schedule E properties, some with losses</td><td>Each property is analyzed separately. Losses offset qualifying income.</td></tr>
+          <tr><td>Line 37 (1040 Page 2) shows taxes owed</td><td>Are taxes actually paid? Unpaid tax liabilities are a lien risk.</td></tr>
+          <tr><td>W-2 Box 1 much lower than Box 5</td><td>Normal (pre-tax benefits) — but verify with paystub YTD.</td></tr>
+          <tr><td>Schedule 1 Line 8 is large with no explanation</td><td>What is it? Look at Schedule 1 sub-lines to identify source.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <div class="card-title">📖 Quick Reference</div>
+      <table class="ref">
+        <tr><th>Income Type</th><th>Min History</th><th>Docs Needed</th></tr>
+        <tr>
+          <td>W-2 Salary / Hourly (guaranteed hrs)</td>
+          <td><span class="badge badge-green">Current</span></td>
+          <td>2 most recent paystubs + W-2s</td>
+        </tr>
+        <tr>
+          <td>Overtime / Bonus / Commission</td>
+          <td><span class="badge badge-blue">2 Years</span></td>
+          <td>Paystubs + 2 yrs W-2s</td>
+        </tr>
+        <tr>
+          <td>Schedule C (Sole Prop)</td>
+          <td><span class="badge badge-blue">2 Years</span></td>
+          <td>2 yrs 1040 with Sch C; business 2 yr history</td>
+        </tr>
+        <tr>
+          <td>S-Corp (1120S / K-1)</td>
+          <td><span class="badge badge-blue">2 Years</span></td>
+          <td>2 yrs personal + business returns, K-1s</td>
+        </tr>
+        <tr>
+          <td>Rental Income (Schedule E)</td>
+          <td><span class="badge badge-blue">2 Years</span></td>
+          <td>2 yrs 1040 with Sch E; lease agreements</td>
+        </tr>
+        <tr>
+          <td>Retirement / Pension</td>
+          <td><span class="badge badge-green">Award Letter</span></td>
+          <td>Award letter or 1099-R</td>
+        </tr>
+        <tr>
+          <td>VA / Social Security Disability</td>
+          <td><span class="badge badge-green">Award Letter</span></td>
+          <td>Award letter — gross up 125% if non-taxable</td>
+        </tr>
+        <tr>
+          <td>2 W-2 Jobs</td>
+          <td><span class="badge badge-blue">2 Years</span></td>
+          <td>Must have 2-yr history at BOTH jobs</td>
+        </tr>
+      </table>
+    </div>
+
+    <div class="card">
+      <div class="card-title">📐 Common Formulas</div>
+      <table class="ref">
+        <tr><th>Scenario</th><th>Formula</th></tr>
+        <tr><td>Hourly (40 hrs guaranteed)</td><td>Rate × 2,080 ÷ 12</td></tr>
+        <tr><td>Hourly (variable hrs)</td><td>Rate × Avg Hrs × 52 ÷ 12</td></tr>
+        <tr><td>Bi-weekly salary</td><td>Check × 26 ÷ 12</td></tr>
+        <tr><td>Variable / bonus (2yr)</td><td>(Yr1 + Yr2) ÷ 24</td></tr>
+        <tr><td>Mileage add-back</td><td>Miles × $0.26</td></tr>
+        <tr><td>Retirement (if used)</td><td>Avg over 2 yrs from return</td></tr>
+        <tr><td>Asset depletion</td><td>Assets ÷ 36 = monthly (must continue 3 yrs)</td></tr>
+      </table>
+    </div>
+
+  </div><!-- /panel-ref -->
+
+</div><!-- /main -->
+
+<!-- ── Income Summary Bar ── -->
+<div id="income-summary-bar">
+  <div class="isb-slot">
+    <div class="isb-slot-label" id="isb-b1-label">Borrower 1</div>
+    <div class="isb-slot-amount isb-empty" id="isb-b1-amt">—</div>
+    <div class="isb-slot-source" id="isb-b1-src"></div>
+  </div>
+  <div class="isb-divider"></div>
+  <div class="isb-slot">
+    <div class="isb-slot-label">Co-Borrower</div>
+    <div class="isb-slot-amount isb-empty" id="isb-cb-amt">—</div>
+    <div class="isb-slot-source" id="isb-cb-src"></div>
+  </div>
+  <div class="isb-divider"></div>
+  <div class="isb-slot isb-total">
+    <div class="isb-slot-label">Combined Qualifying</div>
+    <div class="isb-slot-amount isb-empty" id="isb-tot-amt">—</div>
+    <div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:2px;" id="isb-flags"></div>
+  </div>
+</div>
+
+<script>
+// ── Borrower Slot Selector ──────────────────────────────────────────────────
+let _borrowerSlot = 'borrower1';
+
+// Per-borrower saved state: { fieldId: value }
+const _borrowerState = { borrower1: {}, coborrower: {} };
+let _icAutoSaveTimer = null;
+
+// ── Income Summary Bar ───────────────────────────────────────────
+const _summaryState = {
+  borrower1:  { monthly: 0, label: '' },
+  coborrower: { monthly: 0, label: '' }
+};
+
+function _parseResultEl(id) {
+  const el = document.getElementById(id);
+  if (!el) return 0;
+  const txt = el.textContent.replace(/[$,]/g, '').trim();
+  const n = parseFloat(txt);
+  return (isNaN(n) || n <= 0) ? 0 : n;
+}
+
+function _updateSummaryCard() {
+  // W-2 sub-tabs are mutually exclusive — take whichever has a value
+  const w2 = Math.max(
+    _parseResultEl('h-result'),
+    _parseResultEl('s-result'),
+    _parseResultEl('v-result')
+  );
+  const schc   = _parseResultEl('schc-result');
+  const scorp  = _parseResultEl('scorp-result');
+  const rental = _parseResultEl('r-cashflow');
+  const ss     = _parseResultEl('ss-result');
+  const assets = _parseResultEl('cg-result');
+
+  let total = 0;
+  const sources = [];
+  if (scorp  > 0) { total += scorp;  sources.push('1120S'); }
+  if (schc   > 0) { total += schc;   sources.push('Sch C'); }
+  if (w2     > 0) { total += w2;     sources.push('W-2'); }
+  if (rental > 0) { total += rental; sources.push('Rental'); }
+  if (ss     > 0) { total += ss;     sources.push('SS/Pension'); }
+  if (assets > 0) { total += assets; sources.push('Assets'); }
+
+  _summaryState[_borrowerSlot] = { monthly: total, label: sources.join(' + ') };
+  _renderSummaryCard();
+}
+
+function _renderSummaryCard() {
+  const b1 = _summaryState.borrower1;
+  const cb = _summaryState.coborrower;
+  const combined = (b1.monthly || 0) + (cb.monthly || 0);
+
+  const b1El  = document.getElementById('isb-b1-amt');
+  const cbEl  = document.getElementById('isb-cb-amt');
+  const totEl = document.getElementById('isb-tot-amt');
+  if (!b1El) return;
+
+  // Borrower 1 label — use borrower name if available
+  const b1Name = document.getElementById('borrower-input')?.value?.split(' ')[0];
+  const b1LabelEl = document.getElementById('isb-b1-label');
+  if (b1LabelEl && b1Name) b1LabelEl.textContent = b1Name;
+
+  function _setAmt(el, srcEl, data) {
+    if (data.monthly > 0) {
+      el.textContent = fmt(data.monthly) + '/mo';
+      el.classList.remove('isb-empty');
+    } else {
+      el.textContent = '—';
+      el.classList.add('isb-empty');
+    }
+    if (srcEl) srcEl.textContent = data.label || '';
+  }
+
+  _setAmt(b1El,  document.getElementById('isb-b1-src'), b1);
+  _setAmt(cbEl,  document.getElementById('isb-cb-src'), cb);
+
+  if (combined > 0) {
+    totEl.textContent = fmt(combined) + '/mo';
+    totEl.classList.remove('isb-empty');
+  } else {
+    totEl.textContent = '—';
+    totEl.classList.add('isb-empty');
+  }
+
+  // Flags
+  const allLabels = (b1.label + ' ' + cb.label).toLowerCase();
+  const hasSE = allLabels.includes('1120s') || allLabels.includes('sch c');
+  const flags = [];
+  if (hasSE) flags.push({ cls: 'ytdpl', text: 'YTD P&L Required' });
+
+  const flagsEl = document.getElementById('isb-flags');
+  if (flagsEl) flagsEl.innerHTML = flags.map(f =>
+    `<span class="isb-flag ${f.cls}">${f.text}</span>`
+  ).join('');
+}
+
+function _icAutoSave() {
+  if (!_icActiveBorrowerId) return;
+  clearTimeout(_icAutoSaveTimer);
+  _icAutoSaveTimer = setTimeout(async () => {
+    // Snapshot current slot before saving
+    _saveBorrowerState(_borrowerSlot);
+    const calcState = {
+      borrower1:  _borrowerState.borrower1  || {},
+      coborrower: _borrowerState.coborrower || {}
+    };
+    try {
+      const r = await fetch(`/api/borrowers/${_icActiveBorrowerId}`);
+      if (!r.ok) return;
+      const rec = await r.json();
+      if (!rec.income) rec.income = {};
+      rec.income.calcState = calcState;
+      await fetch(`/api/borrowers/${_icActiveBorrowerId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(rec)
+      });
+    } catch(e) { console.warn('Income calc auto-save failed:', e); }
+  }, 1500);
+}
+
+function _icRestoreCalcState(rec) {
+  const cs = rec?.income?.calcState;
+  if (!cs) return;
+  if (cs.borrower1)  _borrowerState.borrower1  = cs.borrower1;
+  if (cs.coborrower) _borrowerState.coborrower = cs.coborrower;
+  _restoreBorrowerState(_borrowerSlot);
+}
+
+function _getCalcInputs() {
+  // All editable text/number inputs AND select dropdowns inside the main content area
+  return Array.from(document.querySelectorAll('.main input:not([readonly]):not([type="radio"]), .main select'));
+}
+
+function _saveBorrowerState(slot) {
+  const state = {};
+  _getCalcInputs().forEach(el => { if (el.id) state[el.id] = el.value; });
+  _borrowerState[slot] = state;
+}
+
+function _restoreBorrowerState(slot) {
+  const state = _borrowerState[slot] || {};
+  _getCalcInputs().forEach(el => {
+    if (!el.id) return;
+    el.value = state[el.id] !== undefined ? state[el.id] : '';
+  });
+  // Restore visibility of additional Sch C business blocks
+  for (let b = 2; b <= 4; b++) {
+    const block = document.getElementById(`sc-biz-${b}`);
+    if (!block) continue;
+    const hasData = ['y1','y2'].some(yr =>
+      ['np','dep','mil','home','meals'].some(fld => {
+        const val = state[`sc-b${b}-${yr}-${fld}`];
+        return val && val !== '' && val !== '0';
+      })
+    ) || (state[`sc-b${b}-name`] && state[`sc-b${b}-name`] !== '');
+    block.style.display = hasData ? '' : 'none';
+  }
+  const anyHidden = [2,3,4].some(b => document.getElementById(`sc-biz-${b}`)?.style.display === 'none');
+  const addBtn = document.getElementById('sc-add-btn');
+  if (addBtn) addBtn.style.display = anyHidden ? '' : 'none';
+  // Re-run all calc functions so result fields update
+  ['calcSalary','calcYTD','calcSchC','calcKone','calcRental','calcSS','calcLiq'].forEach(fn => {
+    if (typeof window[fn] === 'function') try { window[fn](); } catch(e) {}
+  });
+}
+
+// Auto-save on any input change inside the calculator
+document.addEventListener('input', e => {
+  if (e.target.closest('.main')) _icAutoSave();
+});
+document.addEventListener('change', e => {
+  if (e.target.closest('.main')) _icAutoSave();
+});
+
+function setBorrowerSlot(slot) {
+  if (slot === _borrowerSlot) return;
+  _saveBorrowerState(_borrowerSlot);   // save current borrower's data
+  _icAutoSave();                        // persist to server
+  _borrowerSlot = slot;
+  _restoreBorrowerState(slot);          // load new borrower's data (blank if first time)
+
+  const badge = document.getElementById('borrower-slot-badge');
+  const b1    = document.getElementById('b1-label');
+  const b2    = document.getElementById('b2-label');
+  if (slot === 'coborrower') {
+    badge.textContent = 'Co-Borrower';
+    badge.style.background = '#f59e0b';
+    b1.style.color = '#94a3b8';
+    b2.style.color = '#f59e0b';
+  } else {
+    badge.textContent = 'Borrower 1';
+    badge.style.background = '#8EC73F';
+    b1.style.color = '#8EC73F';
+    b2.style.color = '#64748b';
+  }
+}
+
+// Pre-select borrower slot if passed via URL (?for=coborrower)
+(function() {
+  const params = new URLSearchParams(window.location.search);
+  const forSlot = params.get('for');
+  if (forSlot === 'coborrower') {
+    document.querySelector('input[name="borrower_slot"][value="coborrower"]').checked = true;
+    setBorrowerSlot('coborrower');
+  }
+})();
+
+// ── Scrubber Pre-fill System ────────────────────────────────────────────────
+// Reads hws_income_prefill from localStorage (written by the Pre-Submission
+// Scrubber when the user clicks "Open in Calculator"). Pre-fills fields and
+// marks them visually so the loan officer knows to review them.
+(function applyPrefill() {
+  const PREFILL_KEY   = 'hws_income_prefill';
+  const MAX_AGE_MS    = 30 * 60 * 1000; // 30 minutes
+
+  let raw;
+  try { raw = localStorage.getItem(PREFILL_KEY); } catch(e) { return; }
+  if (!raw) return;
+
+  let data;
+  try { data = JSON.parse(raw); } catch(e) { return; }
+
+  // Expire stale prefill
+  if (!data.meta?.generatedAt) return;
+  const age = Date.now() - new Date(data.meta.generatedAt).getTime();
+  if (age > MAX_AGE_MS) { localStorage.removeItem(PREFILL_KEY); return; }
+
+  // Fill fields — only set value when data is non-null and non-zero
+  const prefilled = [];
+  function fill(id, val) {
+    if (val === null || val === undefined || val === 0) return;
+    const el = document.getElementById(id);
+    if (!el || el.readOnly) return;
+    // Format as dollar amount (the v() helper strips $ and commas on read)
+    const num = parseFloat(val);
+    if (isNaN(num)) return;
+    el.value = '$' + Math.round(num).toLocaleString('en-US');
+    el.classList.add('ai-prefilled');
+    prefilled.push(id);
+  }
+  function fillRaw(id, val) {
+    // For non-currency fields (ownership %, etc.)
+    if (val === null || val === undefined) return;
+    const el = document.getElementById(id);
+    if (!el || el.readOnly) return;
+    el.value = val;
+    el.classList.add('ai-prefilled');
+    prefilled.push(id);
+  }
+
+  const f = data.fields || {};
+
+  // W-2
+  fill('v-yr2',    f['v-yr2']);    // current-year W-2 wages (Variable tab)
+  fill('v-yr1',    f['v-yr1']);    // prior-year W-2 wages
+  fill('s-check',  f['s-check']); // bi-weekly check (Salaried tab)
+  fill('ytd-w2y1', f['ytd-w2y1']);
+  fill('ytd-w2y2', f['ytd-w2y2']);
+
+  // Schedule C — Year 1 (most recent)
+  fill('sc1-np',    f['sc1-np']);
+  fill('sc1-dep',   f['sc1-dep']);
+  fill('sc1-mil',   f['sc1-mil']);
+  fill('sc1-home',  f['sc1-home']);
+  fill('sc1-meals', f['sc1-meals']);
+
+  // Schedule C — Year 2 (prior)
+  fill('sc2-np',    f['sc2-np']);
+  fill('sc2-dep',   f['sc2-dep']);
+  fill('sc2-mil',   f['sc2-mil']);
+  fill('sc2-home',  f['sc2-home']);
+  fill('sc2-meals', f['sc2-meals']);
+
+  // K-1 / S-Corp — Year 1
+  fillRaw('kp-own',   f['kp-own']);
+  fill('k1-line1',    f['k1-line1']);
+  fill('k1-w2',       f['k1-w2']);
+  fill('k1-dep',      f['k1-dep']);
+  fill('k1-amort',    f['k1-amort']);
+  fill('k1-meals',    f['k1-meals']);
+
+  // K-1 / S-Corp — Year 2
+  fill('k2-line1',    f['k2-line1']);
+  fill('k2-w2',       f['k2-w2']);
+  fill('k2-dep',      f['k2-dep']);
+  fill('k2-amort',    f['k2-amort']);
+  fill('k2-meals',    f['k2-meals']);
+
+  // Rental (Schedule E)
+  fill('r-gross',     f['r-gross']);
+  fill('r-dep',       f['r-dep']);
+  fill('r-tax',       f['r-tax']);
+  fill('r-mint',      f['r-mint']);
+  fill('r-ins',       f['r-ins']);
+  fill('r-hoa',       f['r-hoa']);
+  fill('r-exp',       f['r-exp']);
+
+  if (prefilled.length === 0) return; // nothing to show
+
+  // ── Trigger all calculators so totals update immediately ──────────────────
+  // fill() sets el.value directly which does NOT fire oninput, so we must
+  // call each calc function explicitly after all fields are populated.
+  if (typeof calcSchC   === 'function') calcSchC();
+  if (typeof calcScorp  === 'function') calcScorp();
+  if (typeof calcRental === 'function') calcRental();
+
+  // Show banner
+  const banner = document.getElementById('prefill-banner');
+  banner.classList.add('visible');
+
+  // Borrower name in banner if available
+  const name = data.meta?.borrower;
+  if (name) {
+    document.getElementById('prefill-banner-borrower').textContent = ' — ' + name;
+  }
+
+  // Confidence tooltip on banner if available
+  const conf = data.confidence;
+  if (conf) {
+    const parts = [];
+    if (conf.w2        != null) parts.push('W-2: ' + conf.w2 + '%');
+    if (conf.scheduleC != null) parts.push('Sch C: ' + conf.scheduleC + '%');
+    if (conf.kOne      != null) parts.push('K-1: ' + conf.kOne + '%');
+    if (conf.rental    != null) parts.push('Rental: ' + conf.rental + '%');
+    if (parts.length) {
+      const note = document.createElement('span');
+      note.style.cssText = 'font-size:10px;color:#92400e;opacity:0.75;display:block;margin-top:2px;';
+      note.textContent = 'Extraction confidence — ' + parts.join(' · ');
+      document.getElementById('prefill-banner-text').appendChild(note);
+    }
+  }
+})();
+
+function clearPrefill() {
+  // Remove amber styling from all prefilled fields
+  document.querySelectorAll('.ai-prefilled').forEach(el => {
+    el.classList.remove('ai-prefilled');
+  });
+  // Hide banner
+  document.getElementById('prefill-banner').classList.remove('visible');
+  // Remove from localStorage so it doesn't reappear on reload
+  try { localStorage.removeItem('hws_income_prefill'); } catch(e) {}
+}
+// ── End Prefill System ──────────────────────────────────────────────────────
+
+// ── Export for UW Review ────────────────────────────────────────────────────
+// Reads verified calculator values, writes structured export to localStorage,
+// and opens the UW Prep Workspace. The workspace reads hws_calc_export.
+// This makes income-calc.html the authoritative income source for the workflow.
+async function exportForUWReview() {
+  // Helper: read a dollar field value (strips $,commas)
+  function rd(id) {
+    const el = document.getElementById(id);
+    if (!el) return null;
+    const n = parseFloat((el.value || '').replace(/[$,]/g, ''));
+    return isNaN(n) || n === 0 ? null : n;
+  }
+
+  // Determine active tab to identify primary income type
+  const activePanel = document.querySelector('.panel.active');
+  const activePanelId = activePanel ? activePanel.id : '';
+
+  // Read qualifying totals from calc result fields (formula-computed by calc functions)
+  const scYr1 = rd('sc1-total');   // Schedule C — Year 1 Qualifying Annual
+  const scYr2 = rd('sc2-total');   // Schedule C — Year 2 Qualifying Annual
+  const k1Yr1 = rd('k1-total');    // K-1/S-Corp — Year 1 Qualifying Annual
+  const k1Yr2 = rd('k2-total');    // K-1/S-Corp — Year 2 Qualifying Annual
+  const rNetMo = rd('r-net');      // Rental — Monthly Net (already calculated)
+
+  // W-2/Paystub values
+  const w2Yr1 = rd('v-yr2') || rd('ytd-w2y1');  // most recent year wages
+  const w2Yr2 = rd('v-yr1') || rd('ytd-w2y2');  // prior year wages
+
+  // Determine income type and qualifying amounts from active tab + populated fields
+  let incType = 'mixed';
+  let yr1 = null, yr2 = null;
+
+  if (activePanelId === 'panel-schc' || (scYr1 || scYr2)) {
+    incType = 'schedule_c';
+    yr1 = scYr1;
+    yr2 = scYr2;
+  } else if (activePanelId === 'panel-scorp' || (k1Yr1 || k1Yr2)) {
+    incType = 'k1_scorp';
+    yr1 = k1Yr1;
+    yr2 = k1Yr2;
+  } else if (activePanelId === 'panel-w2' || (w2Yr1 || w2Yr2)) {
+    incType = 'w2_salaried';
+    yr1 = w2Yr1;
+    yr2 = w2Yr2;
+  } else if (activePanelId === 'panel-rental' || rNetMo) {
+    incType = 'rental';
+    // Convert monthly net to annual for yr1
+    yr1 = rNetMo ? rNetMo * 12 : null;
+    yr2 = null;
+  }
+
+  // If multiple income types have values, flag as mixed
+  const populated = [scYr1||scYr2, k1Yr1||k1Yr2, w2Yr1||w2Yr2, rNetMo].filter(Boolean);
+  if (populated.length > 1) incType = 'mixed';
+
+  // Calculate qualifying monthly amounts
+  const avg2yr = (yr1 != null && yr2 != null) ? (yr1 + yr2) / 2
+               : (yr1 ?? yr2 ?? null);
+  const lowerOf = (yr1 != null && yr2 != null) ? Math.min(yr1, yr2) : avg2yr;
+
+  const avgMonthly   = avg2yr   ? Math.round(avg2yr / 12)   : (rNetMo || null);
+  const lowerMonthly = lowerOf  ? Math.round(lowerOf / 12)  : (rNetMo || null);
+
+  // For K-1/S-Corp: read the method-aware qualifying monthly directly from the displayed result.
+  // calcKone() uses (k1a+k2a)/(mo1+mo2) with custom months — recomputing from yr1/yr2÷12 is wrong.
+  let qualifyingMonthly = null;
+  let avgMethodUsed = null;
+  if (incType === 'k1_scorp') {
+    const scorpText = document.getElementById('scorp-result')?.textContent?.replace(/[$,]/g,'');
+    qualifyingMonthly = scorpText && scorpText !== '—' ? Math.round(parseFloat(scorpText)) : null;
+    avgMethodUsed = document.getElementById('kp-avg-method')?.value || '2yr';
+  } else if (incType === 'mixed') {
+    // Sum qualifying from each populated source using the displayed result elements
+    let mixedMo = 0;
+    if (scYr1 || scYr2) {
+      const schcText = document.getElementById('schc-result')?.textContent?.replace(/[$,]/g,'');
+      mixedMo += (schcText && schcText !== '—') ? Math.round(parseFloat(schcText)) : (avgMonthly || 0);
+    }
+    if (k1Yr1 || k1Yr2) {
+      const scorpText = document.getElementById('scorp-result')?.textContent?.replace(/[$,]/g,'');
+      mixedMo += (scorpText && scorpText !== '—') ? Math.round(parseFloat(scorpText)) : 0;
+      avgMethodUsed = document.getElementById('kp-avg-method')?.value || '2yr';
+    }
+    qualifyingMonthly = mixedMo || lowerMonthly || avgMonthly;
+  } else {
+    qualifyingMonthly = lowerMonthly || avgMonthly;
+  }
+
+  // Income trend
+  let trend = 'unknown', trendPct = null;
+  if (yr1 != null && yr2 != null && yr2 !== 0) {
+    trendPct = Math.round((yr1 - yr2) / yr2 * 1000) / 10;
+    trend = yr1 > yr2 ? 'increasing' : yr1 < yr2 ? 'decreasing' : 'stable';
+  }
+
+  // Check if anything meaningful was found
+  if (!yr1 && !yr2 && !rNetMo) {
+    alert('No income values found in the calculator.\n\nPlease complete the income fields for the relevant income type first.');
+    return;
+  }
+
+  // Build export object
+  const exportData = {
+    meta: {
+      exportedAt:        new Date().toISOString(),
+      calculatorVersion: '2.0',
+      source:            'income-calc.html',
+      activeTab:         activePanelId,
+      borrower:          '', // populated by workspace from any stored prefill name
+    },
+    income: {
+      type:                  incType,
+      yr1_qualifying_annual: yr1,
+      yr2_qualifying_annual: yr2,
+      qualifying_monthly:    qualifyingMonthly,   // method-aware result — use this in Arive
+      average_monthly:       avgMonthly,
+      lower_of_monthly:      lowerMonthly,
+      avg_method:            avgMethodUsed,
+      trend,
+      trend_pct:             trendPct,
+    },
+  };
+
+  // Write income to active borrower record via API
+  const activeBorrowerId = localStorage.getItem('hws_active_borrower_id');
+
+  if (activeBorrowerId) {
+    try {
+      const loadRes = await fetch(`/api/borrowers/${activeBorrowerId}`);
+      if (!loadRes.ok) throw new Error('Borrower not found');
+      const record = await loadRes.json();
+
+      const slot = (document.querySelector('input[name="borrower_slot"]:checked')?.value) || 'borrower1';
+      if (!record.income) record.income = {};
+      if (!record.income[slot]) record.income[slot] = {};
+      // Accumulate exports as array — replace same income type if already present
+      const existing = record.income[slot].calcExports || [];
+      const idx = existing.findIndex(x => x.income?.type === exportData.income?.type);
+      if (idx >= 0) existing[idx] = exportData; else existing.push(exportData);
+      record.income[slot].calcExports = existing;
+      record.income[slot].importedAt  = new Date().toISOString();
+
+      const saveRes = await fetch(`/api/borrowers/${activeBorrowerId}`, {
+        method:  'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify(record),
+      });
+      if (!saveRes.ok) throw new Error('Save failed HTTP ' + saveRes.status);
+    } catch(e) {
+      // Fall back to localStorage so work isn't lost
+      try { localStorage.setItem('hws_calc_export', JSON.stringify(exportData)); } catch(_) {}
+      alert('Income saved locally but could not update borrower file:\n' + e.message);
+    }
+  } else {
+    // No active borrower open — save to localStorage as fallback
+    try {
+      localStorage.setItem('hws_calc_export', JSON.stringify(exportData));
+    } catch(e) {
+      alert('Could not save export data: ' + e.message);
+      return;
+    }
+  }
+
+  // Show confirmation
+  const btn = document.querySelector('.export-btn');
+  if (btn) {
+    const orig = btn.textContent;
+    btn.textContent = '✓ Exported';
+    btn.style.background = '#22c55e';
+    setTimeout(() => { btn.textContent = orig; btn.style.background = ''; }, 2500);
+  }
+}
+// ── End Export for UW Review ────────────────────────────────────────────────
+
+// Tab switching
+function switchTab(name) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('panel-' + name).classList.add('active');
+  event.target.classList.add('active');
+}
+
+// Method switching (W-2 sub-tabs)
+function switchMethod(tab, method) {
+  const panel = document.getElementById('panel-' + tab);
+  panel.querySelectorAll('.sub-panel').forEach(p => p.classList.remove('active'));
+  panel.querySelectorAll('.method-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(tab + '-' + method).classList.add('active');
+  event.target.classList.add('active');
+}
+
+// Format currency
+function fmt(n) {
+  if (isNaN(n)) return '—';
+  return '$' + n.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+}
+
+
+function fmtInput(el) {
+  const raw = parseFloat((el.value||'').replace(/[$,]/g,''));
+  if (!isNaN(raw) && el.value.trim() !== '') el.value = '$' + raw.toLocaleString('en-US',{maximumFractionDigits:2});
+}
+function fmtMiles(el) {
+  // Miles field — format as plain integer, no $ sign
+  const raw = parseFloat((el.value||'').replace(/[$,]/g,''));
+  if (!isNaN(raw) && raw > 0) el.value = Math.round(raw).toLocaleString('en-US');
+}
+function clearFmt(el) {
+  const raw = parseFloat((el.value||'').replace(/[$,]/g,''));
+  if (!isNaN(raw) && raw > 0) el.value = raw;
+}
+function fmtPct(el) {
+  if (el.value.trim()===''||el.value.trim()==='%') { el.value=''; return; }
+  const raw = parseFloat((el.value||'').replace(/%/g,''));
+  if (!isNaN(raw)) el.value = raw + '%';
+}
+function clearPct(el) {
+  const raw = parseFloat((el.value||'').replace(/%/g,''));
+  if (!isNaN(raw)) el.value = raw;
+}
+function v(id) {
+  return parseFloat((document.getElementById(id).value||'').replace(/[$,]/g,'')) || 0;
+}
+
+// ---- W-2 Calcs ----
+function calcHourly() {
+  const rate = v('h-rate'), hrs = v('h-hours');
+  const monthly = rate * hrs * 52 / 12;
+  document.getElementById('h-result').textContent = rate > 0 ? fmt(monthly) : '—';
+  _updateSummaryCard();
+}
+
+function calcSalary() {
+  const check = v('s-check');
+  const monthly = check * 26 / 12;
+  document.getElementById('s-result').textContent = check > 0 ? fmt(monthly) : '—';
+  _updateSummaryCard();
+}
+
+function calcVariable() {
+  const y1 = v('v-yr1'), y2 = v('v-yr2');
+  const note = document.getElementById('v-method-note');
+  if (!y1 && !y2) { document.getElementById('v-result').textContent = '—'; note.style.display='none'; return; }
+  let monthly, msg;
+  if (y2 >= y1) {
+    monthly = (y1 + y2) / 24;
+    msg = '✅ Current year ≥ prior year — using 2-year average ÷ 24';
+  } else {
+    monthly = y2 / 12;
+    msg = '⚠️ Current year is lower than prior year — using current year ÷ 12 (declining trend)';
+  }
+  document.getElementById('v-result').textContent = fmt(monthly);
+  note.textContent = msg;
+  note.style.display = 'block';
+  note.style.background = y2 >= y1 ? '#f0fdf4' : '#fefce8';
+  note.style.border = y2 >= y1 ? '1.5px solid #bbf7d0' : '1.5px solid #fde047';
+  note.style.color = y2 >= y1 ? '#166534' : '#713f12';
+  _updateSummaryCard();
+}
+
+// ---- YTD Cross-Check ----
+function ytdMonthsFromDate(dateStr) {
+  if (!dateStr) return null;
+  const paidThru = new Date(dateStr + 'T12:00:00');
+  const janFirst = new Date(paidThru.getFullYear() + '-01-01T12:00:00');
+  const days = (paidThru - janFirst) / (1000 * 60 * 60 * 24) + 1;
+  return days / 30.4167;
+}
+
+function calcYTD() {
+  const earn = v('ytd-earn');
+  const dateStr = document.getElementById('ytd-paid-thru').value;
+  const months = ytdMonthsFromDate(dateStr);
+  const display = document.getElementById('ytd-months-display');
+  if (months) {
+    display.textContent = '= ' + months.toFixed(2) + ' months';
+  } else {
+    display.textContent = '';
+  }
+  const w2y1 = v('ytd-w2y1'), w2y2 = v('ytd-w2y2');
+  if (!earn || !months) {
+    ['ytd-r1','ytd-r2','ytd-r3'].forEach(id => document.getElementById(id).textContent = '—');
+    document.getElementById('ytd-lowest-box').style.display = 'none';
+    return;
+  }
+  const r1 = earn / months;
+  const r2 = w2y1 ? (earn + w2y1) / (months + 12) : null;
+  const r3 = (w2y1 && w2y2) ? (earn + w2y1 + w2y2) / (months + 24) : null;
+  document.getElementById('ytd-r1').textContent = fmt(r1);
+  document.getElementById('ytd-r2').textContent = r2 !== null ? fmt(r2) : '—';
+  document.getElementById('ytd-r3').textContent = r3 !== null ? fmt(r3) : '—';
+
+  // Lowest of available figures
+  const candidates = [r1, r2, r3].filter(x => x !== null);
+  const lowest = Math.min(...candidates);
+  const box = document.getElementById('ytd-lowest-box');
+  box.style.display = 'flex';
+  document.getElementById('ytd-lowest').textContent = fmt(lowest);
+
+  // Highlight lowest cell
+  const cells = [document.getElementById('ytd-r1'), document.getElementById('ytd-r2'), document.getElementById('ytd-r3')];
+  const vals = [r1, r2, r3];
+  cells.forEach((el, i) => {
+    if (el && vals[i] !== null) {
+      const isLow = vals[i] === lowest;
+      el.parentElement.style.background = isLow ? '#f0fdf4' : '#f8fafc';
+      el.parentElement.style.border = isLow ? '2px solid #86efac' : 'none';
+      el.style.color = isLow ? '#16a34a' : '#1a2332';
+    }
+  });
+}
+
+function resetYTD() {
+  ['ytd-earn','ytd-paid-thru','ytd-w2y1','ytd-w2y2'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('ytd-months-display').textContent = '';
+  ['ytd-r1','ytd-r2','ytd-r3'].forEach(id => {
+    const el = document.getElementById(id);
+    el.textContent = '—';
+    el.style.color = '#1a2332';
+    el.parentElement.style.background = '#f8fafc';
+    el.parentElement.style.border = 'none';
+  });
+  document.getElementById('ytd-lowest-box').style.display = 'none';
+}
+
+// ---- Schedule C ----
+function _scv(id) {
+  // Safe v() that returns 0 if element doesn't exist or is in a hidden block
+  const el = document.getElementById(id);
+  if (!el) return 0;
+  return parseFloat((el.value || '').replace(/[$,]/g, '')) || 0;
+}
+
+function calcSchC() {
+  const MIL_RATE = 0.30; // IRS depreciation component of standard mileage rate (2024–2025)
+
+  // Business 1 (always visible, legacy IDs)
+  const b1y1 = v('sc1-np') + v('sc1-dep') + v('sc1-mil') * MIL_RATE + v('sc1-home') - v('sc1-meals');
+  const b1y2 = v('sc2-np') + v('sc2-dep') + v('sc2-mil') * MIL_RATE + v('sc2-home') - v('sc2-meals');
+  const b1mo = (b1y1 + b1y2) / 24;
+  const b1moTxt = (b1y1 + b1y2) !== 0 ? fmt(b1mo) : '—';
+  const b1moEl = document.getElementById('sc-b1-monthly');
+  if (b1moEl) { b1moEl.textContent = b1moTxt; b1moEl.classList.toggle('has-value', b1moTxt !== '—'); }
+  let totalYr1 = b1y1, totalYr2 = b1y2;
+
+  // Businesses 2–4 (only if visible)
+  for (let b = 2; b <= 4; b++) {
+    const block = document.getElementById(`sc-biz-${b}`);
+    if (!block || block.style.display === 'none') continue;
+    const by1 = _scv(`sc-b${b}-y1-np`) + _scv(`sc-b${b}-y1-dep`) + _scv(`sc-b${b}-y1-mil`) * MIL_RATE + _scv(`sc-b${b}-y1-home`) - _scv(`sc-b${b}-y1-meals`);
+    const by2 = _scv(`sc-b${b}-y2-np`) + _scv(`sc-b${b}-y2-dep`) + _scv(`sc-b${b}-y2-mil`) * MIL_RATE + _scv(`sc-b${b}-y2-home`) - _scv(`sc-b${b}-y2-meals`);
+    const bmoTxt = (by1 + by2) !== 0 ? fmt((by1 + by2) / 24) : '—';
+    const bmoEl = document.getElementById(`sc-b${b}-monthly`);
+    if (bmoEl) { bmoEl.textContent = bmoTxt; bmoEl.classList.toggle('has-value', bmoTxt !== '—'); }
+    totalYr1 += by1;
+    totalYr2 += by2;
+  }
+
+  // Write combined totals (read by export)
+  document.getElementById('sc1-total').value = fmt(totalYr1);
+  document.getElementById('sc2-total').value = fmt(totalYr2);
+  const monthly = (totalYr1 + totalYr2) / 24;
+  document.getElementById('schc-result').textContent = (totalYr1 + totalYr2) !== 0 ? fmt(monthly) : '—';
+  _updateSummaryCard();
+}
+
+function toggleSchCBiz(b) {
+  const fields = document.getElementById(`sc-b${b}-fields`);
+  const arrow  = document.getElementById(`sc-b${b}-arrow`);
+  if (!fields) return;
+  const opening = fields.style.display === 'none';
+  fields.style.display = opening ? '' : 'none';
+  if (arrow) arrow.textContent = opening ? '−' : '+';
+  // Update monthly span style
+  const mo = document.getElementById(`sc-b${b}-monthly`);
+  if (mo) mo.classList.toggle('has-value', mo.textContent !== '—');
+}
+
+function addSchCBiz() {
+  for (let b = 2; b <= 4; b++) {
+    const block = document.getElementById(`sc-biz-${b}`);
+    if (block && block.style.display === 'none') {
+      block.style.display = '';
+      // Expand the new block (it starts collapsed)
+      const fields = document.getElementById(`sc-b${b}-fields`);
+      const arrow  = document.getElementById(`sc-b${b}-arrow`);
+      if (fields) fields.style.display = '';
+      if (arrow)  arrow.textContent = '−';
+      // Collapse Biz #1 to save space
+      const b1fields = document.getElementById('sc-b1-fields');
+      const b1arrow  = document.getElementById('sc-b1-arrow');
+      if (b1fields) b1fields.style.display = 'none';
+      if (b1arrow)  b1arrow.textContent = '+';
+      // Hide add button if all blocks now visible
+      const anyHidden = [2,3,4].some(n => document.getElementById(`sc-biz-${n}`)?.style.display === 'none');
+      document.getElementById('sc-add-btn').style.display = anyHidden ? '' : 'none';
+      return;
+    }
+  }
+}
+
+function removeSchCBiz(b) {
+  const block = document.getElementById(`sc-biz-${b}`);
+  if (!block) return;
+  block.querySelectorAll('input[type="text"]').forEach(el => el.value = '');
+  block.style.display = 'none';
+  document.getElementById('sc-add-btn').style.display = '';
+  calcSchC();
+  _icAutoSave();
+}
+
+function resetSchC() {
+  // Clear and re-expand Business 1
+  ['sc1-np','sc1-dep','sc1-mil','sc1-home','sc1-meals',
+   'sc2-np','sc2-dep','sc2-mil','sc2-home','sc2-meals',
+   'sc-b1-name'].forEach(id => { const el = document.getElementById(id); if(el) el.value = ''; });
+  const b1mo = document.getElementById('sc-b1-monthly');
+  if (b1mo) { b1mo.textContent = '—'; b1mo.classList.remove('has-value'); }
+  const b1f = document.getElementById('sc-b1-fields');
+  const b1a = document.getElementById('sc-b1-arrow');
+  if (b1f) b1f.style.display = '';
+  if (b1a) b1a.textContent = '−';
+  // Hide and clear Businesses 2–4
+  for (let b = 2; b <= 4; b++) {
+    const block = document.getElementById(`sc-biz-${b}`);
+    if (!block) continue;
+    block.querySelectorAll('input[type="text"]').forEach(el => el.value = '');
+    block.style.display = 'none';
+    const arrow = document.getElementById(`sc-b${b}-arrow`);
+    if (arrow) arrow.textContent = '−';
+  }
+  document.getElementById('sc1-total').value = '$0';
+  document.getElementById('sc2-total').value = '$0';
+  document.getElementById('schc-result').textContent = '—';
+  document.getElementById('sc-add-btn').style.display = '';
+  _updateSummaryCard();
+}
+
+// ---- S-Corp / K-1 ----
+function calcKone() {
+  // K-1 Line 1 is already the owner's allocated share — no ownership% needed.
+  // W-2 is the actual wages paid to the individual — no ownership% needed.
+  // Dep, Amort, Sch L, T&E are raw 1120-S amounts — multiply by ownership%.
+  const own   = (v('kp-own') || 100) / 100;
+  const mo1   = parseInt(document.getElementById('k1-months').value) || 12;
+  const mo2   = parseInt(document.getElementById('k2-months').value) || 12;
+  const method = document.getElementById('kp-avg-method').value;
+
+  const k1a = v('k1-line1') + v('k1-w2') + v('k1-dep') * own + v('k1-amort') * own - v('k1-sch17') * own - v('k1-meals') * own;
+  const k2a = v('k2-line1') + v('k2-w2') + v('k2-dep') * own + v('k2-amort') * own - v('k2-sch17') * own - v('k2-meals') * own;
+  document.getElementById('k1-total').value = fmt(k1a);
+  document.getElementById('k2-total').value = fmt(k2a);
+
+  let monthly = 0, label = '';
+  if (method === '2yr') {
+    const totalMo = mo1 + mo2;
+    monthly = (k1a + k2a) / totalMo;
+    label = `2-Year Avg (÷ ${totalMo} months)`;
+  } else if (method === '1yr') {
+    monthly = k1a / mo1;
+    label = `1-Year Most Recent (÷ ${mo1} months)`;
+  } else if (method === 'lower') {
+    const m1 = k1a / mo1, m2 = k2a / mo2;
+    monthly = Math.min(m1, m2);
+    label = `Lower of 2 Years (Year ${m1 <= m2 ? '1' : '2'})`;
+  }
+  document.getElementById('scorp-result-label').textContent = label;
+  document.getElementById('scorp-result').textContent = (k1a !== 0 || k2a !== 0) ? fmt(monthly) : '—';
+  _updateSummaryCard();
+}
+
+function resetScorp() {
+  ['k1-line1','k1-w2','k1-dep','k1-amort','k1-sch17','k1-meals',
+   'k2-line1','k2-w2','k2-dep','k2-amort','k2-sch17','k2-meals'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('kp-own').value = '100';
+  document.getElementById('k1-months').value = '12';
+  document.getElementById('k2-months').value = '12';
+  document.getElementById('kp-avg-method').value = '2yr';
+  document.getElementById('k1-total').value = '$0';
+  document.getElementById('k2-total').value = '$0';
+  document.getElementById('scorp-result').textContent = '—';
+  document.getElementById('scorp-result-label').textContent = 'Qualifying Monthly Income';
+  _updateSummaryCard();
+  _icAutoSave();
+}
+
+// ---- Liquidity Test ----
+function calcLiq() {
+  const assets = v('la1') + v('la2') + v('la3');
+  const liabs = v('ll16') + v('ll17') + v('ll18');
+  const box = document.getElementById('liq-result-box');
+  const failNote = document.getElementById('liq-fail-note');
+  if (assets + liabs === 0) { box.style.display = 'none'; failNote.style.display = 'none'; return; }
+  box.style.display = 'block';
+  if (assets > liabs) {
+    box.className = 'liq-result liq-pass';
+    box.innerHTML = '✅ Liquidity Test PASS — Assets (' + fmt(assets) + ') &gt; Liabilities (' + fmt(liabs) + ')';
+    failNote.style.display = 'none';
+  } else {
+    box.className = 'liq-result liq-fail';
+    box.innerHTML = '❌ Liquidity Test FAIL — Assets (' + fmt(assets) + ') ≤ Liabilities (' + fmt(liabs) + ')';
+    failNote.style.display = 'block';
+  }
+}
+
+// ---- Rental ----
+function calcRental() {
+  const months = v('r-months') || 12;
+  const income = v('r-gross') + v('r-dep') + v('r-tax') + v('r-mint') + v('r-ins') + v('r-hoa') - v('r-exp');
+  const netMonthly = income / months;
+  document.getElementById('r-net').value = fmt(netMonthly);
+  const cashFlow = netMonthly - v('r-mtg') - v('r-hoamtg');
+  const cfEl = document.getElementById('r-cashflow');
+  const negNote = document.getElementById('r-neg-note');
+  cfEl.textContent = fmt(cashFlow);
+  cfEl.style.color = cashFlow < 0 ? '#dc2626' : '#2491EB';
+  negNote.style.display = cashFlow < 0 ? 'block' : 'none';
+  _updateSummaryCard();
+}
+
+function resetRental() {
+  ['r-months','r-gross','r-dep','r-tax','r-mint','r-ins','r-hoa','r-exp','r-mtg','r-hoamtg'].forEach(id => {
+    document.getElementById(id).value = id === 'r-months' ? '12' : '';
+  });
+  document.getElementById('r-net').value = '$0';
+  document.getElementById('r-cashflow').textContent = '—';
+  document.getElementById('r-neg-note').style.display = 'none';
+}
+
+function resetPanel(id1, id2, resId) {
+  if(id1) document.getElementById(id1).value = '';
+  if(id2) document.getElementById(id2).value = '';
+  document.getElementById(resId).textContent = '—';
+}
+
+// ---- Social Security Gross-Up ----
+function calcSS() {
+  const gross = v('ss-6a');
+  const taxable = v('ss-6b');
+  const rateRaw = parseFloat((document.getElementById('ss-rate').value||'').replace(/%/g,'')) || 25;
+  const rate = rateRaw / 100;
+  if (!gross) { document.getElementById('ss-result').textContent = '—'; document.getElementById('ss-detail').style.display='none'; document.getElementById('ss-method-label').textContent=''; return; }
+  const nonTaxable = Math.max(0, gross - taxable);
+  const grossUp = nonTaxable * rate;
+  const qualifying = (gross + grossUp) / 12;
+  const detail = document.getElementById('ss-detail');
+  detail.style.display = 'block';
+  detail.innerHTML = 'Gross SS (6a): <strong>' + fmt(gross) + '/yr</strong> &nbsp;|&nbsp; '
+    + 'Taxable (6b): <strong>' + fmt(taxable) + '/yr</strong><br>'
+    + 'Non-taxable: <strong>' + fmt(nonTaxable) + '/yr</strong> × ' + rateRaw + '% gross-up = <strong>+' + fmt(grossUp) + '/yr</strong><br>'
+    + 'Qualifying annual: <strong>' + fmt(gross + grossUp) + '</strong>';
+  document.getElementById('ss-method-label').textContent = nonTaxable > 0
+    ? 'Grossed up (' + rateRaw + '%) on non-taxable portion'
+    : 'No gross-up — full SS is taxable';
+  document.getElementById('ss-result').textContent = fmt(qualifying);
+  _updateSummaryCard();
+}
+function resetSS() {
+  ['ss-6a','ss-6b'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('ss-rate').value = '25%';
+  document.getElementById('ss-result').textContent = '—';
+  document.getElementById('ss-detail').style.display = 'none';
+  document.getElementById('ss-method-label').textContent = '';
+}
+
+// ---- Capital Gains / Investment Income ----
+function calcCG() {
+  const assets = v('cg-assets');
+  const dp = v('cg-dp');
+  const roiRaw = parseFloat((document.getElementById('cg-roi').value||'').replace(/%/g,'')) || 8;
+  const roi = roiRaw / 100;
+  const detail = document.getElementById('cg-detail');
+  if (!assets) { document.getElementById('cg-result').textContent = '—'; detail.style.display='none'; return; }
+  const remaining = Math.max(0, assets - dp);
+  const annualIncome = remaining * roi;
+  const monthly = annualIncome / 12;
+  detail.style.display = 'block';
+  detail.innerHTML = 'Total assets: <strong>' + fmt(assets) + '</strong> − Down payment: <strong>' + fmt(dp) + '</strong> = Remaining: <strong>' + fmt(remaining) + '</strong><br>'
+    + 'Annual income: <strong>' + fmt(remaining) + ' × ' + roiRaw + '% = ' + fmt(annualIncome) + '</strong>';
+  document.getElementById('cg-result').textContent = fmt(monthly);
+  _updateSummaryCard();
+}
+function resetCG() {
+  ['cg-assets','cg-dp'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('cg-roi').value = '8%';
+  document.getElementById('cg-result').textContent = '—';
+  document.getElementById('cg-detail').style.display = 'none';
+}
+</script>
+
+<script>
+// ── Borrower typeahead — Server API ──
+let _icActiveBorrowerId = null;
+let _icActiveBorrowerRecord = null;
+let _icSuggHL = -1;
+let _icAllBorrowers = [];
+
+function swapBorrowers() {
+  const primaryInput = document.getElementById('borrower-input');
+  const cbFirst = document.getElementById('cb-first');
+  const cbLast  = document.getElementById('cb-last');
+  const primaryName = (primaryInput?.value || '').trim();
+  const coName = ((cbFirst?.value||'').trim() + ' ' + (cbLast?.value||'').trim()).trim();
+  if (!primaryName && !coName) return;
+  const primaryParts = primaryName.split(/\s+/);
+  if (primaryInput) primaryInput.value = coName || '';
+  if (cbFirst) cbFirst.value = primaryParts[0] || '';
+  if (cbLast)  cbLast.value  = primaryParts.slice(1).join(' ') || '';
+  if (_icActiveBorrowerRecord) {
+    if (!_icActiveBorrowerRecord.meta.borrower) _icActiveBorrowerRecord.meta.borrower = {};
+    _icActiveBorrowerRecord.meta.borrower.name            = primaryInput?.value || '';
+    _icActiveBorrowerRecord.meta.borrower.coBorrowerFirst = cbFirst?.value || '';
+    _icActiveBorrowerRecord.meta.borrower.coBorrowerLast  = cbLast?.value  || '';
+    // silent beacon save
+    const blob = new Blob([JSON.stringify(_icActiveBorrowerRecord)], {type:'application/json'});
+    navigator.sendBeacon(`/api/borrowers/${_icActiveBorrowerId}`, blob);
+  }
+}
+
+window.addEventListener('beforeunload', () => {
+  if (_icActiveBorrowerId && _icActiveBorrowerRecord) {
+    if (!_icActiveBorrowerRecord.meta.borrower) _icActiveBorrowerRecord.meta.borrower = {};
+    _icActiveBorrowerRecord.meta.borrower.coBorrowerFirst = (document.getElementById('cb-first')?.value||'').trim();
+    _icActiveBorrowerRecord.meta.borrower.coBorrowerLast  = (document.getElementById('cb-last')?.value||'').trim();
+    const blob = new Blob([JSON.stringify(_icActiveBorrowerRecord)], {type:'application/json'});
+    navigator.sendBeacon(`/api/borrowers/${_icActiveBorrowerId}`, blob);
+  }
+});
+
+async function icGetAllClients() {
+  try {
+    const r = await fetch('/api/borrowers');
+    return r.ok ? await r.json() : [];
+  } catch(e) { return []; }
+}
+
+async function icSearchInput(showAll) {
+  const q = showAll ? '' : document.getElementById('borrower-input').value.trim().toLowerCase();
+  const sugg = document.getElementById('ic-sugg');
+  _icAllBorrowers = await icGetAllClients();
+  const matches = q
+    ? _icAllBorrowers.filter(c => (c.name||'').toLowerCase().includes(q))
+    : _icAllBorrowers.slice(0, 8);
+
+  let html = '';
+  matches.forEach(c => {
+    const name = (c.name||'Unnamed').trim();
+    html += `<div class="bsugg-item" data-id="${c.id}" onmousedown="icSelectBorrower('${c.id}','${name.replace(/'/g,"\\'")}')">
+      ${name}${c.loanType ? `<span style="font-size:10px;color:#94a3b8;margin-left:6px;">${c.loanType}</span>` : ''}
+    </div>`;
+  });
+  const exactMatch = _icAllBorrowers.some(c => (c.name||'').toLowerCase().trim() === q);
+  if (q && !exactMatch) {
+    html += `<div class="bsugg-item" style="color:#94a3b8;font-size:11px;cursor:default;">No match — <a href="/pipeline.html" style="color:#2491EB;font-weight:700;" onmousedown="event.preventDefault();window.location.href='/pipeline.html'">create in Pipeline</a></div>`;
+  }
+  sugg.innerHTML = html;
+  _icSuggHL = -1;
+  if (html) sugg.classList.add('open'); else sugg.classList.remove('open');
+}
+
+function icSearchKeydown(e) {
+  const sugg = document.getElementById('ic-sugg');
+  const items = sugg.querySelectorAll('.bsugg-item');
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    _icSuggHL = Math.min(_icSuggHL + 1, items.length - 1);
+    items.forEach((el, i) => el.classList.toggle('hi', i === _icSuggHL));
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    _icSuggHL = Math.max(_icSuggHL - 1, 0);
+    items.forEach((el, i) => el.classList.toggle('hi', i === _icSuggHL));
+  } else if (e.key === 'Enter') {
+    if (_icSuggHL >= 0 && items[_icSuggHL]) items[_icSuggHL].dispatchEvent(new Event('mousedown'));
+    else if (items.length === 1) items[0].dispatchEvent(new Event('mousedown'));
+  } else if (e.key === 'Escape') {
+    sugg.classList.remove('open');
+  }
+}
+
+async function icSelectBorrower(id, displayName) {
+  _icActiveBorrowerId = id;
+  localStorage.setItem('hws_active_borrower_id', id);
+  document.getElementById('borrower-input').value = displayName;
+  try {
+    const r = await fetch(`/api/borrowers/${id}`);
+    if (r.ok) {
+      _icActiveBorrowerRecord = await r.json();
+      if (!_icActiveBorrowerRecord.pipeline) _icActiveBorrowerRecord.pipeline = {};
+      _icActiveBorrowerRecord.pipeline.lastTouchedTool = 'Income Calc';
+      fetch(`/api/borrowers/${id}/touch`, {method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({tool:'Income Calc'})}).catch(()=>{});
+      document.getElementById('cb-first').value = _icActiveBorrowerRecord.meta?.borrower?.coBorrowerFirst || _icActiveBorrowerRecord.comfortCalc?.coBorrowerFirst || '';
+      document.getElementById('cb-last').value  = _icActiveBorrowerRecord.meta?.borrower?.coBorrowerLast  || _icActiveBorrowerRecord.comfortCalc?.coBorrowerLast  || '';
+      _icRestoreCalcState(_icActiveBorrowerRecord);
+    }
+  } catch(e) { console.error('icSelectBorrower fetch failed:', e); }
+  document.getElementById('ic-sugg').classList.remove('open');
+}
+
+async function icCreateClient(typed) {
+  const parts = typed.trim().split(/\s+/);
+  const firstName = parts[0] ? (parts[0].charAt(0).toUpperCase() + parts[0].slice(1)) : '';
+  const lastName  = parts.slice(1).map(p => p.charAt(0).toUpperCase() + p.slice(1)).join(' ');
+  const name = (firstName + ' ' + lastName).trim();
+  try {
+    const r = await fetch('/api/borrowers', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name })
+    });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const rec = await r.json();
+    icSelectBorrower(rec.meta.id, name);
+  } catch(e) {
+    console.error('Create failed:', e);
+    alert('Failed to create client — check server connection.');
+  }
+}
+
+// Restore active borrower on load
+(async function() {
+  const activeId = localStorage.getItem('hws_active_borrower_id');
+  if (activeId) {
+    try {
+      const r = await fetch(`/api/borrowers/${activeId}`);
+      if (r.ok) {
+        const rec = await r.json();
+        _icActiveBorrowerId = activeId;
+        _icActiveBorrowerRecord = rec;
+        document.getElementById('borrower-input').value = rec.meta?.borrower?.name || '';
+        document.getElementById('cb-first').value = rec.meta?.borrower?.coBorrowerFirst || rec.comfortCalc?.coBorrowerFirst || '';
+        document.getElementById('cb-last').value  = rec.meta?.borrower?.coBorrowerLast  || rec.comfortCalc?.coBorrowerLast  || '';
+        _icRestoreCalcState(rec);
+      } else {
+        localStorage.removeItem('hws_active_borrower_id');
+      }
+    } catch(e) { localStorage.removeItem('hws_active_borrower_id'); }
+  }
+})();
+
+function toggleDD(id) {
+  var all = document.querySelectorAll('.nav-dropdown');
+  all.forEach(function(d) { if (d.id !== id) d.classList.remove('open'); });
+  document.getElementById(id).classList.toggle('open');
+}
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('.nav-dropdown')) {
+    document.querySelectorAll('.nav-dropdown').forEach(function(d) { d.classList.remove('open'); });
+  }
+});
+(function() {
+  var path = window.location.pathname.replace(/\/+$/, '') || '/';
+  var map = {
+    '/hub': 'nav-hub', '/pipeline': 'nav-pipeline',
+    '/net-worth-dp': 'nav-net-worth-dp', '/seller-buydown': 'nav-seller-buydown',
+    '/property-tax': 'nav-property-tax', '/insurance-est': 'nav-insurance-est',
+    '/pre-approval': 'nav-pre-approval', '/income-calc': 'nav-income-calc',
+    '/arive-entry': 'nav-arive-entry', '/': 'nav-uw-prep'
+  };
+  var key = path.replace('.html', '');
+  var id = map[key] || map['/'];
+  var el = document.getElementById(id);
+  if (el) {
+    el.classList.add('active');
+    var dd = el.closest('.nav-dropdown');
+    if (dd) { var btn = dd.querySelector('.nav-dd-btn'); if (btn) btn.style.color = '#fff'; }
+  }
+})();
+
+// Inject calendar years into Year 1 / Year 2 section labels
+(function() {
+  const yr1 = new Date().getFullYear() - 1; // most recent filed return
+  const yr2 = yr1 - 1;                       // prior year
+  ['sc-yr1-label','kp-yr1-label'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = `YEAR 1 — ${yr1} (Most Recent)`;
+  });
+  ['sc-yr2-label','kp-yr2-label'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = `YEAR 2 — ${yr2} (Prior Year)`;
+  });
+})();
+</script>
+
+</body>
+</html>

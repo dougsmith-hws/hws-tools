@@ -1,0 +1,2110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pre-Approval Workflow — HWS</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f7fa;color:#1e293b;min-height:100vh}
+
+/* ── Borrower Bar ──────────────────────────────────────────── */
+#borrower-bar{background:#1a2332;color:white;padding:0 16px;height:46px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:200;box-shadow:0 2px 8px rgba(0,0,0,.4)}
+#current-borrower{display:flex;align-items:center;gap:8px;cursor:pointer;padding:5px 10px;border-radius:6px;border:1px solid rgba(255,255,255,.18);flex:1;max-width:340px;min-width:0;user-select:none}
+#current-borrower:hover{background:rgba(255,255,255,.08)}
+#borrower-icon{font-size:14px;flex-shrink:0}
+#borrower-name-display{font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1}
+#current-borrower .arr{font-size:9px;opacity:.55;flex-shrink:0}
+#new-borrower-btn{background:#8EC73F;border:none;color:white;font-size:12px;font-weight:800;padding:6px 13px;border-radius:6px;cursor:pointer;white-space:nowrap;flex-shrink:0}
+#new-borrower-btn:hover{background:#7ab535}
+#save-indicator{margin-left:auto;font-size:11px;opacity:.6;white-space:nowrap;flex-shrink:0}
+#save-indicator.saving{opacity:.9;color:#f0c040}
+#save-indicator.saved{opacity:.8;color:#8EC73F}
+#save-indicator.error{opacity:1;color:#ff6b6b}
+
+/* ── Borrower Switcher ─────────────────────────────────────── */
+#borrower-switcher{position:fixed;top:46px;left:0;width:340px;background:white;border:1px solid #e2e8f0;border-top:none;box-shadow:4px 8px 24px rgba(0,0,0,.15);z-index:199;max-height:460px;display:flex;flex-direction:column}
+#borrower-switcher.hidden{display:none}
+#borrower-search{width:100%;padding:10px 14px;border:none;border-bottom:1px solid #e2e8f0;font-size:13px;outline:none;color:#1e293b}
+#borrower-list{overflow-y:auto;flex:1}
+.b-row{padding:10px 14px;cursor:pointer;border-bottom:1px solid #f1f5f9;display:flex;justify-content:space-between;align-items:center}
+.b-row:hover{background:#f8fafc}
+.b-row.active{background:#eff8ff}
+.b-name{font-size:13px;font-weight:600;color:#1e293b}
+.b-meta{font-size:11px;color:#94a3b8;margin-top:1px}
+.b-del{background:none;border:none;color:#cbd5e1;cursor:pointer;font-size:13px;padding:3px 7px;border-radius:4px;opacity:0;transition:opacity .12s}
+.b-row:hover .b-del{opacity:1}
+.b-del:hover{color:#ef4444;background:#fef2f2}
+.sw-empty{padding:22px 14px;font-size:13px;color:#94a3b8;text-align:center}
+.sw-foot{padding:9px 14px;border-top:1px solid #e2e8f0;font-size:11px;color:#94a3b8;text-align:center}
+
+/* ── Modal ─────────────────────────────────────────────────── */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:300;display:flex;align-items:center;justify-content:center}
+.modal-overlay.hidden{display:none}
+.modal-box{background:white;border-radius:12px;padding:28px;width:420px;max-width:95vw;box-shadow:0 20px 60px rgba(0,0,0,.25)}
+.modal-box h3{font-size:17px;font-weight:800;color:#1e293b;margin-bottom:20px}
+.mf{margin-bottom:14px}
+.mf label{display:block;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:#64748b;margin-bottom:5px}
+.mf input,.mf select{width:100%;padding:9px 11px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:13px;color:#1e293b;outline:none}
+.mf input:focus,.mf select:focus{border-color:#2491EB}
+.mrow{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.mactions{display:flex;gap:10px;margin-top:22px;justify-content:flex-end}
+.btn-p{background:#2491EB;color:white;border:none;padding:9px 20px;border-radius:7px;font-size:13px;font-weight:700;cursor:pointer}
+.btn-p:hover{background:#1a7fd4}
+.btn-s{background:none;color:#64748b;border:1.5px solid #e2e8f0;padding:9px 16px;border-radius:7px;font-size:13px;cursor:pointer}
+.btn-s:hover{background:#f8fafc}
+
+/* ── No File State ─────────────────────────────────────────── */
+#no-file-state{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:70vh;gap:14px;color:#64748b;padding:32px}
+#no-file-state.hidden{display:none}
+#no-file-state h2{font-size:21px;font-weight:800;color:#1e293b}
+#no-file-state p{font-size:14px;max-width:320px;text-align:center;line-height:1.6}
+.open-recent{font-size:13px;color:#2491EB;cursor:pointer;text-decoration:underline}
+
+/* ── Progress bar ─────────────────────────────────────────── */
+#status-bar{position:sticky;top:46px;z-index:100;background:white;border-bottom:1px solid #e2e8f0;padding:8px 20px;display:flex;align-items:center;gap:14px;font-size:12px;color:#64748b}
+#progress-fill{height:4px;background:#8EC73F;border-radius:2px;transition:width .3s;margin-bottom:0}
+#progress-track{flex:1;height:4px;background:#e2e8f0;border-radius:2px;overflow:hidden}
+#progress-label{white-space:nowrap;font-weight:600}
+button.reset-btn{margin-left:auto;font-size:11px;color:#94a3b8;background:none;border:none;cursor:pointer;padding:3px 8px;border-radius:5px}
+button.reset-btn:hover{background:#f1f5f9;color:#64748b}
+
+/* ── Layout ────────────────────────────────────────────────── */
+.wrap{max-width:960px;margin:0 auto;padding:20px 16px 60px}
+
+/* ── Section card ──────────────────────────────────────────── */
+.section{background:white;border-radius:10px;border:1px solid #e2e8f0;margin-bottom:18px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.05)}
+.section-header{display:flex;align-items:center;gap:12px;padding:14px 18px;background:#f8fafc;border-bottom:1px solid #e2e8f0}
+.sec-num{width:26px;height:26px;border-radius:50%;background:#2491EB;color:white;font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.sec-title{font-size:15px;font-weight:800;color:#1e293b}
+.sec-sub{font-size:12px;color:#94a3b8;margin-left:auto}
+
+/* ── Checklist ─────────────────────────────────────────────── */
+.checklist{padding:10px 14px 14px}
+.checklist-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:0}
+.item{display:flex;flex-direction:column;padding:7px 6px;border-radius:7px}
+.item:hover{background:#f8fafc}
+.item-row{display:flex;align-items:flex-start;gap:8px}
+.item input[type=checkbox]{margin-top:3px;flex-shrink:0;accent-color:#2491EB;width:15px;height:15px;cursor:pointer}
+.item-label{font-size:12.5px;color:#334155;line-height:1.45;flex:1;cursor:pointer}
+.item input[type=checkbox]:checked + .item-label{color:#94a3b8;text-decoration:line-through}
+.note-btn{background:none;border:none;cursor:pointer;font-size:13px;padding:1px 4px;border-radius:4px;opacity:.45;transition:opacity .12s,background .12s;flex-shrink:0;margin-left:2px}
+.note-btn:hover{opacity:1;background:#f0f4f8}
+.note-btn.has-note{opacity:1;color:#2491EB}
+.note-btn.note-open{opacity:1;background:#eff6ff;color:#2491EB}
+.note-panel{display:none;margin-top:6px;padding:8px 10px;background:#f8fafc;border-radius:7px;border:1px solid #e2e8f0}
+.note-panel.open{display:block}
+.note-panel textarea{width:100%;font-size:11.5px;border:1px solid #e2e8f0;border-radius:5px;padding:7px 9px;resize:vertical;min-height:70px;font-family:inherit;color:#334155;outline:none;background:white}
+.note-panel textarea:focus{border-color:#2491EB}
+.note-actions{display:flex;align-items:center;gap:7px;margin-top:6px}
+.note-actions button{font-size:11px;padding:4px 10px;border-radius:5px;cursor:pointer;border:1.5px solid #e2e8f0;background:white;color:#64748b;font-weight:600}
+.note-actions button:first-child{background:#2491EB;border-color:#2491EB;color:white}
+.note-actions button:first-child:hover{background:#1a7fd4}
+.saved-msg{font-size:10px;color:#8EC73F;font-weight:700;opacity:0;transition:opacity .2s;margin-left:auto}
+.saved-msg.show{opacity:1}
+
+/* ── Tags ──────────────────────────────────────────────────── */
+.tag{font-size:9px;font-weight:800;padding:1px 5px;border-radius:3px;vertical-align:middle;margin-left:3px;letter-spacing:.3px}
+.tag-fha{background:#fff3cd;color:#92600a}
+.tag-va{background:#d1fae5;color:#065f46}
+.tag-conv{background:#ede9fe;color:#5b21b6}
+.tag-refi{background:#dbeafe;color:#1e40af}
+.tag-warn{background:#fee2e2;color:#991b1b}
+.tag-usda{background:#e0f2fe;color:#0c4a6e}
+
+/* ── Credit table ──────────────────────────────────────────── */
+.credit-table-wrap{overflow-x:auto;margin:12px 0 10px}
+.credit-table{width:100%;border-collapse:collapse;font-size:11.5px}
+.credit-table th{background:#f1f5f9;padding:7px 10px;text-align:left;font-weight:700;color:#475569;border:1px solid #e2e8f0;white-space:nowrap}
+.credit-table td{padding:6px 10px;border:1px solid #e2e8f0;color:#334155;vertical-align:top}
+.credit-table tr:nth-child(even) td{background:#fafafa}
+.credit-table td:first-child{font-weight:600;background:#f8fafc}
+
+/* ── Search-find tags ──────────────────────────────────────── */
+.sf-wrap{display:flex;flex-wrap:wrap;gap:6px;padding:10px 14px 6px;border-bottom:1px solid #f1f5f9}
+.sf-label{font-size:11px;font-weight:700;color:#64748b;width:100%;margin-bottom:2px}
+.sf-tag{font-size:11px;padding:3px 9px;background:#f1f5f9;border-radius:4px;color:#334155;font-weight:600;border:1px solid #e2e8f0}
+
+/* ── Public records panel ──────────────────────────────────── */
+.pub-rec-panel{margin:10px 14px;padding:12px 14px;background:#fffbeb;border:1.5px solid #fde68a;border-radius:8px;font-size:12px;color:#78350f;line-height:1.6}
+.pub-rec-panel strong{display:block;margin-bottom:6px;font-size:13px}
+
+/* ── Income calc ───────────────────────────────────────────── */
+.income-calc-panel{margin:10px 14px;padding:14px;background:#f8fafc;border-radius:8px;border:1px solid #e2e8f0}
+.income-calc-panel h4{font-size:12px;font-weight:800;color:#475569;text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px}
+.calc-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px}
+.calc-field label{display:block;font-size:10px;font-weight:700;color:#94a3b8;margin-bottom:3px}
+.calc-field input{width:100%;padding:6px 8px;border:1.5px solid #e2e8f0;border-radius:6px;font-size:12px;outline:none;background:white}
+.calc-field input:focus{border-color:#2491EB}
+.calc-result{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:10px}
+.res-field label{display:block;font-size:10px;font-weight:700;color:#94a3b8;margin-bottom:3px}
+.res-field input{width:100%;padding:6px 8px;border:1.5px solid #e2e8f0;border-radius:6px;font-size:12px;background:#f1f5f9;color:#475569;outline:none}
+.calc-lowest{text-align:center;font-size:14px;font-weight:800;color:#1e293b;padding:8px}
+.calc-lowest span{color:#2491EB}
+.calc-btn{background:#2491EB;color:white;border:none;padding:7px 14px;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer}
+.calc-btn:hover{background:#1a7fd4}
+
+/* ── Income import banner ──────────────────────────────────── */
+#income-import-banner{margin:10px 14px 6px;padding:10px 14px;background:#f0f7ff;border:1.5px solid #bde0ff;border-radius:8px;font-size:12px;color:#1e293b;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+#income-import-banner.has-income{background:#f0fdf4;border-color:#86efac}
+.inc-badge{background:#8EC73F;color:white;font-size:10px;font-weight:800;padding:2px 7px;border-radius:4px;white-space:nowrap}
+.launch-calc{color:#2491EB;font-weight:700;text-decoration:none;margin-left:auto;white-space:nowrap;font-size:12px}
+.launch-calc:hover{text-decoration:underline}
+
+/* ── AUS section ───────────────────────────────────────────── */
+.aus-warning{margin:14px;padding:12px 14px;background:#fef3c7;border:1.5px solid #fcd34d;border-radius:8px;font-size:12.5px;font-weight:700;color:#92400e}
+.aus-options{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;padding:0 14px 16px}
+.aus-option{display:flex;align-items:center;gap:9px;padding:10px 13px;border:1.5px solid #e2e8f0;border-radius:8px;cursor:pointer;transition:border-color .12s,background .12s}
+.aus-option:hover{background:#f8fafc;border-color:#cbd5e1}
+.aus-option input[type=radio]{accent-color:#2491EB;flex-shrink:0}
+.aus-option label{font-size:13px;font-weight:600;cursor:pointer;color:#334155}
+.aus-option.selected{background:#eff8ff;border-color:#2491EB}
+
+#workflow-wrap.hidden{display:none}
+</style>
+</head>
+<body>
+<!-- ── BORROWER BAR ───────────────────────────────────────── -->
+<div id="borrower-bar">
+  <div id="current-borrower" onclick="toggleSwitcher()">
+    <span id="borrower-icon">👤</span>
+    <span id="borrower-name-display">No file open</span>
+    <span class="arr">▾</span>
+  </div>
+  <button id="new-borrower-btn" onclick="showNewModal()">+ New File</button>
+  <span id="save-indicator"></span>
+</div>
+
+<!-- ── BORROWER SWITCHER ──────────────────────────────────── -->
+<div id="borrower-switcher" class="hidden">
+  <input id="borrower-search" placeholder="Search borrowers…" oninput="filterBorrowers(this.value)">
+  <div id="borrower-list"></div>
+  <div class="sw-foot">Click a file to open it</div>
+</div>
+
+<!-- ── NEW BORROWER MODAL ────────────────────────────────── -->
+<div id="new-borrower-modal" class="modal-overlay hidden">
+  <div class="modal-box">
+    <h3>New Borrower File</h3>
+    <div class="mf">
+      <label>Borrower Name(s) *</label>
+      <input id="nb-name" placeholder="e.g. John & Jane Smith" onkeydown="if(event.key==='Enter')createBorrower()">
+    </div>
+    <div class="mrow">
+      <div class="mf">
+        <label>Loan Purpose</label>
+        <select id="nb-purpose">
+          <option value="">— Select —</option>
+          <option value="purchase">Purchase</option>
+          <option value="refi_rate_term">Refi — Rate/Term</option>
+          <option value="refi_cash_out">Refi — Cash Out</option>
+        </select>
+      </div>
+      <div class="mf">
+        <label>Loan Type</label>
+        <select id="nb-type">
+          <option value="">— Select —</option>
+          <option value="conv">Conventional</option>
+          <option value="fha">FHA</option>
+          <option value="va">VA</option>
+          <option value="usda">USDA</option>
+        </select>
+      </div>
+    </div>
+    <div class="mrow">
+      <div class="mf">
+        <label>Loan Amount</label>
+        <input id="nb-amount" placeholder="$450,000" type="text" inputmode="numeric"
+               onfocus="this.value=this.value.replace(/[$,]/g,'')"
+               onblur="if(this.value){const n=parseFloat(this.value.replace(/[$,]/g,''));if(!isNaN(n))this.value='$'+n.toLocaleString();}">
+      </div>
+      <div class="mf">
+        <label>Credit Score</label>
+        <input id="nb-score" placeholder="740" type="number" min="300" max="850">
+      </div>
+    </div>
+    <div class="mactions">
+      <button class="btn-s" onclick="hideModal()">Cancel</button>
+      <button class="btn-p" onclick="createBorrower()">Create File →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── NO FILE STATE ─────────────────────────────────────── -->
+<div id="no-file-state">
+  <h2>HWS Pre-Approval Workflow</h2>
+  <p>Open an existing borrower file or create a new one to begin.</p>
+  <button class="btn-p" onclick="showNewModal()" style="padding:11px 28px;font-size:14px;margin-top:6px">+ Create New Borrower File</button>
+  <span class="open-recent" onclick="toggleSwitcher()">or open recent file ▾</span>
+</div>
+
+<!-- ── MAIN WORKFLOW ─────────────────────────────────────── -->
+<div id="workflow-wrap" class="hidden">
+
+  <div id="status-bar">
+    <div id="progress-track"><div id="progress-fill" style="width:0%"></div></div>
+    <span id="progress-label"><span id="checked-count">0</span> / <span id="total-count">0</span> items</span>
+    <button class="reset-btn" onclick="resetAll()">Reset</button>
+  </div>
+  <div class="wrap">
+
+    <!-- ── SECTION 1: APPLICATION ─────────────────────────── -->
+    <div class="section">
+      <div class="section-header">
+        <div class="sec-num">1</div>
+        <div class="sec-title">Application</div>
+        <div class="sec-sub">Review 1003 completeness and basic eligibility</div>
+      </div>
+      <div class="checklist">
+        <div class="checklist-grid">
+
+    <div class="item">
+      <div class="item-row">
+        <input type="checkbox" id="a1" onchange="handleCheck(this)">
+        <label class="item-label" for="a1">ID on file — verified unexpired<span class="tag tag-warn">⚠</span></label>
+        <button class="note-btn" onclick="toggleNote('a1')" title="Notes">💬</button>
+      </div>
+      <div style="margin-left:23px">
+        <div class="note-panel" id="note-panel-a1">
+          <textarea id="note-a1" rows="4" placeholder="Add notes…"></textarea>
+          <div class="note-actions">
+            <button onclick="saveNote('a1')">Save</button>
+            <button onclick="clearNote('a1')">Clear</button>
+            <span class="saved-msg" id="saved-a1">Saved ✓</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="item">
+      <div class="item-row">
+        <input type="checkbox" id="a2" onchange="handleCheck(this)">
+        <label class="item-label" for="a2">Property cross-checked — no resale/flip concerns<span class="tag tag-conv">Conv</span></label>
+        <button class="note-btn" onclick="toggleNote('a2')" title="Notes">💬</button>
+      </div>
+      <div style="margin-left:23px">
+        <div class="note-panel" id="note-panel-a2">
+          <textarea id="note-a2" rows="4" placeholder="Add notes…"></textarea>
+          <div class="note-actions">
+            <button onclick="saveNote('a2')">Save</button>
+            <button onclick="clearNote('a2')">Clear</button>
+            <span class="saved-msg" id="saved-a2">Saved ✓</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="item">
+      <div class="item-row">
+        <input type="checkbox" id="a3" onchange="handleCheck(this)">
+        <label class="item-label" for="a3">2-year history documented — all gaps covered</label>
+        <button class="note-btn" onclick="toggleNote('a3')" title="Notes">💬</button>
+      </div>
+      <div style="margin-left:23px">
+        <div class="note-panel" id="note-panel-a3">
+          <textarea id="note-a3" rows="4" placeholder="Add notes…"></textarea>
+          <div class="note-actions">
+            <button onclick="saveNote('a3')">Save</button>
+            <button onclick="clearNote('a3')">Clear</button>
+            <span class="saved-msg" id="saved-a3">Saved ✓</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="item">
+      <div class="item-row">
+        <input type="checkbox" id="a4" onchange="handleCheck(this)">
+        <label class="item-label" for="a4">Employment verified — VOE method noted</label>
+        <button class="note-btn" onclick="toggleNote('a4')" title="Notes">💬</button>
+      </div>
+      <div style="margin-left:23px">
+        <div class="note-panel" id="note-panel-a4">
+          <textarea id="note-a4" rows="4" placeholder="Add notes…"></textarea>
+          <div class="note-actions">
+            <button onclick="saveNote('a4')">Save</button>
+            <button onclick="clearNote('a4')">Clear</button>
+            <span class="saved-msg" id="saved-a4">Saved ✓</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="item">
+      <div class="item-row">
+        <input type="checkbox" id="a5" onchange="handleCheck(this)">
+        <label class="item-label" for="a5">Taxes and insurance estimated — communicated to buyer</label>
+        <button class="note-btn" onclick="toggleNote('a5')" title="Notes">💬</button>
+      </div>
+      <div style="margin-left:23px">
+        <div class="note-panel" id="note-panel-a5">
+          <textarea id="note-a5" rows="4" placeholder="Add notes…"></textarea>
+          <div class="note-actions">
+            <button onclick="saveNote('a5')">Save</button>
+            <button onclick="clearNote('a5')">Clear</button>
+            <span class="saved-msg" id="saved-a5">Saved ✓</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="item">
+      <div class="item-row">
+        <input type="checkbox" id="a6" onchange="handleCheck(this)">
+        <label class="item-label" for="a6">Income type identified — base vs. variable separated</label>
+        <button class="note-btn" onclick="toggleNote('a6')" title="Notes">💬</button>
+      </div>
+      <div style="margin-left:23px">
+        <div class="note-panel" id="note-panel-a6">
+          <textarea id="note-a6" rows="4" placeholder="Add notes…"></textarea>
+          <div class="note-actions">
+            <button onclick="saveNote('a6')">Save</button>
+            <button onclick="clearNote('a6')">Clear</button>
+            <span class="saved-msg" id="saved-a6">Saved ✓</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="item">
+      <div class="item-row">
+        <input type="checkbox" id="a7" onchange="handleCheck(this)">
+        <label class="item-label" for="a7">Property type confirmed — matches application</label>
+        <button class="note-btn" onclick="toggleNote('a7')" title="Notes">💬</button>
+      </div>
+      <div style="margin-left:23px">
+        <div class="note-panel" id="note-panel-a7">
+          <textarea id="note-a7" rows="4" placeholder="Add notes…"></textarea>
+          <div class="note-actions">
+            <button onclick="saveNote('a7')">Save</button>
+            <button onclick="clearNote('a7')">Clear</button>
+            <span class="saved-msg" id="saved-a7">Saved ✓</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="item">
+      <div class="item-row">
+        <input type="checkbox" id="a8" onchange="handleCheck(this)">
+        <label class="item-label" for="a8">Other REO — all properties and mortgages documented<span class="tag tag-refi">Refi</span></label>
+        <button class="note-btn" onclick="toggleNote('a8')" title="Notes">💬</button>
+      </div>
+      <div style="margin-left:23px">
+        <div class="note-panel" id="note-panel-a8">
+          <textarea id="note-a8" rows="4" placeholder="Add notes…"></textarea>
+          <div class="note-actions">
+            <button onclick="saveNote('a8')">Save</button>
+            <button onclick="clearNote('a8')">Clear</button>
+            <span class="saved-msg" id="saved-a8">Saved ✓</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="item">
+      <div class="item-row">
+        <input type="checkbox" id="a9" onchange="handleCheck(this)">
+        <label class="item-label" for="a9">ID not expiring before closing<span class="tag tag-warn">⚠</span></label>
+        <button class="note-btn" onclick="toggleNote('a9')" title="Notes">💬</button>
+      </div>
+      <div style="margin-left:23px">
+        <div class="note-panel" id="note-panel-a9">
+          <textarea id="note-a9" rows="4" placeholder="Add notes…"></textarea>
+          <div class="note-actions">
+            <button onclick="saveNote('a9')">Save</button>
+            <button onclick="clearNote('a9')">Clear</button>
+            <span class="saved-msg" id="saved-a9">Saved ✓</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="item">
+      <div class="item-row">
+        <input type="checkbox" id="a10" onchange="handleCheck(this)">
+        <label class="item-label" for="a10">Citizenship / residency status confirmed<span class="tag tag-fha">FHA</span><span class="tag tag-va">VA</span></label>
+        <button class="note-btn" onclick="toggleNote('a10')" title="Notes">💬</button>
+      </div>
+      <div style="margin-left:23px">
+        <div class="note-panel" id="note-panel-a10">
+          <textarea id="note-a10" rows="4" placeholder="Add notes…"></textarea>
+          <div class="note-actions">
+            <button onclick="saveNote('a10')">Save</button>
+            <button onclick="clearNote('a10')">Clear</button>
+            <span class="saved-msg" id="saved-a10">Saved ✓</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="item">
+      <div class="item-row">
+        <input type="checkbox" id="a11" onchange="handleCheck(this)">
+        <label class="item-label" for="a11">Refi — net tangible benefit analysis completed<span class="tag tag-refi">Refi</span></label>
+        <button class="note-btn" onclick="toggleNote('a11')" title="Notes">💬</button>
+      </div>
+      <div style="margin-left:23px">
+        <div class="note-panel" id="note-panel-a11">
+          <textarea id="note-a11" rows="4" placeholder="Add notes…"></textarea>
+          <div class="note-actions">
+            <button onclick="saveNote('a11')">Save</button>
+            <button onclick="clearNote('a11')">Clear</button>
+            <span class="saved-msg" id="saved-a11">Saved ✓</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="item">
+      <div class="item-row">
+        <input type="checkbox" id="a12" onchange="handleCheck(this)">
+        <label class="item-label" for="a12">All liabilities cross-referenced with credit report</label>
+        <button class="note-btn" onclick="toggleNote('a12')" title="Notes">💬</button>
+      </div>
+      <div style="margin-left:23px">
+        <div class="note-panel" id="note-panel-a12">
+          <textarea id="note-a12" rows="4" placeholder="Add notes…"></textarea>
+          <div class="note-actions">
+            <button onclick="saveNote('a12')">Save</button>
+            <button onclick="clearNote('a12')">Clear</button>
+            <span class="saved-msg" id="saved-a12">Saved ✓</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="item">
+      <div class="item-row">
+        <input type="checkbox" id="a13" onchange="handleCheck(this)">
+        <label class="item-label" for="a13">Address history cross-referenced with CBR</label>
+        <button class="note-btn" onclick="toggleNote('a13')" title="Notes">💬</button>
+      </div>
+      <div style="margin-left:23px">
+        <div class="note-panel" id="note-panel-a13">
+          <textarea id="note-a13" rows="4" placeholder="Add notes…"></textarea>
+          <div class="note-actions">
+            <button onclick="saveNote('a13')">Save</button>
+            <button onclick="clearNote('a13')">Clear</button>
+            <span class="saved-msg" id="saved-a13">Saved ✓</span>
+          </div>
+        </div>
+      </div>
+    </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── SECTION 2: CREDIT ──────────────────────────────── -->
+    <div class="section">
+      <div class="section-header">
+        <div class="sec-num">2</div>
+        <div class="sec-title">Credit</div>
+        <div class="sec-sub">CBR review, public records, score analysis</div>
+      </div>
+
+      <!-- Waiting periods table -->
+      <div class="checklist">
+        <div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:#64748b;margin-bottom:8px">Waiting Periods by Event</div>
+        <div class="credit-table-wrap">
+          <table class="credit-table">
+            <thead>
+              <tr><th>Event</th><th>Conv (FNMA)</th><th>FHA</th><th>VA</th><th>USDA</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>BK Chapter 7</td><td>4 yr from discharge</td><td>2 yr from discharge</td><td>2 yr from discharge</td><td>3 yr from discharge</td></tr>
+              <tr><td>BK Chapter 13</td><td>2 yr from discharge / 4 yr from dismissal</td><td>1 yr on-time plan payments (trustee approval req.)</td><td>1 yr on-time + trustee approval</td><td>1 yr from discharge</td></tr>
+              <tr><td>Multiple BKs</td><td>5 yr from most recent discharge</td><td>3 yr from most recent</td><td>3 yr</td><td>3 yr</td></tr>
+              <tr><td>Foreclosure</td><td>7 yr from completion</td><td>3 yr from completion</td><td>2 yr from completion</td><td>3 yr from completion</td></tr>
+              <tr><td>Deed-in-Lieu / Short Sale</td><td>4 yr from completion</td><td>3 yr from completion</td><td>2 yr</td><td>3 yr</td></tr>
+              <tr><td>Collections / Judgments</td><td>Must be paid or on payment plan</td><td>Must be paid at/before closing</td><td>Case-by-case</td><td>Must be paid</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Search & Find tags -->
+        <div class="sf-wrap">
+          <div class="sf-label">Search & Find on CBR:</div>
+          <span class="sf-tag">Disputed Derog</span>
+          <span class="sf-tag">Lease</span>
+          <span class="sf-tag">Student Loan</span>
+          <span class="sf-tag">Agency Loans</span>
+          <span class="sf-tag">AMEX</span>
+          <span class="sf-tag">Real Estate</span>
+          <span class="sf-tag">HELOC</span>
+          <span class="sf-tag">Foreclosure</span>
+          <span class="sf-tag">BK</span>
+          <span class="sf-tag">Collections</span>
+          <span class="sf-tag">Transfer</span>
+          <span class="sf-tag">Authorized User</span>
+          <span class="sf-tag">Fraud Alert</span>
+        </div>
+
+        <!-- Public records advisory -->
+        <div class="pub-rec-panel">
+          <strong>⚠ Public Records Advisory</strong>
+          Even if a derogatory event has been removed from the credit report via credit repair,
+          the court filing still exists in public records. AUS, underwriting, and title will surface it.
+          Document all events upfront. Extenuating circumstances (documented job loss, medical emergency,
+          death of co-borrower, divorce) may allow reduced waiting periods under FNMA B3-5.3-07 and
+          FHLMC 5202.4. Obtain supporting documentation before attempting exception.
+        </div>
+
+        <div class="checklist-grid">
+    <div class="item">
+      <div class="item-row">
+        <input type="checkbox" id="c1" onchange="handleCheck(this)">
+        <label class="item-label" for="c1">All CBR scores pulled — locked bureaus addressed<span class="tag tag-warn">⚠</span></label>
+        <button class="note-btn" onclick="toggleNote('c1')" title="Notes">💬</button>
+      </div>
+      <div style="margin-left:23px">
+        <div class="note-panel" id="note-panel-c1">
+          <textarea id="note-c1" rows="4" placeholder="Add notes…"></textarea>
+          <div class="note-actions">
+            <button onclick="saveNote('c1')">Save</button>
+            <button onclick="clearNote('c1')">Clear</button>
+            <span class="saved-msg" id="saved-c1">Saved ✓</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="item">
+      <div class="item-row">
+        <input type="checkbox" id="c2" onchange="handleCheck(this)">
+        <label class="item-label" for="c2">Manual UW eligibility assessed — compensating factors documented</label>
+        <button class="note-btn" onclick="toggleNote('c2')" title="Notes">💬</button>
+      </div>
+      <div style="margin-left:23px">
+        <div class="note-panel" id="note-panel-c2">
+          <textarea id="note-c2" rows="4" placeholder="Add notes…"></textarea>
+          <div class="note-actions">
+            <button onclick="saveNote('c2')">Save</button>
+            <button onclick="clearNote('c2')">Clear</button>
+            <span class="saved-msg" id="saved-c2">Saved ✓</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="item">
+      <div class="item-row">
+        <input type="checkbox" id="c3" onchange="handleCheck(this)">
+        <label class="item-label" for="c3">Lender minimum score requirements confirmed</label>
+        <button class="note-btn" onclick="toggleNote('c3')" title="Notes">💬</button>
+      </div>
+      <div style="margin-left:23px">
+        <div class="note-panel" id="note-panel-c3">
+          <textarea id="note-c3" rows="4" placeholder="Add notes…"></textarea>
+          <div class="note-actions">
+            <button onclick="saveNote('c3')">Save</button>
+            <button onclick="clearNote('c3')">Clear</button>
+            <span class="saved-msg" id="saved-c3">Saved ✓</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="item">
+      <div class="item-row">
+        <input type="checkbox" id="c4" onchange="handleCheck(this)">
+        <label class="item-label" for="c4">Inquiries within 120 days — LOE drafted for each<span class="tag tag-conv">Conv</span></label>
+        <button class="note-btn" onclick="toggleNote('c4')" title="Notes">💬</button>
+      </div>
+      <div style="margin-left:23px">
+        <div class="note-panel" id="note-panel-c4">
+          <textarea id="note-c4" rows="4" placeholder="Add notes…"></textarea>
+          <div class="note-actions">
+            <button onclick="saveNote('c4')">Save</button>
+            <button onclick="clearNote('c4')">Clear</button>
+            <span class="saved-msg" id="saved-c4">Saved ✓</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="item">
+      <div class="item-row">
+        <input type="checkbox" id="c5" onchange="handleCheck(this)">
+        <label class="item-label" for="c5">12-month mortgage history reviewed — lates documented</label>
+        <button class="note-btn" onclick="toggleNote('c5')" title="Notes">💬</button>
+      </div>
+      <div style="margin-left:23px">
+        <div class="note-panel" id="note-panel-c5">
+          <textarea id="note-c5" rows="4" placeholder="Add notes…"></textarea>
+          <div class="note-actions">
+            <button onclick="saveNote('c5')">Save</button>
+            <button onclick="clearNote('c5')">Clear</button>
+            <span class="saved-msg" id="saved-c5">Saved ✓</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="item">
+      <div class="item-row">
+        <input type="checkbox" id="c6" onchange="handleCheck(this)">
+        <label class="item-label" for="c6">Public records fully documented — waiting periods verified<span class="tag tag-warn">⚠</span></label>
+        <button class="note-btn" onclick="toggleNote('c6')" title="Notes">💬</button>
+      </div>
+      <div style="margin-left:23px">
+        <div class="note-panel" id="note-panel-c6">
+          <textarea id="note-c6" rows="4" placeholder="Add notes…"></textarea>
+          <div class="note-actions">
+            <button onclick="saveNote('c6')">Save</button>
+            <button onclick="clearNote('c6')">Clear</button>
+            <span class="saved-msg" id="saved-c6">Saved ✓</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="item">
+      <div class="item-row">
+        <input type="checkbox" id="c7" onchange="handleCheck(this)">
+        <label class="item-label" for="c7">AMEX / charge card balance treatment confirmed<span class="tag tag-conv">Conv</span></label>
+        <button class="note-btn" onclick="toggleNote('c7')" title="Notes">💬</button>
+      </div>
+      <div style="margin-left:23px">
+        <div class="note-panel" id="note-panel-c7">
+          <textarea id="note-c7" rows="4" placeholder="Add notes…"></textarea>
+          <div class="note-actions">
+            <button onclick="saveNote('c7')">Save</button>
+            <button onclick="clearNote('c7')">Clear</button>
+            <span class="saved-msg" id="saved-c7">Saved ✓</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="item">
+      <div class="item-row">
+        <input type="checkbox" id="c8" onchange="handleCheck(this)">
+        <label class="item-label" for="c8">Positive rental history — VOR or payment documentation</label>
+        <button class="note-btn" onclick="toggleNote('c8')" title="Notes">💬</button>
+      </div>
+      <div style="margin-left:23px">
+        <div class="note-panel" id="note-panel-c8">
+          <textarea id="note-c8" rows="4" placeholder="Add notes…"></textarea>
+          <div class="note-actions">
+            <button onclick="saveNote('c8')">Save</button>
+            <button onclick="clearNote('c8')">Clear</button>
+            <span class="saved-msg" id="saved-c8">Saved ✓</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="item">
+      <div class="item-row">
+        <input type="checkbox" id="c9" onchange="handleCheck(this)">
+        <label class="item-label" for="c9">Employed by family — treated as self-employment</label>
+        <button class="note-btn" onclick="toggleNote('c9')" title="Notes">💬</button>
+      </div>
+      <div style="margin-left:23px">
+        <div class="note-panel" id="note-panel-c9">
+          <textarea id="note-c9" rows="4" placeholder="Add notes…"></textarea>
+          <div class="note-actions">
+            <button onclick="saveNote('c9')">Save</button>
+            <button onclick="clearNote('c9')">Clear</button>
+            <span class="saved-msg" id="saved-c9">Saved ✓</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="item">
+      <div class="item-row">
+        <input type="checkbox" id="c10" onchange="handleCheck(this)">
+        <label class="item-label" for="c10">Tax returns — IRS balance or payment plan addressed<span class="tag tag-warn">⚠</span></label>
+        <button class="note-btn" onclick="toggleNote('c10')" title="Notes">💬</button>
+      </div>
+      <div style="margin-left:23px">
+        <div class="note-panel" id="note-panel-c10">
+          <textarea id="note-c10" rows="4" placeholder="Add notes…"></textarea>
+          <div class="note-actions">
+            <button onclick="saveNote('c10')">Save</button>
+            <button onclick="clearNote('c10')">Clear</button>
+            <span class="saved-msg" id="saved-c10">Saved ✓</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="item">
+      <div class="item-row">
+        <input type="checkbox" id="c11" onchange="handleCheck(this)">
+        <label class="item-label" for="c11">Amended tax returns — 1040X on file, transcripts verified</label>
+        <button class="note-btn" onclick="toggleNote('c11')" title="Notes">💬</button>
+      </div>
+      <div style="margin-left:23px">
+        <div class="note-panel" id="note-panel-c11">
+          <textarea id="note-c11" rows="4" placeholder="Add notes…"></textarea>
+          <div class="note-actions">
+            <button onclick="saveNote('c11')">Save</button>
+            <button onclick="clearNote('c11')">Clear</button>
+            <span class="saved-msg" id="saved-c11">Saved ✓</span>
+          </div>
+        </div>
+      </div>
+    </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── SECTION 3: INCOME ──────────────────────────────── -->
+    <div class="section">
+      <div class="section-header">
+        <div class="sec-num">3</div>
+        <div class="sec-title">Income</div>
+        <div class="sec-sub">Qualifying income analysis and methodology</div>
+      </div>
+
+      <!-- Income import banner -->
+      <div id="income-import-banner">
+        <span>No income data imported.</span>
+        <a href="./income-calc.html?from=preapproval" class="launch-calc">Launch Income Calculator →</a>
+      </div>
+
+      <!-- Embedded quick income calculator -->
+      <div class="income-calc-panel">
+        <h4>Quick Income Check — W-2 / Hourly</h4>
+        <div class="calc-grid">
+          <div class="calc-field"><label>Hourly Rate ($)</label><input type="number" id="hourly-rate" oninput="calcIncome()" placeholder="0.00"></div>
+          <div class="calc-field"><label>Hours / Week</label><input type="number" id="hours-week" oninput="calcIncome()" placeholder="40"></div>
+          <div class="calc-field"><label>YTD Earnings ($)</label><input type="number" id="ytd" oninput="calcIncome()" placeholder="0"></div>
+          <div class="calc-field"><label>YTD Months</label><input type="number" id="ytd-months" oninput="calcIncome()" placeholder="0"></div>
+          <div class="calc-field"><label>W-2 Year 1 ($)</label><input type="number" id="w2-1" oninput="calcIncome()" placeholder="0"></div>
+          <div class="calc-field"><label>W-2 Year 2 ($)</label><input type="number" id="w2-2" oninput="calcIncome()" placeholder="0"></div>
+        </div>
+        <div style="font-size:11px;font-weight:700;color:#94a3b8;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px">Results — Lowest Figure Wins</div>
+        <div class="calc-result">
+          <div class="res-field"><label>Hourly/mo</label><input id="res-hourly" readonly></div>
+          <div class="res-field"><label>YTD/mo</label><input id="res-ytd" readonly></div>
+          <div class="res-field"><label>YTD + Yr1/mo</label><input id="res-ytd1" readonly></div>
+          <div class="res-field"><label>YTD + Yr1 + Yr2/mo</label><input id="res-ytd2" readonly></div>
+        </div>
+        <div class="calc-lowest">Qualifying Monthly: <span id="lowest-income">—</span></div>
+      </div>
+
+      <div class="checklist">
+        <div class="checklist-grid">
+    <div class="item">
+      <div class="item-row">
+        <input type="checkbox" id="i1" onchange="handleCheck(this)">
+        <label class="item-label" for="i1">Quick income calculation completed — lowest figure used</label>
+        <button class="note-btn" onclick="toggleNote('i1')" title="Notes">💬</button>
+      </div>
+      <div style="margin-left:23px">
+        <div class="note-panel" id="note-panel-i1">
+          <textarea id="note-i1" rows="4" placeholder="Add notes…"></textarea>
+          <div class="note-actions">
+            <button onclick="saveNote('i1')">Save</button>
+            <button onclick="clearNote('i1')">Clear</button>
+            <span class="saved-msg" id="saved-i1">Saved ✓</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="item">
+      <div class="item-row">
+        <input type="checkbox" id="i2" onchange="handleCheck(this)">
+        <label class="item-label" for="i2">S-Corp / Partnership — Form 1084 or Form 91 completed<span class="tag tag-conv">Conv</span><span class="tag tag-fha">FHA</span></label>
+        <button class="note-btn" onclick="toggleNote('i2')" title="Notes">💬</button>
+      </div>
+      <div style="margin-left:23px">
+        <div class="note-panel" id="note-panel-i2">
+          <textarea id="note-i2" rows="4" placeholder="Add notes…"></textarea>
+          <div class="note-actions">
+            <button onclick="saveNote('i2')">Save</button>
+            <button onclick="clearNote('i2')">Clear</button>
+            <span class="saved-msg" id="saved-i2">Saved ✓</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="item">
+      <div class="item-row">
+        <input type="checkbox" id="i3" onchange="handleCheck(this)">
+        <label class="item-label" for="i3">Garnishments and child support documented</label>
+        <button class="note-btn" onclick="toggleNote('i3')" title="Notes">💬</button>
+      </div>
+      <div style="margin-left:23px">
+        <div class="note-panel" id="note-panel-i3">
+          <textarea id="note-i3" rows="4" placeholder="Add notes…"></textarea>
+          <div class="note-actions">
+            <button onclick="saveNote('i3')">Save</button>
+            <button onclick="clearNote('i3')">Clear</button>
+            <span class="saved-msg" id="saved-i3">Saved ✓</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="item">
+      <div class="item-row">
+        <input type="checkbox" id="i4" onchange="handleCheck(this)">
+        <label class="item-label" for="i4">FHA — multiple job changes within 12 months reviewed<span class="tag tag-fha">FHA</span></label>
+        <button class="note-btn" onclick="toggleNote('i4')" title="Notes">💬</button>
+      </div>
+      <div style="margin-left:23px">
+        <div class="note-panel" id="note-panel-i4">
+          <textarea id="note-i4" rows="4" placeholder="Add notes…"></textarea>
+          <div class="note-actions">
+            <button onclick="saveNote('i4')">Save</button>
+            <button onclick="clearNote('i4')">Clear</button>
+            <span class="saved-msg" id="saved-i4">Saved ✓</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="item">
+      <div class="item-row">
+        <input type="checkbox" id="i5" onchange="handleCheck(this)">
+        <label class="item-label" for="i5">Same-year job change documented — offer letter on file</label>
+        <button class="note-btn" onclick="toggleNote('i5')" title="Notes">💬</button>
+      </div>
+      <div style="margin-left:23px">
+        <div class="note-panel" id="note-panel-i5">
+          <textarea id="note-i5" rows="4" placeholder="Add notes…"></textarea>
+          <div class="note-actions">
+            <button onclick="saveNote('i5')">Save</button>
+            <button onclick="clearNote('i5')">Clear</button>
+            <span class="saved-msg" id="saved-i5">Saved ✓</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="item">
+      <div class="item-row">
+        <input type="checkbox" id="i6" onchange="handleCheck(this)">
+        <label class="item-label" for="i6">Non-taxable income gross-up applied correctly<span class="tag tag-fha">FHA</span><span class="tag tag-va">VA</span></label>
+        <button class="note-btn" onclick="toggleNote('i6')" title="Notes">💬</button>
+      </div>
+      <div style="margin-left:23px">
+        <div class="note-panel" id="note-panel-i6">
+          <textarea id="note-i6" rows="4" placeholder="Add notes…"></textarea>
+          <div class="note-actions">
+            <button onclick="saveNote('i6')">Save</button>
+            <button onclick="clearNote('i6')">Clear</button>
+            <span class="saved-msg" id="saved-i6">Saved ✓</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="item">
+      <div class="item-row">
+        <input type="checkbox" id="i7" onchange="handleCheck(this)">
+        <label class="item-label" for="i7">FHA — varying hours or irregular schedule addressed<span class="tag tag-fha">FHA</span></label>
+        <button class="note-btn" onclick="toggleNote('i7')" title="Notes">💬</button>
+      </div>
+      <div style="margin-left:23px">
+        <div class="note-panel" id="note-panel-i7">
+          <textarea id="note-i7" rows="4" placeholder="Add notes…"></textarea>
+          <div class="note-actions">
+            <button onclick="saveNote('i7')">Save</button>
+            <button onclick="clearNote('i7')">Clear</button>
+            <span class="saved-msg" id="saved-i7">Saved ✓</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="item">
+      <div class="item-row">
+        <input type="checkbox" id="i8" onchange="handleCheck(this)">
+        <label class="item-label" for="i8">Employed by family — income treated as self-employment</label>
+        <button class="note-btn" onclick="toggleNote('i8')" title="Notes">💬</button>
+      </div>
+      <div style="margin-left:23px">
+        <div class="note-panel" id="note-panel-i8">
+          <textarea id="note-i8" rows="4" placeholder="Add notes…"></textarea>
+          <div class="note-actions">
+            <button onclick="saveNote('i8')">Save</button>
+            <button onclick="clearNote('i8')">Clear</button>
+            <span class="saved-msg" id="saved-i8">Saved ✓</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="item">
+      <div class="item-row">
+        <input type="checkbox" id="i9" onchange="handleCheck(this)">
+        <label class="item-label" for="i9">Tax return income analysis complete</label>
+        <button class="note-btn" onclick="toggleNote('i9')" title="Notes">💬</button>
+      </div>
+      <div style="margin-left:23px">
+        <div class="note-panel" id="note-panel-i9">
+          <textarea id="note-i9" rows="4" placeholder="Add notes…"></textarea>
+          <div class="note-actions">
+            <button onclick="saveNote('i9')">Save</button>
+            <button onclick="clearNote('i9')">Clear</button>
+            <span class="saved-msg" id="saved-i9">Saved ✓</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="item">
+      <div class="item-row">
+        <input type="checkbox" id="i10" onchange="handleCheck(this)">
+        <label class="item-label" for="i10">Amended returns — income impact assessed<span class="tag tag-warn">⚠</span></label>
+        <button class="note-btn" onclick="toggleNote('i10')" title="Notes">💬</button>
+      </div>
+      <div style="margin-left:23px">
+        <div class="note-panel" id="note-panel-i10">
+          <textarea id="note-i10" rows="4" placeholder="Add notes…"></textarea>
+          <div class="note-actions">
+            <button onclick="saveNote('i10')">Save</button>
+            <button onclick="clearNote('i10')">Clear</button>
+            <span class="saved-msg" id="saved-i10">Saved ✓</span>
+          </div>
+        </div>
+      </div>
+    </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── SECTION 4: ASSETS ──────────────────────────────── -->
+    <div class="section">
+      <div class="section-header">
+        <div class="sec-num">4</div>
+        <div class="sec-title">Assets</div>
+        <div class="sec-sub">Funds to close, sourcing, reserves</div>
+      </div>
+      <div class="checklist"><div class="checklist-grid">
+    <div class="item">
+      <div class="item-row">
+        <input type="checkbox" id="as1" onchange="handleCheck(this)">
+        <label class="item-label" for="as1">Earnest money deposit sourced and documented</label>
+        <button class="note-btn" onclick="toggleNote('as1')" title="Notes">💬</button>
+      </div>
+      <div style="margin-left:23px">
+        <div class="note-panel" id="note-panel-as1">
+          <textarea id="note-as1" rows="4" placeholder="Add notes…"></textarea>
+          <div class="note-actions">
+            <button onclick="saveNote('as1')">Save</button>
+            <button onclick="clearNote('as1')">Clear</button>
+            <span class="saved-msg" id="saved-as1">Saved ✓</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="item">
+      <div class="item-row">
+        <input type="checkbox" id="as2" onchange="handleCheck(this)">
+        <label class="item-label" for="as2">Gift funds — full documentation complete<span class="tag tag-fha">FHA</span><span class="tag tag-conv">Conv</span></label>
+        <button class="note-btn" onclick="toggleNote('as2')" title="Notes">💬</button>
+      </div>
+      <div style="margin-left:23px">
+        <div class="note-panel" id="note-panel-as2">
+          <textarea id="note-as2" rows="4" placeholder="Add notes…"></textarea>
+          <div class="note-actions">
+            <button onclick="saveNote('as2')">Save</button>
+            <button onclick="clearNote('as2')">Clear</button>
+            <span class="saved-msg" id="saved-as2">Saved ✓</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="item">
+      <div class="item-row">
+        <input type="checkbox" id="as3" onchange="handleCheck(this)">
+        <label class="item-label" for="as3">Retirement accounts — terms of withdrawal reviewed</label>
+        <button class="note-btn" onclick="toggleNote('as3')" title="Notes">💬</button>
+      </div>
+      <div style="margin-left:23px">
+        <div class="note-panel" id="note-panel-as3">
+          <textarea id="note-as3" rows="4" placeholder="Add notes…"></textarea>
+          <div class="note-actions">
+            <button onclick="saveNote('as3')">Save</button>
+            <button onclick="clearNote('as3')">Clear</button>
+            <span class="saved-msg" id="saved-as3">Saved ✓</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="item">
+      <div class="item-row">
+        <input type="checkbox" id="as4" onchange="handleCheck(this)">
+        <label class="item-label" for="as4">Large deposits — all sourced and explained<span class="tag tag-warn">⚠</span></label>
+        <button class="note-btn" onclick="toggleNote('as4')" title="Notes">💬</button>
+      </div>
+      <div style="margin-left:23px">
+        <div class="note-panel" id="note-panel-as4">
+          <textarea id="note-as4" rows="4" placeholder="Add notes…"></textarea>
+          <div class="note-actions">
+            <button onclick="saveNote('as4')">Save</button>
+            <button onclick="clearNote('as4')">Clear</button>
+            <span class="saved-msg" id="saved-as4">Saved ✓</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="item">
+      <div class="item-row">
+        <input type="checkbox" id="as5" onchange="handleCheck(this)">
+        <label class="item-label" for="as5">Virtual currency — converted to USD and seasoned</label>
+        <button class="note-btn" onclick="toggleNote('as5')" title="Notes">💬</button>
+      </div>
+      <div style="margin-left:23px">
+        <div class="note-panel" id="note-panel-as5">
+          <textarea id="note-as5" rows="4" placeholder="Add notes…"></textarea>
+          <div class="note-actions">
+            <button onclick="saveNote('as5')">Save</button>
+            <button onclick="clearNote('as5')">Clear</button>
+            <span class="saved-msg" id="saved-as5">Saved ✓</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="item">
+      <div class="item-row">
+        <input type="checkbox" id="as6" onchange="handleCheck(this)">
+        <label class="item-label" for="as6">Bank statements — all pages for all accounts</label>
+        <button class="note-btn" onclick="toggleNote('as6')" title="Notes">💬</button>
+      </div>
+      <div style="margin-left:23px">
+        <div class="note-panel" id="note-panel-as6">
+          <textarea id="note-as6" rows="4" placeholder="Add notes…"></textarea>
+          <div class="note-actions">
+            <button onclick="saveNote('as6')">Save</button>
+            <button onclick="clearNote('as6')">Clear</button>
+            <span class="saved-msg" id="saved-as6">Saved ✓</span>
+          </div>
+        </div>
+      </div>
+    </div>
+      </div></div>
+    </div>
+
+    <!-- ── SECTION 5: COLLATERAL ──────────────────────────── -->
+    <div class="section">
+      <div class="section-header">
+        <div class="sec-num">5</div>
+        <div class="sec-title">Collateral</div>
+        <div class="sec-sub">Property, appraisal, and lien considerations</div>
+      </div>
+      <div class="checklist"><div class="checklist-grid">
+    <div class="item">
+      <div class="item-row">
+        <input type="checkbox" id="co1" onchange="handleCheck(this)">
+        <label class="item-label" for="co1">Contingencies and seller concessions within program limits</label>
+        <button class="note-btn" onclick="toggleNote('co1')" title="Notes">💬</button>
+      </div>
+      <div style="margin-left:23px">
+        <div class="note-panel" id="note-panel-co1">
+          <textarea id="note-co1" rows="4" placeholder="Add notes…"></textarea>
+          <div class="note-actions">
+            <button onclick="saveNote('co1')">Save</button>
+            <button onclick="clearNote('co1')">Clear</button>
+            <span class="saved-msg" id="saved-co1">Saved ✓</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="item">
+      <div class="item-row">
+        <input type="checkbox" id="co2" onchange="handleCheck(this)">
+        <label class="item-label" for="co2">Flood zone checked — insurance quoted if required</label>
+        <button class="note-btn" onclick="toggleNote('co2')" title="Notes">💬</button>
+      </div>
+      <div style="margin-left:23px">
+        <div class="note-panel" id="note-panel-co2">
+          <textarea id="note-co2" rows="4" placeholder="Add notes…"></textarea>
+          <div class="note-actions">
+            <button onclick="saveNote('co2')">Save</button>
+            <button onclick="clearNote('co2')">Clear</button>
+            <span class="saved-msg" id="saved-co2">Saved ✓</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="item">
+      <div class="item-row">
+        <input type="checkbox" id="co3" onchange="handleCheck(this)">
+        <label class="item-label" for="co3">Refi — subordinate lien / subordination addressed<span class="tag tag-refi">Refi</span></label>
+        <button class="note-btn" onclick="toggleNote('co3')" title="Notes">💬</button>
+      </div>
+      <div style="margin-left:23px">
+        <div class="note-panel" id="note-panel-co3">
+          <textarea id="note-co3" rows="4" placeholder="Add notes…"></textarea>
+          <div class="note-actions">
+            <button onclick="saveNote('co3')">Save</button>
+            <button onclick="clearNote('co3')">Clear</button>
+            <span class="saved-msg" id="saved-co3">Saved ✓</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="item">
+      <div class="item-row">
+        <input type="checkbox" id="co4" onchange="handleCheck(this)">
+        <label class="item-label" for="co4">VA — termite / WDI inspection ordered<span class="tag tag-va">VA</span></label>
+        <button class="note-btn" onclick="toggleNote('co4')" title="Notes">💬</button>
+      </div>
+      <div style="margin-left:23px">
+        <div class="note-panel" id="note-panel-co4">
+          <textarea id="note-co4" rows="4" placeholder="Add notes…"></textarea>
+          <div class="note-actions">
+            <button onclick="saveNote('co4')">Save</button>
+            <button onclick="clearNote('co4')">Clear</button>
+            <span class="saved-msg" id="saved-co4">Saved ✓</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="item">
+      <div class="item-row">
+        <input type="checkbox" id="co5" onchange="handleCheck(this)">
+        <label class="item-label" for="co5">Manufactured / mobile home — title and foundation verified<span class="tag tag-warn">⚠</span></label>
+        <button class="note-btn" onclick="toggleNote('co5')" title="Notes">💬</button>
+      </div>
+      <div style="margin-left:23px">
+        <div class="note-panel" id="note-panel-co5">
+          <textarea id="note-co5" rows="4" placeholder="Add notes…"></textarea>
+          <div class="note-actions">
+            <button onclick="saveNote('co5')">Save</button>
+            <button onclick="clearNote('co5')">Clear</button>
+            <span class="saved-msg" id="saved-co5">Saved ✓</span>
+          </div>
+        </div>
+      </div>
+    </div>
+      </div></div>
+    </div>
+
+    <!-- ── SECTION 6: DOCUMENT REQUEST ────────────────────── -->
+    <div class="section">
+      <div class="section-header">
+        <div class="sec-num">6</div>
+        <div class="sec-title">Document Request</div>
+        <div class="sec-sub">Scenario-specific documentation needs</div>
+      </div>
+      <div class="checklist"><div class="checklist-grid">
+    <div class="item">
+      <div class="item-row">
+        <input type="checkbox" id="d1" onchange="handleCheck(this)">
+        <label class="item-label" for="d1">Bankruptcy papers — discharge documents on file<span class="tag tag-warn">⚠</span></label>
+        <button class="note-btn" onclick="toggleNote('d1')" title="Notes">💬</button>
+      </div>
+      <div style="margin-left:23px">
+        <div class="note-panel" id="note-panel-d1">
+          <textarea id="note-d1" rows="4" placeholder="Add notes…"></textarea>
+          <div class="note-actions">
+            <button onclick="saveNote('d1')">Save</button>
+            <button onclick="clearNote('d1')">Clear</button>
+            <span class="saved-msg" id="saved-d1">Saved ✓</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="item">
+      <div class="item-row">
+        <input type="checkbox" id="d2" onchange="handleCheck(this)">
+        <label class="item-label" for="d2">Award letters — all non-employment income documented</label>
+        <button class="note-btn" onclick="toggleNote('d2')" title="Notes">💬</button>
+      </div>
+      <div style="margin-left:23px">
+        <div class="note-panel" id="note-panel-d2">
+          <textarea id="note-d2" rows="4" placeholder="Add notes…"></textarea>
+          <div class="note-actions">
+            <button onclick="saveNote('d2')">Save</button>
+            <button onclick="clearNote('d2')">Clear</button>
+            <span class="saved-msg" id="saved-d2">Saved ✓</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="item">
+      <div class="item-row">
+        <input type="checkbox" id="d3" onchange="handleCheck(this)">
+        <label class="item-label" for="d3">Mortgage statements — 12 months for all active loans</label>
+        <button class="note-btn" onclick="toggleNote('d3')" title="Notes">💬</button>
+      </div>
+      <div style="margin-left:23px">
+        <div class="note-panel" id="note-panel-d3">
+          <textarea id="note-d3" rows="4" placeholder="Add notes…"></textarea>
+          <div class="note-actions">
+            <button onclick="saveNote('d3')">Save</button>
+            <button onclick="clearNote('d3')">Clear</button>
+            <span class="saved-msg" id="saved-d3">Saved ✓</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="item">
+      <div class="item-row">
+        <input type="checkbox" id="d4" onchange="handleCheck(this)">
+        <label class="item-label" for="d4">Amendatory clause — executed for FHA / VA<span class="tag tag-fha">FHA</span><span class="tag tag-va">VA</span></label>
+        <button class="note-btn" onclick="toggleNote('d4')" title="Notes">💬</button>
+      </div>
+      <div style="margin-left:23px">
+        <div class="note-panel" id="note-panel-d4">
+          <textarea id="note-d4" rows="4" placeholder="Add notes…"></textarea>
+          <div class="note-actions">
+            <button onclick="saveNote('d4')">Save</button>
+            <button onclick="clearNote('d4')">Clear</button>
+            <span class="saved-msg" id="saved-d4">Saved ✓</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="item">
+      <div class="item-row">
+        <input type="checkbox" id="d5" onchange="handleCheck(this)">
+        <label class="item-label" for="d5">FHA — identity of interest disclosed and documented<span class="tag tag-fha">FHA</span></label>
+        <button class="note-btn" onclick="toggleNote('d5')" title="Notes">💬</button>
+      </div>
+      <div style="margin-left:23px">
+        <div class="note-panel" id="note-panel-d5">
+          <textarea id="note-d5" rows="4" placeholder="Add notes…"></textarea>
+          <div class="note-actions">
+            <button onclick="saveNote('d5')">Save</button>
+            <button onclick="clearNote('d5')">Clear</button>
+            <span class="saved-msg" id="saved-d5">Saved ✓</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="item">
+      <div class="item-row">
+        <input type="checkbox" id="d6" onchange="handleCheck(this)">
+        <label class="item-label" for="d6">Homeowners insurance binder obtained — lender listed as mortgagee</label>
+        <button class="note-btn" onclick="toggleNote('d6')" title="Notes">💬</button>
+      </div>
+      <div style="margin-left:23px">
+        <div class="note-panel" id="note-panel-d6">
+          <textarea id="note-d6" rows="4" placeholder="Add notes…"></textarea>
+          <div class="note-actions">
+            <button onclick="saveNote('d6')">Save</button>
+            <button onclick="clearNote('d6')">Clear</button>
+            <span class="saved-msg" id="saved-d6">Saved ✓</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="item">
+      <div class="item-row">
+        <input type="checkbox" id="d7" onchange="handleCheck(this)">
+        <label class="item-label" for="d7">Power of attorney — reviewed and lender-approved</label>
+        <button class="note-btn" onclick="toggleNote('d7')" title="Notes">💬</button>
+      </div>
+      <div style="margin-left:23px">
+        <div class="note-panel" id="note-panel-d7">
+          <textarea id="note-d7" rows="4" placeholder="Add notes…"></textarea>
+          <div class="note-actions">
+            <button onclick="saveNote('d7')">Save</button>
+            <button onclick="clearNote('d7')">Clear</button>
+            <span class="saved-msg" id="saved-d7">Saved ✓</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="item">
+      <div class="item-row">
+        <input type="checkbox" id="d8" onchange="handleCheck(this)">
+        <label class="item-label" for="d8">Boarder income — 12 months rental history documented<span class="tag tag-conv">Conv</span></label>
+        <button class="note-btn" onclick="toggleNote('d8')" title="Notes">💬</button>
+      </div>
+      <div style="margin-left:23px">
+        <div class="note-panel" id="note-panel-d8">
+          <textarea id="note-d8" rows="4" placeholder="Add notes…"></textarea>
+          <div class="note-actions">
+            <button onclick="saveNote('d8')">Save</button>
+            <button onclick="clearNote('d8')">Clear</button>
+            <span class="saved-msg" id="saved-d8">Saved ✓</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="item">
+      <div class="item-row">
+        <input type="checkbox" id="d9" onchange="handleCheck(this)">
+        <label class="item-label" for="d9">Down payment assistance — all program requirements met</label>
+        <button class="note-btn" onclick="toggleNote('d9')" title="Notes">💬</button>
+      </div>
+      <div style="margin-left:23px">
+        <div class="note-panel" id="note-panel-d9">
+          <textarea id="note-d9" rows="4" placeholder="Add notes…"></textarea>
+          <div class="note-actions">
+            <button onclick="saveNote('d9')">Save</button>
+            <button onclick="clearNote('d9')">Clear</button>
+            <span class="saved-msg" id="saved-d9">Saved ✓</span>
+          </div>
+        </div>
+      </div>
+    </div>
+      </div></div>
+    </div>
+
+    <!-- ── SECTION 7: RUN AUS ─────────────────────────────── -->
+    <div class="section">
+      <div class="section-header">
+        <div class="sec-num">7</div>
+        <div class="sec-title">Run AUS Finding</div>
+        <div class="sec-sub">Only after all sections above are verified</div>
+      </div>
+      <div class="aus-warning">
+        ⚠ Do NOT run AUS until you have verified the application. Running AUS prematurely creates an inquiry record and may produce results based on incomplete or incorrect data. Complete sections 1–6 first.
+      </div>
+      <div class="aus-options">
+        <label class="aus-option" id="aus-opt-ae">
+          <input type="radio" name="aus-outcome" value="approve_eligible" onchange="handleAUS(this.value)">
+          <div><div style="font-weight:700;color:#065f46">✓ Approve / Eligible</div><div style="font-size:11px;color:#64748b;margin-top:2px">AUS approved — document conditions</div></div>
+        </label>
+        <label class="aus-option" id="aus-opt-re">
+          <input type="radio" name="aus-outcome" value="refer_eligible" onchange="handleAUS(this.value)">
+          <div><div style="font-weight:700;color:#1e40af">→ Refer / Eligible</div><div style="font-size:11px;color:#64748b;margin-top:2px">Refer with manual UW review</div></div>
+        </label>
+        <label class="aus-option" id="aus-opt-rc">
+          <input type="radio" name="aus-outcome" value="refer_caution" onchange="handleAUS(this.value)">
+          <div><div style="font-weight:700;color:#92400e">⚠ Refer with Caution</div><div style="font-size:11px;color:#64748b;margin-top:2px">High-risk — address issues first</div></div>
+        </label>
+        <label class="aus-option" id="aus-opt-mu">
+          <input type="radio" name="aus-outcome" value="manual_uw" onchange="handleAUS(this.value)">
+          <div><div style="font-weight:700;color:#991b1b">Manual UW Required</div><div style="font-size:11px;color:#64748b;margin-top:2px">AUS ineligible — manual file</div></div>
+        </label>
+      </div>
+    </div>
+
+  </div><!-- /.wrap -->
+</div><!-- /#workflow-wrap -->
+<script>
+// ── BORROWER STATE ─────────────────────────────────────────────────────────
+let borrowerState = null;
+let activeId      = null;
+let saveTimer     = null;
+let allBorrowers  = [];
+
+// ── DEFAULT NOTES ──────────────────────────────────────────────────────────
+// Expert underwriting guidance — pre-loaded per checklist item.
+// LO may overwrite or supplement. Saved notes override defaults.
+const DEFAULT_NOTES = {
+  'a1': `ID Requirements:
+• Acceptable: valid driver's license, state ID, or passport. Must be current — not expired.
+• If ID expires before the anticipated closing date, borrower must renew before application is complete.
+• Some lenders require two forms of ID. Confirm with lender.
+• For non-US citizens: Permanent Resident Card (Green Card) or Employment Authorization Document (EAD). Must confirm residency status matches loan program eligibility.`,
+
+  'a2': `Resale / Flipping Rules:
+• Conv (FNMA/FHLMC): No formal seasoning requirement, but lenders may overlay 90-day rules. If seller acquired the property within 90 days, be prepared for scrutiny.
+• FHA: Property must have been owned by the seller for at least 90 days before the contract date. 91–180 days may require a second appraisal if resale price is 100%+ above acquisition price.
+• VA: No specific flip rule, but VA appraisers are trained to flag inflated prices.
+• Watch for: same-day title transfers, seller not on title long, rapid appreciation without renovation.`,
+
+  'a3': `2-Year History — Gaps and Changes:
+• Must document all employment and residence for the past 24 months.
+• Employment gaps: any gap over 30 days needs explanation. LOE preferred. Military service, medical leave, and school are acceptable — document.
+• School: if borrower was in school for part of the 2 years, document degree/field and connect it to current employment.
+• Address history: any address not reflected on the credit report needs explanation. Cross-reference CBR header and 1003.`,
+
+  'a4': `Employment Verification — VOE:
+• Options: (1) direct employer verification by processing — call employer HR/payroll; (2) Fannie Mae Day 1 Certainty via The Work Number (Equifax) — preferred, fastest; (3) written VOE on employer letterhead.
+• Must verify: current employment status, start date, pay rate, and position.
+• Verbal VOE at closing is standard — confirm with lender whether they require it within 10 or 5 business days of closing.
+• Self-employed: VOE is replaced by 2 years tax returns + CPA letter + business verification (SOS lookup, business license, Google presence).`,
+
+  'a5': `Taxes and Insurance Estimates:
+• Property taxes: pull from county property appraiser website. Use annual figure ÷ 12 for monthly escrow.
+• Homeowners insurance: get a quote early — especially in FL where the insurance market can affect qualification. Average $150–$300/mo for a typical SFR in FL, but wide variance.
+• HOA: if applicable, confirm monthly dues. HOA dues are a full DTI liability.
+• Flood insurance: run FEMA flood map (msc.fema.gov) — if in SFHA, add flood premium to PITI.
+• Mortgage insurance (MI): if LTV >80% on Conv, or FHA MIP, factor into payment.`,
+
+  'a6': `Income Type Identification:
+• Base salary / hourly: straightforward — verify rate and scheduled hours with employer.
+• Overtime / bonus / commission: requires 2-year average. Cannot use if received for less than 2 years.
+• Variable income: if income varies month to month, cannot just use current paystub — must average over 24 months using W-2s + YTD.
+• Self-employed: requires 2 years personal and business tax returns. Income is net after deductions.
+• Multiple income sources: document each separately. Do not blend income types in calculations.`,
+
+  'a7': `Property Type — Eligibility Impact:
+• SFR (single-family residence): easiest to underwrite. All programs.
+• 2–4 unit: requires additional documentation. Rental income from non-occupied units may be used (75% vacancy factor applies). FHA: max 4 units.
+• Condo: must confirm project approval (FNMA/FHA/VA condo approval). Self-managed or non-warrantable condos are major issues.
+• Manufactured / mobile: see co5 notes.
+• Mixed-use: commercial component affects eligibility. Generally not eligible for residential financing.`,
+
+  'a8': `Other REO — All Properties:
+• List every property owned on the 1003, including rental properties, vacation homes, inherited properties, and vacant land.
+• For each property: current market value, mortgage balance, monthly payment, rental income (if any), taxes, insurance, HOA.
+• Rental properties: net rental income (Schedule E) or 75% of gross rent minus PITIA for properties without 2-year history.
+• Departure residence: if borrower is converting primary to rental, must have 25–30% equity AND documented lease agreement to use rental income. Otherwise, full PITIA is a liability.`,
+
+  'a9': `ID Expiration Before Closing:
+• Check expiration date against anticipated closing date.
+• If ID expires before closing: flag now. Borrower must renew before application is complete — some lenders require valid ID at all stages.
+• Driver's license renewals in FL can take 2–4 weeks for a new card.
+• Passports: currently 8–12 weeks standard processing. Expedited service available.`,
+
+  'a10': `Citizenship and Residency Status:
+• US Citizens and Permanent Residents: eligible for all standard programs.
+• Non-Permanent Residents (visa holders): eligible for Conv/FHA with valid EAD or work visa. Visa must have reasonable remaining term. See specific visa type guidance.
+• DACA recipients: currently eligible for Conv (FNMA) if other requirements met. FHA: currently eligible per recent guidance (verify current status).
+• Foreign nationals: portfolio lending only in most cases. No agency programs.
+• VA: requires US citizenship or permanent residency for the veteran.`,
+
+  'a11': `Refi — Net Tangible Benefit (NTB):
+• Most states and programs require documented NTB for refinances.
+• Acceptable benefits: lower payment, shorter term, moving from ARM to fixed, cash-out for documented purpose, removing MI.
+• FL: not a net tangible benefit state by statute, but lenders may require NTB disclosure for compliance.
+• IRRRL (VA): NTB required — rate must drop by at least 0.5% OR switch from ARM to fixed.
+• Streamline (FHA): rate must drop so that PITIA decreases.`,
+
+  'a12': `Liabilities — CBR Cross-Reference:
+• Compare 1003 liabilities section against all accounts shown on the CBR.
+• Any account on CBR not listed on 1003: flag and add to liability calculation.
+• Authorized user accounts: generally excluded from DTI if borrower is not the primary obligor.
+• Student loans: if not in repayment, use 1% of balance as monthly payment (Conv/FHA) or IBR payment if documented.
+• Deferred loans: deferral does not remove them from DTI for FHA (use 1% rule). Conv: same.`,
+
+  'a13': `Address History — CBR Cross-Reference:
+• Pull addresses from CBR header. Compare against 1003 address history.
+• Any address on CBR not accounted for in 1003: flag. Could indicate undisclosed property, unreported residence, or identity issue.
+• Address discrepancies must be explained. LOE if needed.
+• Watch for: prior addresses in a different state (could indicate undisclosed prior property), P.O. boxes, or business addresses showing as residential.`,
+
+  'c1': `Credit Scores — All Bureaus:
+• Tri-merge CBR required. Review all three bureaus — Equifax, TransUnion, Experian.
+• Qualifying score: lowest MIDDLE score among all borrowers. (Each borrower's middle score, then take the lowest of those.)
+• Locked bureaus: borrower must unlock all three before CBR can be pulled. Temporary lifts expire — confirm timing.
+• Thin file (few tradelines): may require manual UW. Conv: 2 tradelines, 12+ months each. FHA: less strict but AUS may refer.
+• Rapid Rescore: if score is borderline, a rapid rescore can update within 3–5 days after paying off/down balances.`,
+
+  'c2': `Manual Underwriting:
+• Required when: AUS returns Refer, borrower has no credit score, or lender requires manual UW for the scenario.
+• Conv manual UW: max DTI typically 36% (front) / 45% (back) without strong compensating factors. Some lenders go to 50% with documented CFs.
+• FHA manual UW: if score 580+, max 31/43 DTI. With compensating factors, up to 37/47 or 40/50.
+• Compensating factors (Conv/FHA): 12+ months reserves, minimal payment shock, low DTI on one ratio, documented additional income not used for qualifying.
+• Manual UW requires: 12-month housing and installment payment history with zero lates (FHA: one 30-day late acceptable with CFs).`,
+
+  'c3': `Lender Minimum Score Requirements:
+• Program minimums are floor, not ceiling. Lender overlays are common.
+• Conv: FNMA/FHLMC minimum 620. Many lenders overlay 640–680.
+• FHA: minimum 500 (90% LTV) or 580 (96.5% LTV). Most lenders overlay 620–640.
+• VA: no GNMA minimum, but most lenders overlay 580–620.
+• USDA: technically no minimum score, but most lenders require 640+ for GUS approval.
+• Verify lender-specific requirements before promising qualification.`,
+
+  'c4': `Inquiries — LOE Required:
+• Any credit inquiry within the past 120 days must be explained.
+• Required: LOE for each inquiry stating the purpose and whether new credit was opened.
+• If new credit was opened: add resulting payment to DTI. Confirm no new large balances.
+• Shopping inquiries (multiple mortgage inquiries within 30–45 days) are typically treated as one inquiry by scoring models.
+• Car dealerships pulling multiple bureau inquiries: each must be addressed.`,
+
+  'c5': `Mortgage History — 12 Months:
+• Pull 12 months of mortgage payment history from CBR or VOM.
+• Conv: 0x30 in the past 12 months preferred. One 30-day late may be acceptable with explanation.
+• FHA: 0x30 in past 12 months for AUS approval. Manual UW: one 30-day late acceptable with strong CFs.
+• VA: similar to FHA — 0x30 preferred, but case-by-case.
+• If mortgage is not on CBR (private note, paid off, etc.): get 12-month VOM directly from servicer.`,
+
+  'c6': `Public Records — Waiting Periods:
+• Tax liens: must be paid or on IRS payment plan (3 months payments required). Lien must be subordinated or discharged before closing.
+• Civil judgments: must be paid in full before or at closing in most cases. Get payoff letter.
+• BK/Foreclosure: reference the waiting period table above. Important: even if removed from credit report via credit repair, the court filing still exists in public records. It WILL surface in underwriting or title.
+• Document extenuating circumstances (job loss, medical emergency, divorce, death of co-borrower) for potential waiting period reduction. Both Fannie (B3-5.3-07) and Freddie (5202.4) provide specific guidance on qualifying circumstances.`,
+
+  'c7': `AMEX Charge Cards (Conv):
+• AMEX charge cards (not credit cards) report with no credit limit, which can suppress credit scores and confuse AUS.
+• DU/LP may flag the account. Underwriter will want confirmation the borrower can cover the balance.
+• Document with 2–3 months bank statements showing sufficient liquid assets to pay the balance in full.
+• If balance is high and recurring, it may need to be included in DTI at 5% of balance (as a revolving account) even without a stated limit.
+• FHA: less of an issue since FHA AUS handles it differently, but still document.`,
+
+  'c8': `Positive Rental History:
+• 12 months of on-time rent payments is a strong compensating factor, especially for first-time buyers.
+• Required for FHA/USDA/Conv manual underwrite if borrower has been renting.
+• Get VOR (Verification of Rent) from landlord on company letterhead with contact info, or 12 months canceled checks/bank statements showing rent payments.
+• If borrower lives with family (rent-free): document with LOE. Not penalized, but note it removes the ability to use rental history as a compensating factor.
+• AUS may specifically require VOR as a condition — check findings carefully.`,
+
+  'c9': `Employed by Family Member:
+• Treat as self-employment for income documentation: 2 years tax returns, business bank statements, CPA letter confirming ownership structure and income.
+• Verify the business exists and is active: Secretary of State records, business license, Google/website presence.
+• Income paid by a family-owned business cannot be verified the same way a third-party employer can — UW will scrutinize.
+• Watch for: income that appears inflated, irregular pay schedules, or commingled personal/business funds.`,
+
+  'c10': `Tax Returns — Balance Owed to IRS:
+• If borrower owes taxes and has NOT set up a payment plan: they likely can't close. Stop here and get this resolved.
+• If on IRS installment agreement: need the agreement letter AND proof of 3 consecutive on-time payments. Monthly payment is a DTI liability.
+• Tax lien: must be paid in full before closing OR subordinated (rare — IRS rarely subordinates). Get written payoff statement.
+• State tax debt: same rules. Some states are less flexible than IRS — check state-specific requirements.
+• If taxes were owed but paid in full: get IRS tax transcript or lien release to confirm. Don't take borrower's word for it.`,
+
+  'c11': `Amended Tax Returns (1040X):
+• Amended returns may indicate: previously unreported income, corrected deductions, or changes that affect qualifying income.
+• Always use the most recently filed version — if amended, use the 1040X figures, not the original.
+• Some lenders will not accept amended returns for the most recent tax year — check lender guidelines.
+• Get the 4506-C transcript from IRS to confirm what's actually on file. Transcript and borrower-provided return must match.
+• If amendment increased income: generally fine, but document the reason. If amendment decreased income: investigate why — may affect qualifying.`,
+
+  'i1': `Quick Income Calculation — Key Rules:
+• Use the income calculator above. Always run all four methods and use the LOWEST qualifying figure — do not cherry-pick.
+• Hourly: rate × hours × 52 ÷ 12. Confirm scheduled hours with employer — don't assume 40/week.
+• Salaried: annual salary ÷ 12. Verify with most recent paystub — ensure no recent changes.
+• The goal at pre-approval is to qualify on the conservative number. If the deal only works on the higher figure, that's a problem worth knowing now.`,
+
+  'i2': `S-Corp (1120S) / Partnership (1065) Income:
+• You can only use income that was actually distributed to the borrower OR ordinary business income adjusted for borrower's ownership percentage.
+• Use Fannie Mae Form 1084 (cash flow analysis worksheet) or Freddie Mac Form 91/3.
+• S-Corp: W2 wages + borrower's % of ordinary business income (from K-1) — but only if the borrower owns 25%+ and income is stable/increasing.
+• Partnership: same logic — K-1 income × ownership %. Business must show positive trend.
+• Do NOT use gross receipts or revenue — only net qualifying income after add-backs/deductions.
+• Business must have been operating for at least 2 years. Year-over-year declining income is a red flag.`,
+
+  'i3': `Garnishments & Child Support:
+• Child support PAID: monthly obligation — full amount is a DTI liability. Get court order to verify amount and remaining term.
+• If child support has less than 10 months remaining, some lenders will exclude from DTI — verify with lender.
+• Child support RECEIVED: can be used as income IF borrower can document it has been received consistently AND court order shows at least 3 years remaining.
+• Alimony received: same rules as child support received.
+• Alimony paid: DTI liability. Get divorce decree / court order.
+• Wage garnishment: shows up on paystub as a deduction. Net pay vs. gross pay discrepancy will surface in income analysis — document.`,
+
+  'i4': `FHA — Multiple Job Changes Within 12 Months:
+• FHA requires 2-year employment history. Three or more job changes within 12 months raises a material question about stability.
+• If all changes are within the same field and show increasing pay: document with offer letters, paystubs, and LOE. May still be approvable.
+• If job changes represent different industries or include unexplained gaps: significant red flag. Manual downgrade or denial likely without strong compensating factors.
+• Seasonal employment is treated differently — must show 2-year history of the same seasonal work.
+• Recent graduate going into their field of study: exception allowed with offer letter and degree documentation.`,
+
+  'i5': `Same-Year Job Change — Documentation:
+• Document with: offer letter (signed), first paystub at new job, and final paystub from prior employer.
+• Verify employment at new job directly (see a4 notes).
+• If pay increased in the same field: typically not an issue. Average YTD from new job only — don't blend with prior employer.
+• If career change (different industry): requires LOE. May need to wait for 2-year history in new role for AUS approval.
+• Probationary period: some lenders require borrower to be past probation. Check with lender if offer letter mentions it.`,
+
+  'i6': `Non-Taxable Income — Gross-Up Rules:
+• Eligible income types: Social Security (retirement and disability), VA disability, child support received, foster care payments, certain municipal/government pension income.
+• Conv: gross up by 125% (multiply net by 1.25).
+• FHA: gross up by 115% (multiply net by 1.15).
+• Documentation required: SSA award letter, VA disability rating letter, court order (for child support), etc.
+• Must confirm income is non-taxable: review most recent tax return. If borrower has been paying taxes on it, it cannot be grossed up.
+• VA disability: non-taxable and permanent — strong income source. Verify with award letter showing monthly amount.`,
+
+  'i7': `FHA — Varying Hours / Irregular Schedule:
+• Must document 2-year history of the income type. Cannot use current paystub alone.
+• Average over 24 months (use YTD + 2 prior W2s) — same as bonus/OT calculation.
+• Exception: if hours were recently increased due to a formal raise or promotion, an employer letter confirming the new scheduled hours may allow use of the higher rate going forward.
+• Night differential, hazard pay, shift differential: treated like variable income — 2-year average.
+• If hours have been declining: may not be usable or may need to use the lower trend. Flag this early.`,
+
+  'i8': `Employed by Family — Income Verification:
+• Income from a family-owned business cannot be verified the same as arm's-length employment.
+• Treat as self-employment income regardless of how borrower is paid: need 2 years personal tax returns + 2 years business returns.
+• Get CPA letter confirming ownership structure, stability of business, and that the income level is expected to continue.
+• Business bank statements: 12 months to confirm cash flow supports the income being claimed.
+• Watch for: income listed on tax returns that's lower than what borrower claims they're paid — use tax return figures.`,
+
+  'i9': `Tax Returns — Income Analysis:
+• Always pull IRS transcripts (4506-C) to verify against borrower-provided returns. If they don't match, stop.
+• If borrower owes taxes: see c10 notes. Installment agreement is a DTI liability.
+• Schedule E (rental): net rental income after depreciation add-back. Declining rental income or ongoing losses affect DTI.
+• Schedule C (self-employed): net business income after allowable add-backs (depreciation, depletion, mileage). Declining income trend is a problem.
+• Year-over-year income must be stable or increasing. If it dropped more than ~20%, lender may average or use the lower year only.`,
+
+  'i10': `Amended Returns — Income Impact:
+• Use the amended figures, not the original. Get 1040X + tax transcripts to confirm what's on file with IRS.
+• If the amendment changed qualifying income (higher or lower): document the reason with LOE.
+• Current-year amendment: many lenders require the amended return to be on file with IRS (transcript reflects it) before they'll use it.
+• If amendment reduced income significantly: reassess qualification. The amended figures are what UW will use.`,
+
+  'as1': `Earnest Money Deposit (EMD) Documentation:
+• Document the source: personal check, wire, cashier's check. Must show funds leaving borrower's account.
+• Get: canceled check or wire confirmation + bank statement showing the debit.
+• FHA: EMD must be at least 1% of the purchase price as a rule of thumb. Source every dollar.
+• If EMD came from a gift: follow gift fund documentation rules (see as2).
+• If EMD was paid by a third party (seller credit, lender credit, etc.): disclose immediately — affects closing cost structure.
+• Confirm EMD is credited correctly on the closing disclosure against total funds to close.`,
+
+  'as2': `Gift Funds:
+• All loan types (FHA, Conv primary): gifts allowed from family members, employers, close friends, charitable organizations.
+• Investment properties (Conv): NO gifts allowed. 100% of down payment must come from borrower's own funds.
+• Required documentation: (1) signed gift letter on approved form — donor's name, relationship, amount, property address, statement that repayment is not expected; (2) donor's bank statement showing withdrawal; (3) borrower's bank statement showing deposit. All three are required.
+• Wire transfer: show wire confirmation + both bank statements.
+• FHA: donor must be a family member or approved organization. Seller-funded gifts are not permitted.
+• If gift is large relative to donor's assets: UW may require documentation of donor's ability to give (account statements).`,
+
+  'as3': `Retirement Accounts — Terms of Withdrawal:
+• Vested balance: many lenders use 60% of vested balance to account for taxes and penalties on early withdrawal.
+• 401(k) loan: the loan amount reduces usable assets AND adds a monthly payment liability to DTI.
+• IRA/Roth IRA: same 60% haircut generally applies for conventional analysis. Some programs treat Roth differently.
+• Required Minimum Distributions (RMDs): if borrower is taking RMDs and they're documented on tax returns/bank statements, RMDs can be used as income.
+• Do NOT use a retirement account as a reserve if the borrower would have to withdraw it to close — that's a different analysis than showing it as a reserve asset.`,
+
+  'as4': `Large Deposits:
+• Any deposit greater than 50% of qualifying monthly gross income must be sourced and explained.
+• Acceptable sources: payroll (show paystub), tax refund (show IRS notice), sold asset (show bill of sale), transfer between own accounts (show both accounts), gift (follow gift fund rules).
+• Cash deposits: highly problematic. Most lenders will not allow unsourced cash deposits — the funds may be excluded from available assets entirely.
+• Do NOT wait for underwriting to find large deposits. Identify and document them upfront.
+• Multiple small deposits that add up to a large total may also be scrutinized — use judgment.`,
+
+  'as5': `Virtual Currency (Crypto):
+• Cannot use cryptocurrency directly as an asset for closing — it must be converted to USD first.
+• After conversion: funds must be deposited into a bank account and documented with: (1) sale/conversion record from the exchange; (2) bank statement showing funds received.
+• Seasoning: some lenders require 60 days of seasoning after conversion. Check lender guidelines.
+• Screenshots of a crypto wallet or exchange balance are NOT acceptable as asset documentation.
+• Crypto values are volatile — convert well in advance of closing if this is the borrower's primary source of funds.`,
+
+  'as6': `Bank Statements — AUS Requirements:
+• Standard: 2 months most recent statements for all accounts listed on the 1003.
+• Jumbo / manual underwrite: may require 3–6 months.
+• ALL pages of every statement are required — even blank pages. "Page 1 of 4" means you need all four pages.
+• NSFs (non-sufficient funds): must be explained with LOE. Multiple NSFs are a serious red flag.
+• Large deposits: see as4 notes.
+• Online statements: must show institution name, account number (partial is fine), and borrower name. Screenshot from phone is usually not acceptable — must be formatted statement.`,
+
+  'co1': `Contingencies & Seller Concessions:
+• Seller concession limits: Conv — 3% (LTV >90%), 6% (75–90% LTV), 9% (LTV <75%). FHA/USDA: 6%. VA: 4% + reasonable/customary. USDA: 6%.
+• Concessions above the limit must reduce the purchase price — they cannot just be ignored.
+• Confirm all contingencies are satisfied or have a clear timeline: inspection, appraisal, financing, HOA review (for condos).
+• Seller paid concessions above program limit: flag immediately — will affect purchase price or net proceeds.
+• Repair credits: must be reflected on closing disclosure as either a price reduction or separate lender-approved credit.`,
+
+  'co2': `Flood Zone:
+• Run FEMA flood map (msc.fema.gov) using the property address. Note the flood zone designation.
+• Zone A, AE, V, VE: special flood hazard area — flood insurance required. Get quote before running numbers — can add thousands to annual cost.
+• Zone X: outside the 100-year floodplain — flood insurance not required but may be recommended.
+• LOMA (Letter of Map Amendment): if property has been administratively removed from a flood zone, verify the LOMA is in place before telling borrower insurance isn't required.
+• FL note: Florida flood insurance costs have increased significantly. Always get a quote. Factor into DTI.`,
+
+  'co3': `Refi — Second Mortgage / Subordinate Lien:
+• All liens must be identified before appraisal. Title search will find them, but earlier is better.
+• Subordinate lien holder must agree IN WRITING to remain in 2nd position (subordination agreement) — this takes time, get started immediately.
+• HELOC: if the HELOC has been drawn, the outstanding balance must be paid off or included in the new loan (if cash-out). If the HELOC has a zero balance, lender may allow it to remain subordinate.
+• Some lenders will not allow subordination of certain types of liens (DPA silent seconds, community land trusts) — verify with lender before proceeding.
+• Cash-out refi: cannot have a subordinate lien in most cases unless lender explicitly allows.`,
+
+  'co4': `VA — Termite / WDI Inspection:
+• Required on all VA purchase loans in termite-prevalent states (most of the US, including FL).
+• WDI (Wood-Destroying Insect) inspection must be performed by a licensed pest control company.
+• Active infestation or damage: must be remediated before closing. VA will not close with active infestation.
+• Seller typically pays for termite inspection and any required treatment (per VA guidelines — seller/buyer can negotiate but VA limits what the veteran can pay).
+• Re-inspection required after treatment to confirm clearance.
+• NPCA-99a and NPCA-99b forms: standard WDI report forms used nationally.`,
+
+  'co5': `Manufactured / Mobile Homes:
+• Must be on a permanent foundation — get engineer's certification (FHA requires HUD-certified engineer report).
+• HUD data plate and HUD labels (tags) must be present and legible. If missing, replacement is extremely difficult and may kill the deal.
+• Titled as real property, not personal property (chattel) — confirm with county records that title has been retired/surrendered.
+• Additions (rooms, garages, porches): must be permitted and meet HUD standards. Unpermitted additions are a major underwriting issue.
+• Moved homes: a manufactured home that has been moved from its original installation site is essentially unfinanceable with agency loans. Stop here and verify.
+• Age: most agency loans require MH built after June 15, 1976 (post-HUD code). Pre-HUD homes are generally not eligible.`,
+
+  'd1': `Bankruptcy Papers:
+• Need complete discharge documents — not just the filing. The discharge date is what triggers the waiting period clock.
+• Chapter 7: full discharge order + schedule of creditors (to identify any debts that survived the BK).
+• Chapter 13: trustee's final report of receipts and disbursements + proof of all required payments made.
+• Active Chapter 13: if borrower is currently in a Ch. 13 plan, trustee approval letter is required to incur new mortgage debt. Must have made 12 months on-time plan payments.
+• Important: even if removed from credit report by credit repair, the BK is still in the public record. Title search, AUS findings, and UW will find it. Document it upfront — don't let it be a surprise.`,
+
+  'd2': `Award Letters:
+• Types: Social Security (retirement or disability), SSI, VA disability, pension, long-term disability, annuity.
+• Must show: income amount, frequency (monthly/annual), and effective date.
+• Continuance: income must continue for at least 3 years from closing date. Exception: SSA retirement and VA disability are considered permanent — no 3-year continuance required.
+• SSA: get the most recent annual benefit verification letter (available at SSA.gov). Match against what's depositing in bank.
+• VA disability: VA award letter showing monthly compensation amount. Non-taxable — eligible for gross-up (see i6 notes).
+• Pension: get pension award letter + first payment verification. Verify it's not a period-certain annuity that could end.`,
+
+  'd3': `Mortgage Statements:
+• Get 12 months of statements for every active mortgage.
+• Purpose: verify payment history, confirm current balance/payoff, and identify any escrow shortages or impound requirements.
+• Mortgage not on credit report: get 12-month VOM (Verification of Mortgage) directly from servicer.
+• HELOC: need statement showing credit limit, outstanding balance, and minimum payment.
+• If mortgage appears to have been paid off: get the recorded release of lien. Payoff ≠ release — title still needs the recorded satisfaction of mortgage.
+• Private notes (seller financing, family loans): must be documented the same way — get 12 months of payment history.`,
+
+  'd4': `Amendatory Clause (FHA / VA):
+• Required on all FHA and VA purchase transactions.
+• Language: buyer cannot be required to complete the purchase if the appraised value comes in below purchase price.
+• Must be signed by buyer and seller BEFORE the purchase contract is binding.
+• If the appraisal comes in low and the amendatory clause is in place: buyer can walk without losing EMD.
+• Agent/escrow often handles this, but verify it's been executed. Do not assume.
+• Conv: not formally required, but most purchase contracts include appraisal contingency language that serves the same purpose.`,
+
+  'd5': `FHA — Identity of Interest:
+• Applies when buyer and seller have a pre-existing personal or business relationship.
+• Examples: family member selling to family member, employer selling to employee, business partner transaction.
+• When triggered: maximum LTV drops from 96.5% to 85% (minimum 15% down payment required).
+• Exceptions: (1) tenant who has rented the property for at least 6 months prior to contract; (2) family member purchasing parent's or child's principal residence; (3) employee of builder purchasing a new construction home.
+• Get the identity of interest certification signed by both buyer and seller. Disclose early — this affects the pre-approval amount.`,
+
+  'd6': `Homeowners Insurance:
+• Need binding binder OR paid receipt for first year before closing.
+• Coverage must be at least the lesser of: (a) replacement cost of the improvements, or (b) unpaid principal balance of the loan.
+• Lender must be listed as mortgagee on the declaration page: "[Lender Name], ISAOA, ATIMA" (its successors and assigns, as their interests may appear).
+• Condo: need master policy from HOA (covering structure) + HO-6 policy (covering interior/personal liability). Confirm master policy is "all-in" or "walls-in" and what HO-6 needs to cover.
+• FL note: binding a policy early is critical — insurance market is volatile, and lenders may require specific carriers or minimum coverage types.
+• Wind/storm mitigation: in FL, get wind mitigation inspection report — can significantly reduce premium.`,
+
+  'd7': `Power of Attorney (POA):
+• Must be reviewed and approved by lender BEFORE proceeding. Do NOT assume it will be accepted.
+• Lender-specific requirements: most lenders have approved POA language. Use lender's form or get lender's approval of borrower's form.
+• The attorney-in-fact (person holding the POA) cannot be: the lender, the title company, the real estate agent, or any other party with an interest in the transaction.
+• Durable POA vs. springing POA: most lenders require durable (effective immediately). Springing (only effective upon incapacity) is generally not acceptable.
+• Military POA: deployed servicemembers often use military POA. VA has specific requirements — verify with lender.
+• Title company also needs to approve the POA language independently.`,
+
+  'd8': `Boarder Income:
+• Conv (Fannie/Freddie): up to 30% of qualifying income may come from a boarder.
+• Requirements: (1) borrower and boarder have shared the same residence for at least 12 months prior to the mortgage application; (2) boarder has paid rent consistently for 12 months (canceled checks or bank statements); (3) boarder is not a co-borrower.
+• FHA: boarder income is not typically counted unless it's a two-unit property and borrower occupies one unit.
+• Document with: 12 months of rent receipts or bank statements showing deposits, and a signed rental agreement.
+• Do NOT count projected or anticipated boarder income — must have 12-month documented history.`,
+
+  'd9': `Down Payment Assistance (DPA) — HUD Approved:
+• Many DPA programs require completion of a HUD-approved homebuyer education course (Form HUD-9902 or equivalent certificate).
+• Check program-specific requirements: most DPA programs have income limits (tied to area median income), purchase price limits, and first-time homebuyer requirements.
+• "First-time homebuyer" definition varies: most define it as not having owned a home in the past 3 years — not necessarily never having owned.
+• DPA source must be an approved source for the loan type (FHA, Conv, USDA). Verify with lender.
+• Silent seconds (deferred, forgivable): must be disclosed to lender. Cannot have undisclosed secondary financing.
+• Confirm DPA terms: some are forgivable over time (e.g., 5 years), some are repayable. Terms affect the full picture of the borrower's obligation.`,
+};
+
+// ── INIT ───────────────────────────────────────────────────────────────────
+async function init() {
+  allBorrowers = await fetchIndex();
+  document.addEventListener('click', e => {
+    const sw  = document.getElementById('borrower-switcher');
+    const bar = document.getElementById('current-borrower');
+    if (!sw.classList.contains('hidden') && !sw.contains(e.target) && !bar.contains(e.target)) {
+      sw.classList.add('hidden');
+    }
+  });
+  // Always start at home screen — user opens their file from the switcher
+  showNoFile();
+}
+
+// ── LOCALSTORAGE API (replaces /api/borrowers server) ────────────────────
+const LS_INDEX = 'hws_borrowers_index';
+const lsKey    = id => 'hws_borrower_' + id;
+const lsIndex  = () => { try { return JSON.parse(localStorage.getItem(LS_INDEX) || '[]'); } catch { return []; } };
+const lsSetIndex = arr => localStorage.setItem(LS_INDEX, JSON.stringify(arr));
+const lsSave   = (id, data) => localStorage.setItem(lsKey(id), JSON.stringify(data));
+const lsRead   = id => { try { return JSON.parse(localStorage.getItem(lsKey(id))); } catch { return null; } };
+const lsDel    = id => localStorage.removeItem(lsKey(id));
+function genId() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
+// ─────────────────────────────────────────────────────────────────────────
+
+async function fetchIndex() {
+  return lsIndex();
+}
+
+// ── LOAD / RENDER ──────────────────────────────────────────────────────────
+async function loadBorrower(id) {
+  try {
+    const data = lsRead(id);
+    if (!data) return false;
+    borrowerState = data;
+    activeId = id;
+    localStorage.setItem('hws_active_borrower_id', id);
+    renderWorkflow();
+    showWorkflow();
+    return true;
+  } catch(e) { console.error('Load failed:', e); return false; }
+}
+
+function renderWorkflow() {
+  document.getElementById('borrower-name-display').textContent = borrowerState.meta.borrower.name || 'Unnamed';
+  setSaveIndicator('idle');
+
+  // Restore checkboxes
+  const checked = new Set(borrowerState.workflow.checkedItems || []);
+  document.querySelectorAll('input[type=checkbox][id]').forEach(cb => { cb.checked = checked.has(cb.id); });
+
+  // Restore notes — saved overrides default
+  const saved = borrowerState.workflow.notes || {};
+  Object.keys(DEFAULT_NOTES).forEach(key => {
+    const ta = document.getElementById('note-' + key);
+    if (!ta) return;
+    ta.value = saved.hasOwnProperty(key) ? saved[key] : DEFAULT_NOTES[key];
+    updateNoteBtn(key, ta.value);
+  });
+
+  // Restore AUS
+  if (borrowerState.workflow.ausOutcome) {
+    const r = document.querySelector(`input[name="aus-outcome"][value="${borrowerState.workflow.ausOutcome}"]`);
+    if (r) r.checked = true;
+  }
+
+  renderIncomeImport();
+  updateProgress();
+}
+
+function renderIncomeImport() {
+  const banner = document.getElementById('income-import-banner');
+  if (!banner) return;
+  const inc = borrowerState?.income?.calcExport?.income;
+  const fmt = n => n ? '$' + Math.round(n).toLocaleString() : '—';
+  if (inc) {
+    const tStr = inc.trend_pct != null ? ` | Trend: ${inc.trend_pct > 0 ? '+' : ''}${inc.trend_pct}%` : '';
+    const when = borrowerState.income.importedAt
+      ? new Date(borrowerState.income.importedAt).toLocaleString([],{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'})
+      : '';
+    banner.className = 'has-income';
+    banner.innerHTML = `<span class="inc-badge">✓ Income Imported</span>
+      <span>${(inc.type||'').replace(/_/g,' ')} | Avg/mo: <strong>${fmt(inc.average_monthly)}</strong> | Lower of 2yr: <strong>${fmt(inc.lower_of_monthly)}</strong>${tStr}</span>
+      ${when ? `<span style="color:#64748b;font-size:11px">${when}</span>` : ''}
+      <a href="./income-calc.html?from=preapproval" class="launch-calc">Recalculate →</a>`;
+  } else {
+    banner.className = '';
+    banner.innerHTML = `<span>No income data imported yet.</span><a href="./income-calc.html?from=preapproval" class="launch-calc">Launch Income Calculator →</a>`;
+  }
+}
+
+// ── AUTOSAVE ───────────────────────────────────────────────────────────────
+function scheduleAutosave() {
+  setSaveIndicator('saving');
+  if (saveTimer) clearTimeout(saveTimer);
+  saveTimer = setTimeout(doSave, 1500);
+}
+
+async function doSave() {
+  if (!borrowerState || !activeId) return;
+  const now = new Date().toISOString();
+  borrowerState.workflow.lastSaved = now;
+  lsSave(activeId, borrowerState);
+  // Update index entry modified timestamp
+  const idx = lsIndex();
+  const entry = idx.find(e => e.id === activeId);
+  if (entry) { entry.modified = now; lsSetIndex(idx); }
+  setSaveIndicator('saved', now);
+  allBorrowers = await fetchIndex();
+}
+
+function setSaveIndicator(state, ts) {
+  const el = document.getElementById('save-indicator');
+  if (!el) return;
+  el.className = state;
+  if (state === 'saving') el.textContent = 'Saving…';
+  else if (state === 'saved') {
+    const t = ts ? new Date(ts).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}) : '';
+    el.textContent = `Saved ${t} ✓`;
+  } else if (state === 'error') el.textContent = '⚠ Save failed';
+  else el.textContent = '';
+}
+
+// ── CHECKBOX ───────────────────────────────────────────────────────────────
+function handleCheck(cb) {
+  if (!borrowerState) return;
+  const id = cb.id;
+  let items = borrowerState.workflow.checkedItems || [];
+  if (cb.checked) { if (!items.includes(id)) items.push(id); }
+  else items = items.filter(x => x !== id);
+  borrowerState.workflow.checkedItems = items;
+  updateProgress();
+  scheduleAutosave();
+}
+
+// ── NOTES ──────────────────────────────────────────────────────────────────
+function toggleNote(id) {
+  const panel = document.getElementById('note-panel-' + id);
+  const btn   = document.querySelector(`[onclick="toggleNote('${id}')"]`);
+  if (!panel) return;
+  const open = panel.classList.toggle('open');
+  if (btn) btn.classList.toggle('note-open', open);
+  if (open) { const ta = document.getElementById('note-' + id); if (ta) setTimeout(() => ta.focus(), 40); }
+}
+
+function saveNote(id) {
+  const ta = document.getElementById('note-' + id);
+  if (!ta || !borrowerState) return;
+  const val = ta.value.trim();
+  if (!borrowerState.workflow.notes) borrowerState.workflow.notes = {};
+  if (val) borrowerState.workflow.notes[id] = val;
+  else delete borrowerState.workflow.notes[id];
+  updateNoteBtn(id, val);
+  const msg = document.getElementById('saved-' + id);
+  if (msg) { msg.classList.add('show'); setTimeout(() => msg.classList.remove('show'), 1800); }
+  scheduleAutosave();
+}
+
+function clearNote(id) {
+  const ta = document.getElementById('note-' + id);
+  if (ta) ta.value = '';
+  if (borrowerState?.workflow?.notes) delete borrowerState.workflow.notes[id];
+  const panel = document.getElementById('note-panel-' + id);
+  const btn   = document.querySelector(`[onclick="toggleNote('${id}')"]`);
+  if (panel) panel.classList.remove('open');
+  if (btn) btn.classList.remove('note-open', 'has-note');
+  scheduleAutosave();
+}
+
+function updateNoteBtn(id, val) {
+  const btn = document.querySelector(`[onclick="toggleNote('${id}')"]`);
+  if (btn) btn.classList.toggle('has-note', !!(val && val.trim()));
+}
+
+// ── PROGRESS ───────────────────────────────────────────────────────────────
+function updateProgress() {
+  const all  = document.querySelectorAll('input[type=checkbox]').length;
+  const done = document.querySelectorAll('input[type=checkbox]:checked').length;
+  document.getElementById('checked-count').textContent = done;
+  document.getElementById('total-count').textContent   = all;
+  document.getElementById('progress-fill').style.width = (all ? done / all * 100 : 0) + '%';
+}
+
+function resetAll() {
+  if (!confirm('Reset all checkboxes for this borrower?')) return;
+  document.querySelectorAll('input[type=checkbox]').forEach(cb => cb.checked = false);
+  document.querySelectorAll('input[name="aus-outcome"]').forEach(r => r.checked = false);
+  if (borrowerState) { borrowerState.workflow.checkedItems = []; borrowerState.workflow.ausOutcome = null; }
+  updateProgress();
+  scheduleAutosave();
+}
+
+// ── AUS ─────────────────────────────────────────────────────────────────────
+function handleAUS(val) {
+  if (!borrowerState) return;
+  borrowerState.workflow.ausOutcome = val;
+  scheduleAutosave();
+}
+
+// ── SWITCHER ───────────────────────────────────────────────────────────────
+function toggleSwitcher() {
+  const sw = document.getElementById('borrower-switcher');
+  const hidden = sw.classList.toggle('hidden');
+  if (!hidden) { renderSwitcherList(allBorrowers); document.getElementById('borrower-search').focus(); }
+}
+
+function filterBorrowers(q) {
+  const list = q ? allBorrowers.filter(b => b.name.toLowerCase().includes(q.toLowerCase())) : allBorrowers;
+  renderSwitcherList(list);
+}
+
+function renderSwitcherList(list) {
+  const el = document.getElementById('borrower-list');
+  if (!list.length) { el.innerHTML = '<div class="sw-empty">No borrower files yet.</div>'; return; }
+  el.innerHTML = list.map(b => `
+    <div class="b-row${b.id===activeId?' active':''}" onclick="switchTo('${b.id}')">
+      <div>
+        <div class="b-name">${b.name}</div>
+        <div class="b-meta">${b.loanType?b.loanType.toUpperCase()+' · ':''}${relTime(b.modified)}</div>
+      </div>
+      <button class="b-del" onclick="event.stopPropagation();deleteBorrower('${b.id}','${b.name.replace(/'/g,"\\'")}')">✕</button>
+    </div>`).join('');
+}
+
+async function switchTo(id) {
+  if (id === activeId) { document.getElementById('borrower-switcher').classList.add('hidden'); return; }
+  document.getElementById('borrower-switcher').classList.add('hidden');
+  document.getElementById('borrower-search').value = '';
+  await loadBorrower(id);
+  allBorrowers = await fetchIndex();
+}
+
+// ── NEW BORROWER ───────────────────────────────────────────────────────────
+function showNewModal() {
+  document.getElementById('borrower-switcher').classList.add('hidden');
+  document.getElementById('new-borrower-modal').classList.remove('hidden');
+  setTimeout(() => document.getElementById('nb-name').focus(), 50);
+}
+
+function hideModal() {
+  document.getElementById('new-borrower-modal').classList.add('hidden');
+  ['nb-name','nb-amount','nb-score'].forEach(id => { const e=document.getElementById(id); if(e) e.value=''; });
+  document.getElementById('nb-purpose').value = '';
+  document.getElementById('nb-type').value    = '';
+}
+
+async function createBorrower() {
+  const name = document.getElementById('nb-name').value.trim();
+  if (!name) { document.getElementById('nb-name').focus(); return; }
+  const rawAmt = document.getElementById('nb-amount').value.replace(/[$,]/g, '');
+  const body = {
+    name,
+    loanPurpose: document.getElementById('nb-purpose').value,
+    loanType:    document.getElementById('nb-type').value,
+    loanAmount:  parseFloat(rawAmt) || null,
+    creditScore: parseInt(document.getElementById('nb-score').value) || null,
+  };
+  const id  = genId();
+  const now = new Date().toISOString();
+  const record = {
+    meta: { id, borrower: { name }, ...body, created: now, modified: now },
+    workflow: { checkedItems: [], notes: {}, lastSaved: now },
+    income: {}
+  };
+  lsSave(id, record);
+  const idx = lsIndex();
+  idx.unshift({ id, name, loanPurpose: body.loanPurpose, loanType: body.loanType, loanAmount: body.loanAmount, creditScore: body.creditScore, created: now, modified: now });
+  lsSetIndex(idx);
+  hideModal();
+  allBorrowers = await fetchIndex();
+  await loadBorrower(id);
+}
+
+// ── DELETE ─────────────────────────────────────────────────────────────────
+async function deleteBorrower(id, name) {
+  if (!confirm(`Delete file for ${name}?\n\nThis cannot be undone.`)) return;
+  lsDel(id);
+  lsSetIndex(lsIndex().filter(e => e.id !== id));
+  allBorrowers = await fetchIndex();
+  if (id === activeId) {
+    borrowerState = null; activeId = null;
+    localStorage.removeItem('hws_active_borrower_id');
+    showNoFile();
+  }
+  renderSwitcherList(allBorrowers);
+}
+
+// ── SHOW/HIDE ──────────────────────────────────────────────────────────────
+function showWorkflow() {
+  document.getElementById('no-file-state').classList.add('hidden');
+  document.getElementById('workflow-wrap').classList.remove('hidden');
+}
+function showNoFile() {
+  document.getElementById('no-file-state').classList.remove('hidden');
+  document.getElementById('workflow-wrap').classList.add('hidden');
+  document.getElementById('borrower-name-display').textContent = 'No file open';
+  setSaveIndicator('idle');
+}
+
+// ── EMBEDDED INCOME CALCULATOR ─────────────────────────────────────────────
+function fmtC(n) { return isNaN(n)||!n?'':'$'+n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function calcIncome() {
+  const hr=parseFloat(document.getElementById('hourly-rate').value)||0;
+  const hw=parseFloat(document.getElementById('hours-week').value)||0;
+  const ytd=parseFloat(document.getElementById('ytd').value)||0;
+  const ytdM=parseFloat(document.getElementById('ytd-months').value)||0;
+  const w1=parseFloat(document.getElementById('w2-1').value)||0;
+  const w2=parseFloat(document.getElementById('w2-2').value)||0;
+  const results=[];
+  let rH=null; if(hr>0&&hw>0){rH=hr*hw*52/12;results.push(rH);}
+  let rY=null; if(ytd>0&&ytdM>0){rY=ytd/ytdM;results.push(rY);}
+  let rY1=null; if(ytd>0&&ytdM>0&&w1>0){rY1=(ytd+w1)/(ytdM+12);results.push(rY1);}
+  let rY2=null; if(ytd>0&&ytdM>0&&w1>0&&w2>0){rY2=(ytd+w1+w2)/(ytdM+24);results.push(rY2);}
+  document.getElementById('res-hourly').value=rH!==null?fmtC(rH):'';
+  document.getElementById('res-ytd').value=rY!==null?fmtC(rY):'';
+  document.getElementById('res-ytd1').value=rY1!==null?fmtC(rY1):'';
+  document.getElementById('res-ytd2').value=rY2!==null?fmtC(rY2):'';
+  document.getElementById('lowest-income').textContent=results.length>0?fmtC(Math.min(...results))+'/mo':'—';
+}
+
+// ── UTILITIES ──────────────────────────────────────────────────────────────
+function relTime(iso) {
+  const d=Date.now()-new Date(iso),m=Math.floor(d/60000);
+  if(m<1) return 'just now';
+  if(m<60) return m+'m ago';
+  const h=Math.floor(m/60);
+  if(h<24) return h+'h ago';
+  return new Date(iso).toLocaleDateString();
+}
+
+init();
+</script>
+
+<!-- HWS Hub back button -->
+<div id="hws-back-btn" style="position:fixed;bottom:20px;right:20px;z-index:99999;">
+  <button onclick="window.location.href='./index.html'" style="
+    background:#1a2332;
+    color:white;
+    border:none;
+    border-radius:8px;
+    padding:9px 16px;
+    font-size:13px;
+    font-weight:600;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    gap:7px;
+    box-shadow:0 2px 12px rgba(0,0,0,0.25);
+    opacity:0.85;
+    transition:opacity .15s;
+  " onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.85'">
+    ← Hub
+  </button>
+</div>
+</body>
+</html>

@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Housing Market Cheat Sheet — HomeWealth Solutions</title>
+<style>
+:root {
+  --blue:  #2491EB;
+  --green: #8EC73F;
+  --dark:  #1c2b3a;
+  --mid:   #3a4f62;
+  --red:   #dc3545;
+  --amber: #e8900a;
+  --bg-green: #f0f9e4;
+  --bg-blue:  #eaf5fe;
+  --bg-amber: #fff8ee;
+  --bg-red:   #fff0f0;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+  background: #f5f7fa;
+  color: #222;
+  font-size: 14px;
+}
+
+/* ── Header ── */
+.hdr {
+  background: var(--dark);
+  color: white;
+  padding: 18px 28px 16px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+}
+.hdr-brand { font-size: 12px; color: rgba(255,255,255,.5); letter-spacing: .4px; }
+.hdr-title { font-size: 21px; font-weight: 700; margin-top: 3px; }
+.hdr-sub   { font-size: 12px; color: rgba(255,255,255,.45); margin-top: 3px; }
+.hdr-right { text-align: right; font-size: 12px; color: rgba(255,255,255,.5); }
+.hdr-right strong { display: block; color: rgba(255,255,255,.85); font-size: 13px; }
+.print-btn {
+  background: transparent;
+  border: 1.5px solid rgba(255,255,255,.4);
+  color: rgba(255,255,255,.85);
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-size: 12px;
+  cursor: pointer;
+  margin-bottom: 6px;
+  white-space: nowrap;
+}
+.print-btn:hover { background: rgba(255,255,255,.1); }
+
+/* ── Main ── */
+.main { max-width: 1080px; margin: 0 auto; padding: 22px 18px 48px; }
+
+/* ── Section titles ── */
+.section-title {
+  font-size: 11px; font-weight: 700; letter-spacing: 1px;
+  text-transform: uppercase; color: var(--mid);
+  border-bottom: 2px solid #e0e4ea;
+  padding-bottom: 7px; margin-bottom: 16px; margin-top: 28px;
+}
+
+/* ── Cards ── */
+.card {
+  background: white;
+  border-radius: 10px;
+  padding: 16px 18px;
+  box-shadow: 0 1px 5px rgba(0,0,0,.07);
+}
+
+/* ── Grids ── */
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: start; }
+.grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; align-items: start; }
+
+/* ── 3-Factor Framework ── */
+.factor-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 14px; }
+.factor-card {
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 1px 5px rgba(0,0,0,.07);
+  overflow: hidden;
+}
+.factor-header {
+  padding: 14px 16px 12px;
+  color: white;
+  font-weight: 800;
+  font-size: 15px;
+}
+.factor-header .factor-icon { font-size: 22px; margin-bottom: 4px; display: block; }
+.factor-header .factor-sub  { font-size: 11px; opacity: .8; font-weight: 400; margin-top: 2px; }
+.factor-header.supply { background: var(--dark); }
+.factor-header.demand { background: var(--blue); }
+.factor-header.afford { background: var(--mid); }
+.factor-body { padding: 14px 16px; }
+.factor-item {
+  display: flex; align-items: flex-start; gap: 8px;
+  padding: 5px 0;
+  border-bottom: 1px solid #f5f5f5;
+  font-size: 12px;
+  line-height: 1.5;
+}
+.factor-item:last-child { border-bottom: none; }
+.fi-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  flex-shrink: 0; margin-top: 5px;
+}
+
+/* ── Months of Supply calculator ── */
+.mos-wrap {
+  display: flex;
+  gap: 28px;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+.mos-inputs { flex: 0 0 260px; }
+.mos-result { flex: 1; min-width: 200px; }
+.field-row { margin-bottom: 12px; }
+.field-label { font-size: 12px; font-weight: 700; color: var(--mid); margin-bottom: 5px; }
+.field-input {
+  width: 100%;
+  border: 1.5px solid #dde2ea;
+  border-radius: 7px;
+  padding: 9px 12px;
+  font-size: 14px;
+  font-family: inherit;
+  color: #222;
+}
+.field-input:focus { outline: none; border-color: var(--blue); }
+.mos-display {
+  text-align: center;
+  padding: 20px 16px;
+  border-radius: 10px;
+  transition: background .3s;
+  border: 2px solid transparent;
+}
+.mos-number { font-size: 60px; font-weight: 900; line-height: 1; transition: color .3s; }
+.mos-label  { font-size: 13px; font-weight: 600; margin-top: 4px; transition: color .3s; }
+.mos-verdict { font-size: 15px; font-weight: 800; margin-top: 10px; }
+.mos-desc { font-size: 12px; color: #555; margin-top: 6px; line-height: 1.5; }
+
+/* ── Gauge bar ── */
+.gauge-wrap { margin-top: 14px; }
+.gauge-track {
+  position: relative;
+  height: 14px;
+  border-radius: 7px;
+  background: linear-gradient(to right, #dc3545 0%, #e8900a 25%, #28a745 50%, #e8900a 75%, #2491EB 100%);
+  overflow: visible;
+}
+.gauge-marker {
+  position: absolute;
+  top: -4px;
+  width: 4px;
+  height: 22px;
+  background: var(--dark);
+  border-radius: 2px;
+  transition: left .4s ease;
+  transform: translateX(-50%);
+}
+.gauge-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  color: #888;
+  margin-top: 5px;
+}
+.gauge-legend {
+  display: flex;
+  gap: 14px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+  font-size: 11px;
+}
+.gl-item { display: flex; align-items: center; gap: 5px; }
+.gl-dot  { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+
+/* ── 2008 vs Now ── */
+.compare-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.compare-table th {
+  padding: 10px 14px;
+  text-align: left;
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: .3px;
+  text-transform: uppercase;
+  border-bottom: 2px solid #e0e4ea;
+}
+.compare-table th.col-factor { background: #f5f7fa; color: var(--mid); }
+.compare-table th.col-2008   { background: #fff0f0; color: var(--red); }
+.compare-table th.col-now    { background: var(--bg-green); color: #2a6e12; }
+.compare-table td {
+  padding: 10px 14px;
+  border-bottom: 1px solid #f0f0f0;
+  vertical-align: top;
+  line-height: 1.5;
+}
+.compare-table tr:last-child td { border-bottom: none; }
+.compare-table td:nth-child(1) { font-weight: 700; background: #fafafa; font-size: 12px; }
+.compare-table td:nth-child(2) { background: #fffafa; color: #c0392b; font-size: 12px; }
+.compare-table td:nth-child(3) { background: #fafff5; color: #2a6e12; font-size: 12px; }
+
+/* ── Appreciation history ── */
+.appr-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; }
+.appr-card {
+  background: white;
+  border-radius: 8px;
+  padding: 14px;
+  box-shadow: 0 1px 4px rgba(0,0,0,.06);
+  text-align: center;
+}
+.appr-pct  { font-size: 32px; font-weight: 900; color: var(--green); line-height: 1; }
+.appr-era  { font-size: 12px; font-weight: 700; color: #111; margin-top: 5px; }
+.appr-note { font-size: 11px; color: #888; margin-top: 3px; line-height: 1.4; }
+
+/* ── Conversation framework ── */
+.conv-step {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  padding: 14px 0;
+  border-bottom: 1px solid #f2f2f2;
+}
+.conv-step:last-child { border-bottom: none; }
+.conv-num {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  background: var(--blue);
+  color: white;
+  font-weight: 800;
+  font-size: 16px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.conv-q    { font-size: 16px; font-weight: 800; color: var(--dark); margin-bottom: 6px; }
+.conv-body { font-size: 12px; color: #555; line-height: 1.6; }
+.conv-body strong { color: #222; }
+.talking-pts { margin-top: 8px; }
+.tp { display: flex; gap: 8px; margin-bottom: 5px; font-size: 12px; color: #555; }
+.tp-bullet { color: var(--blue); font-weight: 800; flex-shrink: 0; }
+
+/* ── Data sources ── */
+.source-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px,1fr)); gap: 10px; }
+.source-card {
+  background: white;
+  border-radius: 8px;
+  padding: 12px 14px;
+  box-shadow: 0 1px 4px rgba(0,0,0,.06);
+  font-size: 12px;
+}
+.source-card h4 { font-size: 12px; font-weight: 800; color: #111; margin-bottom: 4px; }
+.source-card .url { color: var(--blue); font-size: 11px; word-break: break-all; }
+.source-card .desc { color: #777; margin-top: 3px; line-height: 1.4; font-size: 11px; }
+
+/* ── Print ── */
+@media print {
+  body { background: white; font-size: 12px; }
+  .main { padding: 0; max-width: 100%; }
+  .print-btn { display: none !important; }
+  .card, .factor-card, .appr-card, .source-card { box-shadow: none; border: 1px solid #ddd; }
+  .section-title { margin-top: 18px; }
+}
+
+/* ── Mobile ── */
+@media (max-width: 700px) {
+  .factor-grid { grid-template-columns: 1fr; }
+  .grid-2, .grid-3 { grid-template-columns: 1fr; }
+  .appr-grid { grid-template-columns: 1fr 1fr; }
+  .mos-inputs { flex: 0 0 100%; }
+  .hdr-right { display: none; }
+}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div>
+    <div class="hdr-brand">HomeWealth Solutions LLC &nbsp;·&nbsp; NMLS #2742458</div>
+    <div class="hdr-title">Housing Market Cheat Sheet</div>
+    <div class="hdr-sub">Supply · Demand · Affordability &nbsp;·&nbsp; Why No Bubble &nbsp;·&nbsp; Realtor Conversation Guide</div>
+  </div>
+  <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px">
+    <button class="print-btn" onclick="window.print()">🖨 Print / Save PDF</button>
+    <div class="hdr-right">
+      Doug Smith, CMA®<br>
+      <strong>813-733-7371</strong><br>
+      doug@homewealthsolutions.com
+    </div>
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- ═══ 3-FACTOR FRAMEWORK ═══ -->
+  <div class="section-title">The 3-Factor Housing Market Framework</div>
+  <div class="factor-grid">
+
+    <div class="factor-card">
+      <div class="factor-header supply">
+        <span class="factor-icon">🏗</span>
+        Factor 1 — Supply
+        <div class="factor-sub">Inventory + New Construction</div>
+      </div>
+      <div class="factor-body">
+        <div class="factor-item">
+          <div class="fi-dot" style="background:var(--dark)"></div>
+          <div>Active listings on the market (existing homes)</div>
+        </div>
+        <div class="factor-item">
+          <div class="fi-dot" style="background:var(--dark)"></div>
+          <div>New home starts and building permits (leading indicator)</div>
+        </div>
+        <div class="factor-item">
+          <div class="fi-dot" style="background:var(--dark)"></div>
+          <div>Months of supply = listings ÷ homes sold per month</div>
+        </div>
+        <div class="factor-item">
+          <div class="fi-dot" style="background:var(--dark)"></div>
+          <div>&lt;6 months = seller's market &nbsp;·&nbsp; 6 = balanced &nbsp;·&nbsp; &gt;6 = buyer's market</div>
+        </div>
+        <div class="factor-item">
+          <div class="fi-dot" style="background:var(--green)"></div>
+          <div><strong>Current:</strong> ~3.5–4.5 months nationally — persistently under-supplied</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="factor-card">
+      <div class="factor-header demand">
+        <span class="factor-icon">👥</span>
+        Factor 2 — Demand
+        <div class="factor-sub">Who's Buying &amp; Why</div>
+      </div>
+      <div class="factor-body">
+        <div class="factor-item">
+          <div class="fi-dot" style="background:var(--blue)"></div>
+          <div>Employment levels and job stability (ability to buy)</div>
+        </div>
+        <div class="factor-item">
+          <div class="fi-dot" style="background:var(--blue)"></div>
+          <div>Investor activity (~15–20% of market)</div>
+        </div>
+        <div class="factor-item">
+          <div class="fi-dot" style="background:var(--blue)"></div>
+          <div>Consumer confidence (willingness to buy)</div>
+        </div>
+        <div class="factor-item">
+          <div class="fi-dot" style="background:var(--blue)"></div>
+          <div>Millennials + Gen Z entering peak buying years (largest generational wave)</div>
+        </div>
+        <div class="factor-item">
+          <div class="fi-dot" style="background:var(--green)"></div>
+          <div><strong>Current:</strong> Strong employment + massive demographic demand wave = sustained buyer pool</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="factor-card">
+      <div class="factor-header afford">
+        <span class="factor-icon">💰</span>
+        Factor 3 — Affordability
+        <div class="factor-sub">Can They Buy?</div>
+      </div>
+      <div class="factor-body">
+        <div class="factor-item">
+          <div class="fi-dot" style="background:var(--mid)"></div>
+          <div>Rent vs. buy calculation — at what rate does buying pencil?</div>
+        </div>
+        <div class="factor-item">
+          <div class="fi-dot" style="background:var(--mid)"></div>
+          <div>Current mortgage rates and payment impact</div>
+        </div>
+        <div class="factor-item">
+          <div class="fi-dot" style="background:var(--mid)"></div>
+          <div>Lending guidelines — qualification standards vs. 2005–07</div>
+        </div>
+        <div class="factor-item">
+          <div class="fi-dot" style="background:var(--mid)"></div>
+          <div>Home price appreciation vs. income growth</div>
+        </div>
+        <div class="factor-item">
+          <div class="fi-dot" style="background:var(--amber)"></div>
+          <div><strong>Current:</strong> Stressed by rates and prices — the headwind. Not a crash trigger on its own.</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ═══ MONTHS OF SUPPLY CALCULATOR ═══ -->
+  <div class="section-title">Months of Supply Calculator</div>
+  <div class="card">
+    <div class="mos-wrap">
+      <div class="mos-inputs">
+        <div class="field-row">
+          <div class="field-label">Active Listings (Total Homes on Market)</div>
+          <input type="number" class="field-input" id="mosListings" placeholder="e.g. 4200" oninput="calcMOS()">
+        </div>
+        <div class="field-row">
+          <div class="field-label">Homes Sold Last Month</div>
+          <input type="number" class="field-input" id="mosSold" placeholder="e.g. 1050" oninput="calcMOS()">
+        </div>
+        <div style="font-size:11px;color:#aaa;margin-top:6px;line-height:1.6">
+          Formula: Active Listings ÷ Monthly Sales = Months of Supply<br>
+          Sources: Local MLS board, NAR, Florida Realtors monthly report
+        </div>
+      </div>
+      <div class="mos-result">
+        <div class="mos-display" id="mosDisplay">
+          <div class="mos-number" id="mosNumber">—</div>
+          <div class="mos-label" id="mosLabel">Enter data to calculate</div>
+          <div class="mos-verdict" id="mosVerdict"></div>
+          <div class="mos-desc" id="mosDesc"></div>
+        </div>
+        <div class="gauge-wrap">
+          <div class="gauge-track">
+            <div class="gauge-marker" id="gaugeMarker" style="left:50%"></div>
+          </div>
+          <div class="gauge-labels">
+            <span>0 mo</span>
+            <span>3</span>
+            <span>6</span>
+            <span>9</span>
+            <span>12+ mo</span>
+          </div>
+          <div class="gauge-legend">
+            <div class="gl-item"><div class="gl-dot" style="background:#dc3545"></div><span>Extreme Seller's (&lt;3)</span></div>
+            <div class="gl-item"><div class="gl-dot" style="background:#e8900a"></div><span>Seller's (3–5.9)</span></div>
+            <div class="gl-item"><div class="gl-dot" style="background:#28a745"></div><span>Balanced (6)</span></div>
+            <div class="gl-item"><div class="gl-dot" style="background:#e8900a"></div><span>Buyer's (6–9)</span></div>
+            <div class="gl-item"><div class="gl-dot" style="background:#2491EB"></div><span>Strong Buyer's (9+)</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ 2008 vs NOW ═══ -->
+  <div class="section-title">Why This Is Not 2008 — Side-by-Side Comparison</div>
+  <div class="card" style="padding:0;overflow:hidden">
+    <table class="compare-table">
+      <thead>
+        <tr>
+          <th class="col-factor" style="width:22%">Factor</th>
+          <th class="col-2008" style="width:39%">⚠ 2006–2008 (Crash)</th>
+          <th class="col-now"  style="width:39%">✅ 2025–2026 (Today)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Housing Supply</td>
+          <td>Massive oversupply — builders overbuilt; ~11 months of inventory at peak</td>
+          <td>Persistent undersupply — decade of under-building; ~3.5–4.5 months nationally</td>
+        </tr>
+        <tr>
+          <td>Demand Base</td>
+          <td>Speculative demand — investors flipping, not end users</td>
+          <td>Structural demand — Millennials + Gen Z in peak buying years; largest wave ever</td>
+        </tr>
+        <tr>
+          <td>Lending Standards</td>
+          <td>No-doc loans, stated income, 100% LTV, negative amortization, liar loans</td>
+          <td>Full income verification, debt-to-income limits, QM rules, full appraisals required</td>
+        </tr>
+        <tr>
+          <td>Homeowner Equity</td>
+          <td>Minimal or negative — borrowers underwater immediately</td>
+          <td>Record homeowner equity — low LTVs, years of appreciation, most can sell not default</td>
+        </tr>
+        <tr>
+          <td>Foreclosure Pipeline</td>
+          <td>Exploding — millions of foreclosures flooded the market</td>
+          <td>Near historic lows — few distressed sales; forbearance programs worked</td>
+        </tr>
+        <tr>
+          <td>Employment</td>
+          <td>Rapidly deteriorating — housing collapse triggered job losses</td>
+          <td>Strong and resilient — labor market has remained tight</td>
+        </tr>
+        <tr>
+          <td>Rate Environment</td>
+          <td>Rates were falling — declining ARMs reset and caused defaults</td>
+          <td>Rates elevated — qualifying is harder, but those who bought can afford their payment</td>
+        </tr>
+        <tr>
+          <td>Verdict</td>
+          <td><strong>Oversupply + Speculation + Weak Loans + Foreclosures = Crash</strong></td>
+          <td><strong>Undersupply + Real Demand + Tight Lending + Strong Equity = No Bubble</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ═══ APPRECIATION HISTORY ═══ -->
+  <div class="section-title">Home Appreciation — Historical Context</div>
+  <div class="appr-grid">
+    <div class="appr-card">
+      <div class="appr-pct">+7.6%</div>
+      <div class="appr-era">1970–1989</div>
+      <div class="appr-note">High inflation era — real estate performed as an inflation hedge</div>
+    </div>
+    <div class="appr-card">
+      <div class="appr-pct">+4.0%</div>
+      <div class="appr-era">2005–2024</div>
+      <div class="appr-note">20-year average including the 2008 crash and recovery (NAR data)</div>
+    </div>
+    <div class="appr-card">
+      <div class="appr-pct">+3.5%</div>
+      <div class="appr-era">Long-Run Average</div>
+      <div class="appr-note">Historical baseline: real estate appreciates modestly above inflation over time</div>
+    </div>
+    <div class="appr-card" style="border-top:3px solid var(--amber)">
+      <div class="appr-pct" style="color:var(--amber)">+3.8%</div>
+      <div class="appr-era">Inflation Adjusted</div>
+      <div class="appr-note">Real appreciation (above CPI) reflects genuine wealth-building over time</div>
+    </div>
+  </div>
+  <div style="font-size:11px;color:#aaa;margin-top:8px;text-align:center">
+    Point: Even through a major crash, 20-year appreciation averaged 4%/yr. Time in market beats timing the market. Source: NAR, FHFA
+  </div>
+
+  <!-- ═══ CONVERSATION FRAMEWORK ═══ -->
+  <div class="section-title">The 3-Question Market Conversation (Realtor + Client)</div>
+  <div class="card">
+    <div class="conv-step">
+      <div class="conv-num">1</div>
+      <div>
+        <div class="conv-q">"What's going on in the market?"</div>
+        <div class="conv-body">
+          Set the scene with data, not opinion. Use months of supply, demand drivers, and appreciation history.
+          <div class="talking-pts">
+            <div class="tp"><span class="tp-bullet">→</span><span><strong>Supply:</strong> We're sitting at roughly 3–4 months of inventory nationally — historically low. Builders under-built for a decade after 2008.</span></div>
+            <div class="tp"><span class="tp-bullet">→</span><span><strong>Demand:</strong> Millennials and Gen Z represent the largest home-buying wave in history. They're entering peak buying years right now.</span></div>
+            <div class="tp"><span class="tp-bullet">→</span><span><strong>Affordability:</strong> Rates have made payments harder — that's real. But it's suppressing activity, not causing a crash.</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="conv-step">
+      <div class="conv-num">2</div>
+      <div>
+        <div class="conv-q">"Why does that matter to me?"</div>
+        <div class="conv-body">
+          Connect the data to the client's specific decision — buy now, wait, or do nothing.
+          <div class="talking-pts">
+            <div class="tp"><span class="tp-bullet">→</span><span>Waiting for prices to drop assumes supply will surge or demand will collapse. Neither is happening right now.</span></div>
+            <div class="tp"><span class="tp-bullet">→</span><span>If you wait for rates to fall, prices will likely rise — offsetting much of the savings. You may end up competing with more buyers in a thinner inventory market.</span></div>
+            <div class="tp"><span class="tp-bullet">→</span><span>Every month you wait, you're also making your landlord's mortgage payment, not your own.</span></div>
+            <div class="tp"><span class="tp-bullet">→</span><span>Average appreciation is ~4%/yr. On a $400k home, that's $16,000/year in equity you're not building.</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="conv-step">
+      <div class="conv-num">3</div>
+      <div>
+        <div class="conv-q">"What should I do?"</div>
+        <div class="conv-body">
+          Give them a clear, strategy-first recommendation — not a sales pitch.
+          <div class="talking-pts">
+            <div class="tp"><span class="tp-bullet">→</span><span><strong>If they can qualify:</strong> Buying today with a plan to refinance if rates drop is a legitimate strategy. "Date the rate, marry the house" — your equity position locks in at today's price.</span></div>
+            <div class="tp"><span class="tp-bullet">→</span><span><strong>For Realtors:</strong> Buyers are waiting for the perfect moment. Your job — and mine — is to help them understand that waiting is also a decision, and it has a cost.</span></div>
+            <div class="tp"><span class="tp-bullet">→</span><span><strong>Rate framing:</strong> Focus the client on payment and total cost over how long they plan to stay — not on the rate number itself. A 7% rate on a $350k home they'll own for 10 years is a very different conversation than a 4% rate in 2020.</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ DATA SOURCES ═══ -->
+  <div class="section-title">Key Data Sources</div>
+  <div class="source-grid">
+    <div class="source-card">
+      <h4>NAR (National Assoc. of Realtors)</h4>
+      <div class="url">nar.realtor/research-and-statistics</div>
+      <div class="desc">Existing home sales, pending sales, months of supply, median price</div>
+    </div>
+    <div class="source-card">
+      <h4>US Census Bureau</h4>
+      <div class="url">census.gov/housing</div>
+      <div class="desc">New home sales, housing starts, building permits — all leading indicators</div>
+    </div>
+    <div class="source-card">
+      <h4>NAHB Housing Market Index</h4>
+      <div class="url">nahb.org/news-and-economics</div>
+      <div class="desc">Builder confidence survey — forward-looking indicator for new construction</div>
+    </div>
+    <div class="source-card">
+      <h4>Florida Realtors</h4>
+      <div class="url">floridarealtors.org/research</div>
+      <div class="desc">Monthly state-level data — sales, median price, months of supply by MSA</div>
+    </div>
+    <div class="source-card">
+      <h4>FHFA House Price Index</h4>
+      <div class="url">fhfa.gov/data</div>
+      <div class="desc">Conforming loan price appreciation — used for policy and appraisal analysis</div>
+    </div>
+    <div class="source-card">
+      <h4>Case-Shiller Index</h4>
+      <div class="url">spglobal.com/spdji</div>
+      <div class="desc">Metro-level price index — lagging but authoritative; most-cited in media</div>
+    </div>
+    <div class="source-card">
+      <h4>BLS.gov</h4>
+      <div class="url">bls.gov/data</div>
+      <div class="desc">Employment, unemployment rate, job growth by sector — drives demand analysis</div>
+    </div>
+    <div class="source-card">
+      <h4>Local MLS Board</h4>
+      <div class="url">Florida Realtors / Local Board</div>
+      <div class="desc">Most accurate months of supply for your specific market — use for Realtor conversations</div>
+    </div>
+  </div>
+
+  <div style="margin-top:22px;font-size:11px;color:#aaa;text-align:center;line-height:1.6">
+    Source: CMPS® coursework — Module 9 (Housing Supply, Demand &amp; Affordability) &nbsp;·&nbsp; HomeWealth Solutions LLC, NMLS #2742458 &nbsp;·&nbsp; Doug Smith, CMA® NMLS #2609118<br>
+    This is an educational reference tool. Market data should be verified with current sources before use in client conversations.
+  </div>
+
+</div>
+
+<script>
+function calcMOS() {
+  const listings = parseFloat(document.getElementById('mosListings').value) || 0;
+  const sold     = parseFloat(document.getElementById('mosSold').value) || 0;
+
+  if (!listings || !sold) {
+    document.getElementById('mosNumber').textContent = '—';
+    document.getElementById('mosLabel').textContent = 'Enter data to calculate';
+    document.getElementById('mosVerdict').textContent = '';
+    document.getElementById('mosDesc').textContent = '';
+    document.getElementById('mosDisplay').style.cssText = '';
+    document.getElementById('gaugeMarker').style.left = '50%';
+    return;
+  }
+
+  const mos = listings / sold;
+  const mosRound = Math.round(mos * 10) / 10;
+
+  document.getElementById('mosNumber').textContent = mosRound.toFixed(1);
+  document.getElementById('mosLabel').textContent = 'months of supply';
+
+  let bg, border, color, verdict, desc;
+  if (mos < 3) {
+    bg = '#fff0f0'; border = '#dc3545'; color = '#b00020';
+    verdict = '🔴 Extreme Seller\'s Market';
+    desc = 'Severe inventory shortage. Buyers face intense competition, multiple offers, and prices are rising sharply. Sellers hold all the leverage.';
+  } else if (mos < 6) {
+    bg = '#fff8ee'; border = '#e8900a'; color = '#7a4a00';
+    verdict = '🟡 Seller\'s Market';
+    desc = 'Inventory is below equilibrium. Sellers have the advantage — prices are rising and homes move quickly. Buyers should be pre-approved and ready to move fast.';
+  } else if (mos < 7) {
+    bg = '#f0f9e4'; border = '#28a745'; color = '#2a6e12';
+    verdict = '🟢 Balanced Market';
+    desc = 'Supply and demand are roughly in equilibrium. Neither side has a strong advantage. Prices are stable and appreciation is steady.';
+  } else if (mos < 10) {
+    bg = '#fff8ee'; border = '#e8900a'; color = '#7a4a00';
+    verdict = '🟡 Buyer\'s Market';
+    desc = 'Inventory is building above equilibrium. Buyers have more negotiating power. Sellers may need to reduce prices or offer concessions.';
+  } else {
+    bg = '#eaf5fe'; border = '#2491EB'; color = '#0a5ea8';
+    verdict = '🔵 Strong Buyer\'s Market';
+    desc = 'Significant oversupply. Buyers have substantial leverage. Prices are under pressure and days on market are rising. Watch for price reductions.';
+  }
+
+  document.getElementById('mosNumber').style.color = color;
+  document.getElementById('mosVerdict').textContent = verdict;
+  document.getElementById('mosVerdict').style.color = color;
+  document.getElementById('mosDesc').textContent = desc;
+  document.getElementById('mosDisplay').style.cssText = `background:${bg};border-color:${border}`;
+
+  // Gauge: 0–12+ months mapped to 0–100%
+  const pct = Math.min(100, (mos / 12) * 100);
+  document.getElementById('gaugeMarker').style.left = pct + '%';
+}
+</script>
+<a href="javascript:window.close()" id="hws-hub-btn" style="position:fixed;top:14px;right:16px;z-index:9999;background:#1c2b3a;color:rgba(255,255,255,0.9);text-decoration:none;font-size:12px;font-weight:700;padding:6px 14px;border-radius:8px;font-family:-apple-system,BlinkMacSystemFont,sans-serif;letter-spacing:0.2px;box-shadow:0 2px 8px rgba(0,0,0,0.25);">← Hub</a>
+
+<!-- HWS Hub back button -->
+<div id="hws-back-btn" style="position:fixed;bottom:20px;right:20px;z-index:99999;">
+  <button onclick="window.close()" style="
+    background:#1a2332;
+    color:white;
+    border:none;
+    border-radius:8px;
+    padding:9px 16px;
+    font-size:13px;
+    font-weight:600;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    gap:7px;
+    box-shadow:0 2px 12px rgba(0,0,0,0.25);
+    opacity:0.85;
+    transition:opacity .15s;
+  " onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.85'">
+    ← Hub
+  </button>
+</div>
+</body>
+</html>

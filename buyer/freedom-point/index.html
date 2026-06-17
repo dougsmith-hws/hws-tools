@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Freedom Point Calculator — HomeWealth Solutions</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --blue: #2491EB; --blue-light: #e8f4fd; --blue-mid: #c5e1fa;
+      --green: #8EC73F; --green-light: #f0f8e6; --green-dark: #6aaa1f;
+      --dark: #1c2b3a; --mid: #3a4f62; --red: #dc3545; --amber: #e8900a;
+      --gray-100: #f7f8fa; --gray-200: #edf0f4; --gray-300: #d1d8e0;
+      --gray-500: #8892a0; --gray-700: #4a5568; --gray-900: #1a2332;
+      --radius: 10px; --shadow: 0 2px 12px rgba(0,0,0,0.08);
+    }
+    body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--gray-100); color: var(--gray-900); min-height: 100vh; }
+
+    .header { background: var(--dark); color: #fff; padding: 16px 28px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+    .header-left h1 { font-size: 1.15rem; font-weight: 700; }
+    .header-left p { font-size: 0.76rem; opacity: 0.6; margin-top: 2px; }
+    .header-right { display: flex; align-items: center; gap: 10px; }
+    .btn-print { background: rgba(255,255,255,0.12); color: #fff; border: 1px solid rgba(255,255,255,0.25); padding: 7px 16px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-weight: 600; }
+    .btn-print:hover { background: rgba(255,255,255,0.22); }
+    .back-link { color: rgba(255,255,255,0.7); text-decoration: none; font-size: 0.8rem; font-weight: 600; padding: 6px 12px; border: 1.5px solid rgba(255,255,255,0.25); border-radius: 6px; }
+    .back-link:hover { border-color: #fff; color: #fff; }
+    .nmls-badge { background: var(--blue); color: white; font-size: 0.7rem; font-weight: 700; padding: 4px 10px; border-radius: 20px; }
+
+    .main { max-width: 920px; margin: 28px auto; padding: 0 20px 60px; }
+
+    .card { background: white; border-radius: var(--radius); box-shadow: var(--shadow); margin-bottom: 20px; overflow: hidden; }
+    .card-header { background: var(--dark); color: white; padding: 11px 20px; font-size: 0.82rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; }
+    .card-header.blue { background: var(--blue); }
+    .card-header.green { background: var(--green-dark); }
+    .card-body { padding: 20px; }
+
+    .field-row { display: flex; align-items: center; padding: 9px 0; border-bottom: 1px solid var(--gray-200); gap: 12px; }
+    .field-row:last-child { border-bottom: none; }
+    .field-label { flex: 1; font-size: 0.875rem; color: var(--gray-700); line-height: 1.3; }
+    .field-label small { display: block; font-size: 0.75rem; color: var(--gray-500); margin-top: 2px; }
+    .field-input-wrap { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+    .unit { font-size: 0.8rem; color: var(--gray-500); min-width: 22px; }
+
+    input[type="text"], input[type="number"] {
+      width: 130px; padding: 7px 10px; border: 1.5px solid var(--blue-mid); border-radius: 6px;
+      font-size: 0.9rem; font-weight: 600; color: var(--blue); text-align: right;
+      background: var(--blue-light); outline: none;
+    }
+    input:focus { border-color: var(--blue); background: white; }
+    input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; }
+
+    .three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+    @media(max-width: 720px) { .three-col { grid-template-columns: 1fr; } }
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+    @media(max-width: 620px) { .two-col { grid-template-columns: 1fr; } }
+
+    .result-card { border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); }
+    .rc-hdr { padding: 12px 18px; font-size: 0.82rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: white; }
+    .rc-hdr.dark { background: var(--mid); }
+    .rc-hdr.green { background: var(--green-dark); }
+    .rc-hdr.blue { background: var(--blue); }
+    .rc-body { background: white; padding: 14px 18px; }
+
+    .result-row { display: flex; align-items: center; justify-content: space-between; padding: 7px 0; border-bottom: 1px solid var(--gray-200); font-size: 0.83rem; color: var(--gray-700); }
+    .result-row:last-child { border-bottom: none; }
+    .result-val { font-weight: 700; font-size: 0.9rem; }
+    .result-val.blue { color: var(--blue); }
+    .result-val.green { color: var(--green-dark); }
+    .result-val.dark { color: var(--dark); }
+    .result-val.amber { color: var(--amber); }
+
+    .talking-point { background: linear-gradient(135deg, var(--dark) 0%, var(--mid) 100%); color: white; border-radius: var(--radius); padding: 20px 24px; margin-bottom: 20px; }
+    .tp-label { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; opacity: 0.6; margin-bottom: 8px; }
+    .tp-text { font-size: 0.9rem; line-height: 1.7; }
+    .tp-text strong { color: #f0c060; }
+
+    .chart-wrap { background: white; border-radius: var(--radius); box-shadow: var(--shadow); padding: 20px; margin-bottom: 20px; }
+    .chart-title { font-size: 0.82rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--gray-500); margin-bottom: 14px; }
+
+    .info-box { background: var(--blue-light); border-left: 4px solid var(--blue); border-radius: 6px; padding: 12px 16px; font-size: 0.82rem; color: var(--gray-700); line-height: 1.6; margin-bottom: 20px; }
+
+    .compliance { font-size: 0.7rem; color: var(--gray-500); line-height: 1.65; padding-top: 16px; border-top: 1px solid var(--gray-200); }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <h1>Freedom Point Calculator</h1>
+    <p>HomeWealth Solutions LLC &nbsp;·&nbsp; NMLS #2742458</p>
+  </div>
+  <div class="header-right">
+    <a href="https://tools.homewealthsolutions.com" class="back-link">← Hub</a>
+    <span class="nmls-badge">NMLS #2742458</span>
+    <button class="btn-print" onclick="window.print()">Print</button>
+  </div>
+</div>
+
+<div class="main">
+
+  <div class="info-box">
+    <strong>Your Freedom Point</strong> is the month your mortgage is paid off. Extra payments and lump sum paydowns accelerate that date — this tool shows exactly how much sooner you'll be free, and compares that to investing the same money instead.
+  </div>
+
+  <!-- Inputs -->
+  <div class="two-col">
+    <div class="card">
+      <div class="card-header">Loan Details</div>
+      <div class="card-body">
+        <div class="field-row">
+          <div class="field-label">Current Loan Balance</div>
+          <div class="field-input-wrap">
+            <input type="text" id="fp_balance" value="$350,000" oninput="calcFP()" onblur="fmtDollar(this)" onfocus="clearFmt(this)">
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field-label">Current Rate</div>
+          <div class="field-input-wrap">
+            <input type="text" id="fp_rate" value="7.0%" oninput="calcFP()">
+            <span class="unit">%</span>
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field-label">Remaining Term</div>
+          <div class="field-input-wrap">
+            <input type="text" id="fp_term" value="27" oninput="calcFP()">
+            <span class="unit">yrs</span>
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field-label">Current Monthly P&amp;I <small>Auto-calculated — override if needed</small></div>
+          <div class="field-input-wrap">
+            <input type="text" id="fp_pni" value="" placeholder="Auto" oninput="calcFP()">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">Extra Payment Strategy</div>
+      <div class="card-body">
+        <div class="field-row">
+          <div class="field-label">Extra Monthly Payment <small>Additional principal each month</small></div>
+          <div class="field-input-wrap">
+            <input type="text" id="fp_extra_mo" value="$0" oninput="calcFP()" onblur="fmtDollar(this)" onfocus="clearFmt(this)">
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field-label">Lump Sum Applied Now <small>One-time principal reduction today</small></div>
+          <div class="field-input-wrap">
+            <input type="text" id="fp_lump" value="$0" oninput="calcFP()" onblur="fmtDollar(this)" onfocus="clearFmt(this)">
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field-label">Rate of Return if Invested <small>Opportunity cost comparison</small></div>
+          <div class="field-input-wrap">
+            <input type="text" id="fp_inv_rate" value="7.0%" oninput="calcFP()">
+            <span class="unit">%</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Results -->
+  <div class="three-col">
+    <div class="result-card">
+      <div class="rc-hdr dark">Standard Payoff</div>
+      <div class="rc-body">
+        <div class="result-row"><span>Payoff Date</span><span class="result-val dark" id="std_date">—</span></div>
+        <div class="result-row"><span>Monthly P&amp;I</span><span class="result-val dark" id="std_pni">—</span></div>
+        <div class="result-row"><span>Total Interest Remaining</span><span class="result-val dark" id="std_int">—</span></div>
+      </div>
+    </div>
+    <div class="result-card">
+      <div class="rc-hdr green">With Extra Payments — Freedom Point</div>
+      <div class="rc-body">
+        <div class="result-row"><span>New Payoff Date</span><span class="result-val green" id="fp_date">—</span></div>
+        <div class="result-row"><span>Months Saved</span><span class="result-val green" id="fp_mo_saved">—</span></div>
+        <div class="result-row"><span>Interest Saved</span><span class="result-val green" id="fp_int_saved">—</span></div>
+      </div>
+    </div>
+    <div class="result-card">
+      <div class="rc-hdr blue">If You Invested Instead</div>
+      <div class="rc-body">
+        <div class="result-row"><span>Monthly Contribution</span><span class="result-val blue" id="inv_mo">—</span></div>
+        <div class="result-row"><span>Lump Sum Invested</span><span class="result-val blue" id="inv_lump">—</span></div>
+        <div class="result-row"><span>Value at Original Payoff</span><span class="result-val blue" id="inv_fv">—</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Talking Point -->
+  <div class="talking-point">
+    <div class="tp-label">Key Talking Point</div>
+    <div class="tp-text" id="tp_text">Enter your loan details above to generate your Freedom Point summary.</div>
+  </div>
+
+  <!-- Chart -->
+  <div class="chart-wrap">
+    <div class="chart-title">Loan Balance Over Time + Invested Value</div>
+    <canvas id="fpChart" height="300"></canvas>
+  </div>
+
+  <div class="compliance">
+    This communication is for informational and educational purposes only and does not constitute an offer to lend or a commitment to make a loan. All loans are subject to credit approval, underwriting guidelines, and property approval. Interest rates, payment examples, programs, and terms are illustrative, vary by borrower qualification, and are subject to change without notice. Not all applicants will qualify. Examples shown do not reflect all costs of a mortgage transaction. Consult a licensed tax or legal advisor regarding your individual situation. HomeWealth Solutions LLC is licensed by the Florida Office of Financial Regulation, Mortgage Broker License #MBR8082. Verify our licensure at www.nmlsconsumeraccess.org. Equal Housing Opportunity.
+  </div>
+
+</div>
+
+<script>
+  let fpChart = null;
+  const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+  function pct(id) { return parseFloat((document.getElementById(id).value || '').replace(/[%,]/g, '')) / 100 || 0; }
+  function dollar(id) { return parseFloat((document.getElementById(id).value || '').replace(/[$,]/g, '')) || 0; }
+  function num(id) { return parseFloat((document.getElementById(id).value || '').replace(/[$,%]/g, '')) || 0; }
+  function fmtD(n) { return '$' + Math.round(Math.abs(n)).toLocaleString('en-US'); }
+  function set(id, v) { document.getElementById(id).textContent = v; }
+
+  function fmtDollar(el) {
+    const raw = parseFloat((el.value || '').replace(/[$,]/g, ''));
+    if (!isNaN(raw)) el.value = '$' + Math.round(raw).toLocaleString('en-US');
+  }
+  function clearFmt(el) {
+    const raw = parseFloat((el.value || '').replace(/[$,]/g, ''));
+    if (!isNaN(raw)) el.value = raw;
+  }
+
+  function pmtCalc(rate, nper, pv) {
+    if (rate === 0 || nper === 0) return pv / Math.max(nper, 1);
+    const r = rate / 12;
+    return (r * pv) / (1 - Math.pow(1 + r, -nper));
+  }
+
+  function dateFromNow(months) {
+    const d = new Date();
+    d.setMonth(d.getMonth() + months);
+    return MONTHS[d.getMonth()] + ' ' + d.getFullYear();
+  }
+
+  function runAmort(startBalance, rate, payment, extraMo) {
+    const r = rate / 12;
+    let bal = startBalance;
+    let totalInt = 0;
+    let mo = 0;
+    const balances = [bal];
+    while (bal > 0.01 && mo < 600) {
+      const intCharge = bal * r;
+      const prin = Math.min(payment + extraMo - intCharge, bal);
+      bal -= prin;
+      bal = Math.max(0, bal);
+      totalInt += intCharge;
+      mo++;
+      balances.push(bal);
+    }
+    return { months: mo, totalInt, balances };
+  }
+
+  function calcFP() {
+    const balance = dollar('fp_balance');
+    const rate = pct('fp_rate');
+    const termYrs = num('fp_term');
+    const termMos = termYrs * 12;
+    const extraMo = dollar('fp_extra_mo');
+    const lump = dollar('fp_lump');
+    const invRate = pct('fp_inv_rate');
+
+    const autoPNI = pmtCalc(rate, termMos, balance);
+    const pniField = document.getElementById('fp_pni');
+    let pni;
+    const rawOvr = (pniField.value || '').replace(/[$,]/g, '');
+    if (rawOvr && parseFloat(rawOvr) > 0) {
+      pni = parseFloat(rawOvr);
+    } else {
+      pni = autoPNI;
+      pniField.placeholder = '$' + Math.round(autoPNI).toLocaleString('en-US');
+    }
+
+    // Standard amort
+    const std = runAmort(balance, rate, pni, 0);
+
+    // With extras: apply lump sum first, then extra monthly
+    const newBalance = Math.max(0, balance - lump);
+    const newPNI = extraMo > 0 || lump > 0 ? pni : pni;
+    const extra = runAmort(newBalance, rate, pni, extraMo);
+
+    const moSaved = std.months - extra.months;
+    const intSaved = std.totalInt - extra.totalInt;
+
+    // Opportunity cost
+    const r12 = invRate / 12;
+    let invFV = lump > 0 ? lump * Math.pow(1 + r12, std.months) : 0;
+    if (extraMo > 0) {
+      // FV of monthly annuity
+      const fvAnnuity = r12 > 0 ? extraMo * (Math.pow(1 + r12, std.months) - 1) / r12 : extraMo * std.months;
+      invFV += fvAnnuity;
+    }
+
+    // Update UI
+    set('std_date', dateFromNow(std.months));
+    set('std_pni', fmtD(pni));
+    set('std_int', fmtD(std.totalInt));
+
+    set('fp_date', dateFromNow(extra.months));
+    const yrsSaved = Math.floor(moSaved / 12);
+    const rMoSaved = moSaved % 12;
+    set('fp_mo_saved', `${moSaved} months${yrsSaved > 0 ? ` (${yrsSaved}y ${rMoSaved}m)` : ''}`);
+    set('fp_int_saved', fmtD(intSaved));
+
+    set('inv_mo', fmtD(extraMo) + '/mo');
+    set('inv_lump', fmtD(lump));
+    set('inv_fv', fmtD(invFV));
+
+    // Talking point
+    const stdDateStr = dateFromNow(std.months);
+    const fpDateStr = dateFromNow(extra.months);
+    const ySaved = Math.floor(moSaved / 12);
+    const mSaved = moSaved % 12;
+    document.getElementById('tp_text').innerHTML = `Your Freedom Point moves from <strong>${stdDateStr}</strong> to <strong>${fpDateStr}</strong> — <strong>${ySaved > 0 ? ySaved + ' year' + (ySaved !== 1 ? 's' : '') + (mSaved > 0 ? ' and ' + mSaved + ' month' + (mSaved !== 1 ? 's' : '') : '') : mSaved + ' month' + (mSaved !== 1 ? 's' : '')}</strong> earlier. You save <strong>${fmtD(intSaved)}</strong> in interest. The alternative: invest that same amount and potentially grow it to <strong>${fmtD(invFV)}</strong> by your original payoff date — but you'd still owe the mortgage.`;
+
+    buildChart(std.balances, extra.balances, lump, extraMo, invRate, r12);
+  }
+
+  function buildChart(stdBal, extraBal, lump, extraMo, invRate, r12) {
+    const maxMo = stdBal.length;
+    const step = Math.max(1, Math.floor(maxMo / 80));
+    const labels = [];
+    const stdData = [];
+    const extraData = [];
+    const invData = [];
+
+    for (let m = 0; m < maxMo; m += step) {
+      labels.push(m);
+      stdData.push(stdBal[m] || 0);
+      extraData.push(m < extraBal.length ? extraBal[m] : 0);
+      // Invested value
+      let iv = lump > 0 ? lump * Math.pow(1 + r12, m) : 0;
+      if (extraMo > 0) {
+        iv += r12 > 0 ? extraMo * (Math.pow(1 + r12, m) - 1) / r12 : extraMo * m;
+      }
+      invData.push(iv);
+    }
+
+    if (fpChart) fpChart.destroy();
+    const ctx = document.getElementById('fpChart').getContext('2d');
+    fpChart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [
+          {
+            label: 'Loan Balance — Standard',
+            data: stdData,
+            borderColor: '#3a4f62',
+            borderWidth: 2.5,
+            fill: false,
+            tension: 0.2,
+            pointRadius: 0
+          },
+          {
+            label: 'Loan Balance — With Extra Payments',
+            data: extraData,
+            borderColor: '#8EC73F',
+            borderWidth: 2.5,
+            fill: false,
+            tension: 0.2,
+            pointRadius: 0
+          },
+          {
+            label: 'Invested Value (if invested instead)',
+            data: invData,
+            borderColor: '#2491EB',
+            borderWidth: 2,
+            fill: false,
+            tension: 0.2,
+            pointRadius: 0,
+            borderDash: [5, 3]
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        interaction: { mode: 'index', intersect: false },
+        plugins: {
+          legend: { position: 'top', labels: { font: { size: 12 }, padding: 16 } },
+          tooltip: {
+            callbacks: {
+              label: ctx => `${ctx.dataset.label}: $${Math.round(ctx.parsed.y).toLocaleString()}`
+            }
+          }
+        },
+        scales: {
+          x: {
+            title: { display: true, text: 'Months from Today', font: { size: 12 } },
+            ticks: { callback: v => labels[v] % 12 === 0 ? `Yr ${labels[v]/12}` : '' }
+          },
+          y: {
+            title: { display: true, text: 'Balance / Value ($)', font: { size: 12 } },
+            ticks: { callback: v => '$' + (v/1000).toFixed(0) + 'k' }
+          }
+        }
+      }
+    });
+  }
+
+  calcFP();
+</script>
+
+<!-- HWS Hub back button -->
+<div id="hws-back-btn" style="position:fixed;bottom:20px;right:20px;z-index:99999;">
+  <button onclick="window.close()" style="
+    background:#1a2332;
+    color:white;
+    border:none;
+    border-radius:8px;
+    padding:9px 16px;
+    font-size:13px;
+    font-weight:600;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    gap:7px;
+    box-shadow:0 2px 12px rgba(0,0,0,0.25);
+    opacity:0.85;
+    transition:opacity .15s;
+  " onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.85'">
+    ← Hub
+  </button>
+</div>
+<script src="/hws-session.js"></script>
+</body>
+</html>

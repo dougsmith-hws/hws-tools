@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Move Up Buyer Strategy — HomeWealth Solutions</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root {
+  --blue:  #2491EB;
+  --green: #8EC73F;
+  --dark:  #1c2b3a;
+  --mid:   #3a4f62;
+  --red:   #dc3545;
+  --amber: #e8900a;
+  --bg-green: #f0f9e4;
+  --bg-blue:  #eaf5fe;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+  background: #f5f7fa; color: #222; font-size: 14px;
+}
+
+/* Header */
+.hdr {
+  background: var(--dark); color: white;
+  padding: 18px 28px 16px;
+  display: flex; align-items: flex-end; justify-content: space-between;
+}
+.hdr-brand { font-size: 12px; color: rgba(255,255,255,.5); letter-spacing: .4px; }
+.hdr-title { font-size: 21px; font-weight: 700; margin-top: 3px; }
+.hdr-sub   { font-size: 12px; color: rgba(255,255,255,.45); margin-top: 3px; }
+.hdr-right { text-align: right; font-size: 12px; color: rgba(255,255,255,.5); }
+.print-btn {
+  background: transparent; border: 1.5px solid rgba(255,255,255,.4);
+  color: rgba(255,255,255,.85); padding: 6px 14px; border-radius: 6px;
+  font-size: 12px; cursor: pointer; margin-bottom: 6px; white-space: nowrap;
+}
+.print-btn:hover { background: rgba(255,255,255,.1); }
+
+/* Main */
+.main { max-width: 1200px; margin: 0 auto; padding: 22px 18px 48px; }
+
+/* Section title */
+.section-title {
+  font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
+  color: var(--mid); border-bottom: 2px solid #e0e4ea;
+  padding-bottom: 7px; margin-bottom: 16px; margin-top: 28px;
+}
+
+/* Global inputs */
+.global-card { background: white; border-radius: 10px; padding: 16px 20px; box-shadow: 0 1px 5px rgba(0,0,0,.07); display: flex; align-items: center; gap: 24px; flex-wrap: wrap; }
+.global-label { font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: .5px; color: var(--mid); white-space: nowrap; }
+.yr-btns { display: flex; gap: 6px; flex-wrap: wrap; }
+.yr-btn {
+  padding: 5px 12px; border-radius: 5px; border: 1.5px solid #dde2ea;
+  background: white; font-size: 12px; font-weight: 700; cursor: pointer;
+  color: #666; transition: all .15s;
+}
+.yr-btn:hover  { border-color: var(--blue); color: var(--blue); }
+.yr-btn.active { background: var(--blue); border-color: var(--blue); color: white; }
+.horizon-display { font-size: 14px; font-weight: 800; color: var(--dark); }
+
+/* Products grid */
+.products-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+
+/* Product card */
+.product-wrap {}
+.product-card {
+  background: white; border-radius: 10px; box-shadow: 0 1px 5px rgba(0,0,0,.07);
+  overflow: hidden;
+}
+.product-card.best-value {
+  box-shadow: 0 4px 18px rgba(46,160,67,.3); border: 2px solid #2d7a1f;
+}
+.prod-header {
+  background: var(--dark); color: white; padding: 11px 14px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.prod-num { font-size: 11px; color: rgba(255,255,255,.5); }
+.prod-title-input {
+  background: transparent; border: none; color: white; font-size: 14px;
+  font-weight: 700; font-family: inherit; width: 100%; outline: none;
+}
+.prod-title-input::placeholder { color: rgba(255,255,255,.4); }
+.mode-toggle { display: flex; border-radius: 5px; overflow: hidden; border: 1px solid rgba(255,255,255,.3); }
+.mode-btn {
+  background: transparent; color: rgba(255,255,255,.6);
+  border: none; padding: 4px 9px; font-size: 11px; font-weight: 700;
+  cursor: pointer; font-family: inherit; transition: all .15s;
+}
+.mode-btn.active { background: var(--blue); color: white; }
+
+.prod-body { padding: 12px 14px; }
+.field { margin-bottom: 9px; }
+.field:last-child { margin-bottom: 0; }
+.field label { display: block; font-size: 11px; font-weight: 700; color: #555; margin-bottom: 3px; }
+.field input[type=text] {
+  width: 100%; border: 1.5px solid #dde2ea; border-radius: 7px;
+  padding: 7px 10px; font-size: 12px; font-family: inherit; color: #222; background: white;
+}
+.field input[type=text]:focus { outline: none; border-color: var(--blue); }
+.field input[type=checkbox] { width: auto; margin-right: 6px; }
+.check-row { display: flex; align-items: center; font-size: 12px; color: #555; margin-bottom: 9px; cursor: pointer; }
+.check-row input { cursor: pointer; }
+.copy-row { margin-bottom: 10px; }
+.copy-row select {
+  width: 100%; border: 1.5px solid #dde2ea; border-radius: 7px;
+  padding: 6px 10px; font-size: 11px; font-family: inherit; color: #555;
+  background: white; cursor: pointer;
+}
+.copy-row select:focus { outline: none; border-color: var(--blue); }
+.fields-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+
+/* Output card */
+.output-card {
+  background: white; border-radius: 10px; box-shadow: 0 1px 5px rgba(0,0,0,.07);
+  padding: 14px; margin-top: 12px;
+}
+.output-card.best-value {
+  background: #f0f9e4; box-shadow: 0 2px 10px rgba(46,160,67,.2);
+  border: 1.5px solid #b6e07a;
+}
+.best-badge {
+  background: #2d7a1f; color: white; font-size: 10px; font-weight: 800;
+  letter-spacing: .6px; text-transform: uppercase; padding: 4px 10px;
+  border-radius: 4px; display: inline-block; margin-bottom: 10px;
+}
+.out-row {
+  display: flex; justify-content: space-between; align-items: baseline;
+  padding: 5px 0; border-bottom: 1px solid #f0f0f0; font-size: 12px;
+}
+.out-row:last-child { border-bottom: none; }
+.out-label { color: #666; }
+.out-val { font-weight: 700; color: #222; text-align: right; }
+.out-val.big { color: var(--blue); font-size: 15px; }
+.out-val.green { color: #2d7a1f; font-size: 15px; }
+.out-val.amber { color: var(--amber); }
+.out-val.muted { color: #aaa; font-weight: 400; font-style: italic; }
+
+/* Chart */
+.chart-wrap { background: white; border-radius: 10px; padding: 18px 20px; box-shadow: 0 1px 5px rgba(0,0,0,.07); }
+.chart-title { font-size: 13px; font-weight: 700; color: var(--mid); margin-bottom: 4px; }
+.chart-sub   { font-size: 12px; color: #aaa; margin-bottom: 14px; }
+
+/* Disclosure */
+.disclosure {
+  font-size: 11px; color: #aaa; line-height: 1.6; margin-top: 24px;
+  text-align: center; padding: 0 10px;
+}
+
+@media print {
+  body { background: white; }
+  .main { padding: 0; max-width: 100%; }
+  .print-btn { display: none !important; }
+}
+@media (max-width: 960px) {
+  .products-grid { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 560px) {
+  .products-grid { grid-template-columns: 1fr; }
+  .hdr-right { display: none; }
+}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div>
+    <div class="hdr-brand">HomeWealth Solutions LLC &nbsp;·&nbsp; NMLS #2742458</div>
+    <div class="hdr-title">Move Up Buyer Strategy</div>
+    <div class="hdr-sub">Compare up to 4 loan scenarios side by side — total cost over time</div>
+  </div>
+  <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px">
+    <button class="print-btn" onclick="window.print()">Print / Save PDF</button>
+    <div class="hdr-right">Doug Smith, CMA®<br><strong>813-733-7371</strong><br>doug@homewealthsolutions.com</div>
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- GLOBAL -->
+  <div class="section-title">Analysis Settings</div>
+  <div class="global-card">
+    <div class="global-label">Analysis Horizon</div>
+    <div class="yr-btns" id="horizonBtns">
+      <button class="yr-btn" onclick="setHorizon(5)">5 yr</button>
+      <button class="yr-btn active" onclick="setHorizon(7)">7 yr</button>
+      <button class="yr-btn" onclick="setHorizon(10)">10 yr</button>
+      <button class="yr-btn" onclick="setHorizon(30)">30 yr</button>
+    </div>
+    <div class="horizon-display">Horizon: <span id="horizonLabel">7 Years</span></div>
+  </div>
+
+  <!-- PRODUCTS -->
+  <div class="section-title">Loan Scenarios</div>
+  <div class="products-grid" id="productsGrid"></div>
+
+  <!-- CHART -->
+  <div class="section-title">Total PITI Comparison Over Horizon</div>
+  <div class="chart-wrap">
+    <div class="chart-title">Total PITI Payments Over Analysis Period</div>
+    <div class="chart-sub" id="chartSub">Comparing all 4 products over selected horizon</div>
+    <canvas id="summaryChart" style="max-height:320px"></canvas>
+  </div>
+
+  <div class="disclosure">
+    This communication is for informational and educational purposes only and does not constitute an offer to lend or a commitment to make a loan. All loans are subject to credit approval, underwriting guidelines, and property approval. Interest rates, payment examples, programs, and terms are illustrative, vary by borrower qualification, and are subject to change without notice. Not all applicants will qualify. Examples shown do not reflect all costs of a mortgage transaction. Consult a licensed tax or legal advisor regarding your individual situation. HomeWealth Solutions LLC is licensed by the Florida Office of Financial Regulation, Mortgage Broker License #MBR8082. Verify our licensure at www.nmlsconsumeraccess.org. Equal Housing Opportunity.
+  </div>
+
+</div>
+
+<script>
+/* ── Helpers ── */
+function parseDollar(v) { return parseFloat(String(v).replace(/[$,\s]/g,'')) || 0; }
+function parsePct(v)    { return parseFloat(String(v).replace(/[%\s]/g,'')) || 0; }
+function fmtD(v)  { return '$' + Math.round(v).toLocaleString('en-US'); }
+function fmtPct(v) { return v.toFixed(2) + '%'; }
+
+function fmtDollarLive(el) {
+  const raw = parseDollar(el.value);
+  if (!isNaN(raw) && raw >= 0) el.value = '$' + Math.round(raw).toLocaleString('en-US');
+}
+
+function pmt(principal, annualRate, termYears) {
+  if (principal <= 0) return 0;
+  if (annualRate <= 0) return termYears > 0 ? principal / (termYears * 12) : 0;
+  const r = annualRate / 12;
+  const n = termYears * 12;
+  return principal * (r * Math.pow(1+r,n)) / (Math.pow(1+r,n) - 1);
+}
+
+function totalInterest(principal, annualRate, termYears, months) {
+  if (principal <= 0) return 0;
+  const r = annualRate / 12;
+  const n = termYears * 12;
+  const payment = pmt(principal, annualRate, termYears);
+  let bal = principal, interest = 0;
+  for (let i = 0; i < Math.min(months, n); i++) {
+    const intCharge = bal * r;
+    interest += intCharge;
+    bal = Math.max(0, bal - (payment - intCharge));
+  }
+  return interest;
+}
+
+/* ── State ── */
+let _horizon = 7;
+let _chart = null;
+
+const PRODUCT_DEFAULTS = [
+  { label: 'Option 1', mode: 'purchase', purchasePrice: '$450,000', loanAmt: '', downPmt: '$22,500', rate: '7.000%', term: '30', taxes: '$500', hoi: '$130', mi: '$200', closing: '$9,000', rollClosing: false },
+  { label: 'Option 2', mode: 'purchase', purchasePrice: '$450,000', loanAmt: '', downPmt: '$45,000', rate: '6.750%', term: '30', taxes: '$500', hoi: '$130', mi: '$0', closing: '$9,000', rollClosing: false },
+  { label: 'Option 3', mode: 'purchase', purchasePrice: '$450,000', loanAmt: '', downPmt: '$22,500', rate: '6.500%', term: '15', taxes: '$500', hoi: '$130', mi: '$200', closing: '$9,000', rollClosing: false },
+  { label: 'Option 4', mode: 'refi', currentBalance: '$380,000', loanAmt: '', downPmt: '$0', rate: '6.875%', term: '30', taxes: '$500', hoi: '$130', mi: '$0', closing: '$6,000', rollClosing: true },
+];
+
+function setHorizon(yr) {
+  _horizon = yr;
+  document.getElementById('horizonLabel').textContent = yr + ' Year' + (yr > 1 ? 's' : '');
+  document.querySelectorAll('#horizonBtns .yr-btn').forEach(b => {
+    b.classList.toggle('active', parseInt(b.textContent) === yr);
+  });
+  calculate();
+}
+
+/* ── Build product HTML ── */
+function buildProducts() {
+  const grid = document.getElementById('productsGrid');
+  grid.innerHTML = '';
+  for (let i = 0; i < 4; i++) {
+    const d = PRODUCT_DEFAULTS[i];
+    const copyOptions = i > 0
+      ? `<div class="copy-row"><select onchange="copyFrom(${i}, this.value)">
+           <option value="">-- Copy from... --</option>
+           ${[0,1,2,3].filter(x=>x!==i).map(x=>`<option value="${x}">Copy from Product ${x+1}</option>`).join('')}
+         </select></div>`
+      : '';
+    const purchaseFields = `
+      <div class="field purchase-field"><label>Purchase Price</label>
+        <input type="text" id="p${i}_purchasePrice" value="${d.purchasePrice}" oninput="fmtDollarLive(this);calculate()">
+      </div>
+      <div class="field purchase-field"><label>Down Payment ($)</label>
+        <input type="text" id="p${i}_downPmt" value="${d.downPmt}" oninput="fmtDollarLive(this);calculate()">
+      </div>`;
+    const refiFields = `
+      <div class="field refi-field" style="display:none"><label>Current Balance</label>
+        <input type="text" id="p${i}_currentBalance" value="${d.currentBalance}" oninput="fmtDollarLive(this);calculate()">
+      </div>`;
+    const wrap = document.createElement('div');
+    wrap.className = 'product-wrap';
+    wrap.id = `wrap${i}`;
+    wrap.innerHTML = `
+      <div class="product-card" id="prodCard${i}">
+        <div class="prod-header">
+          <div style="flex:1">
+            <div class="prod-num">Product ${i+1}</div>
+            <input type="text" class="prod-title-input" id="p${i}_label" value="${d.label}" oninput="calculate()" placeholder="Option ${i+1}">
+          </div>
+          <div class="mode-toggle">
+            <button class="mode-btn active" id="p${i}_modePurchase" onclick="setMode(${i},'purchase')">Purchase</button>
+            <button class="mode-btn" id="p${i}_modeRefi" onclick="setMode(${i},'refi')">Refi</button>
+          </div>
+        </div>
+        <div class="prod-body">
+          ${copyOptions}
+          ${purchaseFields}
+          ${refiFields}
+          <div class="field"><label>Loan Amount (blank = auto)</label>
+            <input type="text" id="p${i}_loanAmt" value="${d.loanAmt}" placeholder="Auto-calculated" oninput="fmtDollarLive(this);calculate()">
+          </div>
+          <div class="fields-2col">
+            <div class="field"><label>Rate %</label>
+              <input type="text" id="p${i}_rate" value="${d.rate}" oninput="calculate()">
+            </div>
+            <div class="field"><label>Term (Yrs)</label>
+              <input type="text" id="p${i}_term" value="${d.term}" oninput="calculate()">
+            </div>
+            <div class="field"><label>Monthly Taxes</label>
+              <input type="text" id="p${i}_taxes" value="${d.taxes}" oninput="fmtDollarLive(this);calculate()">
+            </div>
+            <div class="field"><label>Monthly HOI</label>
+              <input type="text" id="p${i}_hoi" value="${d.hoi}" oninput="fmtDollarLive(this);calculate()">
+            </div>
+            <div class="field"><label>Monthly MI</label>
+              <input type="text" id="p${i}_mi" value="${d.mi}" oninput="fmtDollarLive(this);calculate()">
+            </div>
+            <div class="field"><label>Closing Costs</label>
+              <input type="text" id="p${i}_closing" value="${d.closing}" oninput="fmtDollarLive(this);calculate()">
+            </div>
+          </div>
+          <label class="check-row">
+            <input type="checkbox" id="p${i}_rollClosing" ${d.rollClosing ? 'checked' : ''} onchange="calculate()">
+            Roll closing costs into loan
+          </label>
+        </div>
+      </div>
+      <div class="output-card" id="output${i}"></div>
+    `;
+    grid.appendChild(wrap);
+    if (d.mode === 'refi') setMode(i, 'refi', true);
+  }
+}
+
+function setMode(idx, mode, silent) {
+  const isPurchase = mode === 'purchase';
+  document.getElementById(`p${idx}_modePurchase`).classList.toggle('active', isPurchase);
+  document.getElementById(`p${idx}_modeRefi`).classList.toggle('active', !isPurchase);
+  document.querySelectorAll(`#wrap${idx} .purchase-field`).forEach(el => el.style.display = isPurchase ? '' : 'none');
+  document.querySelectorAll(`#wrap${idx} .refi-field`).forEach(el => el.style.display = isPurchase ? 'none' : '');
+  if (!silent) calculate();
+}
+
+function copyFrom(targetIdx, sourceIdx) {
+  if (sourceIdx === '') return;
+  const src = parseInt(sourceIdx);
+  const fields = ['label','purchasePrice','downPmt','currentBalance','loanAmt','rate','term','taxes','hoi','mi','closing'];
+  fields.forEach(f => {
+    const srcEl = document.getElementById(`p${src}_${f}`);
+    const tgtEl = document.getElementById(`p${targetIdx}_${f}`);
+    if (srcEl && tgtEl) tgtEl.value = srcEl.value;
+  });
+  const srcPurchaseMode = document.getElementById(`p${src}_modePurchase`).classList.contains('active');
+  setMode(targetIdx, srcPurchaseMode ? 'purchase' : 'refi');
+  const srcRoll = document.getElementById(`p${src}_rollClosing`).checked;
+  document.getElementById(`p${targetIdx}_rollClosing`).checked = srcRoll;
+  // Reset copy dropdown
+  document.querySelectorAll(`#wrap${targetIdx} .copy-row select`).forEach(s => s.value = '');
+  calculate();
+}
+
+/* ── Main calculate ── */
+function calculate() {
+  const months = _horizon * 12;
+  const results = [];
+
+  for (let i = 0; i < 4; i++) {
+    const isPurchase = document.getElementById(`p${i}_modePurchase`).classList.contains('active');
+    const label      = document.getElementById(`p${i}_label`).value || `Option ${i+1}`;
+    const rate       = parsePct(document.getElementById(`p${i}_rate`).value) / 100;
+    const termYrs    = parseFloat(document.getElementById(`p${i}_term`).value) || 30;
+    const taxes      = parseDollar(document.getElementById(`p${i}_taxes`).value);
+    const hoi        = parseDollar(document.getElementById(`p${i}_hoi`).value);
+    const mi         = parseDollar(document.getElementById(`p${i}_mi`).value);
+    const closingRaw = parseDollar(document.getElementById(`p${i}_closing`).value);
+    const rollClos   = document.getElementById(`p${i}_rollClosing`).checked;
+
+    let purchasePrice = 0, downAmt = 0, loanBase = 0;
+
+    if (isPurchase) {
+      purchasePrice = parseDollar(document.getElementById(`p${i}_purchasePrice`).value);
+      downAmt       = parseDollar(document.getElementById(`p${i}_downPmt`).value);
+      const loanOverride = parseDollar(document.getElementById(`p${i}_loanAmt`).value);
+      loanBase = loanOverride > 0 ? loanOverride : Math.max(0, purchasePrice - downAmt);
+    } else {
+      loanBase = parseDollar(document.getElementById(`p${i}_currentBalance`).value);
+      const loanOverride = parseDollar(document.getElementById(`p${i}_loanAmt`).value);
+      if (loanOverride > 0) loanBase = loanOverride;
+    }
+
+    const closingAdded = rollClos ? closingRaw : 0;
+    const finalLoan = loanBase + closingAdded;
+    const cashClosing = rollClos ? 0 : closingRaw;
+    const cashToClose = isPurchase ? (downAmt + cashClosing) : cashClosing;
+
+    const piMonthly = pmt(finalLoan, rate, termYrs);
+    const piti = piMonthly + mi + taxes + hoi;
+    const ltv = (purchasePrice > 0) ? (finalLoan / purchasePrice * 100) : null;
+
+    const totalInt = totalInterest(finalLoan, rate, termYrs, months);
+    const totalPITI = piti * Math.min(months, termYrs * 12);
+
+    results.push({ i, label, finalLoan, purchasePrice, downAmt, ltv, piMonthly, piti, cashToClose, totalInt, totalPITI, isPurchase });
+  }
+
+  // Find best value (lowest total PITI)
+  const validResults = results.filter(r => r.piti > 0);
+  let bestIdx = -1;
+  if (validResults.length > 0) {
+    bestIdx = validResults.reduce((a, b) => a.totalPITI < b.totalPITI ? a : b).i;
+  }
+
+  // Render outputs
+  results.forEach(r => {
+    const isBest = r.i === bestIdx && r.piti > 0;
+    const card = document.getElementById(`output${r.i}`);
+    const prodCard = document.getElementById(`prodCard${r.i}`);
+    card.className = 'output-card' + (isBest ? ' best-value' : '');
+    prodCard.className = 'product-card' + (isBest ? ' best-value' : '');
+
+    if (r.piti === 0) {
+      card.innerHTML = `<div style="font-size:12px;color:#aaa;text-align:center;padding:10px">Enter loan details above</div>`;
+      return;
+    }
+
+    card.innerHTML =
+      (isBest ? `<div class="best-badge">Best Value</div>` : '') +
+      (r.ltv !== null ? outRow('LTV', fmtPct(r.ltv)) : '') +
+      outRow('Final Loan Amount', fmtD(r.finalLoan)) +
+      outRow('Monthly P&I', fmtD(r.piMonthly)) +
+      outRow('Monthly PITI', fmtD(r.piti), isBest ? 'green' : 'big') +
+      outRow('Cash to Close', fmtD(r.cashToClose)) +
+      outRow(`Total Interest (${_horizon}yr)`, fmtD(r.totalInt)) +
+      outRow(`Total PITI (${_horizon}yr)`, fmtD(r.totalPITI), isBest ? 'green' : 'amber');
+  });
+
+  updateChart(results);
+}
+
+function outRow(label, val, cls) {
+  return `<div class="out-row"><span class="out-label">${label}</span><span class="out-val${cls ? ' '+cls : ''}">${val}</span></div>`;
+}
+
+/* ── Chart ── */
+function updateChart(results) {
+  const labels = results.map(r => r.label || `Option ${r.i+1}`);
+  const data   = results.map(r => Math.round(r.totalPITI));
+  const colors = results.map(r => {
+    if (r.totalPITI === 0) return 'rgba(200,200,200,.4)';
+    const minVal = Math.min(...data.filter(d => d > 0));
+    return r.totalPITI === minVal ? '#8EC73F' : '#2491EB';
+  });
+
+  document.getElementById('chartSub').textContent = `Total PITI payments over ${_horizon} year${_horizon>1?'s':''} — lower is better`;
+
+  const ctx = document.getElementById('summaryChart').getContext('2d');
+  if (_chart) _chart.destroy();
+  _chart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        label: `Total PITI over ${_horizon} yr`,
+        data,
+        backgroundColor: colors,
+        borderRadius: 6,
+        borderSkipped: false,
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: ctx => ' Total PITI: $' + ctx.parsed.y.toLocaleString('en-US')
+          }
+        }
+      },
+      scales: {
+        x: { grid: { display: false }, ticks: { font: { size: 12, weight: '700' } } },
+        y: {
+          ticks: {
+            font: { size: 11 },
+            callback: v => '$' + (v >= 1000000 ? (v/1000000).toFixed(1)+'M' : Math.round(v/1000)+'k')
+          },
+          grid: { color: '#f0f0f0' }
+        }
+      }
+    }
+  });
+}
+
+/* ── Init ── */
+buildProducts();
+calculate();
+</script>
+<a href="https://tools.homewealthsolutions.com" id="hws-hub-btn" style="position:fixed;top:14px;right:16px;z-index:9999;background:#1c2b3a;color:rgba(255,255,255,0.9);text-decoration:none;font-size:12px;font-weight:700;padding:6px 14px;border-radius:8px;font-family:-apple-system,BlinkMacSystemFont,sans-serif;letter-spacing:0.2px;box-shadow:0 2px 8px rgba(0,0,0,0.25);">← Hub</a>
+
+<!-- HWS Hub back button -->
+<div id="hws-back-btn" style="position:fixed;bottom:20px;right:20px;z-index:99999;">
+  <button onclick="window.close()" style="
+    background:#1a2332;
+    color:white;
+    border:none;
+    border-radius:8px;
+    padding:9px 16px;
+    font-size:13px;
+    font-weight:600;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    gap:7px;
+    box-shadow:0 2px 12px rgba(0,0,0,0.25);
+    opacity:0.85;
+    transition:opacity .15s;
+  " onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.85'">
+    ← Hub
+  </button>
+</div>
+<script src="/hws-session.js"></script>
+</body>
+</html>

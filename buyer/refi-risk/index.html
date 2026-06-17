@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Refi: Risk of Waiting — HomeWealth Solutions</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --blue: #2491EB; --blue-light: #e8f4fd; --blue-mid: #c5e1fa;
+      --green: #8EC73F; --green-light: #f0f8e6; --green-dark: #6aaa1f;
+      --dark: #1c2b3a; --mid: #3a4f62; --red: #dc3545; --amber: #e8900a;
+      --gray-100: #f7f8fa; --gray-200: #edf0f4; --gray-300: #d1d8e0;
+      --gray-500: #8892a0; --gray-700: #4a5568; --gray-900: #1a2332;
+      --radius: 10px; --shadow: 0 2px 12px rgba(0,0,0,0.08);
+    }
+    body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--gray-100); color: var(--gray-900); min-height: 100vh; }
+
+    .header { background: var(--dark); color: #fff; padding: 16px 28px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+    .header-left h1 { font-size: 1.15rem; font-weight: 700; color: #fff; }
+    .header-left p { font-size: 0.76rem; opacity: 0.6; margin-top: 2px; }
+    .header-right { display: flex; align-items: center; gap: 10px; }
+    .btn-print { background: rgba(255,255,255,0.12); color: #fff; border: 1px solid rgba(255,255,255,0.25); padding: 7px 16px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-weight: 600; }
+    .btn-print:hover { background: rgba(255,255,255,0.22); }
+    .back-link { color: rgba(255,255,255,0.7); text-decoration: none; font-size: 0.8rem; font-weight: 600; padding: 6px 12px; border: 1.5px solid rgba(255,255,255,0.25); border-radius: 6px; }
+    .back-link:hover { border-color: #fff; color: #fff; }
+    .nmls-badge { background: var(--blue); color: white; font-size: 0.7rem; font-weight: 700; padding: 4px 10px; border-radius: 20px; }
+
+    .main { max-width: 900px; margin: 28px auto; padding: 0 20px 60px; }
+
+    .card { background: white; border-radius: var(--radius); box-shadow: var(--shadow); margin-bottom: 20px; overflow: hidden; }
+    .card-header { background: var(--dark); color: white; padding: 11px 20px; font-size: 0.82rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; }
+    .card-header.blue { background: var(--blue); }
+    .card-header.green { background: var(--green-dark); }
+    .card-header.amber { background: var(--amber); }
+    .card-body { padding: 20px; }
+
+    .field-row { display: flex; align-items: center; padding: 9px 0; border-bottom: 1px solid var(--gray-200); gap: 12px; }
+    .field-row:last-child { border-bottom: none; }
+    .field-label { flex: 1; font-size: 0.875rem; color: var(--gray-700); line-height: 1.3; }
+    .field-label small { display: block; font-size: 0.75rem; color: var(--gray-500); margin-top: 2px; }
+    .field-input-wrap { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+    .unit { font-size: 0.8rem; color: var(--gray-500); min-width: 22px; }
+
+    input[type="text"], input[type="number"] {
+      width: 120px; padding: 7px 10px; border: 1.5px solid var(--blue-mid); border-radius: 6px;
+      font-size: 0.9rem; font-weight: 600; color: var(--blue); text-align: right;
+      background: var(--blue-light); outline: none;
+    }
+    input:focus { border-color: var(--blue); background: white; }
+    input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; }
+
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+    @media(max-width: 620px) { .two-col { grid-template-columns: 1fr; } }
+
+    .scenario-col { overflow: hidden; border-radius: var(--radius); box-shadow: var(--shadow); }
+    .scenario-hdr { padding: 12px 20px; font-size: 0.85rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: white; }
+    .scenario-hdr.blue { background: var(--blue); }
+    .scenario-hdr.amber { background: var(--amber); }
+    .scenario-body { background: white; padding: 16px 20px; }
+
+    .result-row { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--gray-200); font-size: 0.85rem; color: var(--gray-700); }
+    .result-row:last-child { border-bottom: none; }
+    .result-val { font-weight: 700; font-size: 0.92rem; }
+    .result-val.blue { color: var(--blue); }
+    .result-val.green { color: var(--green-dark); }
+    .result-val.red { color: var(--red); }
+    .result-val.amber { color: var(--amber); }
+
+    .wait-buttons { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 6px; }
+    .wait-btn { padding: 6px 14px; border-radius: 20px; border: 2px solid var(--gray-300); background: white; font-size: 0.82rem; font-weight: 600; cursor: pointer; color: var(--gray-700); transition: all 0.15s; }
+    .wait-btn:hover, .wait-btn.active { background: var(--amber); border-color: var(--amber); color: white; }
+
+    .verdict { border-radius: var(--radius); padding: 20px 24px; margin-bottom: 20px; background: linear-gradient(135deg, var(--mid) 0%, var(--dark) 100%); color: white; }
+    .verdict-text { font-size: 0.9rem; line-height: 1.7; }
+    .verdict-text strong { color: #f0c060; }
+
+    .chart-wrap { background: white; border-radius: var(--radius); box-shadow: var(--shadow); padding: 20px; margin-bottom: 20px; }
+    .chart-title { font-size: 0.82rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--gray-500); margin-bottom: 14px; }
+
+    .info-box { background: var(--blue-light); border-left: 4px solid var(--blue); border-radius: 6px; padding: 12px 16px; font-size: 0.82rem; color: var(--gray-700); line-height: 1.6; margin-bottom: 20px; }
+
+    .compliance { font-size: 0.7rem; color: var(--gray-500); line-height: 1.65; padding-top: 16px; border-top: 1px solid var(--gray-200); }
+
+    @media print {
+      .header, .btn-print, .back-link { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .main { padding: 0 0 40px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <h1>Refi: Risk of Waiting</h1>
+    <p>HomeWealth Solutions LLC &nbsp;·&nbsp; NMLS #2742458</p>
+  </div>
+  <div class="header-right">
+    <a href="https://tools.homewealthsolutions.com" class="back-link">← Hub</a>
+    <span class="nmls-badge">NMLS #2742458</span>
+    <button class="btn-print" onclick="window.print()">Print</button>
+  </div>
+</div>
+
+<div class="main">
+
+  <div class="info-box">
+    <strong>The question:</strong> Should you refinance today, or wait for rates to drop further? Every month you wait, you're paying the higher rate. This tool quantifies exactly what waiting costs — and whether that future lower rate actually wins.
+  </div>
+
+  <!-- Inputs -->
+  <div class="two-col">
+    <div class="card">
+      <div class="card-header">Current Loan</div>
+      <div class="card-body">
+        <div class="field-row">
+          <div class="field-label">Current Loan Balance</div>
+          <div class="field-input-wrap">
+            <input type="text" id="cur_balance" value="$350,000" oninput="calc()" onblur="fmtDollar(this)" onfocus="clearFmt(this)">
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field-label">Current Rate</div>
+          <div class="field-input-wrap">
+            <input type="text" id="cur_rate" value="7.5%">
+            <span class="unit">%</span>
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field-label">Remaining Term</div>
+          <div class="field-input-wrap">
+            <input type="text" id="cur_term" value="27">
+            <span class="unit">yrs</span>
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field-label">Current Monthly P&amp;I <small>Auto-calculated — override if needed</small></div>
+          <div class="field-input-wrap">
+            <input type="text" id="cur_pni" value="" placeholder="Auto">
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field-label">Estimated Refi Closing Costs</div>
+          <div class="field-input-wrap">
+            <input type="text" id="closing_costs" value="$5,500" oninput="calc()" onblur="fmtDollar(this)" onfocus="clearFmt(this)">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">Rate Scenarios</div>
+      <div class="card-body">
+        <div class="field-row">
+          <div class="field-label">New Rate Available Today</div>
+          <div class="field-input-wrap">
+            <input type="text" id="new_rate_now" value="6.75%">
+            <span class="unit">%</span>
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field-label">Expected Rate If You Wait <small>The rate you're hoping for</small></div>
+          <div class="field-input-wrap">
+            <input type="text" id="new_rate_wait" value="6.25%">
+            <span class="unit">%</span>
+          </div>
+        </div>
+        <div class="field-row" style="flex-direction: column; align-items: flex-start; gap: 10px;">
+          <div class="field-label">Months to Wait</div>
+          <div class="wait-buttons" id="wait_btns">
+            <button class="wait-btn" onclick="setWait(3)">3 mo</button>
+            <button class="wait-btn active" onclick="setWait(6)">6 mo</button>
+            <button class="wait-btn" onclick="setWait(12)">12 mo</button>
+            <button class="wait-btn" onclick="setWait(18)">18 mo</button>
+          </div>
+          <div class="field-input-wrap">
+            <input type="text" id="wait_months" value="6" oninput="onWaitChange()">
+            <span class="unit">mo custom</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Results -->
+  <div class="two-col">
+    <div class="scenario-col">
+      <div class="scenario-hdr blue">Refi Now</div>
+      <div class="scenario-body">
+        <div class="result-row"><span>New Monthly P&amp;I</span><span class="result-val blue" id="r_now_pni">—</span></div>
+        <div class="result-row"><span>Monthly Savings</span><span class="result-val green" id="r_now_savings">—</span></div>
+        <div class="result-row"><span>Breakeven</span><span class="result-val blue" id="r_now_be">—</span></div>
+        <div class="result-row"><span style="font-weight:700;">Net Savings at 5 Years</span><span class="result-val green" id="r_now_5yr" style="font-size:1.05rem;">—</span></div>
+      </div>
+    </div>
+    <div class="scenario-col">
+      <div class="scenario-hdr amber" id="wait_hdr">Wait 6 Months for 6.25%</div>
+      <div class="scenario-body">
+        <div class="result-row"><span>Future Monthly P&amp;I</span><span class="result-val amber" id="r_wait_pni">—</span></div>
+        <div class="result-row"><span>Future Monthly Savings</span><span class="result-val green" id="r_wait_savings">—</span></div>
+        <div class="result-row"><span>Interest Overpaid While Waiting</span><span class="result-val red" id="r_wait_overpaid">—</span></div>
+        <div class="result-row"><span>Breakeven from Today</span><span class="result-val amber" id="r_wait_be">—</span></div>
+        <div class="result-row"><span style="font-weight:700;">Net Savings at 5 Years</span><span class="result-val" id="r_wait_5yr" style="font-size:1.05rem;">—</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Verdict -->
+  <div class="verdict" id="verdict_box">
+    <div class="verdict-text" id="verdict_text">Calculating...</div>
+  </div>
+
+  <!-- Chart -->
+  <div class="chart-wrap">
+    <div class="chart-title">Cumulative Savings from Today (Months)</div>
+    <canvas id="refiChart" height="280"></canvas>
+  </div>
+
+  <div class="compliance">
+    This communication is for informational and educational purposes only and does not constitute an offer to lend or a commitment to make a loan. All loans are subject to credit approval, underwriting guidelines, and property approval. Interest rates, payment examples, programs, and terms are illustrative, vary by borrower qualification, and are subject to change without notice. Not all applicants will qualify. Examples shown do not reflect all costs of a mortgage transaction. Consult a licensed tax or legal advisor regarding your individual situation. HomeWealth Solutions LLC is licensed by the Florida Office of Financial Regulation, Mortgage Broker License #MBR8082. Verify our licensure at www.nmlsconsumeraccess.org. Equal Housing Opportunity.
+  </div>
+
+</div>
+
+<script>
+  let refiChart = null;
+
+  function pct(id) { return parseFloat((document.getElementById(id).value || '').replace(/[%,]/g, '')) / 100 || 0; }
+  function dollar(id) { return parseFloat((document.getElementById(id).value || '').replace(/[$,]/g, '')) || 0; }
+  function num(id) { return parseFloat((document.getElementById(id).value || '').replace(/[$,%]/g, '')) || 0; }
+  function fmtD(n) { return '$' + Math.abs(n).toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 0}); }
+  function set(id, v) { document.getElementById(id).textContent = v; }
+
+  function fmtDollar(el) {
+    const raw = parseFloat((el.value || '').replace(/[$,]/g, ''));
+    if (!isNaN(raw)) el.value = '$' + raw.toLocaleString('en-US', {maximumFractionDigits: 0});
+  }
+  function clearFmt(el) {
+    const raw = parseFloat((el.value || '').replace(/[$,]/g, ''));
+    if (!isNaN(raw)) el.value = raw;
+  }
+
+  function pmtCalc(rate, nper, pv) {
+    if (rate === 0 || nper === 0) return pv / nper;
+    const r = rate / 12;
+    return (r * pv) / (1 - Math.pow(1 + r, -nper));
+  }
+
+  function setWait(mo) {
+    document.getElementById('wait_months').value = mo;
+    document.querySelectorAll('.wait-btn').forEach(b => b.classList.remove('active'));
+    [3, 6, 12, 18].forEach((v, i) => {
+      if (v === mo) document.querySelectorAll('.wait-btn')[i].classList.add('active');
+    });
+    calc();
+  }
+
+  function onWaitChange() {
+    document.querySelectorAll('.wait-btn').forEach(b => b.classList.remove('active'));
+    calc();
+  }
+
+  // Add event listeners
+  ['cur_rate', 'cur_term', 'cur_pni', 'new_rate_now', 'new_rate_wait'].forEach(id => {
+    document.getElementById(id).addEventListener('input', calc);
+  });
+
+  function calc() {
+    const balance = dollar('cur_balance');
+    const curRate = pct('cur_rate');
+    const termYrs = num('cur_term');
+    const termMos = termYrs * 12;
+    const closing = dollar('closing_costs');
+    const rateNow = pct('new_rate_now');
+    const rateWait = pct('new_rate_wait');
+    const waitMo = Math.round(num('wait_months'));
+
+    // Auto-calc current P&I
+    const autoCurPNI = pmtCalc(curRate, termMos, balance);
+    const curPNIField = document.getElementById('cur_pni');
+    let curPNI;
+    const rawOverride = (curPNIField.value || '').replace(/[$,]/g, '');
+    if (rawOverride && parseFloat(rawOverride) > 0) {
+      curPNI = parseFloat(rawOverride);
+    } else {
+      curPNI = autoCurPNI;
+      curPNIField.placeholder = '$' + autoCurPNI.toLocaleString('en-US', {maximumFractionDigits: 0});
+    }
+
+    // ─── REFI NOW ───
+    const nowPNI = pmtCalc(rateNow, termMos, balance);
+    const nowSavings = curPNI - nowPNI;
+    const nowBE = nowSavings > 0 ? closing / nowSavings : Infinity;
+    const now5yr = nowSavings > 0 ? (nowSavings * 60) - closing : -closing;
+
+    // ─── WAIT ───
+    // Interest overpaid while waiting = (curPNI - nowPNI) * waitMo
+    const overpaid = (curPNI - nowPNI) * waitMo;
+    const waitPNI = pmtCalc(rateWait, termMos, balance);
+    const waitSavings = curPNI - waitPNI;
+    const waitBEFromRefis = waitSavings > 0 ? closing / waitSavings : Infinity;
+    const waitBEFromToday = waitMo + waitBEFromRefis;
+    const savingsMonthsRemaining = Math.max(0, 60 - waitMo);
+    const wait5yr = (waitSavings * savingsMonthsRemaining) - closing - overpaid;
+
+    // Display now
+    set('r_now_pni', fmtD(nowPNI));
+    set('r_now_savings', nowSavings > 0 ? fmtD(nowSavings) + '/mo' : '$0/mo');
+    set('r_now_be', nowBE < Infinity ? Math.ceil(nowBE) + ' months' : 'N/A');
+    set('r_now_5yr', fmtD(now5yr));
+    document.getElementById('r_now_5yr').style.color = now5yr >= 0 ? 'var(--green-dark)' : 'var(--red)';
+
+    // Display wait
+    const wRateStr = (rateWait * 100).toFixed(2) + '%';
+    document.getElementById('wait_hdr').textContent = `Wait ${waitMo} Month${waitMo !== 1 ? 's' : ''} for ${wRateStr} Rate`;
+    set('r_wait_pni', fmtD(waitPNI));
+    set('r_wait_savings', waitSavings > 0 ? fmtD(waitSavings) + '/mo' : '$0/mo');
+    set('r_wait_overpaid', fmtD(overpaid));
+    set('r_wait_be', waitBEFromToday < Infinity ? Math.ceil(waitBEFromToday) + ' months' : 'N/A');
+    set('r_wait_5yr', fmtD(wait5yr));
+    document.getElementById('r_wait_5yr').style.color = wait5yr >= 0 ? 'var(--green-dark)' : 'var(--red)';
+
+    // Verdict
+    const diff = now5yr - wait5yr;
+    const verdictText = document.getElementById('verdict_text');
+    if (diff > 0) {
+      verdictText.innerHTML = `By waiting <strong>${waitMo} months</strong>, you overpay <strong>${fmtD(overpaid)}</strong> in interest before your savings clock starts. Even with the lower <strong>${wRateStr}</strong> rate, refinancing today puts you <strong>${fmtD(diff)} ahead</strong> over a 5-year window.`;
+    } else {
+      verdictText.innerHTML = `By waiting <strong>${waitMo} months</strong>, you overpay <strong>${fmtD(overpaid)}</strong> in interest — but the lower <strong>${wRateStr}</strong> rate more than compensates. Waiting comes out <strong>${fmtD(Math.abs(diff))} ahead</strong> over 5 years. The longer the wait, the more this advantage shrinks.`;
+    }
+
+    // Chart — cumulative savings from today, month by month
+    buildChart(curPNI, nowPNI, waitPNI, waitMo, closing);
+  }
+
+  function buildChart(curPNI, nowPNI, waitPNI, waitMo, closing) {
+    const months = 72;
+    const labelsArr = [];
+    const nowData = [];
+    const waitData = [];
+
+    for (let m = 0; m <= months; m++) {
+      labelsArr.push(m);
+      // Refi now: savings accumulate from month 1 minus closing costs paid upfront
+      nowData.push((curPNI - nowPNI) * m - closing);
+      // Wait: during wait period, overpaying vs now rate; after wait, get better rate but spent closing
+      if (m <= waitMo) {
+        waitData.push(-((curPNI - nowPNI) * m)); // opportunity cost vs refi now (no savings yet)
+      } else {
+        const overpaid = (curPNI - nowPNI) * waitMo;
+        waitData.push((curPNI - waitPNI) * (m - waitMo) - closing - overpaid);
+      }
+    }
+
+    if (refiChart) refiChart.destroy();
+    const ctx = document.getElementById('refiChart').getContext('2d');
+    refiChart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: labelsArr,
+        datasets: [
+          {
+            label: 'Refi Now',
+            data: nowData,
+            borderColor: '#2491EB',
+            backgroundColor: 'rgba(36,145,235,0.08)',
+            borderWidth: 2.5,
+            fill: false,
+            tension: 0.2,
+            pointRadius: 0
+          },
+          {
+            label: `Wait ${waitMo} Months`,
+            data: waitData,
+            borderColor: '#e8900a',
+            backgroundColor: 'rgba(232,144,10,0.08)',
+            borderWidth: 2.5,
+            fill: false,
+            tension: 0.2,
+            pointRadius: 0,
+            borderDash: [6, 3]
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        interaction: { mode: 'index', intersect: false },
+        plugins: {
+          legend: { position: 'top', labels: { font: { size: 12 }, padding: 16 } },
+          tooltip: {
+            callbacks: {
+              label: ctx => `${ctx.dataset.label}: $${Math.round(ctx.parsed.y).toLocaleString()}`
+            }
+          }
+        },
+        scales: {
+          x: {
+            title: { display: true, text: 'Months from Today', font: { size: 12 } },
+            ticks: { callback: v => v % 12 === 0 ? `Yr ${v/12}` : '' }
+          },
+          y: {
+            title: { display: true, text: 'Cumulative Net Savings ($)', font: { size: 12 } },
+            ticks: { callback: v => '$' + (v/1000).toFixed(0) + 'k' }
+          }
+        }
+      }
+    });
+  }
+
+  calc();
+</script>
+
+<!-- HWS Hub back button -->
+<div id="hws-back-btn" style="position:fixed;bottom:20px;right:20px;z-index:99999;">
+  <button onclick="window.close()" style="
+    background:#1a2332;
+    color:white;
+    border:none;
+    border-radius:8px;
+    padding:9px 16px;
+    font-size:13px;
+    font-weight:600;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    gap:7px;
+    box-shadow:0 2px 12px rgba(0,0,0,0.25);
+    opacity:0.85;
+    transition:opacity .15s;
+  " onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.85'">
+    ← Hub
+  </button>
+</div>
+<script src="/hws-session.js"></script>
+</body>
+</html>

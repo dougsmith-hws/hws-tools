@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Appraisal Gap Strategy — HomeWealth Solutions</title>
+<style>
+:root {
+  --blue:  #2491EB;
+  --green: #8EC73F;
+  --dark:  #1c2b3a;
+  --mid:   #3a4f62;
+  --red:   #dc3545;
+  --amber: #e8900a;
+  --bg-green: #f0f9e4;
+  --bg-blue:  #eaf5fe;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+  background: #f5f7fa; color: #222; font-size: 14px;
+}
+
+/* Header */
+.hdr {
+  background: var(--dark); color: white;
+  padding: 18px 28px 16px;
+  display: flex; align-items: flex-end; justify-content: space-between;
+}
+.hdr-brand { font-size: 12px; color: rgba(255,255,255,.5); letter-spacing: .4px; }
+.hdr-title { font-size: 21px; font-weight: 700; margin-top: 3px; }
+.hdr-sub   { font-size: 12px; color: rgba(255,255,255,.45); margin-top: 3px; }
+.hdr-right { text-align: right; font-size: 12px; color: rgba(255,255,255,.5); }
+.print-btn {
+  background: transparent; border: 1.5px solid rgba(255,255,255,.4);
+  color: rgba(255,255,255,.85); padding: 6px 14px; border-radius: 6px;
+  font-size: 12px; cursor: pointer; margin-bottom: 6px; white-space: nowrap;
+}
+.print-btn:hover { background: rgba(255,255,255,.1); }
+
+/* Main */
+.main { max-width: 1160px; margin: 0 auto; padding: 22px 18px 48px; }
+
+/* Section title */
+.section-title {
+  font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
+  color: var(--mid); border-bottom: 2px solid #e0e4ea;
+  padding-bottom: 7px; margin-bottom: 16px; margin-top: 28px;
+}
+
+/* Gap banner */
+.gap-banner {
+  background: var(--dark); color: white; border-radius: 10px;
+  padding: 16px 22px; display: flex; align-items: center; gap: 28px;
+  flex-wrap: wrap; box-shadow: 0 2px 10px rgba(0,0,0,.12);
+}
+.gap-val { font-size: 36px; font-weight: 900; color: #ff8c42; line-height: 1; }
+.gap-label { font-size: 12px; color: rgba(255,255,255,.6); margin-bottom: 4px; }
+.gap-stat { text-align: center; }
+.gap-stat-num { font-size: 22px; font-weight: 800; line-height: 1; }
+.gap-stat-label { font-size: 11px; color: rgba(255,255,255,.55); margin-top: 3px; }
+
+/* Inputs */
+.inputs-wrap { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.input-group { background: white; border-radius: 10px; padding: 16px 18px; box-shadow: 0 1px 5px rgba(0,0,0,.07); }
+.input-group-title {
+  font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: .5px;
+  margin-bottom: 14px; padding-bottom: 8px; border-bottom: 2px solid var(--dark);
+  color: var(--dark);
+}
+.fields-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.field { margin-bottom: 0; }
+.field label { display: block; font-size: 11px; font-weight: 700; color: #555; margin-bottom: 4px; letter-spacing: .2px; }
+.field input {
+  width: 100%; border: 1.5px solid #dde2ea; border-radius: 7px;
+  padding: 8px 11px; font-size: 13px; font-family: inherit; color: #222;
+  background: white;
+}
+.field input:focus { outline: none; border-color: var(--blue); }
+
+/* Compare grid */
+.compare-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+.col-card {
+  background: white; border-radius: 10px; box-shadow: 0 1px 5px rgba(0,0,0,.07);
+  overflow: hidden; display: flex; flex-direction: column;
+}
+.col-card.recommended {
+  box-shadow: 0 4px 18px rgba(46,160,67,.28);
+  border: 2px solid #2d7a1f;
+}
+.col-header {
+  padding: 12px 14px; font-size: 12px; font-weight: 800;
+  text-transform: uppercase; letter-spacing: .5px; color: white;
+  line-height: 1.4;
+}
+.col-header.blue  { background: var(--blue); }
+.col-header.dark  { background: var(--dark); }
+.col-header.mid   { background: var(--mid); }
+.col-header.green { background: #2d7a1f; }
+.col-body { padding: 14px; flex: 1; }
+.stat-row {
+  display: flex; justify-content: space-between; align-items: baseline;
+  padding: 7px 0; border-bottom: 1px solid #f0f0f0; font-size: 12px;
+}
+.stat-row:last-child { border-bottom: none; }
+.stat-label { color: #666; }
+.stat-val { font-weight: 700; color: #222; text-align: right; }
+.stat-val.big { color: var(--blue); font-size: 15px; }
+.stat-val.green { color: #2d7a1f; }
+.stat-val.amber { color: var(--amber); }
+.stat-val.red { color: var(--red); }
+
+.rec-badge {
+  background: #2d7a1f; color: white; text-align: center;
+  padding: 7px 10px; font-size: 11px; font-weight: 800;
+  letter-spacing: .5px; text-transform: uppercase;
+}
+.rec-note {
+  background: var(--bg-green); border-left: 4px solid var(--green);
+  margin: 10px; border-radius: 0 6px 6px 0;
+  padding: 9px 11px; font-size: 11px; color: #2d5a1b; line-height: 1.6;
+}
+
+/* Disclosure */
+.disclosure {
+  font-size: 11px; color: #aaa; line-height: 1.6; margin-top: 24px;
+  text-align: center; padding: 0 10px;
+}
+
+@media print {
+  body { background: white; }
+  .main { padding: 0; max-width: 100%; }
+  .print-btn { display: none !important; }
+}
+@media (max-width: 900px) {
+  .compare-grid { grid-template-columns: 1fr 1fr; }
+  .inputs-wrap { grid-template-columns: 1fr; }
+  .hdr-right { display: none; }
+}
+@media (max-width: 560px) {
+  .compare-grid { grid-template-columns: 1fr; }
+  .fields-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div>
+    <div class="hdr-brand">HomeWealth Solutions LLC &nbsp;·&nbsp; NMLS #2742458</div>
+    <div class="hdr-title">Appraisal Gap Strategy</div>
+    <div class="hdr-sub">4 Ways to Handle an Appraisal Shortfall — Side-by-Side Comparison</div>
+  </div>
+  <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px">
+    <button class="print-btn" onclick="window.print()">Print / Save PDF</button>
+    <div class="hdr-right">Doug Smith, CMA®<br><strong>813-733-7371</strong><br>doug@homewealthsolutions.com</div>
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- GAP BANNER -->
+  <div class="section-title">Appraisal Gap Summary</div>
+  <div class="gap-banner" id="gapBanner">
+    <div>
+      <div class="gap-label">Appraisal Gap</div>
+      <div class="gap-val" id="gapVal">—</div>
+    </div>
+    <div class="gap-stat">
+      <div class="gap-stat-num" id="gapContractVal">—</div>
+      <div class="gap-stat-label">Contract Price</div>
+    </div>
+    <div class="gap-stat">
+      <div class="gap-stat-num" id="gapAppraisedVal">—</div>
+      <div class="gap-stat-label">Appraised Value</div>
+    </div>
+    <div class="gap-stat">
+      <div class="gap-stat-num" id="gapPct">—</div>
+      <div class="gap-stat-label">Gap as % of Contract</div>
+    </div>
+  </div>
+
+  <!-- INPUTS -->
+  <div class="section-title">Scenario Inputs</div>
+  <div class="inputs-wrap">
+    <div class="input-group">
+      <div class="input-group-title">Property &amp; Loan</div>
+      <div class="fields-grid">
+        <div class="field"><label>Contract Price</label>
+          <input type="text" id="contractPrice" value="$400,000" oninput="fmtDollarLive(this);calculate()">
+        </div>
+        <div class="field"><label>Appraised Value</label>
+          <input type="text" id="appraisedValue" value="$385,000" oninput="fmtDollarLive(this);calculate()">
+        </div>
+        <div class="field"><label>Down Payment % (of Appraised)</label>
+          <input type="text" id="downPct" value="5%" oninput="calculate()">
+        </div>
+        <div class="field"><label>Interest Rate</label>
+          <input type="text" id="rate" value="7.000%" oninput="calculate()">
+        </div>
+        <div class="field"><label>Loan Term (Years)</label>
+          <input type="text" id="termYrs" value="30" oninput="calculate()">
+        </div>
+      </div>
+    </div>
+    <div class="input-group">
+      <div class="input-group-title">Monthly Costs &amp; MI</div>
+      <div class="fields-grid">
+        <div class="field"><label>Monthly Taxes</label>
+          <input type="text" id="taxes" value="$400" oninput="fmtDollarLive(this);calculate()">
+        </div>
+        <div class="field"><label>Monthly HOI</label>
+          <input type="text" id="hoi" value="$120" oninput="fmtDollarLive(this);calculate()">
+        </div>
+        <div class="field"><label>Annual BPMI Rate %</label>
+          <input type="text" id="bpmiRate" value="0.65%" oninput="calculate()">
+        </div>
+        <div class="field"><label>SPMI % of Loan</label>
+          <input type="text" id="spmiPct" value="1.75%" oninput="calculate()">
+        </div>
+        <div class="field"><label>Closing Cost Estimate</label>
+          <input type="text" id="closingCosts" value="$8,000" oninput="fmtDollarLive(this);calculate()">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- COMPARISON COLUMNS -->
+  <div class="section-title">Strategy Comparison</div>
+  <div class="compare-grid">
+
+    <div class="col-card">
+      <div class="col-header blue">Option 1<br>Base Loan + Monthly MI</div>
+      <div class="col-body" id="col1"></div>
+    </div>
+
+    <div class="col-card">
+      <div class="col-header dark">Option 2<br>Base Loan + SPMI Financed</div>
+      <div class="col-body" id="col2"></div>
+    </div>
+
+    <div class="col-card">
+      <div class="col-header mid">Option 3<br>Buyer Covers Gap in Cash</div>
+      <div class="col-body" id="col3"></div>
+    </div>
+
+    <div class="col-card recommended">
+      <div class="rec-badge">Recommended</div>
+      <div class="col-header green">Option 4<br>Gap + SPMI Financed</div>
+      <div class="col-body" id="col4">
+        <div class="rec-note">Buyer brings standard down payment only — no extra cash gap required.</div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="disclosure">
+    This communication is for informational and educational purposes only and does not constitute an offer to lend or a commitment to make a loan. All loans are subject to credit approval, underwriting guidelines, and property approval. Interest rates, payment examples, programs, and terms are illustrative, vary by borrower qualification, and are subject to change without notice. Not all applicants will qualify. Examples shown do not reflect all costs of a mortgage transaction. Consult a licensed tax or legal advisor regarding your individual situation. HomeWealth Solutions LLC is licensed by the Florida Office of Financial Regulation, Mortgage Broker License #MBR8082. Verify our licensure at www.nmlsconsumeraccess.org. Equal Housing Opportunity.
+  </div>
+
+</div>
+
+<script>
+function parseDollar(v) { return parseFloat(String(v).replace(/[$,\s]/g,'')) || 0; }
+function parsePct(v)    { return parseFloat(String(v).replace(/[%\s]/g,'')) || 0; }
+function fmtD(v)  { return '$' + Math.round(v).toLocaleString('en-US'); }
+function fmtPct(v) { return v.toFixed(2) + '%'; }
+
+function fmtDollarLive(el) {
+  const raw = parseDollar(el.value);
+  if (!isNaN(raw) && raw >= 0) el.value = '$' + Math.round(raw).toLocaleString('en-US');
+}
+
+function pmt(principal, annualRate, termYears) {
+  if (principal <= 0 || annualRate <= 0) return 0;
+  const r = annualRate / 12;
+  const n = termYears * 12;
+  return principal * (r * Math.pow(1+r,n)) / (Math.pow(1+r,n) - 1);
+}
+
+function statRow(label, val, cls) {
+  return `<div class="stat-row"><span class="stat-label">${label}</span><span class="stat-val${cls ? ' '+cls : ''}">${val}</span></div>`;
+}
+
+function calculate() {
+  const contractPrice  = parseDollar(document.getElementById('contractPrice').value);
+  const appraisedValue = parseDollar(document.getElementById('appraisedValue').value);
+  const downPct        = parsePct(document.getElementById('downPct').value) / 100;
+  const rate           = parsePct(document.getElementById('rate').value) / 100;
+  const termYrs        = parseFloat(document.getElementById('termYrs').value) || 30;
+  const taxes          = parseDollar(document.getElementById('taxes').value);
+  const hoi            = parseDollar(document.getElementById('hoi').value);
+  const bpmiRate       = parsePct(document.getElementById('bpmiRate').value) / 100;
+  const spmiPct        = parsePct(document.getElementById('spmiPct').value) / 100;
+  const closingCosts   = parseDollar(document.getElementById('closingCosts').value);
+
+  if (!contractPrice || !appraisedValue || !rate) return;
+
+  const gap = Math.max(0, contractPrice - appraisedValue);
+
+  // Update gap banner
+  document.getElementById('gapVal').textContent = fmtD(gap);
+  document.getElementById('gapContractVal').textContent = fmtD(contractPrice);
+  document.getElementById('gapAppraisedVal').textContent = fmtD(appraisedValue);
+  document.getElementById('gapPct').textContent = contractPrice > 0 ? fmtPct(gap / contractPrice * 100) : '—';
+
+  const downAmt = appraisedValue * downPct;
+
+  // ── Option 1: Base loan (appraised value - down), monthly BPMI, buyer brings gap cash ──
+  const loan1    = appraisedValue - downAmt;
+  const spmi1    = 0;
+  const finalLoan1 = loan1;
+  const pi1      = pmt(finalLoan1, rate, termYrs);
+  const mi1      = finalLoan1 * bpmiRate / 12;
+  const piti1    = pi1 + mi1 + taxes + hoi;
+  const ltv1     = finalLoan1 / appraisedValue * 100;
+  const gapCash1 = gap;
+  const cashClose1 = downAmt + gapCash1 + closingCosts;
+
+  document.getElementById('col1').innerHTML =
+    statRow('Base Loan Amount', fmtD(loan1)) +
+    statRow('Final Loan Amount', fmtD(finalLoan1)) +
+    statRow('LTV', fmtPct(ltv1)) +
+    statRow('Down Payment', fmtD(downAmt)) +
+    statRow('Gap Cash Required', fmtD(gapCash1), 'red') +
+    statRow('Total Cash to Close', fmtD(cashClose1), 'amber') +
+    `<div style="border-top:2px solid #f0f0f0;margin:8px 0"></div>` +
+    statRow('Monthly P&I', fmtD(pi1)) +
+    statRow('Monthly MI', fmtD(mi1)) +
+    statRow('Est. Monthly PITI', fmtD(piti1), 'big');
+
+  // ── Option 2: Base loan, SPMI financed (no monthly MI), buyer brings gap cash ──
+  const loan2    = appraisedValue - downAmt;
+  const spmi2Amt = loan2 * spmiPct;
+  const finalLoan2 = loan2 + spmi2Amt;
+  const pi2      = pmt(finalLoan2, rate, termYrs);
+  const piti2    = pi2 + taxes + hoi;
+  const ltv2     = finalLoan2 / appraisedValue * 100;
+  const gapCash2 = gap;
+  const cashClose2 = downAmt + gapCash2 + closingCosts;
+
+  document.getElementById('col2').innerHTML =
+    statRow('Base Loan Amount', fmtD(loan2)) +
+    statRow('SPMI Financed', fmtD(spmi2Amt)) +
+    statRow('Final Loan Amount', fmtD(finalLoan2)) +
+    statRow('LTV', fmtPct(ltv2)) +
+    statRow('Down Payment', fmtD(downAmt)) +
+    statRow('Gap Cash Required', fmtD(gapCash2), 'red') +
+    statRow('Total Cash to Close', fmtD(cashClose2), 'amber') +
+    `<div style="border-top:2px solid #f0f0f0;margin:8px 0"></div>` +
+    statRow('Monthly P&I', fmtD(pi2)) +
+    statRow('Monthly MI', '$0 (SPMI financed)') +
+    statRow('Est. Monthly PITI', fmtD(piti2), 'big');
+
+  // ── Option 3: Loan = appraised + gap = contract price, monthly BPMI, standard down ──
+  const loan3     = contractPrice - downAmt;
+  const finalLoan3 = loan3;
+  const pi3       = pmt(finalLoan3, rate, termYrs);
+  const mi3       = finalLoan3 * bpmiRate / 12;
+  const piti3     = pi3 + mi3 + taxes + hoi;
+  const ltv3      = finalLoan3 / contractPrice * 100;
+  const gapCash3  = 0; // no extra cash — gap folded into loan
+  const cashClose3 = downAmt + gapCash3 + closingCosts;
+
+  document.getElementById('col3').innerHTML =
+    statRow('Base Loan Amount', fmtD(loan3)) +
+    statRow('Final Loan Amount', fmtD(finalLoan3)) +
+    statRow('LTV', fmtPct(ltv3)) +
+    statRow('Down Payment', fmtD(downAmt)) +
+    statRow('Gap Cash Required', '$0 (folded into loan)') +
+    statRow('Total Cash to Close', fmtD(cashClose3), 'amber') +
+    `<div style="border-top:2px solid #f0f0f0;margin:8px 0"></div>` +
+    statRow('Monthly P&I', fmtD(pi3)) +
+    statRow('Monthly MI', fmtD(mi3)) +
+    statRow('Est. Monthly PITI', fmtD(piti3), 'big');
+
+  // ── Option 4: Loan = contract price, SPMI financed, standard down — RECOMMENDED ──
+  const loan4Base  = contractPrice - downAmt;
+  const spmi4Amt   = loan4Base * spmiPct;
+  const finalLoan4 = loan4Base + spmi4Amt;
+  const pi4        = pmt(finalLoan4, rate, termYrs);
+  const piti4      = pi4 + taxes + hoi;
+  const ltv4       = finalLoan4 / contractPrice * 100;
+  const gapCash4   = 0;
+  const cashClose4 = downAmt + closingCosts;
+
+  document.getElementById('col4').innerHTML =
+    `<div class="rec-note">Buyer brings standard down payment only — no extra cash gap required.</div>` +
+    statRow('Base Loan Amount', fmtD(loan4Base)) +
+    statRow('SPMI Financed', fmtD(spmi4Amt)) +
+    statRow('Final Loan Amount', fmtD(finalLoan4)) +
+    statRow('LTV', fmtPct(ltv4)) +
+    statRow('Down Payment', fmtD(downAmt)) +
+    statRow('Gap Cash Required', '$0', 'green') +
+    statRow('Total Cash to Close', fmtD(cashClose4), 'green') +
+    `<div style="border-top:2px solid #f0f0f0;margin:8px 0"></div>` +
+    statRow('Monthly P&I', fmtD(pi4)) +
+    statRow('Monthly MI', '$0 (SPMI financed)') +
+    statRow('Est. Monthly PITI', fmtD(piti4), 'big');
+}
+
+window.addEventListener('load', calculate);
+</script>
+<a href="https://tools.homewealthsolutions.com" id="hws-hub-btn" style="position:fixed;top:14px;right:16px;z-index:9999;background:#1c2b3a;color:rgba(255,255,255,0.9);text-decoration:none;font-size:12px;font-weight:700;padding:6px 14px;border-radius:8px;font-family:-apple-system,BlinkMacSystemFont,sans-serif;letter-spacing:0.2px;box-shadow:0 2px 8px rgba(0,0,0,0.25);">← Hub</a>
+
+<!-- HWS Hub back button -->
+<div id="hws-back-btn" style="position:fixed;bottom:20px;right:20px;z-index:99999;">
+  <button onclick="window.close()" style="
+    background:#1a2332;
+    color:white;
+    border:none;
+    border-radius:8px;
+    padding:9px 16px;
+    font-size:13px;
+    font-weight:600;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    gap:7px;
+    box-shadow:0 2px 12px rgba(0,0,0,0.25);
+    opacity:0.85;
+    transition:opacity .15s;
+  " onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.85'">
+    ← Hub
+  </button>
+</div>
+<script src="/hws-session.js"></script>
+</body>
+</html>

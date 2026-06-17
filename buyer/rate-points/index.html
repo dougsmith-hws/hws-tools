@@ -1,0 +1,1071 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rate & Points Comparison | HomeWealth Solutions</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+      font-size: 14px;
+      color: #1a1a2e;
+      background: #f0f4f8;
+    }
+
+    /* ── Header ── */
+    .header {
+      background: #2491EB;
+      color: white;
+      padding: 14px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .header-left .brand { font-size: 20px; font-weight: 800; letter-spacing: -0.5px; }
+    .header-left .sub { font-size: 11px; opacity: 0.8; margin-top: 2px; }
+    .header-right { text-align: right; font-size: 12px; line-height: 1.6; opacity: 0.9; }
+    .header-right strong { font-size: 13px; }
+
+    /* ── Container ── */
+    .container {
+      max-width: 1160px;
+      margin: 0 auto;
+      padding: 20px 24px 32px;
+    }
+
+    /* ── Action bar ── */
+    .actions {
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end;
+      margin-bottom: 16px;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 8px 16px;
+      border-radius: 7px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: all 0.15s;
+      letter-spacing: 0.2px;
+    }
+    .btn-blue  { background: #2491EB; color: white; }
+    .btn-blue:hover { background: #1a7fd4; }
+    .btn-ghost { background: white; color: #374151; border: 1px solid #d1d5db; }
+    .btn-ghost:hover { background: #f9fafb; }
+    .btn-green { background: #8EC73F; color: white; }
+    .btn-green:hover { background: #7ab534; }
+
+    /* ── Cards ── */
+    .card {
+      background: white;
+      border-radius: 10px;
+      border: 1px solid #e2e8f0;
+      padding: 18px 22px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    }
+    .card-title {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #94a3b8;
+      margin-bottom: 14px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid #f1f5f9;
+    }
+
+    /* ── Grid layouts ── */
+    .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+    .row-1 { margin-bottom: 16px; }
+
+    /* ── Form fields ── */
+    .field { display: flex; flex-direction: column; gap: 4px; }
+    .field label {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: #6b7280;
+    }
+    .field input {
+      padding: 8px 10px;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      font-size: 13px;
+      color: #1a1a2e;
+      background: white;
+      transition: border-color 0.15s, box-shadow 0.15s;
+      width: 100%;
+    }
+    .field input:focus {
+      outline: none;
+      border-color: #2491EB;
+      box-shadow: 0 0 0 3px rgba(36,145,235,0.12);
+    }
+    .field input.highlighted {
+      border-color: #8EC73F;
+      background: #f9fee8;
+    }
+    .fg-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 16px; }
+    .fg-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px 16px; }
+    .span-2 { grid-column: span 2; }
+
+    /* ── Option cards ── */
+    .options-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .opt-card {
+      background: white;
+      border: 2px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 16px;
+      transition: border-color 0.2s, background 0.2s;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    .opt-card.is-best {
+      border-color: #8EC73F;
+      background: #f8fee8;
+    }
+    .opt-card.is-base {
+      border-color: #cbd5e1;
+      background: #f8fafc;
+    }
+    .opt-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+    .opt-num {
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: #6b7280;
+    }
+    .opt-num.is-best { color: #8EC73F; }
+    .opt-badge {
+      font-size: 9px;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+    }
+    .badge-best { background: #8EC73F; color: white; }
+    .badge-base { background: #94a3b8; color: white; }
+    .opt-pi {
+      margin-top: 12px;
+      text-align: center;
+      padding: 8px;
+      background: rgba(36,145,235,0.06);
+      border-radius: 6px;
+      font-size: 18px;
+      font-weight: 800;
+      color: #2491EB;
+      min-height: 38px;
+    }
+    .opt-pi .pi-label {
+      font-size: 9px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #94a3b8;
+      display: block;
+      margin-top: 1px;
+    }
+
+    /* ── Results table ── */
+    .results-wrap { overflow-x: auto; }
+    table.results {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    table.results th {
+      background: #2491EB;
+      color: white;
+      padding: 11px 14px;
+      text-align: center;
+      font-size: 12px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    table.results th.row-label {
+      text-align: left;
+      width: 220px;
+      background: #1d7ed8;
+    }
+    table.results td {
+      padding: 9px 14px;
+      text-align: center;
+      border-bottom: 1px solid #f1f5f9;
+      white-space: nowrap;
+    }
+    table.results td.row-label {
+      text-align: left;
+      font-size: 12px;
+      font-weight: 500;
+      color: #374151;
+      white-space: normal;
+    }
+    table.results tr:nth-child(even) td { background: #f8fafc; }
+    table.results tr:nth-child(even) td.best-col { background: #f4fce5; }
+
+    table.results tr.section-row td {
+      background: #1d7ed8 !important;
+      color: white !important;
+      font-size: 9px !important;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      padding: 5px 14px;
+    }
+    table.results tr.highlight-row td { font-weight: 700; }
+    table.results tr.highlight-row td:not(.row-label) {
+      background: #fffbea !important;
+    }
+    table.results tr.highlight-row td.best-col { background: #f0fce1 !important; }
+
+    td.best-col {
+      background: #f7fee8 !important;
+    }
+    th.best-col { background: #6ba82b !important; }
+
+    /* Value colors */
+    .pos { color: #16a34a; font-weight: 600; }
+    .neg { color: #dc2626; font-weight: 600; }
+    .muted { color: #94a3b8; }
+    .big { font-size: 15px; font-weight: 800; }
+
+    /* ── Buydown selector ── */
+    .bd-btn {
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      border: 2px solid #d1d5db;
+      background: white;
+      color: #6b7280;
+      transition: all 0.15s;
+      letter-spacing: 0.3px;
+    }
+    .bd-btn:hover { border-color: #2491EB; color: #2491EB; }
+    .bd-btn.active { background: #2491EB; border-color: #2491EB; color: white; }
+    .bd-desc {
+      font-size: 12px;
+      color: #6b7280;
+      margin-top: 10px;
+      padding: 8px 12px;
+      background: #f8fafc;
+      border-radius: 6px;
+      border-left: 3px solid #2491EB;
+      display: none;
+      line-height: 1.5;
+    }
+    .bd-desc.visible { display: block; }
+    /* Year payment rows in opt card */
+    .yr-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      font-size: 12px;
+      padding: 3px 0;
+      border-bottom: 1px solid rgba(0,0,0,0.05);
+    }
+    .yr-row .yr-label { color: #94a3b8; font-size: 10px; font-weight: 700; text-transform: uppercase; }
+    .yr-row .yr-val { font-weight: 700; color: #1a1a2e; }
+    .yr-row.yr-note .yr-val { color: #2491EB; }
+    /* Buydown section rows in table */
+    table.results tr.buydown-row td { background: #fff8f0 !important; }
+    table.results tr.buydown-row td.best-col { background: #f4fce5 !important; }
+    table.results tr.buydown-highlight td { background: #fff3cd !important; font-weight: 700; }
+    table.results tr.buydown-highlight td.best-col { background: #eef9d0 !important; }
+
+    /* ── Recommendation ── */
+    .rec-box {
+      background: #f7fee8;
+      border: 2px solid #8EC73F;
+      border-radius: 10px;
+      padding: 14px 20px;
+      margin-bottom: 16px;
+      display: none;
+      align-items: flex-start;
+      gap: 14px;
+    }
+    .rec-badge {
+      background: #8EC73F;
+      color: white;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 5px 12px;
+      border-radius: 20px;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .rec-text { font-size: 13px; color: #374151; line-height: 1.6; }
+    .rec-text strong { color: #1a1a2e; }
+
+    /* ── Compliance ── */
+    .compliance {
+      font-size: 9.5px;
+      color: #9ca3af;
+      line-height: 1.7;
+      border-top: 1px solid #e5e7eb;
+      padding-top: 14px;
+      margin-top: 4px;
+    }
+
+    /* ── Print ── */
+    @media print {
+      body { background: white; font-size: 11px; }
+      .no-print { display: none !important; }
+      .container { padding: 0; max-width: 100%; }
+      .header { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      table.results th, table.results tr.section-row td,
+      th.best-col, td.best-col, tr.highlight-row td,
+      .rec-box, .opt-card.is-best, .opt-pi, .badge-best, .badge-base {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+      .card { box-shadow: none; border: 1px solid #ddd; page-break-inside: avoid; }
+      .opt-card { page-break-inside: avoid; }
+      .row-2 { gap: 10px; }
+      .options-row { gap: 8px; }
+    }
+
+    @media (max-width: 900px) {
+      .options-row { grid-template-columns: 1fr 1fr; }
+      .row-2 { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 600px) {
+      .options-row { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <div class="brand">HomeWealth Solutions</div>
+    <div class="sub">Rate & Points Comparison &nbsp;|&nbsp; NMLS #2742458 &nbsp;|&nbsp; FL MBR #MBR8082</div>
+  </div>
+  <div class="header-right">
+    <strong>Doug Smith, CMA® &nbsp;|&nbsp; President & Broker</strong><br>
+    NMLS #2609118 &nbsp;|&nbsp; (813) 733-8778 &nbsp;|&nbsp; homewealthsolutions.com
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- Action bar -->
+  <div class="actions no-print">
+    <button class="btn btn-ghost" onclick="clearAll()">✕ Clear</button>
+    <button class="btn btn-ghost" onclick="loadSampleData()">⚙ Sample Data</button>
+    <button class="btn btn-blue" onclick="window.print()">⎙ Print / Save PDF</button>
+  </div>
+
+  <!-- Row 1: Client Info + Loan Parameters -->
+  <div class="row-2">
+
+    <div class="card">
+      <div class="card-title">Client Information</div>
+      <div class="fg-2">
+        <div class="field span-2">
+          <label>Client Name</label>
+          <input type="text" id="clientName" placeholder="First &amp; Last Name">
+        </div>
+        <div class="field">
+          <label>FICO Score</label>
+          <input type="text" id="fico" placeholder="e.g. 760">
+        </div>
+        <div class="field">
+          <label>Referred By</label>
+          <input type="text" id="referredBy" placeholder="Realtor / Source">
+        </div>
+        <div class="field">
+          <label>Prepared Date</label>
+          <input type="text" id="prepDate" placeholder="MM/DD/YYYY">
+        </div>
+        <div class="field">
+          <label>Loan Purpose</label>
+          <input type="text" id="loanPurpose" placeholder="Purchase / Refinance">
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Loan Parameters</div>
+      <div class="fg-2">
+        <div class="field">
+          <label>Purchase Price ($)</label>
+          <input type="number" id="purchasePrice" placeholder="455,000" oninput="calculate()">
+        </div>
+        <div class="field">
+          <label>Down Payment (%)</label>
+          <input type="number" id="downPct" placeholder="5.00" step="0.25" oninput="calculate()">
+        </div>
+        <div class="field">
+          <label>Monthly Taxes ($)</label>
+          <input type="number" id="taxes" placeholder="500" oninput="calculate()">
+        </div>
+        <div class="field">
+          <label>Monthly HOI ($)</label>
+          <input type="number" id="hoi" placeholder="200" oninput="calculate()">
+        </div>
+        <div class="field">
+          <label>Monthly MI ($)</label>
+          <input type="number" id="mi" placeholder="0" oninput="calculate()">
+        </div>
+        <div class="field">
+          <label>Closing Costs — Arive ($)</label>
+          <input type="number" id="closingCosts" placeholder="from Arive/Encompass" oninput="calculate()">
+        </div>
+        <div class="field span-2">
+          <label>Escrow Deposit ($)</label>
+          <input type="number" id="escrow" placeholder="2,000" oninput="calculate()">
+        </div>
+        <div class="field span-2" style="margin-top:4px; padding-top:12px; border-top:1px solid #f1f5f9;">
+          <label>Analysis Horizon (Years)</label>
+          <div style="display:flex; gap:6px; align-items:center; flex-wrap:wrap;">
+            <input type="number" id="analysisYears" value="7" min="1" max="30" step="1"
+              style="width:80px; font-weight:700; color:#2491EB;"
+              oninput="calculate()">
+            <span style="display:flex; gap:5px; flex-wrap:wrap;">
+              <button type="button" class="btn btn-ghost" style="padding:5px 10px; font-size:11px;" onclick="setYears(2)">2 yr</button>
+              <button type="button" class="btn btn-ghost" style="padding:5px 10px; font-size:11px;" onclick="setYears(3)">3 yr</button>
+              <button type="button" class="btn btn-ghost" style="padding:5px 10px; font-size:11px;" onclick="setYears(5)">5 yr</button>
+              <button type="button" class="btn btn-ghost" style="padding:5px 10px; font-size:11px;" onclick="setYears(7)">7 yr</button>
+              <button type="button" class="btn btn-ghost" style="padding:5px 10px; font-size:11px;" onclick="setYears(10)">10 yr</button>
+              <button type="button" class="btn btn-ghost" style="padding:5px 10px; font-size:11px;" onclick="setYears(30)">30 yr</button>
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /row-2 -->
+
+  <!-- Rate options -->
+  <div class="options-row" id="optionsRow">
+    <!-- injected by JS -->
+  </div>
+
+  <!-- Temporary Buydown selector -->
+  <div class="card row-1">
+    <div class="card-title">Temporary Buydown</div>
+    <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+      <span style="font-size:11px; font-weight:700; color:#6b7280; text-transform:uppercase; letter-spacing:0.6px; margin-right:4px;">Type:</span>
+      <button class="bd-btn active" id="bdNone"  onclick="setBuydown('none')">None</button>
+      <button class="bd-btn"        id="bd10"    onclick="setBuydown('1-0')">1-0</button>
+      <button class="bd-btn"        id="bd21"    onclick="setBuydown('2-1')">2-1</button>
+      <button class="bd-btn"        id="bd321"   onclick="setBuydown('3-2-1')">3-2-1</button>
+    </div>
+    <div class="bd-desc" id="bdDesc"></div>
+  </div>
+
+  <!-- Results table -->
+  <div class="card row-1">
+    <div class="card-title">Comparison Summary</div>
+    <div class="results-wrap">
+      <table class="results" id="resultsTable">
+        <thead>
+          <tr>
+            <th class="row-label"></th>
+            <th id="th0">Option 1</th>
+            <th id="th1">Option 2</th>
+            <th id="th2">Option 3</th>
+            <th id="th3">Option 4</th>
+          </tr>
+        </thead>
+        <tbody id="resultsBody">
+          <tr><td class="row-label" colspan="5" style="text-align:center; color:#94a3b8; padding:24px; font-style:italic;">
+            Enter loan parameters and rate options above to generate comparison.
+          </td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Recommendation -->
+  <div class="rec-box" id="recBox">
+    <span class="rec-badge">Best Net Savings</span>
+    <span class="rec-text" id="recText"></span>
+  </div>
+
+  <!-- Compliance -->
+  <div class="compliance">
+    This communication is for informational and educational purposes only and does not constitute an offer to lend or a commitment to make a loan. All loans are subject to credit approval, underwriting guidelines, and property approval. Interest rates, payment examples, programs, and terms are illustrative, vary by borrower qualification, and are subject to change without notice. Not all applicants will qualify. Examples shown do not reflect all costs of a mortgage transaction. Consult a licensed tax or legal advisor regarding your individual situation. HomeWealth Solutions LLC is licensed by the Florida Office of Financial Regulation, Mortgage Broker License #MBR8082. Verify our licensure at www.nmlsconsumeraccess.org. Equal Housing Opportunity.
+  </div>
+
+</div><!-- /container -->
+
+<script>
+// ─── Config ──────────────────────────────────────────────────────────────────
+const N = 4;            // number of options
+const TERM = 360;       // 30-year loan
+function getYears() {
+  return parseInt(document.getElementById('analysisYears').value) || 7;
+}
+
+const SAMPLE = {
+  purchasePrice: 455000,
+  downPct: 5,
+  taxes: 863.80,
+  hoi: 200,
+  mi: 0,
+  closingCosts: 5000,
+  escrow: 2000,
+  rates:  [5.875, 6.000, 6.125, 6.250],
+  points: [1.111, 0.808, 0.567, 0.200]
+};
+
+// ─── Math helpers ─────────────────────────────────────────────────────────────
+function pmt(annualRate, pv) {
+  const r = annualRate / 100 / 12;
+  if (r === 0) return pv / TERM;
+  return (pv * r * Math.pow(1 + r, TERM)) / (Math.pow(1 + r, TERM) - 1);
+}
+
+function interestOverMonths(pv, annualRate, months) {
+  const r = annualRate / 100 / 12;
+  const payment = pmt(annualRate, pv);
+  let balance = pv, total = 0;
+  for (let i = 0; i < months; i++) {
+    const int = balance * r;
+    total += int;
+    balance -= (payment - int);
+  }
+  return total;
+}
+
+// ─── Formatters ───────────────────────────────────────────────────────────────
+function $$(n, dec = 2) {
+  if (n == null || isNaN(n)) return '—';
+  const abs = Math.abs(n).toLocaleString('en-US', { minimumFractionDigits: dec, maximumFractionDigits: dec });
+  return (n < 0 ? '-$' : '$') + abs;
+}
+function pct(n, dec = 3) {
+  if (n == null || isNaN(n)) return '—';
+  return n.toFixed(dec) + '%';
+}
+
+// ─── Buydown helpers ──────────────────────────────────────────────────────────
+let _buydownType = 'none';
+
+function getBuydown() { return _buydownType; }
+
+// Returns reductions per year, e.g. 2-1 → [2, 1]
+const BD_MAP = {
+  'none':  [],
+  '1-0':   [1],
+  '2-1':   [2, 1],
+  '3-2-1': [3, 2, 1]
+};
+
+const BD_DESC = {
+  'none':  '',
+  '1-0':   'Rate is reduced by 1% in Year 1, then reverts to note rate. Seller-funded subsidy covers the payment difference.',
+  '2-1':   'Rate is reduced by 2% in Year 1, 1% in Year 2, then reverts to note rate. Common seller concession on new construction.',
+  '3-2-1': 'Rate is reduced by 3% in Year 1, 2% in Year 2, 1% in Year 3, then reverts to note rate. Higher upfront seller cost but maximum early payment relief.'
+};
+
+function calcBuydown(loan, noteRate, bdType) {
+  const reductions = BD_MAP[bdType] || [];
+  if (!reductions.length) return null;
+
+  const notePI = pmt(noteRate, loan);
+  const years  = [];
+  let totalCost = 0;
+
+  reductions.forEach((red, idx) => {
+    const effectiveRate = Math.max(noteRate - red, 0.001);
+    const yearPI        = pmt(effectiveRate, loan);
+    const monthlySave   = notePI - yearPI;
+    const annualCost    = monthlySave * 12;
+    totalCost += annualCost;
+    years.push({ year: idx + 1, rate: effectiveRate, reduction: red, pi: yearPI, monthlySave, annualCost });
+  });
+
+  return { years, notePI, totalCost, bdType };
+}
+
+function setBuydown(type) {
+  _buydownType = type;
+  // Update pill buttons
+  ['none','1-0','2-1','3-2-1'].forEach(t => {
+    const idMap = { 'none':'bdNone', '1-0':'bd10', '2-1':'bd21', '3-2-1':'bd321' };
+    const btn = document.getElementById(idMap[t]);
+    if (btn) btn.classList.toggle('active', t === type);
+  });
+  // Show description
+  const desc = document.getElementById('bdDesc');
+  desc.textContent = BD_DESC[type] || '';
+  desc.classList.toggle('visible', type !== 'none');
+  calculate();
+}
+
+// ─── Build option input cards ─────────────────────────────────────────────────
+function buildCards() {
+  const row = document.getElementById('optionsRow');
+  row.innerHTML = '';
+  for (let i = 0; i < N; i++) {
+    row.innerHTML += `
+      <div class="opt-card" id="optCard${i}">
+        <div class="opt-header">
+          <span class="opt-num" id="optNum${i}">Option ${i + 1}${i === N - 1 ? '' : ''}</span>
+          <span class="opt-badge" id="optBadge${i}" style="display:none"></span>
+        </div>
+        <div class="fg-2" style="gap:8px 12px">
+          <div class="field">
+            <label>Rate (%)</label>
+            <input type="number" id="rate${i}" step="0.125" placeholder="${(6 + i * 0.125).toFixed(3)}"
+              oninput="calculate()">
+          </div>
+          <div class="field">
+            <label>Points (%)</label>
+            <input type="number" id="pts${i}" step="0.001" placeholder="0.000"
+              oninput="calculate()">
+          </div>
+        </div>
+        <div class="opt-pi" id="optPI${i}"><span class="pi-label">P&I / mo</span></div>
+      </div>`;
+  }
+}
+
+// ─── Main calculate ───────────────────────────────────────────────────────────
+function calculate() {
+  const pp   = parseFloat(document.getElementById('purchasePrice').value) || 0;
+  const dpPct = parseFloat(document.getElementById('downPct').value) || 0;
+  const taxes = parseFloat(document.getElementById('taxes').value) || 0;
+  const hoi   = parseFloat(document.getElementById('hoi').value) || 0;
+  const mi    = parseFloat(document.getElementById('mi').value) || 0;
+  const cc    = parseFloat(document.getElementById('closingCosts').value) || 0;
+  const esc   = parseFloat(document.getElementById('escrow').value) || 0;
+
+  if (!pp || !dpPct) return;
+
+  const down    = pp * dpPct / 100;
+  const loan    = pp - down;
+  const ltv     = loan / pp * 100;
+  const tiMI    = taxes + hoi + mi;       // monthly tax + insurance + MI
+  const baseCash = down + cc + esc;       // before adding points
+
+  const opts = [];
+  for (let i = 0; i < N; i++) {
+    const rate = parseFloat(document.getElementById(`rate${i}`).value);
+    const pts  = parseFloat(document.getElementById(`pts${i}`).value);
+    if (!rate && rate !== 0) { opts.push(null); continue; }
+    const p = isNaN(pts) ? 0 : pts;
+
+    const pi         = pmt(rate, loan);
+    const piti       = pi + tiMI;
+    const ptsCost    = (p / 100) * loan;
+    const totalCash  = baseCash + ptsCost;
+    const int7yr     = interestOverMonths(loan, rate, getYears() * 12);
+    const sumPITI7yr = piti * (getYears() * 12);
+
+    opts.push({ rate, pts: p, pi, piti, ptsCost, totalCash, int7yr, sumPITI7yr, loan, ltv });
+  }
+
+  const base = opts[N - 1]; // Option 4 = base case
+
+  // Find best net savings among options 0-2 vs base
+  let bestIdx = N - 1; // default to option 4 (no points)
+  let bestNet = -Infinity;
+  if (base) {
+    for (let i = 0; i < N - 1; i++) {
+      if (!opts[i]) continue;
+      const addl = opts[i].totalCash - base.totalCash;
+      const savings = base.int7yr - opts[i].int7yr;
+      const net = savings - addl;
+      if (net > bestNet) { bestNet = net; bestIdx = i; }
+    }
+    // Only crown an option best if net savings > 0
+    if (bestNet <= 0) bestIdx = N - 1;
+  }
+
+  // Update option cards
+  for (let i = 0; i < N; i++) {
+    const card  = document.getElementById(`optCard${i}`);
+    const num   = document.getElementById(`optNum${i}`);
+    const badge = document.getElementById(`optBadge${i}`);
+    const piEl  = document.getElementById(`optPI${i}`);
+
+    card.classList.toggle('is-best', i === bestIdx && i !== N - 1);
+    card.classList.toggle('is-base', i === N - 1);
+    num.classList.toggle('is-best', i === bestIdx && i !== N - 1);
+
+    if (i === bestIdx && i !== N - 1) {
+      badge.textContent = 'Best'; badge.className = 'opt-badge badge-best'; badge.style.display = '';
+    } else if (i === N - 1) {
+      badge.textContent = 'Base'; badge.className = 'opt-badge badge-base'; badge.style.display = '';
+    } else {
+      badge.style.display = 'none';
+    }
+
+    if (opts[i]) {
+      const bd = calcBuydown(opts[i].loan, opts[i].rate, getBuydown());
+      if (bd && bd.years.length) {
+        let rows = bd.years.map(y =>
+          `<div class="yr-row">
+            <span class="yr-label">Yr ${y.year} (${y.rate.toFixed(3)}%)</span>
+            <span class="yr-val">${$$(y.pi)}</span>
+          </div>`
+        ).join('');
+        rows += `<div class="yr-row yr-note" style="margin-top:4px; border-bottom:none;">
+            <span class="yr-label">Yr ${bd.years.length + 1}+ (note)</span>
+            <span class="yr-val">${$$(bd.notePI)}</span>
+          </div>`;
+        piEl.innerHTML = rows;
+        piEl.style.textAlign = 'left';
+        piEl.style.fontSize = '';
+        piEl.style.fontWeight = '';
+      } else {
+        piEl.innerHTML = `$${opts[i].pi.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}<span class="pi-label">P&I / mo</span>`;
+        piEl.style.textAlign = '';
+        piEl.style.fontSize = '';
+      }
+    } else {
+      piEl.innerHTML = '<span class="pi-label">P&I / mo</span>';
+    }
+  }
+
+  buildTable(opts, base, bestIdx, tiMI);
+  buildRec(opts, base, bestIdx);
+}
+
+// ─── Buydown table rows builder ───────────────────────────────────────────────
+function buildBuydownRows(opts, tiMI) {
+  const bdType = getBuydown();
+  if (bdType === 'none') return [];
+
+  const reductions = BD_MAP[bdType];
+  const rows = [{ type: 'section', label: `Temporary Buydown — ${bdType.toUpperCase()}` }];
+
+  // Year-by-year payment rows
+  reductions.forEach((red, idx) => {
+    const yrNum = idx + 1;
+    rows.push({
+      label: `Year ${yrNum} P&I (rate −${red}%)`,
+      rowClass: 'buydown-row',
+      fn: o => {
+        if (!o) return '—';
+        const bd = calcBuydown(o.loan, o.rate, bdType);
+        if (!bd) return '—';
+        return `<span style="font-weight:700">${$$(bd.years[idx].pi)}</span>`;
+      }
+    });
+    rows.push({
+      label: `Year ${yrNum} PITI`,
+      rowClass: 'buydown-row',
+      fn: o => {
+        if (!o) return '—';
+        const bd = calcBuydown(o.loan, o.rate, bdType);
+        if (!bd) return '—';
+        return $$(bd.years[idx].pi + tiMI);
+      }
+    });
+  });
+
+  // Seller concession cost
+  rows.push({
+    label: 'Seller Concession Needed',
+    rowClass: 'buydown-highlight',
+    fn: o => {
+      if (!o) return '—';
+      const bd = calcBuydown(o.loan, o.rate, bdType);
+      return bd ? `<span class="neg">${$$(bd.totalCost, 0)}</span>` : '—';
+    }
+  });
+
+  // Monthly savings in year 1 vs note rate
+  rows.push({
+    label: 'Yr 1 Monthly Savings vs Full Payment',
+    rowClass: 'buydown-row',
+    fn: o => {
+      if (!o) return '—';
+      const bd = calcBuydown(o.loan, o.rate, bdType);
+      if (!bd) return '—';
+      return `<span class="pos">${$$(bd.years[0].monthlySave)}/mo</span>`;
+    }
+  });
+
+  return rows;
+}
+
+// ─── Build table ──────────────────────────────────────────────────────────────
+function buildTable(opts, base, bestIdx, tiMI) {
+  // Update headers
+  for (let i = 0; i < N; i++) {
+    const th = document.getElementById(`th${i}`);
+    th.className = i === bestIdx ? 'best-col' : '';
+    const rateStr = opts[i] ? pct(opts[i].rate, 3) : `Option ${i + 1}`;
+    const ptStr   = opts[i] ? pct(opts[i].pts, 3) : '';
+    const best    = (i === bestIdx && i !== N - 1) ? '<br><span style="font-size:9px;font-weight:700;opacity:0.9">★ BEST</span>' : '';
+    const base_   = i === N - 1 ? '<br><span style="font-size:9px;opacity:0.75">(Base)</span>' : '';
+    th.innerHTML  = `Option ${i + 1}${best}${base_}<br><span style="font-size:10px;font-weight:400;opacity:0.9">${rateStr}${ptStr ? ' / ' + ptStr + ' pts' : ''}</span>`;
+  }
+
+  const tbody = document.getElementById('resultsBody');
+  tbody.innerHTML = '';
+
+  const rows = [
+    // ── LOAN DETAILS ──────────────────────────────────────────────────────────
+    { type: 'section', label: 'Loan Details' },
+    { label: 'Loan Amount',       fn: o => o ? $$(o.loan, 0) : '—' },
+    { label: 'LTV',               fn: o => o ? o.ltv.toFixed(1) + '%' : '—' },
+    { label: 'Interest Rate',     fn: o => o ? pct(o.rate, 3) : '—' },
+    { label: 'Discount Points',   fn: o => o ? pct(o.pts, 3) : '—' },
+    { label: 'Points Cost ($)',   fn: o => o ? $$(o.ptsCost, 0) : '—' },
+
+    // ── MONTHLY PAYMENT ───────────────────────────────────────────────────────
+    { type: 'section', label: 'Monthly Payment' },
+    {
+      label: 'Monthly P&I',
+      fn: o => o ? `<span class="big">${$$(o.pi)}</span>` : '—',
+      highlight: true
+    },
+    { label: 'Monthly PITI (total)', fn: o => o ? $$(o.piti) : '—' },
+
+    // ── CASH TO CLOSE ─────────────────────────────────────────────────────────
+    { type: 'section', label: 'Cash to Close' },
+    { label: 'Total Cash to Close',        fn: o => o ? $$(o.totalCash, 0) : '—' },
+    {
+      label: 'Additional Cash vs Option 4',
+      fn: (o, i) => {
+        if (!o || !base) return '—';
+        if (i === N - 1) return '<span class="muted">Base</span>';
+        const d = o.totalCash - base.totalCash;
+        return `<span class="${d > 0 ? 'neg' : 'pos'}">${$$(d, 0)}</span>`;
+      }
+    },
+
+    // ── TEMPORARY BUYDOWN ────────────────────────────────────────────────────
+    ...buildBuydownRows(opts, tiMI),
+
+    // ── N-YEAR ANALYSIS ───────────────────────────────────────────────────────
+    { type: 'section', label: `${getYears()}-Year Analysis` },
+    { label: `Interest Paid (${getYears()} yrs)`,    fn: o => o ? $$(o.int7yr, 0) : '—' },
+    {
+      label: `Interest Savings vs Option 4`,
+      fn: (o, i) => {
+        if (!o || !base) return '—';
+        if (i === N - 1) return '<span class="muted">Base</span>';
+        const s = base.int7yr - o.int7yr;
+        return `<span class="${s > 0 ? 'pos' : 'neg'}">${$$(s, 0)}</span>`;
+      }
+    },
+    {
+      label: 'Net Savings vs Option 4',
+      fn: (o, i) => {
+        if (!o || !base) return '—';
+        if (i === N - 1) return '<span class="muted">Base</span>';
+        const addl = o.totalCash - base.totalCash;
+        const save = base.int7yr - o.int7yr;
+        const net  = save - addl;
+        return `<span class="${net > 0 ? 'pos' : 'neg'}">${$$(net, 0)}</span>`;
+      },
+      highlight: true
+    },
+    {
+      label: 'Breakeven (months)',
+      fn: (o, i) => {
+        if (!o || !base) return '—';
+        if (i === N - 1) return '<span class="muted">—</span>';
+        const addl = o.totalCash - base.totalCash;
+        const mSave = base.piti - o.piti;
+        if (mSave <= 0) return '<span class="neg">Never</span>';
+        const be = Math.ceil(addl / mSave);
+        return `${be} mo <span class="muted">(${(be / 12).toFixed(1)} yrs)</span>`;
+      }
+    },
+    {
+      label: `Total Payments — ${getYears()} yrs (PITI × ${getYears() * 12} mo)`,
+      fn: o => o ? $$(o.sumPITI7yr, 0) : '—'
+    },
+  ];
+
+  rows.forEach(row => {
+    const tr = document.createElement('tr');
+
+    if (row.type === 'section') {
+      tr.className = 'section-row';
+      tr.innerHTML = `<td colspan="${N + 1}">${row.label}</td>`;
+      tbody.appendChild(tr);
+      return;
+    }
+
+    if (row.highlight) tr.classList.add('highlight-row');
+    if (row.rowClass) tr.classList.add(row.rowClass);
+
+    const td0 = document.createElement('td');
+    td0.className = 'row-label';
+    td0.textContent = row.label;
+    tr.appendChild(td0);
+
+    for (let i = 0; i < N; i++) {
+      const td = document.createElement('td');
+      if (i === bestIdx) td.classList.add('best-col');
+      td.innerHTML = typeof row.fn === 'function' ? row.fn(opts[i], i) : '—';
+      tr.appendChild(td);
+    }
+
+    tbody.appendChild(tr);
+  });
+}
+
+// ─── Recommendation box ───────────────────────────────────────────────────────
+function buildRec(opts, base, bestIdx) {
+  const box  = document.getElementById('recBox');
+  const text = document.getElementById('recText');
+
+  if (bestIdx === N - 1 || !base || !opts[bestIdx]) {
+    if (base) {
+      box.style.display = 'flex';
+      text.innerHTML = `<strong>Option 4 (${pct(base.rate, 3)})</strong> is the best choice in this scenario. No buydown option generates positive net savings over a ${getYears()}-year horizon — the extra upfront cost isn't recovered in interest savings before the assumed payoff date.`;
+    } else {
+      box.style.display = 'none';
+    }
+    return;
+  }
+
+  const o    = opts[bestIdx];
+  const addl = o.totalCash - base.totalCash;
+  const save = base.int7yr - o.int7yr;
+  const net  = save - addl;
+  const mSave = base.piti - o.piti;
+  const be   = mSave > 0 ? Math.ceil(addl / mSave) : null;
+
+  text.innerHTML = `<strong>Option ${bestIdx + 1} (${pct(o.rate, 3)})</strong> delivers the strongest return: <strong>${$$(save, 0)}</strong> in interest saved over ${getYears()} years, minus <strong>${$$(addl, 0)}</strong> in additional upfront cost — a <strong style="color:#16a34a">${$$(net, 0)} net gain</strong>.${be ? ` Break-even at <strong>${be} months (${(be / 12).toFixed(1)} years)</strong>.` : ''} If your client keeps this home beyond that point, the buydown pays off.`;
+  box.style.display = 'flex';
+}
+
+// ─── Sample data / Clear ─────────────────────────────────────────────────────
+function loadSampleData() {
+  document.getElementById('purchasePrice').value = SAMPLE.purchasePrice;
+  document.getElementById('downPct').value       = SAMPLE.downPct;
+  document.getElementById('taxes').value         = SAMPLE.taxes;
+  document.getElementById('hoi').value           = SAMPLE.hoi;
+  document.getElementById('mi').value            = SAMPLE.mi;
+  document.getElementById('closingCosts').value  = SAMPLE.closingCosts;
+  document.getElementById('escrow').value        = SAMPLE.escrow;
+  document.getElementById('clientName').value    = 'Sample Client';
+  document.getElementById('fico').value          = '760';
+  document.getElementById('referredBy').value    = 'Sample Realtor';
+  document.getElementById('loanPurpose').value   = 'Purchase';
+  document.getElementById('prepDate').value      = new Date().toLocaleDateString('en-US');
+  for (let i = 0; i < N; i++) {
+    document.getElementById(`rate${i}`).value = SAMPLE.rates[i];
+    document.getElementById(`pts${i}`).value  = SAMPLE.points[i];
+  }
+  calculate();
+}
+
+function setYears(n) {
+  document.getElementById('analysisYears').value = n;
+  calculate();
+}
+
+function clearAll() {
+  try { localStorage.removeItem(STORAGE_KEY); } catch(e) {}
+  setBuydown('none');
+  document.getElementById('analysisYears').value = 7;
+  ['purchasePrice','downPct','taxes','hoi','mi','closingCosts','escrow',
+   'clientName','fico','referredBy','prepDate','loanPurpose'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+  for (let i = 0; i < N; i++) {
+    document.getElementById(`rate${i}`).value = '';
+    document.getElementById(`pts${i}`).value  = '';
+    document.getElementById(`optPI${i}`).innerHTML = '<span class="pi-label">P&I / mo</span>';
+    document.getElementById(`optCard${i}`).className = 'opt-card';
+    document.getElementById(`optBadge${i}`).style.display = 'none';
+  }
+  document.getElementById('resultsBody').innerHTML =
+    '<tr><td class="row-label" colspan="5" style="text-align:center; color:#94a3b8; padding:24px; font-style:italic;">Enter loan parameters and rate options above to generate comparison.</td></tr>';
+  document.getElementById('recBox').style.display = 'none';
+}
+
+// ─── Persistence (localStorage) ──────────────────────────────────────────────
+const STORAGE_KEY = 'hws_mortgage_coach_v1';
+const PERSIST_IDS = [
+  'purchasePrice','downPct','taxes','hoi','mi','closingCosts','escrow',
+  'clientName','fico','referredBy','prepDate','loanPurpose','analysisYears',
+  'rate0','rate1','rate2','rate3','pts0','pts1','pts2','pts3'
+];
+
+function saveInputs() {
+  const data = {};
+  PERSIST_IDS.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) data[id] = el.value;
+  });
+  data._buydown = _buydownType;
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); } catch(e) {}
+}
+
+function loadSavedInputs() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return false;
+    const data = JSON.parse(raw);
+    PERSIST_IDS.forEach(id => {
+      const el = document.getElementById(id);
+      if (el && data[id] != null) el.value = data[id];
+    });
+    if (data._buydown && data._buydown !== 'none') setBuydown(data._buydown);
+    return true;
+  } catch(e) { return false; }
+}
+
+// Hook save into calculate
+const _origCalc = calculate;
+calculate = function() {
+  _origCalc();
+  saveInputs();
+};
+
+// ─── Init ─────────────────────────────────────────────────────────────────────
+buildCards();
+document.getElementById('prepDate').value = new Date().toLocaleDateString('en-US');
+const hadSaved = loadSavedInputs();
+if (hadSaved) calculate(); // trigger calc with restored values
+</script>
+<a href="https://tools.homewealthsolutions.com" id="hws-hub-btn" style="position:fixed;top:14px;right:16px;z-index:9999;background:#1c2b3a;color:rgba(255,255,255,0.9);text-decoration:none;font-size:12px;font-weight:700;padding:6px 14px;border-radius:8px;font-family:-apple-system,BlinkMacSystemFont,sans-serif;letter-spacing:0.2px;box-shadow:0 2px 8px rgba(0,0,0,0.25);">← Hub</a>
+
+<!-- HWS Hub back button -->
+<div id="hws-back-btn" style="position:fixed;bottom:20px;right:20px;z-index:99999;">
+  <button onclick="window.close()" style="
+    background:#1a2332;
+    color:white;
+    border:none;
+    border-radius:8px;
+    padding:9px 16px;
+    font-size:13px;
+    font-weight:600;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    gap:7px;
+    box-shadow:0 2px 12px rgba(0,0,0,0.25);
+    opacity:0.85;
+    transition:opacity .15s;
+  " onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.85'">
+    ← Hub
+  </button>
+</div>
+<script src="/hws-session.js"></script>
+</body>
+</html>

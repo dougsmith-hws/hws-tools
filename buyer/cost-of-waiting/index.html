@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cost of Waiting Calculator — HomeWealth Solutions</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root {
+    --blue: #2491EB;
+    --green: #8EC73F;
+    --dark: #1c2b3a;
+    --mid: #3a4f62;
+    --light: #f0f4f8;
+    --border: #dde3ea;
+    --white: #ffffff;
+    --red: #dc3545;
+    --amber: #e8900a;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--light); color: var(--dark); font-size: 15px; }
+
+  /* HEADER */
+  .hdr { background: var(--dark); color: #fff; padding: 16px 28px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+  .hdr-left { display: flex; align-items: center; gap: 14px; }
+  .hdr-logo { background: var(--blue); color: #fff; font-weight: 800; font-size: 18px; padding: 6px 12px; border-radius: 6px; letter-spacing: -0.5px; }
+  .hdr-title { font-size: 17px; font-weight: 600; opacity: 0.95; }
+  .hdr-sub { font-size: 12px; opacity: 0.55; margin-top: 2px; }
+  .btn-print { background: rgba(255,255,255,0.12); color: #fff; border: 1px solid rgba(255,255,255,0.25); padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600; transition: background 0.15s; }
+  .btn-print:hover { background: rgba(255,255,255,0.22); }
+
+  /* PRINT HEADER */
+  .print-header { display: none; padding: 0 0 12px 0; border-bottom: 2px solid var(--blue); margin-bottom: 18px; }
+  .print-header .ph-logo { color: var(--blue); font-size: 20px; font-weight: 800; }
+  .print-header .ph-meta { display: flex; gap: 24px; margin-top: 6px; font-size: 13px; color: #555; }
+
+  /* LAYOUT */
+  .main { max-width: 1060px; margin: 0 auto; padding: 24px 20px 40px; }
+  .two-col { display: grid; grid-template-columns: 340px 1fr; gap: 20px; align-items: start; }
+
+  /* PANELS */
+  .panel { background: var(--white); border-radius: 10px; border: 1px solid var(--border); padding: 22px 24px; }
+  .panel-title { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--blue); margin-bottom: 16px; padding-bottom: 10px; border-bottom: 1px solid var(--border); }
+
+  /* INPUTS */
+  .field { margin-bottom: 14px; }
+  .field label { display: block; font-size: 13px; font-weight: 600; color: var(--mid); margin-bottom: 5px; }
+  .field label .hint { font-weight: 400; color: #888; font-size: 12px; }
+  .field input, .field select { width: 100%; padding: 9px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 14px; color: var(--dark); background: #fafbfc; transition: border-color 0.15s; }
+  .field input:focus, .field select:focus { outline: none; border-color: var(--blue); background: #fff; }
+  .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+  /* WAIT BUTTONS */
+  .wait-btns { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+  .wait-btn { padding: 6px 14px; border: 1px solid var(--border); border-radius: 6px; background: #fafbfc; cursor: pointer; font-size: 13px; font-weight: 600; color: var(--mid); transition: all 0.15s; }
+  .wait-btn:hover { border-color: var(--blue); color: var(--blue); }
+  .wait-btn.active { background: var(--blue); border-color: var(--blue); color: #fff; }
+
+  /* CONCEPT BOX */
+  .concept { background: #eef6ff; border-left: 4px solid var(--blue); border-radius: 0 8px 8px 0; padding: 14px 16px; margin-bottom: 18px; font-size: 13px; line-height: 1.6; color: var(--mid); }
+  .concept strong { color: var(--blue); }
+
+  /* PRINT FIELDS */
+  .print-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border); }
+  .print-fields label { font-size: 12px; font-weight: 600; color: var(--mid); display: block; margin-bottom: 4px; }
+  .print-fields input { width: 100%; padding: 7px 10px; border: 1px solid var(--border); border-radius: 5px; font-size: 13px; }
+
+  /* SCENARIO CARDS */
+  .scenario-wrap { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+  .scenario-card { border-radius: 10px; border: 2px solid var(--border); padding: 20px; }
+  .scenario-card.buy-now { border-color: var(--green); background: #f8fdf2; }
+  .scenario-card.wait { border-color: var(--amber); background: #fff9f0; }
+  .sc-title { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 14px; }
+  .sc-title.green { color: #3a7a00; }
+  .sc-title.amber { color: var(--amber); }
+  .sc-row { display: flex; justify-content: space-between; align-items: baseline; padding: 5px 0; border-bottom: 1px solid rgba(0,0,0,0.05); font-size: 13.5px; }
+  .sc-row:last-child { border-bottom: none; }
+  .sc-row .lbl { color: var(--mid); }
+  .sc-row .val { font-weight: 700; color: var(--dark); }
+  .sc-row .val.big { font-size: 17px; color: var(--green); }
+  .sc-row .val.warn { color: var(--red); }
+  .sc-row .val.amber { color: var(--amber); }
+
+  /* RESULT CARDS */
+  .cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
+  .card { background: var(--white); border-radius: 10px; border: 2px solid var(--border); padding: 16px 12px; text-align: center; }
+  .card.blue  { border-color: var(--blue); }
+  .card.green { border-color: var(--green); }
+  .card.red   { border-color: var(--red); }
+  .card.amber { border-color: var(--amber); }
+  .card-label { font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #888; margin-bottom: 6px; }
+  .card-val { font-size: 22px; font-weight: 800; color: var(--dark); line-height: 1; }
+  .card-val.blue  { color: var(--blue); }
+  .card-val.green { color: var(--green); }
+  .card-val.red   { color: var(--red); }
+  .card-val.amber { color: var(--amber); }
+  .card-sub { font-size: 11px; color: #888; margin-top: 5px; }
+
+  /* VERDICT */
+  .verdict { border-radius: 10px; padding: 18px 20px; margin-bottom: 20px; font-size: 14px; line-height: 1.7; }
+  .verdict.green-v { background: #f5fdf0; border: 1px solid var(--green); }
+  .verdict.amber-v { background: #fff9f0; border: 1px solid var(--amber); }
+  .verdict.red-v   { background: #fff5f5; border: 1px solid var(--red); }
+  .verdict-title { font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; }
+  .verdict.green-v .verdict-title { color: #3a7a00; }
+  .verdict.amber-v .verdict-title { color: var(--amber); }
+  .verdict.red-v   .verdict-title { color: var(--red); }
+
+  /* CHART */
+  .chart-wrap { background: var(--white); border-radius: 10px; border: 1px solid var(--border); padding: 18px 20px; margin-bottom: 20px; }
+  .chart-title { font-size: 13px; font-weight: 700; color: var(--mid); margin-bottom: 14px; }
+  .chart-canvas-wrap { position: relative; height: 280px; }
+
+  /* COMPLIANCE */
+  .compliance { font-size: 10.5px; color: #888; line-height: 1.6; border-top: 1px solid var(--border); padding-top: 16px; margin-top: 24px; }
+
+  /* PRINT */
+  @media print {
+    body { background: #fff; font-size: 13px; }
+    .hdr { display: none; }
+    .print-header { display: block !important; }
+    .two-col { grid-template-columns: 1fr !important; }
+    .left-col { display: none !important; }
+    .btn-print, .print-fields { display: none !important; }
+    .panel, .card, .chart-wrap, .scenario-wrap, .verdict { break-inside: avoid; }
+    .chart-canvas-wrap { height: 220px !important; }
+    .cards { grid-template-columns: repeat(4,1fr); }
+    @page { margin: 0.6in; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="hdr">
+  <div class="hdr-left">
+    <div class="hdr-logo">HWS</div>
+    <div>
+      <div class="hdr-title">Cost of Waiting Calculator</div>
+      <div class="hdr-sub">HomeWealth Solutions — NMLS #2742458</div>
+    </div>
+  </div>
+  <button class="btn-print" onclick="printView()">⎙ Print / Save PDF</button>
+</div>
+
+<!-- PRINT HEADER -->
+<div class="print-header" id="printHdr">
+  <div class="ph-logo">HomeWealth Solutions</div>
+  <div class="ph-meta">
+    <span id="ph_client"></span>
+    <span id="ph_agent"></span>
+    <span id="ph_date"></span>
+  </div>
+</div>
+
+<div class="main">
+  <div class="two-col">
+
+    <!-- LEFT: INPUTS -->
+    <div class="left-col">
+      <div class="panel">
+        <div class="panel-title">Scenario Inputs</div>
+
+        <div class="concept">
+          <strong>The Real Cost of Waiting</strong><br>
+          While you wait for rates to drop, home prices keep rising. This tool shows the full financial impact — higher price, more down payment, and how long the monthly savings take to recover the extra cost.
+        </div>
+
+        <div class="field">
+          <label>Home Price Today</label>
+          <input type="text" id="homePrice" value="$400,000" onblur="fmtDollar(this)" onfocus="clearFmt(this,'$')" oninput="calc()">
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>Annual Appreciation %</label>
+            <input type="text" id="appRate" value="4.0%" onblur="fmtPct(this)" onfocus="clearFmt(this,'%')" oninput="calc()">
+          </div>
+          <div class="field">
+            <label>Down Payment %</label>
+            <input type="text" id="downPct" value="5%" onblur="fmtPct(this)" onfocus="clearFmt(this,'%')" oninput="calc()">
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>Rate Today %</label>
+            <input type="text" id="rateNow" value="7.0%" onblur="fmtPct(this)" onfocus="clearFmt(this,'%')" oninput="calc()">
+          </div>
+          <div class="field">
+            <label>Expected Rate % <span class="hint">after waiting</span></label>
+            <input type="text" id="rateWait" value="6.25%" onblur="fmtPct(this)" onfocus="clearFmt(this,'%')" oninput="calc()">
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Months to Wait</label>
+          <div class="wait-btns" id="waitBtns">
+            <button class="wait-btn" onclick="setWait(3)">3 mo</button>
+            <button class="wait-btn active" onclick="setWait(6)">6 mo</button>
+            <button class="wait-btn" onclick="setWait(12)">12 mo</button>
+            <button class="wait-btn" onclick="setWait(18)">18 mo</button>
+            <button class="wait-btn" onclick="setWait(24)">24 mo</button>
+          </div>
+          <input type="text" id="waitMonths" value="6" placeholder="Custom months" oninput="clearActiveBtns();calc()">
+        </div>
+
+        <div class="field">
+          <label>Estimated Closing Costs</label>
+          <input type="text" id="closingCosts" value="$8,500" onblur="fmtDollar(this)" onfocus="clearFmt(this,'$')" oninput="calc()">
+        </div>
+        <div class="field">
+          <label>Refi Closing Cost % <span class="hint">if you buy now and refi later</span></label>
+          <input type="text" id="refiCostPct" value="2.0%" onblur="fmtPct(this)" onfocus="clearFmt(this,'%')" oninput="calc()">
+        </div>
+
+        <!-- Print fields -->
+        <div class="print-fields">
+          <div>
+            <label>Prepared For</label>
+            <input type="text" id="print_client" placeholder="Client name">
+          </div>
+          <div>
+            <label>Prepared By</label>
+            <input type="text" id="print_agent" placeholder="Your name" value="Doug Smith, CMA®">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: RESULTS -->
+    <div class="right-col">
+
+      <!-- SCENARIO CARDS SIDE BY SIDE -->
+      <div class="scenario-wrap" id="scenarioWrap">
+        <div class="scenario-card buy-now">
+          <div class="sc-title green">Buy Now</div>
+          <div class="sc-row"><span class="lbl">Purchase Price</span><span class="val" id="bn_price">—</span></div>
+          <div class="sc-row"><span class="lbl">Down Payment</span><span class="val" id="bn_down">—</span></div>
+          <div class="sc-row"><span class="lbl">Loan Amount</span><span class="val" id="bn_loan">—</span></div>
+          <div class="sc-row"><span class="lbl">Monthly P&I Now</span><span class="val big" id="bn_pmt">—</span></div>
+          <div class="sc-row"><span class="lbl">Refi Cost (one-time)</span><span class="val amber" id="bn_refi">—</span></div>
+          <div class="sc-row"><span class="lbl">Monthly P&I After Refi</span><span class="val green" id="bn_pmtAfter">—</span></div>
+        </div>
+        <div class="scenario-card wait">
+          <div class="sc-title amber" id="waitCardTitle">Wait 6 Months</div>
+          <div class="sc-row"><span class="lbl">Purchase Price</span><span class="val warn" id="w_price">—</span></div>
+          <div class="sc-row"><span class="lbl">Extra Price Increase</span><span class="val warn" id="w_priceExtra">—</span></div>
+          <div class="sc-row"><span class="lbl">Down Payment Required</span><span class="val warn" id="w_down">—</span></div>
+          <div class="sc-row"><span class="lbl">Extra Down vs. Now</span><span class="val warn" id="w_downExtra">—</span></div>
+          <div class="sc-row"><span class="lbl">Loan Amount</span><span class="val" id="w_loan">—</span></div>
+          <div class="sc-row"><span class="lbl">Monthly P&I</span><span class="val big" id="w_pmt">—</span></div>
+        </div>
+      </div>
+
+      <!-- SUMMARY CARDS -->
+      <div class="cards">
+        <div class="card red">
+          <div class="card-label">Extra Price Paid</div>
+          <div class="card-val red" id="c_extraPrice">—</div>
+          <div class="card-sub">by waiting</div>
+        </div>
+        <div class="card amber">
+          <div class="card-label">Extra Down Needed</div>
+          <div class="card-val amber" id="c_extraDown">—</div>
+          <div class="card-sub">more cash required</div>
+        </div>
+        <div class="card blue">
+          <div class="card-label">Monthly Savings</div>
+          <div class="card-val blue" id="c_monthlySav">—</div>
+          <div class="card-sub">lower rate benefit</div>
+        </div>
+        <div class="card green">
+          <div class="card-label">Break-Even</div>
+          <div class="card-val green" id="c_breakeven">—</div>
+          <div class="card-sub">months to recover</div>
+        </div>
+      </div>
+
+      <!-- VERDICT -->
+      <div class="verdict green-v" id="verdictBox">
+        <div class="verdict-title" id="verdictTitle">Analysis</div>
+        <div id="verdictText">Enter values to see analysis.</div>
+      </div>
+
+      <!-- CHART -->
+      <div class="chart-wrap">
+        <div class="chart-title">Cumulative Total Cost Over 5 Years — Buy Now vs. Wait</div>
+        <div class="chart-canvas-wrap">
+          <canvas id="cowChart"></canvas>
+        </div>
+      </div>
+
+      <p class="compliance">
+        This communication is for informational and educational purposes only and does not constitute an offer to lend or a commitment to make a loan. All loans are subject to credit approval, underwriting guidelines, and property approval. Interest rates, payment examples, programs, and terms are illustrative, vary by borrower qualification, and are subject to change without notice. Not all applicants will qualify. Examples shown do not reflect all costs of a mortgage transaction. Consult a licensed tax or legal advisor regarding your individual situation. HomeWealth Solutions LLC is licensed by the Florida Office of Financial Regulation, Mortgage Broker License #MBR8082. Verify our licensure at www.nmlsconsumeraccess.org. Equal Housing Opportunity.
+      </p>
+
+    </div><!-- /right-col -->
+  </div><!-- /two-col -->
+</div><!-- /main -->
+
+<script>
+/* FORMAT HELPERS */
+function stripDollar(v) { return parseFloat((v||'').toString().replace(/[$,\s]/g,'')) || 0; }
+function stripPct(v)    { return parseFloat((v||'').toString().replace(/[%\s]/g,''))    || 0; }
+function fmtDollar(el)  { const v = stripDollar(el.value); el.value = v ? '$' + Math.round(v).toLocaleString() : ''; }
+function fmtPct(el)     { const v = stripPct(el.value);    el.value = isNaN(v) ? '' : v + '%'; }
+function clearFmt(el, type) {
+  const v = type === '$' ? stripDollar(el.value) : stripPct(el.value);
+  el.value = (!v) ? '' : v;
+}
+function fmt$(v)  { return '$' + Math.round(v).toLocaleString(); }
+function fmtMo(m) {
+  if (!isFinite(m) || m <= 0) return 'Never';
+  const mo = Math.ceil(m);
+  if (mo > 360) return '> 30 yr';
+  const y = Math.floor(mo/12), r = mo%12;
+  if (y === 0) return mo + ' mo';
+  return y + ' yr' + (r ? ' ' + r + ' mo' : '');
+}
+
+function calcPI(loan, annRate, n) {
+  const r = annRate / 100 / 12;
+  if (r === 0) return loan / n;
+  return loan * r * Math.pow(1+r, n) / (Math.pow(1+r, n) - 1);
+}
+
+function setWait(mo) {
+  document.getElementById('waitMonths').value = mo;
+  document.querySelectorAll('.wait-btn').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+  calc();
+}
+
+function clearActiveBtns() {
+  document.querySelectorAll('.wait-btn').forEach(b => b.classList.remove('active'));
+}
+
+let cowChartInst = null;
+
+function calc() {
+  const price      = stripDollar(document.getElementById('homePrice').value);
+  const appRate    = stripPct(document.getElementById('appRate').value);
+  const downPct    = stripPct(document.getElementById('downPct').value);
+  const rateNow    = stripPct(document.getElementById('rateNow').value);
+  const rateWait   = stripPct(document.getElementById('rateWait').value);
+  const waitMo     = parseInt(document.getElementById('waitMonths').value) || 6;
+  const closingCosts = stripDollar(document.getElementById('closingCosts').value);
+  const refiCostPct  = stripPct(document.getElementById('refiCostPct').value);
+
+  if (!price || !rateNow || !rateWait) return;
+
+  const n = 360; // 30yr
+
+  // BUY NOW
+  const bnDown   = price * downPct / 100;
+  const bnLoan   = price - bnDown;
+  const bnPmt    = calcPI(bnLoan, rateNow, n);
+  const refiCost = bnLoan * refiCostPct / 100;
+  const bnPmtAfterRefi = calcPI(bnLoan, rateWait, n); // refi to lower rate later
+
+  // WAIT
+  const waitPrice    = price * Math.pow(1 + appRate/100/12, waitMo);
+  const wDown        = waitPrice * downPct / 100;
+  const wLoan        = waitPrice - wDown;
+  const wPmt         = calcPI(wLoan, rateWait, n);
+
+  const extraPrice   = waitPrice - price;
+  const extraDown    = wDown - bnDown;
+  const monthlySav   = bnPmtAfterRefi - wPmt; // wait rate vs buy-now-then-refi rate (positive = wait has lower pmt)
+
+  // Break-even: extra costs ÷ monthly savings
+  const extraCosts   = extraPrice + extraDown;
+  const breakEvenMo  = monthlySav > 0 ? extraCosts / monthlySav : Infinity;
+
+  // Update wait card title
+  document.getElementById('waitCardTitle').textContent = 'Wait ' + waitMo + ' Month' + (waitMo !== 1 ? 's' : '');
+
+  // Scenario cards
+  document.getElementById('bn_price').textContent    = fmt$(price);
+  document.getElementById('bn_down').textContent     = fmt$(bnDown);
+  document.getElementById('bn_loan').textContent     = fmt$(bnLoan);
+  document.getElementById('bn_pmt').textContent      = fmt$(bnPmt) + '/mo';
+  document.getElementById('bn_refi').textContent     = fmt$(refiCost);
+  document.getElementById('bn_pmtAfter').textContent = fmt$(bnPmtAfterRefi) + '/mo';
+
+  document.getElementById('w_price').textContent      = fmt$(waitPrice);
+  document.getElementById('w_priceExtra').textContent = '+' + fmt$(extraPrice);
+  document.getElementById('w_down').textContent       = fmt$(wDown);
+  document.getElementById('w_downExtra').textContent  = '+' + fmt$(extraDown);
+  document.getElementById('w_loan').textContent       = fmt$(wLoan);
+  document.getElementById('w_pmt').textContent        = fmt$(wPmt) + '/mo';
+
+  // Summary cards
+  document.getElementById('c_extraPrice').textContent  = fmt$(extraPrice);
+  document.getElementById('c_extraDown').textContent   = fmt$(extraDown);
+  const savVal = Math.abs(monthlySav);
+  document.getElementById('c_monthlySav').textContent  = fmt$(savVal) + '/mo';
+  document.getElementById('c_breakeven').textContent   = isFinite(breakEvenMo) ? fmtMo(breakEvenMo) : 'Never';
+
+  // Verdict
+  const vBox   = document.getElementById('verdictBox');
+  const vTitle = document.getElementById('verdictTitle');
+  const vText  = document.getElementById('verdictText');
+
+  const monthlySavDir = monthlySav > 0 ? 'saves' : 'costs';
+  const savAmt        = monthlySav > 0 ? '+' + fmt$(savVal) + '/mo less' : fmt$(savVal) + '/mo more';
+
+  let html = `Waiting ${waitMo} months will cost <strong>${fmt$(extraPrice)} more in purchase price</strong> and require <strong>${fmt$(extraDown)} more in down payment</strong> due to appreciation at ${appRate}%. `;
+  if (monthlySav > 0) {
+    html += `The lower rate (${rateWait}% vs ${rateNow}%) saves <strong>${fmt$(savVal)}/month</strong> after refi — but you'll need <strong>${fmtMo(breakEvenMo)}</strong> of those savings just to recover the extra price and down payment.`;
+  } else {
+    html += `The wait scenario actually results in a <strong>higher monthly payment</strong> due to the larger loan balance from appreciation.`;
+  }
+
+  if (!isFinite(breakEvenMo) || breakEvenMo > 36) {
+    vBox.className = 'verdict red-v';
+    vTitle.textContent = 'The Math Favors Buying Now';
+  } else if (breakEvenMo <= 12) {
+    vBox.className = 'verdict green-v';
+    vTitle.textContent = 'Waiting Could Make Sense';
+    html += ' The savings recover quickly — under 12 months.';
+  } else {
+    vBox.className = 'verdict amber-v';
+    vTitle.textContent = "It's Close — Depends on Your Timeline";
+  }
+
+  vText.innerHTML = html;
+
+  // Chart — cumulative payments over 5 years (60 months)
+  buildChart(bnPmt, bnPmtAfterRefi, wPmt, waitMo, refiCost, closingCosts);
+}
+
+function buildChart(bnPmtNow, bnPmtAfterRefi, wPmt, waitMo, refiCost, closingCosts) {
+  const labels = [];
+  const buyNowData = [];
+  const waitData   = [];
+
+  let cumBuyNow = closingCosts; // upfront costs
+  let cumWait   = 0;
+
+  for (let mo = 1; mo <= 60; mo++) {
+    // Buy Now: pay bnPmtNow until rates drop (waitMo), then bnPmtAfterRefi + refiCost at waitMo
+    if (mo === waitMo) cumBuyNow += refiCost;
+    cumBuyNow += (mo <= waitMo) ? bnPmtNow : bnPmtAfterRefi;
+
+    // Wait: no payments until waitMo (but acknowledge cost isn't tracked), then wPmt
+    cumWait += (mo > waitMo) ? wPmt : 0;
+
+    if (mo % 6 === 0 || mo === 1) labels.push('Mo ' + mo);
+    else labels.push('');
+
+    buyNowData.push(Math.round(cumBuyNow));
+    waitData.push(Math.round(cumWait));
+  }
+
+  const ctx = document.getElementById('cowChart').getContext('2d');
+  if (cowChartInst) cowChartInst.destroy();
+  cowChartInst = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        {
+          label: 'Buy Now (includes refi cost)',
+          data: buyNowData,
+          borderColor: '#8EC73F',
+          backgroundColor: 'rgba(142,199,63,0.08)',
+          borderWidth: 2.5,
+          pointRadius: 0,
+          tension: 0.3,
+          fill: false
+        },
+        {
+          label: 'Wait ' + waitMo + ' Months',
+          data: waitData,
+          borderColor: '#e8900a',
+          backgroundColor: 'rgba(232,144,10,0.08)',
+          borderWidth: 2,
+          pointRadius: 0,
+          tension: 0.3,
+          fill: false,
+          borderDash: [5, 3]
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { position: 'bottom', labels: { boxWidth: 14, font: { size: 12 }, padding: 14 } },
+        tooltip: {
+          callbacks: {
+            label: ctx => ' ' + ctx.dataset.label + ': $' + ctx.raw.toLocaleString()
+          }
+        }
+      },
+      scales: {
+        x: { ticks: { color: '#888', font: { size: 11 }, maxRotation: 0 }, grid: { color: 'rgba(0,0,0,0.04)' } },
+        y: {
+          ticks: {
+            color: '#888', font: { size: 11 },
+            callback: v => '$' + Math.round(v/1000) + 'k'
+          },
+          grid: { color: 'rgba(0,0,0,0.05)' }
+        }
+      }
+    }
+  });
+}
+
+function printView() {
+  const client = (document.getElementById('print_client').value || '').trim();
+  const agent  = (document.getElementById('print_agent').value  || '').trim();
+  const now    = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+  document.getElementById('ph_client').innerHTML = client ? `<strong>Prepared for:</strong> ${client}` : '';
+  document.getElementById('ph_agent').innerHTML  = agent  ? `<strong>Prepared by:</strong> ${agent}`   : '';
+  document.getElementById('ph_date').innerHTML   = `<strong>Date:</strong> ${now}`;
+  if (cowChartInst) { cowChartInst.resize(); cowChartInst.update('none'); }
+  window.print();
+}
+
+window.addEventListener('DOMContentLoaded', () => { calc(); });
+</script>
+<a href="https://tools.homewealthsolutions.com" id="hws-hub-btn" style="position:fixed;top:14px;right:16px;z-index:9999;background:#1c2b3a;color:rgba(255,255,255,0.9);text-decoration:none;font-size:12px;font-weight:700;padding:6px 14px;border-radius:8px;font-family:-apple-system,BlinkMacSystemFont,sans-serif;letter-spacing:0.2px;box-shadow:0 2px 8px rgba(0,0,0,0.25);">← Hub</a>
+
+<!-- HWS Hub back button -->
+<div id="hws-back-btn" style="position:fixed;bottom:20px;right:20px;z-index:99999;">
+  <button onclick="window.close()" style="
+    background:#1a2332;
+    color:white;
+    border:none;
+    border-radius:8px;
+    padding:9px 16px;
+    font-size:13px;
+    font-weight:600;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    gap:7px;
+    box-shadow:0 2px 12px rgba(0,0,0,0.25);
+    opacity:0.85;
+    transition:opacity .15s;
+  " onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.85'">
+    ← Hub
+  </button>
+</div>
+<script src="/hws-session.js"></script>
+</body>
+</html>

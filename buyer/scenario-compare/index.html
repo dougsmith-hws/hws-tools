@@ -1,0 +1,994 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Scenario Comparison — HomeWealth Solutions</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-datalabels/2.2.0/chartjs-plugin-datalabels.min.js"></script>
+<style>
+:root {
+  --blue: #2491EB;
+  --green: #8EC73F;
+  --dark: #1a2332;
+  --mid: #3a4a5e;
+  --light: #f0f6ff;
+  --yellow: #FFE600;
+  --yellow-bg: rgba(255,230,0,0.28);
+  --gray: #e4e9f0;
+  --text: #1a2332;
+  --muted: #6b7a8d;
+  --white: #ffffff;
+  --red: #c0392b;
+  --green-text: #1e7e34;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f7fb; color: var(--text); font-size: 13px; }
+
+/* HEADER */
+.header { background: var(--dark); padding: 14px 24px; display: flex; align-items: center; justify-content: space-between; }
+.header-left { display: flex; align-items: center; gap: 12px; }
+.logo-bar { width: 4px; height: 36px; background: linear-gradient(to bottom, var(--blue), var(--green)); border-radius: 2px; }
+.header-title h1 { color: white; font-size: 1rem; font-weight: 700; letter-spacing: 0.5px; }
+.header-title p { color: #8fa3bc; font-size: 0.72rem; margin-top: 2px; }
+.header-right { display: flex; align-items: center; gap: 10px; }
+.badge { background: var(--blue); color: white; font-size: 0.68rem; font-weight: 700; padding: 4px 10px; border-radius: 12px; letter-spacing: 0.5px; }
+.btn-clear-hl { background: transparent; border: 1.5px solid #4a6080; color: #8fa3bc; font-size: 0.72rem; font-weight: 600; padding: 5px 12px; border-radius: 6px; cursor: pointer; }
+.btn-clear-hl:hover { border-color: #8fa3bc; color: white; }
+
+/* INPUTS PANEL */
+.inputs-panel { background: white; border-bottom: 2px solid var(--gray); }
+.inputs-toggle { display: flex; align-items: center; gap: 8px; padding: 10px 24px; cursor: pointer; background: var(--light); border: none; border-bottom: 1px solid var(--gray); width: 100%; text-align: left; font-size: 0.8rem; font-weight: 700; color: var(--blue); }
+.inputs-toggle:hover { background: #ddeeff; }
+.toggle-arrow { transition: transform 0.2s; font-size: 0.7rem; margin-left: auto; }
+.inputs-toggle.open .toggle-arrow { transform: rotate(180deg); }
+.inputs-body { display: none; padding: 18px 24px 20px; overflow-x: auto; }
+.inputs-body.open { display: block; }
+
+.section-label { font-size: 0.65rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+.global-grid { display: grid; grid-template-columns: repeat(6, minmax(130px, 1fr)); gap: 10px; margin-bottom: 18px; padding-bottom: 16px; border-bottom: 1px solid var(--gray); }
+
+.col-cards { display: grid; grid-template-columns: repeat(4, minmax(180px, 1fr)); gap: 12px; margin-bottom: 14px; }
+.col-card { border: 1.5px solid var(--gray); border-radius: 8px; padding: 12px; background: #fafcff; }
+.col-card.active-card { border-color: var(--blue); background: var(--light); }
+.col-card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.col-toggle { display: flex; align-items: center; gap: 6px; font-size: 0.72rem; font-weight: 600; color: var(--muted); cursor: pointer; }
+.col-toggle input { cursor: pointer; accent-color: var(--blue); }
+.col-num { font-size: 0.65rem; font-weight: 700; color: var(--muted); background: var(--gray); padding: 2px 7px; border-radius: 10px; }
+
+.ig { margin-bottom: 8px; }
+.ig label { display: block; font-size: 0.62rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 3px; }
+.ig input[type="text"], .ig input[type="number"], .ig select {
+  width: 100%; padding: 6px 8px; border: 1.5px solid #d0d8e4; border-radius: 5px;
+  font-size: 0.82rem; font-weight: 600; color: var(--text); background: white; outline: none;
+}
+.ig input[type="text"]:focus, .ig input[type="number"]:focus { border-color: var(--blue); box-shadow: 0 0 0 2px rgba(36,145,235,0.12); }
+.ig input.heading-input { font-size: 0.88rem; font-weight: 700; text-align: center; border-color: var(--blue); background: var(--light); }
+
+.btn-row { display: flex; gap: 8px; padding-top: 4px; }
+.btn-recalc { flex: 2; background: var(--blue); color: white; border: none; padding: 8px; border-radius: 6px; font-size: 0.8rem; font-weight: 700; cursor: pointer; }
+.btn-recalc:hover { background: #1a7fd4; }
+.btn-reset { flex: 1; background: transparent; border: 1.5px solid var(--gray); color: var(--muted); padding: 8px; border-radius: 6px; font-size: 0.8rem; font-weight: 600; cursor: pointer; }
+.btn-reset:hover { border-color: #aaa; color: var(--text); }
+
+/* MAIN LAYOUT */
+.main { display: grid; grid-template-columns: 1fr 360px; gap: 16px; padding: 16px 24px; max-width: 1400px; margin: 0 auto; }
+
+/* TABLE PANEL */
+.table-panel { background: white; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.07); overflow: hidden; min-width: 0; }
+.table-panel-header { background: var(--dark); color: white; padding: 12px 18px; display: flex; align-items: center; justify-content: space-between; }
+.table-panel-header h2 { font-size: 0.82rem; font-weight: 700; letter-spacing: 0.5px; }
+.table-hint { font-size: 0.65rem; color: #8fa3bc; }
+
+.comp-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+.comp-table th { background: var(--light); padding: 9px 12px; font-size: 0.75rem; font-weight: 700; color: var(--dark); text-align: center; border-bottom: 2px solid var(--blue); }
+.comp-table th.lbl-col { text-align: left; width: 160px; color: var(--muted); font-weight: 600; font-size: 0.7rem; }
+.comp-table td { padding: 8px 12px; text-align: center; border-bottom: 1px solid var(--gray); font-size: 0.82rem; cursor: pointer; }
+.comp-table td.lbl { text-align: left; font-weight: 600; color: var(--mid); cursor: default; font-size: 0.75rem; white-space: nowrap; }
+.comp-table tr:hover td:not(.lbl):not(.row-hl) { background: #f5f9ff; }
+
+/* Highlight states */
+.comp-table tr.row-hl td { background: var(--yellow-bg) !important; }
+.comp-table tr.row-hl:hover td { background: var(--yellow-bg) !important; }
+.comp-table td.cell-hl { background: var(--yellow) !important; font-weight: 800 !important; }
+
+/* Value coloring */
+.pos { color: var(--green-text); font-weight: 700; }
+.neg { color: var(--red); font-weight: 700; }
+.zero { color: var(--muted); }
+
+/* Divider row */
+.comp-table tr.divider td { border-top: 2px solid var(--gray); background: var(--light) !important; height: 6px; cursor: default; }
+
+.stream-link { color: var(--blue); font-weight: 700; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px; cursor: pointer; }
+.stream-link:hover { text-decoration: underline; }
+
+.hl-legend { display: flex; gap: 16px; padding: 8px 18px; background: var(--light); border-top: 1px solid var(--gray); font-size: 0.65rem; color: var(--muted); }
+.hl-swatch { display: inline-block; width: 12px; height: 12px; border-radius: 2px; vertical-align: middle; margin-right: 4px; }
+
+/* CHARTS PANEL */
+.charts-panel { display: flex; flex-direction: column; gap: 14px; }
+.chart-card { background: white; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.07); padding: 14px 16px; }
+.chart-card h3 { font-size: 0.76rem; font-weight: 700; color: var(--dark); margin-bottom: 10px; }
+.chart-wrap { position: relative; height: 148px; }
+
+/* FOOTER */
+.footer { background: var(--dark); color: #7a8fa8; font-size: 0.62rem; line-height: 1.55; padding: 14px 24px; margin-top: 8px; }
+.footer strong { color: #9db8cc; }
+
+/* PRINT BUTTON */
+.btn-print { background: var(--green); color: white; border: none; font-size: 0.72rem; font-weight: 700; padding: 5px 14px; border-radius: 6px; cursor: pointer; letter-spacing: 0.3px; }
+.btn-print:hover { background: #7ab534; }
+
+/* PRINT HEADER (hidden on screen, shown on print) */
+.print-header { display: none; }
+
+/* ===================================================
+   PRINT STYLES
+   =================================================== */
+@media print {
+  * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+
+  /* Hide interactive chrome */
+  .inputs-panel,
+  .btn-clear-hl,
+  .btn-print,
+  .hl-legend,
+  .table-hint,
+  .badge { display: none !important; }
+
+  body { background: white !important; font-size: 12px; }
+
+  /* Print header */
+  .print-header {
+    display: flex !important;
+    align-items: flex-end;
+    justify-content: space-between;
+    padding: 6px 20px 10px;
+    border-bottom: 2px solid var(--blue);
+    margin-bottom: 10px;
+  }
+  .ph-left .ph-name { font-size: 1.05rem; font-weight: 700; color: var(--dark); }
+  .ph-left .ph-sub  { font-size: 0.68rem; color: var(--muted); margin-top: 2px; }
+  .ph-right         { text-align: right; font-size: 0.68rem; color: var(--muted); line-height: 1.55; }
+  .ph-right strong  { color: var(--dark); }
+
+  /* Main layout: single column */
+  .main {
+    display: block !important;
+    padding: 0 20px 10px !important;
+    max-width: 100% !important;
+  }
+
+  /* Table panel */
+  .table-panel {
+    box-shadow: none !important;
+    border: 1px solid var(--gray) !important;
+    border-radius: 6px !important;
+    margin-bottom: 14px;
+    overflow: visible !important;
+  }
+  .table-panel-header { padding: 8px 14px !important; }
+
+  /* Charts: 3 across */
+  .charts-panel {
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 10px !important;
+    page-break-inside: avoid;
+  }
+  .chart-card {
+    box-shadow: none !important;
+    border: 1px solid var(--gray) !important;
+    border-radius: 6px !important;
+    padding: 10px !important;
+    page-break-inside: avoid;
+  }
+  .chart-wrap { height: 150px !important; }
+
+  /* Preserve highlights */
+  .comp-table tr.row-hl td { background: var(--yellow-bg) !important; }
+  .comp-table td.cell-hl   { background: var(--yellow) !important; font-weight: 800 !important; }
+
+  /* Header tweaks */
+  .header { padding: 8px 20px !important; }
+
+  /* Footer */
+  .footer { font-size: 0.58rem !important; padding: 10px 20px !important; margin-top: 10px; page-break-inside: avoid; }
+}
+
+/* MODAL */
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 999; display: flex; align-items: center; justify-content: center; }
+.modal-box { background: white; border-radius: 12px; padding: 22px; max-width: 580px; width: 92%; max-height: 78vh; overflow-y: auto; box-shadow: 0 24px 64px rgba(0,0,0,0.3); }
+.modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+.modal-header h3 { font-size: 0.9rem; color: var(--dark); }
+.modal-close { background: var(--gray); border: none; border-radius: 50%; width: 26px; height: 26px; cursor: pointer; font-size: 1rem; color: var(--mid); display: flex; align-items: center; justify-content: center; }
+.modal-close:hover { background: #d0d8e4; }
+.modal-table { width: 100%; border-collapse: collapse; font-size: 0.78rem; }
+.modal-table th { background: var(--light); padding: 7px 10px; text-align: right; border-bottom: 2px solid var(--blue); font-size: 0.7rem; font-weight: 700; color: var(--muted); }
+.modal-table th:first-child { text-align: center; }
+.modal-table td { padding: 6px 10px; text-align: right; border-bottom: 1px solid var(--gray); }
+.modal-table td:first-child { text-align: center; color: var(--muted); font-weight: 600; }
+.modal-table tr:nth-child(even) td { background: #fafbfd; }
+.modal-note { font-size: 0.65rem; color: var(--muted); margin-top: 10px; }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-left">
+    <div class="logo-bar"></div>
+    <div class="header-title">
+      <h1>HOMEWEALTH SOLUTIONS</h1>
+      <p>Total Cost Analysis — Scenario Comparison</p>
+    </div>
+  </div>
+  <div class="header-right">
+    <button class="btn-clear-hl" onclick="clearHighlights()">✕ Clear Highlights</button>
+    <button class="btn-print" onclick="printView()">⎙ Print / Save PDF</button>
+    <div class="badge">TCA</div>
+  </div>
+</div>
+
+<!-- INPUTS PANEL -->
+<div class="inputs-panel">
+  <button class="inputs-toggle" id="inputsToggle" onclick="toggleInputs()">
+    ⚙&nbsp; Adjust Scenarios &amp; Assumptions
+    <span class="toggle-arrow">▼</span>
+  </button>
+  <div class="inputs-body" id="inputsBody">
+
+    <div class="section-label">Client Info (appears on printout)</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid var(--gray);">
+      <div class="ig">
+        <label>Prepared For (Client Name)</label>
+        <input type="text" id="print_client" placeholder="e.g. John &amp; Jane Smith" style="font-size:0.85rem;">
+      </div>
+      <div class="ig">
+        <label>Prepared By (Agent Name)</label>
+        <input type="text" id="print_agent" placeholder="e.g. Sarah Realtor, ABC Realty">
+      </div>
+    </div>
+
+    <div class="section-label">Global Assumptions</div>
+    <div class="global-grid">
+      <div class="ig">
+        <label>Annual Taxes</label>
+        <input type="text" inputmode="decimal" id="g_taxes" value="$4,800"
+          oninput="recalc()" onblur="fmtInput(this)" onfocus="clearFmt(this)">
+      </div>
+      <div class="ig">
+        <label>Annual HOI</label>
+        <input type="text" inputmode="decimal" id="g_hoi" value="$1,800"
+          oninput="recalc()" onblur="fmtInput(this)" onfocus="clearFmt(this)">
+      </div>
+      <div class="ig">
+        <label>Closing Costs %</label>
+        <input type="number" id="g_closing" value="2.25" step="0.25" min="0" max="10" oninput="recalc()">
+      </div>
+      <div class="ig">
+        <label>Home Appreciation %</label>
+        <input type="number" id="g_appreciation" value="3.0" step="0.25" min="0" max="15" oninput="recalc()">
+      </div>
+      <div class="ig">
+        <label>Investment Return %</label>
+        <input type="number" id="g_return" value="6.0" step="0.25" min="0" max="20" oninput="recalc()">
+      </div>
+      <div class="ig">
+        <label>Net Worth Horizon (yrs)</label>
+        <input type="number" id="g_nwyears" value="15" step="1" min="5" max="30" oninput="recalc()">
+      </div>
+    </div>
+
+    <div class="section-label">Scenario Columns</div>
+    <div class="col-cards" id="colCards">
+
+      <!-- COL 0 -->
+      <div class="col-card active-card" id="card0">
+        <div class="col-card-header">
+          <label class="col-toggle"><input type="checkbox" id="col0_on" checked onchange="recalc()"> Show</label>
+          <span class="col-num">Col 1</span>
+        </div>
+        <div class="ig"><label>Column Heading</label><input type="text" class="heading-input" id="col0_heading" value="Current Listing" oninput="recalc()"></div>
+        <div class="ig"><label>Sales Price</label><input type="text" inputmode="decimal" id="col0_price" value="$340,000" oninput="recalc()" onblur="fmtInput(this)" onfocus="clearFmt(this)"></div>
+        <div class="ig"><label>Down Payment %</label><input type="number" id="col0_down" value="20" step="0.5" min="0" max="100" oninput="recalc()"></div>
+        <div class="ig"><label>Interest Rate %</label><input type="number" id="col0_rate" value="6.55" step="0.125" min="0" max="20" oninput="recalc()"></div>
+        <div class="ig"><label>Seller-Paid Points</label><input type="number" id="col0_points" value="0" step="0.125" min="0" max="10" oninput="recalc()"></div>
+        <div class="ig"><label>PMI Rate % / yr</label><input type="number" id="col0_pmi" value="0" step="0.05" min="0" max="3" oninput="recalc()"></div>
+        <div class="ig"><label>Extra Mo. Payment</label><input type="text" inputmode="decimal" id="col0_extra" value="$0" oninput="recalc()" onblur="fmtInput(this)" onfocus="clearFmt(this)"></div>
+      </div>
+
+      <!-- COL 1 -->
+      <div class="col-card active-card" id="card1">
+        <div class="col-card-header">
+          <label class="col-toggle"><input type="checkbox" id="col1_on" checked onchange="recalc()"> Show</label>
+          <span class="col-num">Col 2</span>
+        </div>
+        <div class="ig"><label>Column Heading</label><input type="text" class="heading-input" id="col1_heading" value="Price Reduction" oninput="recalc()"></div>
+        <div class="ig"><label>Sales Price</label><input type="text" inputmode="decimal" id="col1_price" value="$330,000" oninput="recalc()" onblur="fmtInput(this)" onfocus="clearFmt(this)"></div>
+        <div class="ig"><label>Down Payment %</label><input type="number" id="col1_down" value="20" step="0.5" min="0" max="100" oninput="recalc()"></div>
+        <div class="ig"><label>Interest Rate %</label><input type="number" id="col1_rate" value="6.55" step="0.125" min="0" max="20" oninput="recalc()"></div>
+        <div class="ig"><label>Seller-Paid Points</label><input type="number" id="col1_points" value="0" step="0.125" min="0" max="10" oninput="recalc()"></div>
+        <div class="ig"><label>PMI Rate % / yr</label><input type="number" id="col1_pmi" value="0" step="0.05" min="0" max="3" oninput="recalc()"></div>
+        <div class="ig"><label>Extra Mo. Payment</label><input type="text" inputmode="decimal" id="col1_extra" value="$0" oninput="recalc()" onblur="fmtInput(this)" onfocus="clearFmt(this)"></div>
+      </div>
+
+      <!-- COL 2 -->
+      <div class="col-card active-card" id="card2">
+        <div class="col-card-header">
+          <label class="col-toggle"><input type="checkbox" id="col2_on" checked onchange="recalc()"> Show</label>
+          <span class="col-num">Col 3</span>
+        </div>
+        <div class="ig"><label>Column Heading</label><input type="text" class="heading-input" id="col2_heading" value="Rate Reduction" oninput="recalc()"></div>
+        <div class="ig"><label>Sales Price</label><input type="text" inputmode="decimal" id="col2_price" value="$340,000" oninput="recalc()" onblur="fmtInput(this)" onfocus="clearFmt(this)"></div>
+        <div class="ig"><label>Down Payment %</label><input type="number" id="col2_down" value="20" step="0.5" min="0" max="100" oninput="recalc()"></div>
+        <div class="ig"><label>Interest Rate %</label><input type="number" id="col2_rate" value="5.375" step="0.125" min="0" max="20" oninput="recalc()"></div>
+        <div class="ig"><label>Seller-Paid Points</label><input type="number" id="col2_points" value="3.42" step="0.125" min="0" max="10" oninput="recalc()"></div>
+        <div class="ig"><label>PMI Rate % / yr</label><input type="number" id="col2_pmi" value="0" step="0.05" min="0" max="3" oninput="recalc()"></div>
+        <div class="ig"><label>Extra Mo. Payment</label><input type="text" inputmode="decimal" id="col2_extra" value="$0" oninput="recalc()" onblur="fmtInput(this)" onfocus="clearFmt(this)"></div>
+      </div>
+
+      <!-- COL 3 -->
+      <div class="col-card active-card" id="card3">
+        <div class="col-card-header">
+          <label class="col-toggle"><input type="checkbox" id="col3_on" checked onchange="recalc()"> Show</label>
+          <span class="col-num">Col 4</span>
+        </div>
+        <div class="ig"><label>Column Heading</label><input type="text" class="heading-input" id="col3_heading" value="Price vs Rate" oninput="recalc()"></div>
+        <div class="ig"><label>Sales Price</label><input type="text" inputmode="decimal" id="col3_price" value="$299,657" oninput="recalc()" onblur="fmtInput(this)" onfocus="clearFmt(this)"></div>
+        <div class="ig"><label>Down Payment %</label><input type="number" id="col3_down" value="20" step="0.5" min="0" max="100" oninput="recalc()"></div>
+        <div class="ig"><label>Interest Rate %</label><input type="number" id="col3_rate" value="6.55" step="0.125" min="0" max="20" oninput="recalc()"></div>
+        <div class="ig"><label>Seller-Paid Points</label><input type="number" id="col3_points" value="0" step="0.125" min="0" max="10" oninput="recalc()"></div>
+        <div class="ig"><label>PMI Rate % / yr</label><input type="number" id="col3_pmi" value="0" step="0.05" min="0" max="3" oninput="recalc()"></div>
+        <div class="ig"><label>Extra Mo. Payment</label><input type="text" inputmode="decimal" id="col3_extra" value="$0" oninput="recalc()" onblur="fmtInput(this)" onfocus="clearFmt(this)"></div>
+      </div>
+
+    </div>
+
+    <div class="btn-row">
+      <button class="btn-recalc" onclick="recalc()">↻ Recalculate</button>
+      <button class="btn-reset" onclick="clearHighlights()">✕ Clear Highlights</button>
+    </div>
+  </div>
+</div>
+
+<!-- PRINT HEADER (hidden on screen, visible on print) -->
+<div class="print-header" id="printHeader">
+  <div class="ph-left">
+    <div class="ph-name">HOMEWEALTH SOLUTIONS</div>
+    <div class="ph-sub">Total Cost Analysis — Scenario Comparison</div>
+  </div>
+  <div class="ph-right">
+    <div id="ph_client"></div>
+    <div id="ph_agent"></div>
+    <div id="ph_date"></div>
+  </div>
+</div>
+
+<!-- MAIN CONTENT -->
+<div class="main">
+
+  <!-- LEFT: Comparison Table -->
+  <div class="table-panel">
+    <div class="table-panel-header">
+      <h2>SCENARIO COMPARISON</h2>
+      <span class="table-hint">Click row label to highlight row &nbsp;|&nbsp; Click cell to highlight cell</span>
+    </div>
+    <div style="overflow-x:auto;">
+      <table class="comp-table" id="compTable">
+        <thead>
+          <tr id="theadRow">
+            <th class="lbl-col"></th>
+            <th id="th0">Current Listing</th>
+            <th id="th1">Price Reduction</th>
+            <th id="th2">Rate Reduction</th>
+            <th id="th3">Price vs Rate</th>
+          </tr>
+        </thead>
+        <tbody id="compTbody"></tbody>
+      </table>
+    </div>
+    <div class="hl-legend">
+      <span><span class="hl-swatch" style="background:var(--yellow-bg);border:1px solid #d4b800;"></span>Row highlight — click label</span>
+      <span><span class="hl-swatch" style="background:var(--yellow);"></span>Cell highlight — click cell</span>
+    </div>
+  </div>
+
+  <!-- RIGHT: Charts -->
+  <div class="charts-panel">
+    <div class="chart-card">
+      <h3>Monthly Savings</h3>
+      <div class="chart-wrap"><canvas id="cSavings"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <h3>Net Worth in <span id="nwLabel">15</span> Years</h3>
+      <div class="chart-wrap"><canvas id="cNetWorth"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <h3>Principal Paid in <span id="ppLabel">15</span> Years</h3>
+      <div class="chart-wrap"><canvas id="cPrincipal"></canvas></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+  <strong>Disclosure:</strong> This communication is for informational and educational purposes only and does not constitute an offer to lend or a commitment to make a loan. All loans are subject to credit approval, underwriting guidelines, and property approval. Interest rates, payment examples, programs, and terms are illustrative, vary by borrower qualification, and are subject to change without notice. Not all applicants will qualify. Examples shown do not reflect all costs of a mortgage transaction. Consult a licensed tax or legal advisor regarding your individual situation. HomeWealth Solutions LLC is licensed by the Florida Office of Financial Regulation, Mortgage Broker License #MBR8082. Verify our licensure at <strong>www.nmlsconsumeraccess.org</strong>. Equal Housing Opportunity. &nbsp;|&nbsp; NMLS #2742458 &nbsp;|&nbsp; Doug Smith NMLS #2609118
+</div>
+
+<script>
+// =====================================================
+// FORMATTING HELPERS
+// =====================================================
+function val(id) {
+  const el = document.getElementById(id);
+  if (!el) return 0;
+  return parseFloat((el.value || '').replace(/[$,]/g, '')) || 0;
+}
+function numVal(id) {
+  const el = document.getElementById(id);
+  return parseFloat(el ? el.value : '0') || 0;
+}
+function fmtInput(el) {
+  const raw = parseFloat((el.value || '').replace(/[$,]/g, ''));
+  if (!isNaN(raw) && el.value.trim() !== '')
+    el.value = '$' + raw.toLocaleString('en-US', { maximumFractionDigits: 0 });
+}
+function clearFmt(el) {
+  const raw = parseFloat((el.value || '').replace(/[$,]/g, ''));
+  if (!isNaN(raw) && raw >= 0) el.value = raw;
+}
+function fmt$(n) {
+  if (n === null || n === undefined || isNaN(n)) return '—';
+  return '$' + Math.round(n).toLocaleString('en-US');
+}
+function fmtPct(n, d = 3) {
+  return n.toFixed(d) + '%';
+}
+
+// =====================================================
+// MORTGAGE MATH
+// =====================================================
+function calcPI(P, annRate, termMonths) {
+  if (P <= 0 || annRate <= 0) return P / termMonths;
+  const r = annRate / 100 / 12;
+  return P * r * Math.pow(1 + r, termMonths) / (Math.pow(1 + r, termMonths) - 1);
+}
+
+function loanBal(P, annRate, PMT, n) {
+  if (P <= 0) return 0;
+  if (annRate <= 0) return Math.max(0, P - PMT * n);
+  const r = annRate / 100 / 12;
+  const factor = Math.pow(1 + r, n);
+  return Math.max(0, P * factor - PMT * (factor - 1) / r);
+}
+
+function calcAPR(loanAmt, monthlyPI, points, termMonths) {
+  if (loanAmt <= 0 || monthlyPI <= 0) return 0;
+  const net = loanAmt - points;
+  if (net <= 0) return 0;
+  let r = 0.005;
+  for (let i = 0; i < 60; i++) {
+    const pv = monthlyPI * (1 - Math.pow(1 + r, -termMonths)) / r;
+    const dpv = monthlyPI * (
+      (1 - Math.pow(1 + r, -termMonths)) / (r * r) -
+      termMonths * Math.pow(1 + r, -termMonths - 1) / r
+    );
+    const delta = (net - pv) / dpv;
+    r = Math.max(r - delta, 1e-6);
+    if (Math.abs(delta) < 1e-9) break;
+  }
+  return r * 12 * 100;
+}
+
+function freedomPt(P, annRate, PI, extra) {
+  if (P <= 0) return 0;
+  const r = annRate / 100 / 12;
+  let bal = P;
+  let mo = 0;
+  const pmt = PI + extra;
+  while (bal > 0.01 && mo < 600) {
+    const interest = bal * r;
+    const principal = pmt - interest;
+    if (principal <= 0) return 9999;
+    bal = Math.max(0, bal - principal);
+    mo++;
+  }
+  return mo;
+}
+
+// =====================================================
+// HIGHLIGHT STATE
+// =====================================================
+const hlRows = {};
+const hlCells = {};
+
+function toggleRowHl(rowId) {
+  hlRows[rowId] = !hlRows[rowId];
+  applyHl();
+}
+function toggleCellHl(cellId) {
+  hlCells[cellId] = !hlCells[cellId];
+  applyHl();
+}
+function applyHl() {
+  document.querySelectorAll('tr[data-rid]').forEach(tr => {
+    const id = tr.getAttribute('data-rid');
+    tr.classList.toggle('row-hl', !!hlRows[id]);
+  });
+  document.querySelectorAll('td[data-cid]').forEach(td => {
+    const id = td.getAttribute('data-cid');
+    td.classList.toggle('cell-hl', !!hlCells[id]);
+  });
+}
+function clearHighlights() {
+  Object.keys(hlRows).forEach(k => delete hlRows[k]);
+  Object.keys(hlCells).forEach(k => delete hlCells[k]);
+  applyHl();
+}
+
+// =====================================================
+// INPUTS TOGGLE
+// =====================================================
+function toggleInputs() {
+  const t = document.getElementById('inputsToggle');
+  const b = document.getElementById('inputsBody');
+  t.classList.toggle('open');
+  b.classList.toggle('open');
+}
+
+// =====================================================
+// CHARTS
+// =====================================================
+Chart.register(ChartDataLabels);
+
+let cSavings, cNetWorth, cPrincipal;
+
+const chartBase = {
+  responsive: true,
+  maintainAspectRatio: false,
+  layout: { padding: { top: 22 } },
+  plugins: {
+    legend: { display: false },
+    tooltip: { callbacks: { label: ctx => '$' + Math.round(ctx.raw).toLocaleString() } }
+  },
+  scales: {
+    x: { ticks: { font: { size: 10 }, maxRotation: 15 }, grid: { display: false } },
+    y: {
+      ticks: {
+        font: { size: 10 },
+        callback: v => '$' + (Math.abs(v) >= 1000 ? (v / 1000).toFixed(0) + 'k' : Math.round(v))
+      },
+      grid: { color: '#f0f0f0' }
+    }
+  }
+};
+
+function dlFmt(v) {
+  if (!v || v <= 0) return '';
+  return v >= 1000 ? '$' + Math.round(v / 1000) + 'k' : '$' + Math.round(v).toLocaleString();
+}
+
+// Re-apply y-axis $ callback lost during JSON clone
+function fixYAxis(opts) {
+  opts.scales.y.ticks.callback = v =>
+    '$' + (Math.abs(v) >= 1000 ? (v / 1000).toFixed(0) + 'k' : Math.round(v));
+  return opts;
+}
+
+function initCharts() {
+  const savOpts = fixYAxis(JSON.parse(JSON.stringify(chartBase)));
+  savOpts.plugins.datalabels = {
+    anchor: 'end', align: 'end', offset: 3, clamp: true,
+    formatter: v => dlFmt(v),
+    font: { size: 10, weight: '700' },
+    color: '#1a2332'
+  };
+  cSavings = new Chart(document.getElementById('cSavings'), {
+    type: 'bar',
+    data: { labels: [], datasets: [{ data: [], backgroundColor: '#2491EB', borderRadius: 4 }] },
+    options: savOpts
+  });
+
+  const nwOpts = fixYAxis(JSON.parse(JSON.stringify(chartBase)));
+  nwOpts.plugins.legend = { display: true, position: 'bottom', labels: { font: { size: 10 }, boxWidth: 10, padding: 6 } };
+  nwOpts.scales.x.stacked = true;
+  nwOpts.scales.y.stacked = true;
+  cNetWorth = new Chart(document.getElementById('cNetWorth'), {
+    type: 'bar',
+    data: {
+      labels: [],
+      datasets: [
+        {
+          label: 'Equity', data: [], backgroundColor: '#2491EB', borderRadius: 0, stack: 'nw',
+          datalabels: { display: false }
+        },
+        {
+          label: 'Assets', data: [], backgroundColor: '#F5A623', borderRadius: 4, stack: 'nw',
+          datalabels: {
+            anchor: 'end', align: 'end', offset: 3, clamp: true,
+            formatter: (v, ctx) => {
+              const eq = ctx.chart.data.datasets[0].data[ctx.dataIndex] || 0;
+              return dlFmt(eq + v);
+            },
+            font: { size: 10, weight: '700' },
+            color: '#1a2332'
+          }
+        }
+      ]
+    },
+    options: nwOpts
+  });
+
+  const ppOpts = fixYAxis(JSON.parse(JSON.stringify(chartBase)));
+  ppOpts.plugins.datalabels = {
+    anchor: 'end', align: 'end', offset: 3, clamp: true,
+    formatter: v => dlFmt(v),
+    font: { size: 10, weight: '700' },
+    color: '#1a2332'
+  };
+  cPrincipal = new Chart(document.getElementById('cPrincipal'), {
+    type: 'bar',
+    data: { labels: [], datasets: [{ data: [], backgroundColor: '#8EC73F', borderRadius: 4 }] },
+    options: ppOpts
+  });
+}
+
+function updateCharts(activeCols, SD, labels) {
+  const savings = activeCols.map(i => Math.max(0, SD[i].monthlySavings));
+  const equity  = activeCols.map(i => SD[i].equity);
+  const assets  = activeCols.map(i => SD[i].assets);
+  const pp      = activeCols.map(i => SD[i].principalPaid);
+
+  [cSavings, cNetWorth, cPrincipal].forEach(c => { c.data.labels = labels; });
+  cSavings.data.datasets[0].data = savings;
+  cNetWorth.data.datasets[0].data = equity;
+  cNetWorth.data.datasets[1].data = assets;
+  cPrincipal.data.datasets[0].data = pp;
+  [cSavings, cNetWorth, cPrincipal].forEach(c => c.update('none'));
+}
+
+// =====================================================
+// ACTIVE COLUMNS
+// =====================================================
+function getActiveCols() {
+  return [0,1,2,3].filter(i => {
+    const el = document.getElementById(`col${i}_on`);
+    return el && el.checked;
+  });
+}
+
+// =====================================================
+// MAIN CALCULATION
+// =====================================================
+function recalc() {
+  const activeCols = getActiveCols();
+  if (!activeCols.length) return;
+
+  // Global
+  const gTaxesMo  = val('g_taxes') / 12;
+  const gHoiMo    = val('g_hoi') / 12;
+  const gClosing  = numVal('g_closing') / 100;
+  const gAppr     = numVal('g_appreciation') / 100 / 12;  // monthly
+  const gReturn   = numVal('g_return') / 100 / 12;        // monthly
+  const nwYears   = Math.round(numVal('g_nwyears')) || 15;
+  const nwMonths  = nwYears * 12;
+  const TERM      = 360;
+
+  document.getElementById('nwLabel').textContent = nwYears;
+  document.getElementById('ppLabel').textContent = nwYears;
+
+  // Per-column calcs
+  const SD = {};
+  for (let i = 0; i < 4; i++) {
+    if (!activeCols.includes(i)) { SD[i] = null; continue; }
+
+    const salesPrice  = val(`col${i}_price`);
+    const downPct     = numVal(`col${i}_down`);
+    const annRate     = numVal(`col${i}_rate`);
+    const points      = numVal(`col${i}_points`);
+    const pmiRate     = numVal(`col${i}_pmi`);
+    const extraPmt    = val(`col${i}_extra`);
+
+    const downAmt     = salesPrice * downPct / 100;
+    const loanAmt     = salesPrice - downAmt;
+    const pointsCost  = points / 100 * loanAmt;
+    const miscClose   = loanAmt * gClosing;
+    const cashToClose = downAmt + miscClose;   // seller-paid points not included — seller's cost, not buyer's
+
+    const monthlyPI   = calcPI(loanAmt, annRate, TERM);
+    const monthlyPMI  = pmiRate > 0 ? loanAmt * pmiRate / 100 / 12 : 0;
+    const totalMoPmt  = monthlyPI + monthlyPMI + gTaxesMo + gHoiMo;
+
+    const apr         = calcAPR(loanAmt, monthlyPI, pointsCost, TERM);
+    const fpMonths    = freedomPt(loanAmt, annRate, monthlyPI, extraPmt);
+
+    // 15-yr (or nwYears) metrics
+    const bal15       = loanBal(loanAmt, annRate, monthlyPI, nwMonths);
+    const homeVal15   = salesPrice * Math.pow(1 + gAppr, nwMonths);
+    const equity15    = Math.max(0, homeVal15 - bal15);
+    const ppaid15     = Math.max(0, loanAmt - bal15);
+
+    SD[i] = {
+      heading: document.getElementById(`col${i}_heading`).value,
+      salesPrice, downPct, downAmt, loanAmt,
+      annRate, apr, points, pointsCost, pmiRate,
+      monthlyPI, monthlyPMI, totalMoPmt,
+      cashToClose, fpMonths,
+      bal15, homeVal15, equity: equity15, principalPaid: ppaid15,
+      assets: 0, netWorth: 0, // filled below
+      monthlySavings: 0,      // filled below
+      savingsAtN: 0           // filled below
+    };
+  }
+
+  // Reference values (highest pmt = baseline for savings; highest CTC = baseline for asset calc)
+  const maxPmt = Math.max(...activeCols.map(i => SD[i].totalMoPmt));
+  const maxCTC = Math.max(...activeCols.map(i => SD[i].cashToClose));
+
+  // Breakeven period label
+  let beMonths = 24;
+  activeCols.forEach(i => {
+    const d = SD[i];
+    const pmtSavings = maxPmt - d.totalMoPmt;
+    const ctcPremium = d.cashToClose - Math.min(...activeCols.map(j => SD[j].cashToClose));
+    if (pmtSavings > 0 && ctcPremium > 0) {
+      const be = Math.ceil(ctcPremium / pmtSavings);
+      if (be > beMonths && be <= 120) beMonths = be;
+    }
+  });
+
+  // Fill relative metrics
+  activeCols.forEach(i => {
+    const d = SD[i];
+    d.monthlySavings = maxPmt - d.totalMoPmt;
+
+    // Assets = invested surplus from lower CTC + invested monthly savings
+    const extraCash      = maxCTC - d.cashToClose;
+    const extraCashFV    = extraCash > 0
+      ? extraCash * Math.pow(1 + gReturn, nwMonths)
+      : 0;
+    const savingsFV      = d.monthlySavings > 0 && gReturn > 0
+      ? d.monthlySavings * (Math.pow(1 + gReturn, nwMonths) - 1) / gReturn
+      : d.monthlySavings * nwMonths;
+    d.assets   = extraCashFV + savingsFV;
+    d.netWorth = d.equity + d.assets;
+
+    // Savings at breakeven period
+    const pmtSavVsLowest = (activeCols.reduce((mn, j) => Math.min(mn, SD[j].totalMoPmt), Infinity)) - d.totalMoPmt;
+    // vs. baseline (col with max CTC):
+    const maxCTCCol = activeCols.find(j => SD[j].cashToClose === maxCTC);
+    const refPmt = maxCTCCol !== undefined ? SD[maxCTCCol].totalMoPmt : d.totalMoPmt;
+    const refCTC = maxCTCCol !== undefined ? SD[maxCTCCol].cashToClose : d.cashToClose;
+    const pmtSav = refPmt - d.totalMoPmt;       // positive = this col has lower payment
+    const ctcSav = refCTC - d.cashToClose;      // positive = this col spent less upfront
+    d.savingsAtN = pmtSav * beMonths + ctcSav;
+    d.beMonths = beMonths;
+  });
+
+  buildTable(activeCols, SD, beMonths);
+  updateHeaderTitles(activeCols, SD);
+
+  // Charts
+  const labels = activeCols.map(i => {
+    const h = SD[i].heading;
+    return h.length > 14 ? h.slice(0, 13) + '…' : h;
+  });
+  updateCharts(activeCols, SD, labels);
+}
+
+// =====================================================
+// TABLE BUILDER
+// =====================================================
+function buildTable(activeCols, SD, beMonths) {
+  const maxSalePrice = Math.max(...activeCols.map(i => SD[i].salesPrice));
+
+  const ROWS = [
+    { id: 'r_price',   lbl: 'Sales Price',         fn: d => fmt$(d.salesPrice) },
+    { id: 'r_down',    lbl: 'Down Payment %',       fn: d => fmtPct(d.downPct, 3) },
+    { id: 'r_loan',    lbl: 'Loan Amount',          fn: d => fmt$(d.loanAmt) },
+    { id: 'r_rate',    lbl: 'Interest Rate',        fn: d => fmtPct(d.annRate, 3) },
+    { id: 'r_apr',     lbl: 'APR %',                fn: d => '*' + fmtPct(d.apr, 3) },
+    { id: 'r_term',    lbl: 'Term (months)',        fn: () => '360' },
+    { id: 'r_ctc',     lbl: 'Cash To Close',        fn: d => fmt$(d.cashToClose) },
+    { id: 'r_pmt',     lbl: 'Total Mo. Payment',    fn: d => fmt$(d.totalMoPmt) },
+    { id: 'r_income',  lbl: 'Income to Qualify',    fn: () => '—' },
+    { id: 'r_savings', lbl: 'Monthly Savings',      fn: d => fmt$(d.monthlySavings),  color: true },
+    { id: 'r_satN',    lbl: `Savings (${beMonths} mth)`, fn: d => fmt$(d.savingsAtN), color: true },
+    { id: 'r_fp',      lbl: 'Freedom Point',        fn: d => d.fpMonths >= 9000 ? '—' : (d.fpMonths / 12).toFixed(2) + ' yrs' },
+    { id: 'r_preduc',  lbl: 'Price Reduction',      fn: d => fmt$(Math.max(0, maxSalePrice - d.salesPrice)) },
+    { id: 'r_scost',   lbl: 'Cost to Seller',       fn: d => fmt$(Math.max(0, maxSalePrice - d.salesPrice) + d.pointsCost) },
+    { id: 'r_snet',    lbl: 'Seller Net Proceeds',  fn: d => fmt$(d.salesPrice - d.pointsCost) },
+    { id: 'r_stream',  lbl: 'Payment Stream',       isLink: true },
+    { isDivider: true },
+    { id: 'r_bal15',   lbl: `Loan Balance (${numVal('g_nwyears')|0} yr)`,   fn: d => fmt$(d.bal15) },
+    { id: 'r_eq15',    lbl: `Equity (${numVal('g_nwyears')|0} yr)`,         fn: d => fmt$(d.equity) },
+    { id: 'r_pp15',    lbl: `Principal Paid (${numVal('g_nwyears')|0} yr)`, fn: d => fmt$(d.principalPaid) },
+    { id: 'r_ast15',   lbl: `Assets (${numVal('g_nwyears')|0} yr)`,         fn: d => fmt$(d.assets) },
+    { id: 'r_nw15',    lbl: `Net Worth (${numVal('g_nwyears')|0} yr)`,      fn: d => fmt$(d.netWorth) },
+  ];
+
+  let html = '';
+  for (const row of ROWS) {
+    if (row.isDivider) {
+      html += `<tr class="divider" data-rid="divider"><td class="lbl" colspan="${activeCols.length + 1}"></td></tr>`;
+      continue;
+    }
+    html += `<tr data-rid="${row.id}" onclick="handleRowClick(event, '${row.id}')">`;
+    html += `<td class="lbl">${row.lbl}</td>`;
+    for (let ci = 0; ci < 4; ci++) {
+      const show = activeCols.includes(ci);
+      if (!show) { html += `<td style="display:none" class="c${ci}"></td>`; continue; }
+      const d = SD[ci];
+      const cid = `${row.id}_c${ci}`;
+      if (row.isLink) {
+        html += `<td class="c${ci}" data-cid="${cid}" onclick="event.stopPropagation();showStream(${ci})">`
+          + `<span class="stream-link">PAYMENT STREAM</span></td>`;
+        continue;
+      }
+      const raw = row.fn(d);
+      let cls = `c${ci}`;
+      if (row.color) {
+        const n = parseFloat(String(raw).replace(/[$,—]/g, ''));
+        if (!isNaN(n)) cls += n > 0 ? ' pos' : n < 0 ? ' neg' : ' zero';
+      }
+      html += `<td class="${cls}" data-cid="${cid}" onclick="handleCellClick(event,'${cid}')">${raw}</td>`;
+    }
+    html += '</tr>';
+  }
+
+  document.getElementById('compTbody').innerHTML = html;
+  applyHl();
+
+  // Show/hide columns
+  for (let ci = 0; ci < 4; ci++) {
+    const show = activeCols.includes(ci);
+    document.querySelectorAll(`.c${ci}`).forEach(el => el.style.display = show ? '' : 'none');
+    const th = document.getElementById(`th${ci}`);
+    if (th) th.style.display = show ? '' : 'none';
+  }
+}
+
+function updateHeaderTitles(activeCols, SD) {
+  activeCols.forEach(i => {
+    const th = document.getElementById(`th${i}`);
+    if (th) th.textContent = SD[i].heading;
+  });
+  // Update card border styling
+  for (let i = 0; i < 4; i++) {
+    const card = document.getElementById(`card${i}`);
+    const on = document.getElementById(`col${i}_on`);
+    if (card && on) {
+      card.classList.toggle('active-card', on.checked);
+    }
+  }
+}
+
+// =====================================================
+// ROW / CELL CLICK HANDLERS
+// =====================================================
+function handleRowClick(e, rid) {
+  if (e.target.classList.contains('lbl')) {
+    toggleRowHl(rid);
+  }
+}
+function handleCellClick(e, cid) {
+  e.stopPropagation();
+  toggleCellHl(cid);
+}
+
+// =====================================================
+// PAYMENT STREAM MODAL
+// =====================================================
+function showStream(ci) {
+  const salesPrice = val(`col${ci}_price`);
+  const downPct    = numVal(`col${ci}_down`);
+  const annRate    = numVal(`col${ci}_rate`);
+  const heading    = document.getElementById(`col${ci}_heading`).value;
+  const loanAmt    = salesPrice * (1 - downPct / 100);
+  const pi         = calcPI(loanAmt, annRate, 360);
+  const r          = annRate / 100 / 12;
+
+  let rows = '';
+  let bal  = loanAmt;
+  for (let m = 1; m <= 24; m++) {
+    const interest  = bal * r;
+    const principal = pi - interest;
+    bal = Math.max(0, bal - principal);
+    rows += `<tr>
+      <td>${m}</td>
+      <td style="text-align:right">${fmt$(pi)}</td>
+      <td style="text-align:right">${fmt$(interest)}</td>
+      <td style="text-align:right">${fmt$(principal)}</td>
+      <td style="text-align:right">${fmt$(bal)}</td>
+    </tr>`;
+  }
+
+  const mo = document.createElement('div');
+  mo.className = 'modal-overlay';
+  mo.innerHTML = `<div class="modal-box">
+    <div class="modal-header">
+      <h3>Payment Stream — ${heading}</h3>
+      <button class="modal-close" onclick="this.closest('.modal-overlay').remove()">×</button>
+    </div>
+    <p style="font-size:0.72rem;color:var(--muted);margin-bottom:10px;">
+      Loan: ${fmt$(loanAmt)} &nbsp;|&nbsp; Rate: ${fmtPct(annRate,3)} &nbsp;|&nbsp; P&amp;I: ${fmt$(pi)}/mo
+    </p>
+    <table class="modal-table">
+      <thead>
+        <tr>
+          <th>#</th><th>Payment</th><th>Interest</th><th>Principal</th><th>Balance</th>
+        </tr>
+      </thead>
+      <tbody>${rows}</tbody>
+    </table>
+    <p class="modal-note">First 24 months shown. P&amp;I only — taxes, insurance, and PMI not included.</p>
+  </div>`;
+  mo.addEventListener('click', e => { if (e.target === mo) mo.remove(); });
+  document.body.appendChild(mo);
+}
+
+// =====================================================
+// PRINT VIEW
+// =====================================================
+function printView() {
+  // Populate print header fields
+  const client = (document.getElementById('print_client').value || '').trim();
+  const agent  = (document.getElementById('print_agent').value || '').trim();
+  const now    = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+
+  const phClient = document.getElementById('ph_client');
+  const phAgent  = document.getElementById('ph_agent');
+  const phDate   = document.getElementById('ph_date');
+
+  phClient.innerHTML = client ? `<strong>Prepared for:</strong> ${client}` : '';
+  phAgent.innerHTML  = agent  ? `<strong>Prepared by:</strong> ${agent}`  : '';
+  phDate.innerHTML   = `<strong>Date:</strong> ${now}`;
+
+  // Force charts to render on white background before print
+  [cSavings, cNetWorth, cPrincipal].forEach(c => {
+    if (c) { c.resize(); c.update('none'); }
+  });
+
+  window.print();
+}
+
+// =====================================================
+// INIT
+// =====================================================
+document.addEventListener('DOMContentLoaded', () => {
+  initCharts();
+  // Open inputs on load
+  document.getElementById('inputsToggle').classList.add('open');
+  document.getElementById('inputsBody').classList.add('open');
+  recalc();
+});
+</script>
+<a href="https://tools.homewealthsolutions.com" id="hws-hub-btn" style="position:fixed;top:14px;right:16px;z-index:9999;background:#1c2b3a;color:rgba(255,255,255,0.9);text-decoration:none;font-size:12px;font-weight:700;padding:6px 14px;border-radius:8px;font-family:-apple-system,BlinkMacSystemFont,sans-serif;letter-spacing:0.2px;box-shadow:0 2px 8px rgba(0,0,0,0.25);">← Hub</a>
+
+<!-- HWS Hub back button -->
+<div id="hws-back-btn" style="position:fixed;bottom:20px;right:20px;z-index:99999;">
+  <button onclick="window.close()" style="
+    background:#1a2332;
+    color:white;
+    border:none;
+    border-radius:8px;
+    padding:9px 16px;
+    font-size:13px;
+    font-weight:600;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    gap:7px;
+    box-shadow:0 2px 12px rgba(0,0,0,0.25);
+    opacity:0.85;
+    transition:opacity .15s;
+  " onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.85'">
+    ← Hub
+  </button>
+</div>
+<script src="/hws-session.js"></script>
+</body>
+</html>

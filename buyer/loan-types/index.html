@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Loan Types Reference — HWS</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: #f0f4f9;
+    color: #1a2332;
+    min-height: 100vh;
+  }
+
+  .header {
+    background: #2491EB;
+    color: white;
+    padding: 16px 20px 14px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 12px rgba(36,145,235,0.25);
+  }
+  .header-inner {
+    max-width: 760px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .logo { font-size: 15px; font-weight: 800; }
+  .logo span { color: #8EC73F; }
+  .header-sub { font-size: 11px; opacity: 0.8; margin-top: 1px; }
+  .back-link { color: rgba(255,255,255,0.85); text-decoration: none; font-size: 12px; }
+  .back-link:hover { color: white; }
+
+  .main { max-width: 760px; margin: 0 auto; padding: 20px 16px 50px; }
+
+  /* Decision helper */
+  .decision-card {
+    background: #1a2332;
+    border-radius: 14px;
+    padding: 18px 20px;
+    margin-bottom: 20px;
+    color: white;
+  }
+  .decision-title {
+    font-size: 12px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: #8EC73F;
+    margin-bottom: 12px;
+  }
+  .decision-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  @media (max-width: 500px) { .decision-grid { grid-template-columns: 1fr; } }
+  .decision-item {
+    background: rgba(255,255,255,0.07);
+    border-radius: 10px;
+    padding: 10px 12px;
+    font-size: 12px;
+    line-height: 1.5;
+    border-left: 3px solid #2491EB;
+  }
+  .decision-item .if { color: #94a3b8; font-size: 10px; text-transform: uppercase; letter-spacing: 0.4px; }
+  .decision-item .then { color: white; font-weight: 700; margin-top: 2px; }
+  .decision-item.fha-border { border-color: #fb923c; }
+  .decision-item.va-border { border-color: #a78bfa; }
+  .decision-item.usda-border { border-color: #34d399; }
+
+  /* Loan type cards */
+  .loan-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  @media (max-width: 560px) { .loan-grid { grid-template-columns: 1fr; } }
+
+  .loan-card {
+    background: white;
+    border-radius: 14px;
+    border: 1.5px solid #e2e8f0;
+    overflow: hidden;
+  }
+  .loan-header {
+    padding: 12px 16px 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .loan-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 9px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 17px;
+    flex-shrink: 0;
+  }
+  .loan-name { font-size: 15px; font-weight: 800; }
+  .loan-sub { font-size: 11px; color: #64748b; margin-top: 1px; }
+
+  .loan-body { padding: 0 16px 14px; }
+
+  .stat-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 7px 0;
+    border-bottom: 1px solid #f1f5f9;
+    font-size: 12px;
+    gap: 8px;
+  }
+  .stat-row:last-child { border-bottom: none; }
+  .stat-label { color: #64748b; flex: 1; }
+  .stat-val { font-weight: 700; color: #1a2332; text-align: right; }
+  .stat-val.green { color: #16a34a; }
+  .stat-val.orange { color: #ea580c; }
+  .stat-val.blue { color: #1d4ed8; }
+  .stat-val.red { color: #dc2626; }
+
+  /* Color themes */
+  .conv-theme .loan-header { background: #eff6ff; }
+  .conv-theme .loan-icon { background: #dbeafe; }
+  .conv-theme .loan-name { color: #1d4ed8; }
+
+  .fha-theme .loan-header { background: #fff7ed; }
+  .fha-theme .loan-icon { background: #ffedd5; }
+  .fha-theme .loan-name { color: #c2410c; }
+
+  .va-theme .loan-header { background: #f5f3ff; }
+  .va-theme .loan-icon { background: #ede9fe; }
+  .va-theme .loan-name { color: #6d28d9; }
+
+  .usda-theme .loan-header { background: #f0fdf4; }
+  .usda-theme .loan-icon { background: #dcfce7; }
+  .usda-theme .loan-name { color: #15803d; }
+
+  /* Full-width cards */
+  .full-card {
+    background: white;
+    border-radius: 14px;
+    border: 1.5px solid #e2e8f0;
+    padding: 18px 20px;
+    margin-bottom: 12px;
+  }
+  .section-title {
+    font-size: 12px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #2491EB;
+    margin-bottom: 12px;
+  }
+
+  /* MI table */
+  .mi-table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 6px; }
+  .mi-table th {
+    background: #f8fafc;
+    padding: 7px 10px;
+    text-align: left;
+    font-weight: 700;
+    color: #475569;
+    border-bottom: 1px solid #e2e8f0;
+  }
+  .mi-table td {
+    padding: 7px 10px;
+    border-bottom: 1px solid #f1f5f9;
+    color: #1a2332;
+  }
+  .mi-table tr:last-child td { border-bottom: none; }
+
+  /* Flip rules */
+  .flip-rule {
+    background: #fff7ed;
+    border: 1.5px solid #fed7aa;
+    border-radius: 10px;
+    padding: 12px 14px;
+    margin-bottom: 8px;
+    font-size: 12px;
+    line-height: 1.6;
+  }
+  .flip-rule strong { color: #c2410c; }
+
+  /* Notes / alerts */
+  .note {
+    background: #fefce8;
+    border: 1.5px solid #fde047;
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-size: 12px;
+    color: #713f12;
+    line-height: 1.5;
+    margin-top: 10px;
+  }
+
+  /* PMI calc */
+  .pmi-calc {
+    background: #f8fafc;
+    border-radius: 10px;
+    padding: 14px 16px;
+    margin-top: 10px;
+  }
+  .pmi-calc-title { font-size: 11px; font-weight: 700; color: #2491EB; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.4px; }
+  .pmi-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+    font-size: 12px;
+  }
+  .pmi-label { flex: 1; color: #475569; }
+  .pmi-input {
+    width: 120px;
+    padding: 6px 9px;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 7px;
+    font-size: 12px;
+    text-align: right;
+    outline: none;
+  }
+  .pmi-input:focus { border-color: #2491EB; }
+  .pmi-result {
+    background: #eff6ff;
+    border-radius: 8px;
+    padding: 10px 14px;
+    margin-top: 8px;
+    font-size: 13px;
+    font-weight: 700;
+    color: #1d4ed8;
+    text-align: center;
+  }
+  select.pmi-input { background: white; }
+
+  /* Appraisal note */
+  .appraisal-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 8px;
+    font-size: 12px;
+    align-items: flex-start;
+  }
+  .appr-badge {
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-weight: 700;
+    font-size: 10px;
+    white-space: nowrap;
+    margin-top: 1px;
+    flex-shrink: 0;
+  }
+  .appr-conv { background: #dbeafe; color: #1d4ed8; }
+  .appr-gov { background: #ffedd5; color: #c2410c; }
+
+  .homestead-box {
+    background: #f0fdf4;
+    border: 1.5px solid #bbf7d0;
+    border-radius: 10px;
+    padding: 12px 14px;
+    font-size: 12px;
+    line-height: 1.6;
+    color: #166534;
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-inner">
+    <div>
+      <div class="logo">HomeWealth<span>.</span></div>
+      <div class="header-sub">Loan Types Reference</div>
+    </div>
+    <a href="https://tools.homewealthsolutions.com" class="back-link">← Hub</a>
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- DECISION HELPER -->
+  <div class="decision-card">
+    <div class="decision-title">⚡ Quick Selection Guide</div>
+    <div class="decision-grid">
+      <div class="decision-item">
+        <div class="if">If</div>
+        <div class="then">Credit 660+, putting 20%+ down → <span style="color:#60a5fa;">Conventional</span></div>
+      </div>
+      <div class="decision-item fha-border">
+        <div class="if">If</div>
+        <div class="then">Minimum down with sub-740 credit → <span style="color:#fb923c;">FHA</span></div>
+      </div>
+      <div class="decision-item">
+        <div class="if">If</div>
+        <div class="then">Credit 740+, less than 10% down → <span style="color:#60a5fa;">Conventional</span> (better MI)</div>
+      </div>
+      <div class="decision-item fha-border">
+        <div class="if">If</div>
+        <div class="then">Less than 10% down, credit below 740 → <span style="color:#fb923c;">FHA</span> often wins</div>
+      </div>
+      <div class="decision-item va-border">
+        <div class="if">If</div>
+        <div class="then">Active military / Veteran → <span style="color:#a78bfa;">VA</span> — no MI, 0% down</div>
+      </div>
+      <div class="decision-item usda-border">
+        <div class="if">If</div>
+        <div class="then">Rural area, income-qualified, 0% down → <span style="color:#34d399;">USDA</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LOAN CARDS -->
+  <div class="loan-grid">
+
+    <!-- CONVENTIONAL -->
+    <div class="loan-card conv-theme">
+      <div class="loan-header">
+        <div class="loan-icon">🏛</div>
+        <div>
+          <div class="loan-name">Conventional</div>
+          <div class="loan-sub">Fannie Mae / Freddie Mac</div>
+        </div>
+      </div>
+      <div class="loan-body">
+        <div class="stat-row">
+          <div class="stat-label">Min down (FTHB)</div>
+          <div class="stat-val blue">3%</div>
+        </div>
+        <div class="stat-row">
+          <div class="stat-label">Min down (all others)</div>
+          <div class="stat-val">5%</div>
+        </div>
+        <div class="stat-row">
+          <div class="stat-label">Min credit score</div>
+          <div class="stat-val">620</div>
+        </div>
+        <div class="stat-row">
+          <div class="stat-label">Front-end DTI max</div>
+          <div class="stat-val">Varies (up to 49%*)</div>
+        </div>
+        <div class="stat-row">
+          <div class="stat-label">Back-end DTI max</div>
+          <div class="stat-val">49.99%</div>
+        </div>
+        <div class="stat-row">
+          <div class="stat-label">Mortgage Insurance</div>
+          <div class="stat-val green">&lt;20% down only</div>
+        </div>
+        <div class="stat-row">
+          <div class="stat-label">Remove MI</div>
+          <div class="stat-val green">Yes — at 20% equity</div>
+        </div>
+        <div class="stat-row">
+          <div class="stat-label">AUS system</div>
+          <div class="stat-val blue">DU (Fannie) / LP (Freddie)</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FHA -->
+    <div class="loan-card fha-theme">
+      <div class="loan-header">
+        <div class="loan-icon">🏠</div>
+        <div>
+          <div class="loan-name">FHA</div>
+          <div class="loan-sub">Federal Housing Authority</div>
+        </div>
+      </div>
+      <div class="loan-body">
+        <div class="stat-row">
+          <div class="stat-label">Min down payment</div>
+          <div class="stat-val orange">3.5%</div>
+        </div>
+        <div class="stat-row">
+          <div class="stat-label">Min credit (3.5% down)</div>
+          <div class="stat-val">580</div>
+        </div>
+        <div class="stat-row">
+          <div class="stat-label">Min credit (10% down)</div>
+          <div class="stat-val">550</div>
+        </div>
+        <div class="stat-row">
+          <div class="stat-label">Front-end DTI max</div>
+          <div class="stat-val">46.99%</div>
+        </div>
+        <div class="stat-row">
+          <div class="stat-label">Back-end DTI max</div>
+          <div class="stat-val">56.99%</div>
+        </div>
+        <div class="stat-row">
+          <div class="stat-label">Annual MIP rate</div>
+          <div class="stat-val orange">0.55% (flat)</div>
+        </div>
+        <div class="stat-row">
+          <div class="stat-label">Upfront MIP (UFMIP)</div>
+          <div class="stat-val orange">1.75% rolled in</div>
+        </div>
+        <div class="stat-row">
+          <div class="stat-label">Remove MI</div>
+          <div class="stat-val red">No — life of loan</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VA -->
+    <div class="loan-card va-theme">
+      <div class="loan-header">
+        <div class="loan-icon">🎖</div>
+        <div>
+          <div class="loan-name">VA</div>
+          <div class="loan-sub">Veterans only — COE required</div>
+        </div>
+      </div>
+      <div class="loan-body">
+        <div class="stat-row">
+          <div class="stat-label">Min down payment</div>
+          <div class="stat-val green">0%</div>
+        </div>
+        <div class="stat-row">
+          <div class="stat-label">Min credit (0% down)</div>
+          <div class="stat-val">580</div>
+        </div>
+        <div class="stat-row">
+          <div class="stat-label">Min credit (10% down)</div>
+          <div class="stat-val">550</div>
+        </div>
+        <div class="stat-row">
+          <div class="stat-label">DTI max</div>
+          <div class="stat-val green">No official max*</div>
+        </div>
+        <div class="stat-row">
+          <div class="stat-label">Mortgage Insurance</div>
+          <div class="stat-val green">None</div>
+        </div>
+        <div class="stat-row">
+          <div class="stat-label">Funding fee</div>
+          <div class="stat-val">2% – 3.6%</div>
+        </div>
+        <div class="stat-row">
+          <div class="stat-label">Disabled veteran</div>
+          <div class="stat-val green">Fee waived</div>
+        </div>
+        <div class="stat-row">
+          <div class="stat-label">AUS system</div>
+          <div class="stat-val">DU (via FHA Scorecard)</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- USDA -->
+    <div class="loan-card usda-theme">
+      <div class="loan-header">
+        <div class="loan-icon">🌾</div>
+        <div>
+          <div class="loan-name">USDA</div>
+          <div class="loan-sub">Rural / income-qualified</div>
+        </div>
+      </div>
+      <div class="loan-body">
+        <div class="stat-row">
+          <div class="stat-label">Min down payment</div>
+          <div class="stat-val green">0%</div>
+        </div>
+        <div class="stat-row">
+          <div class="stat-label">Min credit score</div>
+          <div class="stat-val">580</div>
+        </div>
+        <div class="stat-row">
+          <div class="stat-label">Front-end DTI max</div>
+          <div class="stat-val">29%</div>
+        </div>
+        <div class="stat-row">
+          <div class="stat-label">Back-end DTI max</div>
+          <div class="stat-val">41%</div>
+        </div>
+        <div class="stat-row">
+          <div class="stat-label">Annual MI rate</div>
+          <div class="stat-val">0.20% (flat)</div>
+        </div>
+        <div class="stat-row">
+          <div class="stat-label">Upfront fee</div>
+          <div class="stat-val">1.00% rolled in</div>
+        </div>
+        <div class="stat-row">
+          <div class="stat-label">AUS system</div>
+          <div class="stat-val green">GUS</div>
+        </div>
+        <div class="stat-row">
+          <div class="stat-label">Property requirement</div>
+          <div class="stat-val">USDA-eligible area</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONVENTIONAL MI FACTORS -->
+  <div class="full-card">
+    <div class="section-title">📐 Conventional PMI — Approximate Monthly Factors</div>
+    <p style="font-size:12px;color:#64748b;margin-bottom:10px;">MI is a sliding factor based on credit score, LTV, and DTI. These are approximations — always pull actual MI quote in Arive.</p>
+    <table class="mi-table">
+      <tr>
+        <th>Down Payment</th>
+        <th>Approx MI Factor (Annual)</th>
+        <th>Monthly (on $300K loan)</th>
+        <th>Arive Calc</th>
+      </tr>
+      <tr><td>3% down</td><td>~0.85%</td><td>~$213/mo</td><td>Loan Amt × 0.85% ÷ 12</td></tr>
+      <tr><td>5% down</td><td>~0.60%</td><td>~$150/mo</td><td>Loan Amt × 0.60% ÷ 12</td></tr>
+      <tr><td>10% down</td><td>~0.40%</td><td>~$100/mo</td><td>Loan Amt × 0.40% ÷ 12</td></tr>
+      <tr><td>15% down</td><td>~0.275%</td><td>~$69/mo</td><td>Loan Amt × 0.275% ÷ 12</td></tr>
+      <tr><td>20%+ down</td><td colspan="3" style="color:#16a34a;font-weight:700;">No MI required</td></tr>
+    </table>
+    <div class="note">* Front-end DTI up to 49% is possible on very low-risk Conventional loans. DTI is risk-weighted — higher credit + large down payment creates more flexibility.</div>
+
+    <!-- Quick PMI Calculator -->
+    <div class="pmi-calc">
+      <div class="pmi-calc-title">⚡ Quick PMI Estimate</div>
+      <div class="pmi-row">
+        <div class="pmi-label">Loan amount</div>
+        <input class="pmi-input" id="pmi-loan" type="text" inputmode="decimal" placeholder="300000" oninput="calcPMI()" onblur="fmtInput(this)" onfocus="clearFmt(this)">
+      </div>
+      <div class="pmi-row">
+        <div class="pmi-label">Down payment</div>
+        <select class="pmi-input" id="pmi-down" onchange="calcPMI()">
+          <option value="">Select</option>
+          <option value="0.0085">3% (0.85%)</option>
+          <option value="0.0060">5% (0.60%)</option>
+          <option value="0.0040">10% (0.40%)</option>
+          <option value="0.00275">15% (0.275%)</option>
+          <option value="0">20%+ (no MI)</option>
+        </select>
+      </div>
+      <div id="pmi-result" class="pmi-result" style="display:none;"></div>
+    </div>
+  </div>
+
+  <!-- FHA FLIP RULES -->
+  <div class="full-card">
+    <div class="section-title">⛔ FHA Flip Rules</div>
+    <div class="flip-rule">
+      <strong>90-Day Rule:</strong> FHA cannot be used if the home's deed changed ownership within the last 90 days. No exceptions.
+    </div>
+    <div class="flip-rule">
+      <strong>180-Day Rule:</strong> If the home is being resold for more than 100% of its recent purchase price within 180 days of the prior sale — a second appraisal is required. <em>Buyer cannot pay for the second appraisal.</em>
+    </div>
+  </div>
+
+  <!-- APPRAISAL REQUIREMENTS -->
+  <div class="full-card">
+    <div class="section-title">🔍 Appraisal Requirements</div>
+    <div class="appraisal-row">
+      <span class="appr-badge appr-conv">Conventional</span>
+      <span style="font-size:12px;color:#475569;line-height:1.5;">Standard appraisal — cosmetic issues generally not required to be remedied.</span>
+    </div>
+    <div class="appraisal-row">
+      <span class="appr-badge appr-gov">FHA / VA</span>
+      <span style="font-size:12px;color:#475569;line-height:1.5;">Stricter requirements — appraiser will flag chipped paint, rotted wood, broken windows, exposed wiring, and other safety/structural concerns. These <strong>must be repaired</strong> before closing.</span>
+    </div>
+    <div class="note">⚠️ VA appraisals tend to be the most conservative. Sellers often prefer Conventional for this reason.</div>
+  </div>
+
+  <!-- HOMESTEAD EXEMPTION -->
+  <div class="full-card">
+    <div class="section-title">🏡 Florida Homestead Exemption</div>
+    <div class="homestead-box">
+      For primary residences: reduces the assessed value by <strong>$50,000</strong> and caps annual tax increases at <strong>3% per year</strong>. Buyer must apply with the county after closing. Applies to taxes starting the <em>following</em> year.
+    </div>
+  </div>
+
+</div><!-- /main -->
+
+<script>
+
+function fmtInput(el) {
+  const raw = parseFloat((el.value||'').replace(/[$,]/g,''));
+  if (!isNaN(raw) && el.value.trim() !== '') el.value = '$' + raw.toLocaleString('en-US',{maximumFractionDigits:2});
+}
+function clearFmt(el) {
+  const raw = parseFloat((el.value||'').replace(/[$,]/g,''));
+  if (!isNaN(raw) && raw > 0) el.value = raw;
+}
+function fmtPct(el) {
+  if (el.value.trim()===''||el.value.trim()==='%') { el.value=''; return; }
+  const raw = parseFloat((el.value||'').replace(/%/g,''));
+  if (!isNaN(raw)) el.value = raw + '%';
+}
+function clearPct(el) {
+  const raw = parseFloat((el.value||'').replace(/%/g,''));
+  if (!isNaN(raw)) el.value = raw;
+}
+function calcPMI() {
+  const loan = parseFloat((document.getElementById('pmi-loan').value||'').replace(/[$,]/g,'')) || 0;
+  const factor = parseFloat(document.getElementById('pmi-down').value);
+  const box = document.getElementById('pmi-result');
+  if (!loan || factor === undefined || document.getElementById('pmi-down').value === '') {
+    box.style.display = 'none';
+    return;
+  }
+  box.style.display = 'block';
+  if (factor === 0) {
+    box.textContent = '✅ No PMI required at 20%+ down';
+    box.style.color = '#16a34a';
+  } else {
+    const monthly = loan * factor / 12;
+    box.textContent = 'Est. PMI: $' + monthly.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ',') + '/mo (verify in Arive)';
+    box.style.color = '#1d4ed8';
+  }
+}
+</script>
+
+
+<!-- HWS Hub back button -->
+<div id="hws-back-btn" style="position:fixed;bottom:20px;right:20px;z-index:99999;">
+  <button onclick="window.close()" style="
+    background:#1a2332;
+    color:white;
+    border:none;
+    border-radius:8px;
+    padding:9px 16px;
+    font-size:13px;
+    font-weight:600;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    gap:7px;
+    box-shadow:0 2px 12px rgba(0,0,0,0.25);
+    opacity:0.85;
+    transition:opacity .15s;
+  " onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.85'">
+    ← Hub
+  </button>
+</div>
+<script src="/hws-session.js"></script>
+</body>
+</html>

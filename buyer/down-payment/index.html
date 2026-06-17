@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Down Payment Strategy | HomeWealth Solutions</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#f5f5f7;color:#1d1d1f;line-height:1.5}
+a{text-decoration:none;color:inherit}
+
+.header{background:#fff;padding:16px 24px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #e5e5e7;position:sticky;top:0;z-index:100}
+.logo{font-size:18px;font-weight:700;color:#2491EB;letter-spacing:-.3px}
+.logo span{color:#8EC73F}
+.header-nmls{font-size:11px;color:#999;text-align:right}
+
+.hero{background:#fff;padding:36px 24px 24px;text-align:center;border-bottom:1px solid #e5e5e7}
+.hero h1{font-size:27px;font-weight:700;margin-bottom:10px;letter-spacing:-.4px}
+.hero p{color:#6e6e73;font-size:15px;max-width:520px;margin:0 auto}
+
+.container{max-width:900px;margin:0 auto;padding:24px 16px}
+
+.section-label{font-size:11px;font-weight:600;color:#6e6e73;text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px}
+
+.inputs-card{background:#fff;border-radius:14px;border:1px solid #e5e5e7;padding:24px;margin-bottom:20px}
+.inputs-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+.input-group{margin-bottom:0}
+.input-label-row{display:flex;justify-content:space-between;font-size:13px;margin-bottom:8px}
+.input-label-text{color:#6e6e73}
+.input-label-val{font-weight:700;color:#1d1d1f}
+input[type=range]{width:100%;height:4px;accent-color:#2491EB;cursor:pointer}
+.input-note{font-size:11px;color:#aaa;margin-top:5px}
+
+.rate-row{display:flex;gap:12px;margin-top:20px;align-items:center;flex-wrap:wrap}
+.rate-input-group{display:flex;align-items:center;gap:8px;font-size:13px;color:#6e6e73}
+.rate-input-group input[type=number]{width:72px;padding:6px 10px;border:1.5px solid #e5e5e7;border-radius:8px;font-size:14px;font-weight:600;color:#1d1d1f;text-align:center}
+.rate-input-group input[type=number]:focus{outline:none;border-color:#2491EB}
+
+.comparison-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
+.dp-card{background:#fff;border:2px solid #e5e5e7;border-radius:14px;padding:16px 12px;transition:border-color .15s}
+.dp-card.highlight{border-color:#8EC73F;background:#f6fbee}
+.dp-card.highlight2{border-color:#2491EB;background:#f0f8ff}
+.dp-pct{font-size:10px;font-weight:700;color:#6e6e73;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px}
+.dp-amount{font-size:18px;font-weight:700;color:#1d1d1f;margin-bottom:10px}
+.dp-amount span{font-size:12px;font-weight:400;color:#999}
+.dp-row{display:flex;justify-content:space-between;font-size:12px;padding:4px 0;border-bottom:1px solid #f2f2f2}
+.dp-row:last-child{border-bottom:none}
+.dp-row-label{color:#6e6e73}
+.dp-row-val{font-weight:600;color:#1d1d1f}
+.dp-row-val.red{color:#c0392b}
+.dp-row-val.green{color:#3a6810}
+.dp-total{margin-top:10px;padding-top:10px;border-top:2px solid #e5e5e7;display:flex;justify-content:space-between;font-size:13px}
+.dp-total-label{color:#6e6e73;font-weight:600}
+.dp-total-val{font-weight:700;font-size:15px;color:#1d1d1f}
+.pmi-badge{display:inline-block;background:#fff3cd;color:#856404;font-size:10px;font-weight:700;padding:2px 7px;border-radius:8px;margin-top:6px}
+.no-pmi-badge{display:inline-block;background:#e5f4cc;color:#3a6810;font-size:10px;font-weight:700;padding:2px 7px;border-radius:8px;margin-top:6px}
+
+.insight-card{background:#fff;border-radius:14px;border:1px solid #e5e5e7;padding:24px;margin-bottom:20px}
+.insight-title{font-size:16px;font-weight:700;margin-bottom:6px}
+.insight-sub{font-size:13px;color:#6e6e73;margin-bottom:20px}
+
+.opp-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.opp-box{background:#f5f5f7;border-radius:12px;padding:18px}
+.opp-label{font-size:11px;font-weight:700;color:#6e6e73;text-transform:uppercase;letter-spacing:.05em;margin-bottom:12px}
+.opp-scenario{font-size:13px;color:#6e6e73;margin-bottom:6px}
+.opp-value{font-size:22px;font-weight:700;color:#1d1d1f;margin-bottom:4px}
+.opp-value.blue{color:#2491EB}
+.opp-value.green{color:#3a6810}
+.opp-note{font-size:11px;color:#aaa;line-height:1.5}
+
+.pmi-payoff-card{background:#fff;border-radius:14px;border:1px solid #e5e5e7;padding:24px;margin-bottom:20px}
+.payoff-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.payoff-box{background:#f5f5f7;border-radius:10px;padding:16px;text-align:center}
+.payoff-label{font-size:10px;font-weight:700;color:#999;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px}
+.payoff-value{font-size:20px;font-weight:700;color:#1d1d1f}
+.payoff-value.blue{color:#2491EB}
+
+.advisor-card{background:#2491EB;border-radius:14px;padding:24px;margin-bottom:20px;color:#fff}
+.advisor-card h3{font-size:16px;font-weight:700;margin-bottom:10px}
+.advisor-insight{font-size:14px;line-height:1.7;opacity:.92}
+.advisor-insight b{opacity:1;font-weight:700}
+
+.cta-card{background:#fff;border-radius:14px;border:1px solid #e5e5e7;padding:28px;text-align:center;margin-bottom:24px}
+.cta-card h2{font-size:20px;font-weight:700;margin-bottom:8px}
+.cta-card p{font-size:14px;color:#6e6e73;margin-bottom:20px}
+.cta-buttons{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+.btn-blue{background:#2491EB;color:#fff;border:none;padding:13px 24px;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;display:inline-block;transition:opacity .15s}
+.btn-blue:hover{opacity:.88}
+.btn-outline{background:transparent;color:#2491EB;border:2px solid #2491EB;padding:13px 24px;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;display:inline-block}
+
+.compliance{font-size:10px;color:#aaa;line-height:1.75;margin-bottom:16px}
+.compliance a{color:#aaa;text-decoration:underline}
+.footer-bar{display:flex;justify-content:space-between;align-items:center;padding-top:14px;border-top:1px solid #e5e5e7;font-size:11px;color:#bbb;flex-wrap:wrap;gap:6px}
+
+@media(max-width:650px){
+  .comparison-grid{grid-template-columns:1fr 1fr}
+  .inputs-grid{grid-template-columns:1fr}
+  .opp-grid{grid-template-columns:1fr}
+  .payoff-grid{grid-template-columns:1fr}
+  .cta-buttons{flex-direction:column}
+  .btn-blue,.btn-outline{text-align:center}
+  .footer-bar{flex-direction:column;text-align:center}
+}
+
+.back-link-dp { color: #2491EB; text-decoration: none; font-size: 12px; font-weight: 600; }
+.back-link-dp:hover { opacity: 0.75; }
+</style>
+</head>
+<body>
+
+<header class="header">
+  <a href="https://tools.homewealthsolutions.com" class="back-link-dp">← Hub</a>
+  <div class="logo">HomeWealth<span>Solutions</span></div>
+  <div class="header-nmls">Doug Smith, CMA&reg; &middot; NMLS #2609118</div>
+</header>
+
+<div class="hero">
+  <h1>How Much Should You Put Down?</h1>
+  <p>More down payment isn't always better. See the real monthly cost — and what happens to the cash you keep in your pocket.</p>
+</div>
+
+<div class="container">
+
+  <div class="inputs-card">
+    <div class="section-label">Your scenario</div>
+    <div class="inputs-grid">
+      <div class="input-group">
+        <div class="input-label-row">
+          <span class="input-label-text">Purchase price</span>
+          <span class="input-label-val" id="priceLabel">$450,000</span>
+        </div>
+        <input type="range" id="priceSlider" min="150000" max="900000" step="5000" value="450000">
+      </div>
+      <div class="input-group">
+        <div class="input-label-row">
+          <span class="input-label-text">Interest rate</span>
+          <span class="input-label-val" id="rateLabel">6.500%</span>
+        </div>
+        <input type="range" id="rateSlider" min="4.0" max="9.0" step="0.125" value="6.5">
+        <div class="input-note">Adjust to match your quoted rate</div>
+      </div>
+    </div>
+    <div class="rate-row">
+      <div class="rate-input-group">
+        <span>PMI rate (% annually)</span>
+        <input type="text" inputmode="decimal" id="pmiInput" value="0.70" min="0.10" max="2.0" onblur="fmtPct(this)" onfocus="clearPct(this)">
+        <span style="font-size:11px;color:#aaa">Typical: 0.55%&ndash;0.85% for 740+ credit</span>
+      </div>
+      <div class="rate-input-group" style="margin-left:auto">
+        <span>Investment return (% annually)</span>
+        <input type="text" inputmode="decimal" id="investInput" value="7.0" min="1" max="15" onblur="fmtPct(this)" onfocus="clearPct(this)">
+        <span style="font-size:11px;color:#aaa">For opportunity cost</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-label">Monthly cost comparison</div>
+  <div class="comparison-grid" id="compGrid"></div>
+
+  <div class="pmi-payoff-card">
+    <div class="section-label">PMI at 3% down &mdash; when does it go away?</div>
+    <div class="payoff-grid" id="payoffGrid"></div>
+    <div style="font-size:12px;color:#aaa;margin-top:14px;line-height:1.6">PMI cancels automatically when your loan balance reaches 78% of the original purchase price. You can request cancellation at 80% LTV. Assumes no extra principal payments.</div>
+  </div>
+
+  <div class="insight-card">
+    <div class="insight-title">What if you invested the difference instead?</div>
+    <div class="insight-sub">Putting 3% down instead of 20% keeps more cash in your pocket. Here's what that cash could do over time &mdash; vs. what you save on your monthly payment.</div>
+    <div class="opp-grid" id="oppGrid"></div>
+  </div>
+
+  <div class="advisor-card">
+    <h3>The advisor take</h3>
+    <div class="advisor-insight" id="advisorInsight">Loading...</div>
+  </div>
+
+  <div class="cta-card">
+    <h2>Want to run your specific numbers?</h2>
+    <p>Every situation is different. Text me and we'll work through what actually makes sense for your timeline, cash position, and goals.</p>
+    <div class="cta-buttons">
+      <a class="btn-blue" href="sms:8137337371">Text Doug</a>
+      <a class="btn-outline" href="https://2742458.my1003app.com/2609118/register" target="_blank">Start Application</a>
+    </div>
+  </div>
+
+  <div class="compliance">
+    This communication is for informational and educational purposes only and does not constitute an offer to lend or a commitment to make a loan. All loans are subject to credit approval, underwriting guidelines, and property approval. Interest rates, payment examples, programs, and terms are illustrative, vary by borrower qualification, and are subject to change without notice. Not all applicants will qualify. Examples shown do not reflect all costs of a mortgage transaction. PMI rates and investment returns shown are illustrative estimates and are not guaranteed. Consult a licensed tax or legal advisor regarding your individual situation. HomeWealth Solutions LLC is licensed by the Florida Office of Financial Regulation, Mortgage Broker License #MBR8082. Verify our licensure at <a href="https://www.nmlsconsumeraccess.org" target="_blank">www.nmlsconsumeraccess.org</a>. Equal Housing Opportunity.
+  </div>
+  <div class="footer-bar">
+    <span>HomeWealth Solutions LLC &middot; Company NMLS #2742458 &middot; FL License #MBR8082</span>
+    <span>homewealthsolutions.com</span>
+    <span>Equal Housing Opportunity</span>
+  </div>
+
+</div>
+
+<script>
+const fmt  = n => '$' + Math.round(n).toLocaleString();
+const fmtR = r => r.toFixed(3) + '%';
+const $ = id => document.getElementById(id);
+
+const DOWN_OPTIONS = [
+  { pct: 3,  label: '3% Down',  color: '' },
+  { pct: 5,  label: '5% Down',  color: '' },
+  { pct: 10, label: '10% Down', color: 'highlight' },
+  { pct: 20, label: '20% Down', color: 'highlight2' }
+];
+
+function monthlyPayment(loan, annualRate) {
+  const r = annualRate / 100 / 12;
+  const n = 360;
+  return loan * (r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
+}
+
+function monthsToPayoffPMI(purchasePrice, downPct, annualRate) {
+  const targetBalance = purchasePrice * 0.78;
+  let balance = purchasePrice * (1 - downPct / 100);
+  const r = annualRate / 100 / 12;
+  const pmt = monthlyPayment(balance, annualRate);
+  let months = 0;
+  while (balance > targetBalance && months < 360) {
+    const interest = balance * r;
+    const principal = pmt - interest;
+    balance -= principal;
+    months++;
+  }
+  return months;
+}
+
+function futureValue(principal, annualReturn, years) {
+  return principal * Math.pow(1 + annualReturn / 100, years);
+}
+
+
+function fmtInput(el) {
+  const raw = parseFloat((el.value||'').replace(/[$,]/g,''));
+  if (!isNaN(raw) && el.value.trim() !== '') el.value = '$' + raw.toLocaleString('en-US',{maximumFractionDigits:2});
+}
+function clearFmt(el) {
+  const raw = parseFloat((el.value||'').replace(/[$,]/g,''));
+  if (!isNaN(raw) && raw > 0) el.value = raw;
+}
+function fmtPct(el) {
+  if (el.value.trim()===''||el.value.trim()==='%') { el.value=''; return; }
+  const raw = parseFloat((el.value||'').replace(/%/g,''));
+  if (!isNaN(raw)) el.value = raw + '%';
+}
+function clearPct(el) {
+  const raw = parseFloat((el.value||'').replace(/%/g,''));
+  if (!isNaN(raw)) el.value = raw;
+}
+function update() {
+  const price    = +$('priceSlider').value;
+  const rate     = +$('rateSlider').value;
+  const pmiRate  = parseFloat($('pmiInput').value);
+  const invRate  = parseFloat($('investInput').value);
+
+  $('priceLabel').textContent = fmt(price);
+  $('rateLabel').textContent  = fmtR(rate);
+
+  const base3pct = price * 0.03;
+
+  // Build comparison cards
+  let cardsHTML = '';
+  const scenarios = DOWN_OPTIONS.map(opt => {
+    const down    = price * opt.pct / 100;
+    const loan    = price - down;
+    const pi      = monthlyPayment(loan, rate);
+    const hasPMI  = opt.pct < 20;
+    const pmi     = hasPMI ? (loan * pmiRate / 100) / 12 : 0;
+    const total   = pi + pmi;
+    const extraDown = down - base3pct;
+    return { ...opt, down, loan, pi, pmi, total, extraDown, hasPMI };
+  });
+
+  const minTotal = Math.min(...scenarios.map(s => s.total));
+
+  cardsHTML = scenarios.map(s => `
+    <div class="dp-card ${s.color}">
+      <div class="dp-pct">${s.label}</div>
+      <div class="dp-amount">${fmt(s.down)} <span>down</span></div>
+      ${s.hasPMI ? '<div class="pmi-badge">PMI required</div>' : '<div class="no-pmi-badge">No PMI</div>'}
+      <div style="margin-top:12px">
+        <div class="dp-row"><span class="dp-row-label">P&I</span><span class="dp-row-val">${fmt(s.pi)}/mo</span></div>
+        <div class="dp-row"><span class="dp-row-label">PMI</span><span class="dp-row-val ${s.hasPMI ? 'red' : 'green'}">${s.hasPMI ? fmt(s.pmi)+'/mo' : '$0'}</span></div>
+        <div class="dp-row"><span class="dp-row-label">Extra down vs 3%</span><span class="dp-row-val">${s.extraDown > 0 ? fmt(s.extraDown) : '—'}</span></div>
+      </div>
+      <div class="dp-total">
+        <span class="dp-total-label">Monthly</span>
+        <span class="dp-total-val" style="${s.total === minTotal ? 'color:#3a6810' : ''}">${fmt(s.total)}</span>
+      </div>
+    </div>`).join('');
+  $('compGrid').innerHTML = cardsHTML;
+
+  // PMI payoff section (3% down scenario)
+  const loan3  = price * 0.97;
+  const pmiMos = monthsToPayoffPMI(price, 3, rate);
+  const pmiYrs = (pmiMos / 12).toFixed(1);
+  const pmi3   = scenarios[0];
+  const totalPMIPaid = pmi3.pmi * pmiMos;
+  $('payoffGrid').innerHTML = `
+    <div class="payoff-box">
+      <div class="payoff-label">PMI drops off in</div>
+      <div class="payoff-value blue">${pmiYrs} yrs</div>
+    </div>
+    <div class="payoff-box">
+      <div class="payoff-label">Monthly PMI cost</div>
+      <div class="payoff-value">${fmt(pmi3.pmi)}/mo</div>
+    </div>
+    <div class="payoff-box">
+      <div class="payoff-label">Total PMI paid</div>
+      <div class="payoff-value">${fmt(totalPMIPaid)}</div>
+    </div>`;
+
+  // Opportunity cost section
+  const s3  = scenarios[0];
+  const s20 = scenarios[3];
+  const extraCash = s20.down - s3.down;
+  const monthlySavings20 = s3.total - s20.total;
+  const breakEvenMos = monthlySavings20 > 0 ? Math.ceil(extraCash / monthlySavings20) : 999;
+  const breakEvenYrs = (breakEvenMos / 12).toFixed(1);
+  const fv5  = futureValue(extraCash, invRate, 5);
+  const fv10 = futureValue(extraCash, invRate, 10);
+
+  $('oppGrid').innerHTML = `
+    <div class="opp-box">
+      <div class="opp-label">3% down — keep ${fmt(extraCash)} invested</div>
+      <div class="opp-scenario">Worth in 5 years at ${invRate}% return</div>
+      <div class="opp-value green">${fmt(fv5)}</div>
+      <div class="opp-scenario" style="margin-top:10px">Worth in 10 years</div>
+      <div class="opp-value green">${fmt(fv10)}</div>
+      <div class="opp-note" style="margin-top:10px">Higher monthly cost (+${fmt(s3.total - s20.total)}/mo) but more liquid cash working for you</div>
+    </div>
+    <div class="opp-box">
+      <div class="opp-label">20% down — save ${fmt(s20.total < s3.total ? s3.total - s20.total : 0)}/mo</div>
+      <div class="opp-scenario">Monthly payment savings vs 3% down</div>
+      <div class="opp-value blue">${fmt(Math.max(0, s3.total - s20.total))}/mo</div>
+      <div class="opp-scenario" style="margin-top:10px">Break-even on extra down payment</div>
+      <div class="opp-value blue">${breakEvenYrs } yrs@</div>
+      <div class="opp-note" style="margin-top:10px">You need to stay in the home ${breakEvenYrs}+ years for the extra down payment to pay off vs. investing it</div>
+    </div>`;
+
+  // Advisor insight
+  const stayShort = parseFloat(breakEvenYrs) > 7;
+  const pmiShort  = parseFloat(pmiYrs) < 8;
+  $('advisorInsight').innerHTML = stayShort
+    ? `At this price point, putting 20% down requires <b>${fmt(extraCash)}</b> in extra cash. You'd need to stay in this home <b>${breakEvenYrs } years</b> just to break even vs. keeping that cash invested. Meanwhile, PMI on the 3% scenario drops off in <b>${pmiYrs} years</b> — and costs a total of <b>${fmt(totalPMIPaid)}</b>. If there's any chance you move or refinance within ${Math.ceil(parseFloat(breakEvenYrs))} years, the lower down payment likely wins. The real question isn't "how do I avoid PMI" — it's "what's the best use of this cash given my timeline?"`
+    : `At this price point, the math on 20% down starts to make sense if you plan to stay long-term. The break-even is <b>${breakEvenYrs } years</b> — meaning after that point you're ahead vs. putting 3% down and investing the difference. PMI on the 3% option costs <b>${fmt(totalPMIPaid)}</b> total before it drops off. If this is a long-term home and you have the cash without depleting reserves, the larger down payment has merit. But don't stretch to 20% if it leaves you cash-poor at closing.`;
+}
+
+$('priceSlider').addEventListener('input', update);
+$('rateSlider').addEventListener('input', update);
+$('pmiInput').addEventListener('input', update);
+$('investInput').addEventListener('input', update);
+
+update();
+</script>
+
+<!-- HWS Hub back button -->
+<div id="hws-back-btn" style="position:fixed;bottom:20px;right:20px;z-index:99999;">
+  <button onclick="window.close()" style="
+    background:#1a2332;
+    color:white;
+    border:none;
+    border-radius:8px;
+    padding:9px 16px;
+    font-size:13px;
+    font-weight:600;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    gap:7px;
+    box-shadow:0 2px 12px rgba(0,0,0,0.25);
+    opacity:0.85;
+    transition:opacity .15s;
+  " onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.85'">
+    ← Hub
+  </button>
+</div>
+<script src="/hws-session.js"></script>
+</body>
+</html>

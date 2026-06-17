@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Amortization Calculator — HomeWealth Solutions</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --blue: #2491EB; --blue-light: #e8f4fd; --blue-mid: #c5e1fa;
+      --green: #8EC73F; --green-light: #f0f8e6; --green-dark: #6aaa1f;
+      --dark: #1c2b3a; --mid: #3a4f62; --red: #dc3545; --amber: #e8900a;
+      --gray-100: #f7f8fa; --gray-200: #edf0f4; --gray-300: #d1d8e0;
+      --gray-500: #8892a0; --gray-700: #4a5568; --gray-900: #1a2332;
+      --radius: 10px; --shadow: 0 2px 12px rgba(0,0,0,0.08);
+    }
+    body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--gray-100); color: var(--gray-900); min-height: 100vh; }
+
+    .header { background: var(--dark); color: #fff; padding: 16px 28px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+    .header-left h1 { font-size: 1.15rem; font-weight: 700; }
+    .header-left p { font-size: 0.76rem; opacity: 0.6; margin-top: 2px; }
+    .header-right { display: flex; align-items: center; gap: 10px; }
+    .btn-print { background: rgba(255,255,255,0.12); color: #fff; border: 1px solid rgba(255,255,255,0.25); padding: 7px 16px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-weight: 600; }
+    .btn-print:hover { background: rgba(255,255,255,0.22); }
+    .back-link { color: rgba(255,255,255,0.7); text-decoration: none; font-size: 0.8rem; font-weight: 600; padding: 6px 12px; border: 1.5px solid rgba(255,255,255,0.25); border-radius: 6px; }
+    .back-link:hover { border-color: #fff; color: #fff; }
+    .nmls-badge { background: var(--blue); color: white; font-size: 0.7rem; font-weight: 700; padding: 4px 10px; border-radius: 20px; }
+
+    .main { max-width: 1040px; margin: 28px auto; padding: 0 20px 60px; }
+
+    .card { background: white; border-radius: var(--radius); box-shadow: var(--shadow); margin-bottom: 20px; overflow: hidden; }
+    .card-header { background: var(--dark); color: white; padding: 11px 20px; font-size: 0.82rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; }
+    .card-header.blue { background: var(--blue); }
+    .card-body { padding: 20px; }
+
+    .field-row { display: flex; align-items: center; padding: 9px 0; border-bottom: 1px solid var(--gray-200); gap: 12px; }
+    .field-row:last-child { border-bottom: none; }
+    .field-label { flex: 1; font-size: 0.875rem; color: var(--gray-700); line-height: 1.3; }
+    .field-label small { display: block; font-size: 0.75rem; color: var(--gray-500); margin-top: 2px; }
+    .field-input-wrap { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+    .unit { font-size: 0.8rem; color: var(--gray-500); min-width: 22px; }
+
+    input[type="text"], input[type="number"] {
+      width: 120px; padding: 7px 10px; border: 1.5px solid var(--blue-mid); border-radius: 6px;
+      font-size: 0.9rem; font-weight: 600; color: var(--blue); text-align: right;
+      background: var(--blue-light); outline: none;
+    }
+    select { padding: 7px 10px; border: 1.5px solid var(--blue-mid); border-radius: 6px; font-size: 0.9rem; color: var(--blue); background: var(--blue-light); outline: none; cursor: pointer; }
+    input:focus, select:focus { border-color: var(--blue); background: white; }
+    input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; }
+
+    /* Summary bar */
+    .summary-bar { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 20px; }
+    .summary-item { background: white; border-radius: var(--radius); padding: 14px 16px; box-shadow: var(--shadow); }
+    .si-label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--gray-500); margin-bottom: 4px; font-weight: 600; }
+    .si-val { font-size: 1.1rem; font-weight: 800; color: var(--dark); }
+    .si-val.blue { color: var(--blue); }
+    .si-val.green { color: var(--green-dark); }
+    .si-val.red { color: var(--red); }
+
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+    @media(max-width: 620px) { .two-col { grid-template-columns: 1fr; } }
+
+    /* View toggle */
+    .view-toggle { display: flex; gap: 0; border-radius: 6px; overflow: hidden; border: 2px solid var(--blue); margin-bottom: 16px; width: fit-content; }
+    .vt-btn { padding: 7px 20px; font-size: 0.82rem; font-weight: 700; cursor: pointer; border: none; background: white; color: var(--blue); }
+    .vt-btn.active { background: var(--blue); color: white; }
+
+    /* Table styles */
+    .table-wrap { overflow-x: auto; max-height: 420px; overflow-y: auto; border-radius: var(--radius); box-shadow: var(--shadow); }
+    table { width: 100%; border-collapse: collapse; font-size: 0.8rem; background: white; }
+    thead { position: sticky; top: 0; z-index: 10; }
+    thead th { background: var(--dark); color: white; padding: 9px 12px; text-align: right; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.04em; font-weight: 700; }
+    thead th:first-child { text-align: left; }
+    tbody tr:nth-child(even) { background: var(--gray-100); }
+    tbody tr:hover { background: var(--blue-light); }
+    tbody td { padding: 7px 12px; text-align: right; color: var(--gray-700); border-bottom: 1px solid var(--gray-200); }
+    tbody td:first-child { text-align: left; font-weight: 600; color: var(--dark); }
+    tbody td.green { color: var(--green-dark); font-weight: 700; }
+    tbody td.year-row { background: #fffbeb; font-weight: 700; color: var(--dark); }
+
+    .chart-wrap { background: white; border-radius: var(--radius); box-shadow: var(--shadow); padding: 20px; margin-bottom: 20px; }
+    .chart-title { font-size: 0.82rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--gray-500); margin-bottom: 14px; }
+
+    .extra-badge { display: none; }
+    .extra-badge.show { display: inline-block; background: var(--green); color: white; font-size: 0.7rem; font-weight: 700; padding: 2px 8px; border-radius: 10px; margin-left: 8px; }
+
+    .compliance { font-size: 0.7rem; color: var(--gray-500); line-height: 1.65; padding-top: 16px; border-top: 1px solid var(--gray-200); }
+
+    @media print {
+      .main { padding: 0; }
+      .table-wrap { max-height: none; overflow: visible; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <h1>Amortization Calculator</h1>
+    <p>HomeWealth Solutions LLC &nbsp;·&nbsp; NMLS #2742458</p>
+  </div>
+  <div class="header-right">
+    <a href="https://tools.homewealthsolutions.com" class="back-link">← Hub</a>
+    <span class="nmls-badge">NMLS #2742458</span>
+    <button class="btn-print" onclick="window.print()">Print</button>
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- Inputs -->
+  <div class="two-col">
+    <div class="card">
+      <div class="card-header">Loan Details</div>
+      <div class="card-body">
+        <div class="field-row">
+          <div class="field-label">Loan Amount</div>
+          <div class="field-input-wrap">
+            <input type="text" id="am_amount" value="$350,000" oninput="calcAM()" onblur="fmtDollar(this)" onfocus="clearFmt(this)">
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field-label">Interest Rate</div>
+          <div class="field-input-wrap">
+            <input type="text" id="am_rate" value="7.0%" oninput="calcAM()">
+            <span class="unit">%</span>
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field-label">Loan Term</div>
+          <div class="field-input-wrap">
+            <input type="text" id="am_term" value="30" oninput="calcAM()">
+            <span class="unit">yrs</span>
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field-label">Extra Monthly Payment <small>Additional principal</small></div>
+          <div class="field-input-wrap">
+            <input type="text" id="am_extra" value="$0" oninput="calcAM()" onblur="fmtDollar(this)" onfocus="clearFmt(this)">
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header">Start Date</div>
+      <div class="card-body">
+        <div class="field-row">
+          <div class="field-label">First Payment Month</div>
+          <div class="field-input-wrap">
+            <select id="am_start_mo" onchange="calcAM()">
+              <option value="0">January</option><option value="1">February</option>
+              <option value="2">March</option><option value="3">April</option>
+              <option value="4">May</option><option value="5">June</option>
+              <option value="6" selected>July</option><option value="7">August</option>
+              <option value="8">September</option><option value="9">October</option>
+              <option value="10">November</option><option value="11">December</option>
+            </select>
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field-label">First Payment Year</div>
+          <div class="field-input-wrap">
+            <input type="number" id="am_start_yr" value="2026" min="2020" max="2060" oninput="calcAM()" style="width:90px">
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Summary Bar -->
+  <div class="summary-bar" id="summary_bar">
+    <div class="summary-item"><div class="si-label">Monthly P&amp;I</div><div class="si-val blue" id="sum_pni">—</div></div>
+    <div class="summary-item"><div class="si-label">Total Interest (Standard)</div><div class="si-val" id="sum_int_std">—</div></div>
+    <div class="summary-item" id="sum_int_ex_wrap" style="display:none"><div class="si-label">Total Interest (w/ Extra)</div><div class="si-val green" id="sum_int_ex">—</div></div>
+    <div class="summary-item" id="sum_int_saved_wrap" style="display:none"><div class="si-label">Interest Saved</div><div class="si-val green" id="sum_int_saved">—</div></div>
+    <div class="summary-item"><div class="si-label">Payoff Date (Standard)</div><div class="si-val" id="sum_payoff_std">—</div></div>
+    <div class="summary-item" id="sum_payoff_ex_wrap" style="display:none"><div class="si-label">Payoff Date (w/ Extra)</div><div class="si-val green" id="sum_payoff_ex">—</div></div>
+    <div class="summary-item" id="sum_mo_saved_wrap" style="display:none"><div class="si-label">Months Saved</div><div class="si-val green" id="sum_mo_saved">—</div></div>
+  </div>
+
+  <!-- Chart -->
+  <div class="chart-wrap">
+    <div class="chart-title">Payment Composition Over Time</div>
+    <canvas id="amChart" height="260"></canvas>
+  </div>
+
+  <!-- Schedule -->
+  <div class="card">
+    <div class="card-header blue">
+      Amortization Schedule
+      <span class="extra-badge" id="extra_badge">+ Extra Payments</span>
+    </div>
+    <div class="card-body" style="padding: 16px;">
+      <div class="view-toggle">
+        <button class="vt-btn active" id="btn_yearly" onclick="setView('yearly')">Yearly Summary</button>
+        <button class="vt-btn" id="btn_monthly" onclick="setView('monthly')">Monthly Detail</button>
+      </div>
+      <div class="table-wrap">
+        <table id="am_table">
+          <thead id="am_thead"></thead>
+          <tbody id="am_tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="compliance">
+    This communication is for informational and educational purposes only and does not constitute an offer to lend or a commitment to make a loan. All loans are subject to credit approval, underwriting guidelines, and property approval. Interest rates, payment examples, programs, and terms are illustrative, vary by borrower qualification, and are subject to change without notice. Not all applicants will qualify. Examples shown do not reflect all costs of a mortgage transaction. Consult a licensed tax or legal advisor regarding your individual situation. HomeWealth Solutions LLC is licensed by the Florida Office of Financial Regulation, Mortgage Broker License #MBR8082. Verify our licensure at www.nmlsconsumeraccess.org. Equal Housing Opportunity.
+  </div>
+
+</div>
+
+<script>
+  const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  let amChart = null;
+  let currentView = 'yearly';
+  let storedData = null;
+
+  function fmtD(n) { return '$' + Math.round(Math.abs(n)).toLocaleString('en-US'); }
+  function set(id, v) { document.getElementById(id).textContent = v; }
+  function show(id, vis) { document.getElementById(id).style.display = vis ? '' : 'none'; }
+
+  function fmtDollar(el) {
+    const raw = parseFloat((el.value || '').replace(/[$,]/g, ''));
+    if (!isNaN(raw)) el.value = '$' + Math.round(raw).toLocaleString('en-US');
+  }
+  function clearFmt(el) {
+    const raw = parseFloat((el.value || '').replace(/[$,]/g, ''));
+    if (!isNaN(raw)) el.value = raw;
+  }
+
+  function numVal(id) { return parseFloat((document.getElementById(id).value || '').replace(/[$,%]/g, '')) || 0; }
+
+  function pmtCalc(rate, nper, pv) {
+    if (rate === 0 || nper === 0) return pv / Math.max(nper, 1);
+    const r = rate / 12;
+    return (r * pv) / (1 - Math.pow(1 + r, -nper));
+  }
+
+  function runAmort(startBalance, annualRate, pmt, extraMo, startMoIdx, startYr) {
+    const r = annualRate / 12;
+    let bal = startBalance;
+    let totalInt = 0;
+    let totalPrin = 0;
+    const rows = [];
+    let mo = 0;
+    let moIdx = startMoIdx;
+    let yr = startYr;
+
+    while (bal > 0.01 && mo < 600) {
+      const intCharge = bal * r;
+      let prin = pmt - intCharge + extraMo;
+      if (prin > bal) prin = bal;
+      bal -= prin;
+      bal = Math.max(0, bal);
+      totalInt += intCharge;
+      totalPrin += prin;
+      const label = MONTHS[moIdx] + ' ' + yr;
+      rows.push({ mo: mo + 1, date: label, payment: intCharge + prin, principal: prin, interest: intCharge, balance: bal, cumInt: totalInt });
+      moIdx++;
+      if (moIdx > 11) { moIdx = 0; yr++; }
+      mo++;
+      if (bal < 0.01) break;
+    }
+    return { rows, totalInt, totalPrin, months: mo };
+  }
+
+  function setView(v) {
+    currentView = v;
+    document.getElementById('btn_yearly').classList.toggle('active', v === 'yearly');
+    document.getElementById('btn_monthly').classList.toggle('active', v === 'monthly');
+    if (storedData) renderTable(storedData);
+  }
+
+  function renderTable(data) {
+    const { stdRows, extraRows, hasExtra } = data;
+    const thead = document.getElementById('am_thead');
+    const tbody = document.getElementById('am_tbody');
+
+    if (currentView === 'yearly') {
+      thead.innerHTML = `<tr>
+        <th style="text-align:left">Year</th>
+        <th>Starting Balance</th><th>P&I Paid</th><th>Principal</th><th>Interest</th>
+        <th>Ending Balance</th><th>Cumulative Interest</th>
+        ${hasExtra ? '<th class="green">Bal w/ Extra</th>' : ''}
+      </tr>`;
+
+      // Build yearly summary from stdRows
+      const years = {};
+      stdRows.forEach(r => {
+        const yr = r.date.split(' ')[1];
+        if (!years[yr]) years[yr] = { yr, startBal: 0, paidPI: 0, prin: 0, int: 0, endBal: 0, cumInt: 0 };
+        years[yr].paidPI += r.payment;
+        years[yr].prin += r.principal;
+        years[yr].int += r.interest;
+        years[yr].endBal = r.balance;
+        years[yr].cumInt = r.cumInt;
+      });
+      // Fill startBal
+      const yrKeys = Object.keys(years);
+      yrKeys.forEach((y, i) => {
+        years[y].startBal = i === 0 ? (years[y].prin + years[y].int + years[y].endBal - years[y].int) : 0;
+      });
+      // Simpler: recompute from rows
+      let prevEnd = null;
+      yrKeys.forEach(y => {
+        const firstRow = stdRows.find(r => r.date.split(' ')[1] === y);
+        years[y].startBal = firstRow ? firstRow.balance + firstRow.principal : 0;
+      });
+
+      // Extra payoff by year
+      const exYearEnd = {};
+      if (hasExtra) {
+        extraRows.forEach(r => { exYearEnd[r.date.split(' ')[1]] = r.balance; });
+      }
+
+      tbody.innerHTML = yrKeys.map(y => {
+        const d = years[y];
+        const exBal = hasExtra ? (exYearEnd[y] !== undefined ? exYearEnd[y] : 0) : null;
+        return `<tr>
+          <td>${y}</td>
+          <td>${fmtD(d.startBal)}</td>
+          <td>${fmtD(d.paidPI)}</td>
+          <td>${fmtD(d.prin)}</td>
+          <td>${fmtD(d.int)}</td>
+          <td>${fmtD(d.endBal)}</td>
+          <td>${fmtD(d.cumInt)}</td>
+          ${hasExtra ? `<td class="green">${fmtD(exBal)}</td>` : ''}
+        </tr>`;
+      }).join('');
+
+    } else {
+      thead.innerHTML = `<tr>
+        <th style="text-align:left">#</th>
+        <th>Date</th><th>Payment</th><th>Principal</th><th>Interest</th><th>Balance</th>
+        ${hasExtra ? '<th class="green">Bal w/ Extra</th>' : ''}
+      </tr>`;
+
+      const exBalMap = {};
+      if (hasExtra) extraRows.forEach(r => { exBalMap[r.mo] = r.balance; });
+
+      tbody.innerHTML = stdRows.map(r => `<tr>
+        <td>${r.mo}</td>
+        <td>${r.date}</td>
+        <td>${fmtD(r.payment)}</td>
+        <td>${fmtD(r.principal)}</td>
+        <td>${fmtD(r.interest)}</td>
+        <td>${fmtD(r.balance)}</td>
+        ${hasExtra ? `<td class="green">${exBalMap[r.mo] !== undefined ? fmtD(exBalMap[r.mo]) : '$0'}</td>` : ''}
+      </tr>`).join('');
+    }
+  }
+
+  function calcAM() {
+    const amount = numVal('am_amount');
+    const rate = numVal('am_rate') / 100;
+    const termYrs = numVal('am_term');
+    const termMos = termYrs * 12;
+    const extra = numVal('am_extra');
+    const startMo = parseInt(document.getElementById('am_start_mo').value);
+    const startYr = parseInt(document.getElementById('am_start_yr').value) || 2026;
+    const hasExtra = extra > 0;
+
+    const pmt = pmtCalc(rate, termMos, amount);
+    const std = runAmort(amount, rate, pmt, 0, startMo, startYr);
+    const ex = hasExtra ? runAmort(amount, rate, pmt, extra, startMo, startYr) : null;
+
+    // Summary
+    set('sum_pni', fmtD(pmt));
+    set('sum_int_std', fmtD(std.totalInt));
+    const lastStd = std.rows[std.rows.length - 1];
+    set('sum_payoff_std', lastStd ? lastStd.date : '—');
+
+    show('sum_int_ex_wrap', hasExtra);
+    show('sum_int_saved_wrap', hasExtra);
+    show('sum_payoff_ex_wrap', hasExtra);
+    show('sum_mo_saved_wrap', hasExtra);
+    document.getElementById('extra_badge').classList.toggle('show', hasExtra);
+
+    if (hasExtra && ex) {
+      set('sum_int_ex', fmtD(ex.totalInt));
+      set('sum_int_saved', fmtD(std.totalInt - ex.totalInt));
+      const lastEx = ex.rows[ex.rows.length - 1];
+      set('sum_payoff_ex', lastEx ? lastEx.date : '—');
+      set('sum_mo_saved', std.months - ex.months + ' months');
+    }
+
+    storedData = { stdRows: std.rows, extraRows: ex ? ex.rows : [], hasExtra };
+    renderTable(storedData);
+    buildChart(std.rows, ex ? ex.rows : null, hasExtra);
+  }
+
+  function buildChart(stdRows, exRows, hasExtra) {
+    // Yearly data for chart
+    const maxMos = stdRows.length;
+    const step = Math.max(1, Math.floor(maxMos / 60));
+    const labels = [];
+    const intData = [];
+    const prinData = [];
+    const balData = [];
+    const exBalData = [];
+
+    // Cumulative by year
+    const years = {};
+    stdRows.forEach(r => {
+      const yr = r.date.split(' ')[1];
+      if (!years[yr]) years[yr] = { int: 0, prin: 0, bal: 0 };
+      years[yr].int += r.interest;
+      years[yr].prin += r.principal;
+      years[yr].bal = r.balance;
+    });
+
+    // Map extra balance by date
+    const exBalByDate = {};
+    if (exRows) exRows.forEach(r => exBalByDate[r.date] = r.balance);
+
+    const yrKeys = Object.keys(years);
+    let cumInt = 0, cumPrin = 0;
+    yrKeys.forEach(y => {
+      cumInt += years[y].int;
+      cumPrin += years[y].prin;
+      labels.push(y);
+      intData.push(cumInt);
+      prinData.push(cumPrin);
+      balData.push(years[y].bal);
+      if (hasExtra && exRows) {
+        // find last row in this year
+        const exRow = exRows.filter(r => r.date.split(' ')[1] === y);
+        exBalData.push(exRow.length ? exRow[exRow.length-1].balance : 0);
+      }
+    });
+
+    if (amChart) amChart.destroy();
+    const ctx = document.getElementById('amChart').getContext('2d');
+    const datasets = [
+      {
+        label: 'Cumulative Principal Paid',
+        data: prinData,
+        borderColor: '#8EC73F',
+        backgroundColor: 'rgba(142,199,63,0.12)',
+        borderWidth: 2,
+        fill: true,
+        tension: 0.3,
+        pointRadius: 0
+      },
+      {
+        label: 'Cumulative Interest Paid',
+        data: intData,
+        borderColor: '#2491EB',
+        backgroundColor: 'rgba(36,145,235,0.10)',
+        borderWidth: 2,
+        fill: true,
+        tension: 0.3,
+        pointRadius: 0
+      },
+      {
+        label: 'Remaining Balance',
+        data: balData,
+        borderColor: '#3a4f62',
+        borderWidth: 2,
+        fill: false,
+        tension: 0.3,
+        pointRadius: 0,
+        yAxisID: 'y'
+      }
+    ];
+    if (hasExtra) {
+      datasets.push({
+        label: 'Balance w/ Extra Payments',
+        data: exBalData,
+        borderColor: '#6aaa1f',
+        borderWidth: 2.5,
+        fill: false,
+        tension: 0.3,
+        pointRadius: 0,
+        borderDash: [5, 3]
+      });
+    }
+
+    amChart = new Chart(ctx, {
+      type: 'line',
+      data: { labels, datasets },
+      options: {
+        responsive: true,
+        interaction: { mode: 'index', intersect: false },
+        plugins: {
+          legend: { position: 'top', labels: { font: { size: 12 }, padding: 14 } },
+          tooltip: {
+            callbacks: { label: ctx => `${ctx.dataset.label}: ${fmtD(ctx.parsed.y)}` }
+          }
+        },
+        scales: {
+          x: { title: { display: true, text: 'Year', font: { size: 12 } }, ticks: { maxTicksLimit: 10 } },
+          y: { title: { display: true, text: 'Amount ($)', font: { size: 12 } }, ticks: { callback: v => '$' + (v/1000).toFixed(0) + 'k' } }
+        }
+      }
+    });
+  }
+
+  // Set current month
+  const now = new Date();
+  document.getElementById('am_start_mo').value = now.getMonth();
+  document.getElementById('am_start_yr').value = now.getFullYear();
+
+  calcAM();
+</script>
+
+<!-- HWS Hub back button -->
+<div id="hws-back-btn" style="position:fixed;bottom:20px;right:20px;z-index:99999;">
+  <button onclick="window.close()" style="
+    background:#1a2332;
+    color:white;
+    border:none;
+    border-radius:8px;
+    padding:9px 16px;
+    font-size:13px;
+    font-weight:600;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    gap:7px;
+    box-shadow:0 2px 12px rgba(0,0,0,0.25);
+    opacity:0.85;
+    transition:opacity .15s;
+  " onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.85'">
+    ← Hub
+  </button>
+</div>
+<script src="/hws-session.js"></script>
+</body>
+</html>

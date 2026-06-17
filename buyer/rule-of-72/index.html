@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Rule of 72 — Financial Education — HomeWealth Solutions</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --blue: #2491EB; --blue-light: #e8f4fd; --blue-mid: #c5e1fa;
+      --green: #8EC73F; --green-light: #f0f8e6; --green-dark: #6aaa1f;
+      --dark: #1c2b3a; --mid: #3a4f62; --red: #dc3545; --amber: #e8900a;
+      --purple: #7c3aed; --teal: #0d9488;
+      --gray-100: #f7f8fa; --gray-200: #edf0f4; --gray-300: #d1d8e0;
+      --gray-500: #8892a0; --gray-700: #4a5568; --gray-900: #1a2332;
+      --radius: 10px; --shadow: 0 2px 12px rgba(0,0,0,0.08);
+    }
+    body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--gray-100); color: var(--gray-900); min-height: 100vh; }
+
+    .header { background: var(--dark); color: #fff; padding: 16px 28px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+    .header-left h1 { font-size: 1.15rem; font-weight: 700; }
+    .header-left p { font-size: 0.76rem; opacity: 0.6; margin-top: 2px; }
+    .header-right { display: flex; align-items: center; gap: 10px; }
+    .btn-print { background: rgba(255,255,255,0.12); color: #fff; border: 1px solid rgba(255,255,255,0.25); padding: 7px 16px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-weight: 600; }
+    .btn-print:hover { background: rgba(255,255,255,0.22); }
+    .back-link { color: rgba(255,255,255,0.7); text-decoration: none; font-size: 0.8rem; font-weight: 600; padding: 6px 12px; border: 1.5px solid rgba(255,255,255,0.25); border-radius: 6px; }
+    .back-link:hover { border-color: #fff; color: #fff; }
+    .edu-badge { background: var(--purple); color: white; font-size: 0.7rem; font-weight: 700; padding: 4px 10px; border-radius: 20px; }
+
+    .main { max-width: 960px; margin: 28px auto; padding: 0 20px 60px; }
+
+    .card { background: white; border-radius: var(--radius); box-shadow: var(--shadow); margin-bottom: 20px; overflow: hidden; }
+    .card-header { background: var(--dark); color: white; padding: 11px 20px; font-size: 0.82rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; }
+    .card-header.blue { background: var(--blue); }
+    .card-header.purple { background: var(--purple); }
+    .card-body { padding: 20px; }
+
+    .field-row { display: flex; align-items: center; padding: 9px 0; border-bottom: 1px solid var(--gray-200); gap: 12px; }
+    .field-row:last-child { border-bottom: none; }
+    .field-label { flex: 1; font-size: 0.875rem; color: var(--gray-700); line-height: 1.3; }
+    .field-label small { display: block; font-size: 0.75rem; color: var(--gray-500); margin-top: 2px; }
+    .field-input-wrap { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+    .unit { font-size: 0.8rem; color: var(--gray-500); min-width: 22px; }
+
+    input[type="text"], input[type="number"], input[type="range"] {
+      border-radius: 6px; outline: none;
+    }
+    input[type="text"], input[type="number"] {
+      width: 130px; padding: 7px 10px; border: 1.5px solid var(--blue-mid);
+      font-size: 0.9rem; font-weight: 600; color: var(--blue); text-align: right;
+      background: var(--blue-light);
+    }
+    input:focus { border-color: var(--blue); background: white; }
+    input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; }
+    input[type="range"] { width: 100%; accent-color: var(--blue); height: 6px; cursor: pointer; border: none; background: transparent; }
+
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+    @media(max-width: 620px) { .two-col { grid-template-columns: 1fr; } }
+
+    /* Rule of 72 spotlight */
+    .rule72-spotlight { background: linear-gradient(135deg, var(--dark) 0%, #2d4a6a 100%); border-radius: var(--radius); padding: 28px 32px; margin-bottom: 20px; display: flex; align-items: center; gap: 40px; }
+    .r72-big { text-align: center; flex-shrink: 0; }
+    .r72-number { font-size: 3.5rem; font-weight: 800; color: #f0c060; line-height: 1; }
+    .r72-label { font-size: 0.78rem; color: rgba(255,255,255,0.65); text-transform: uppercase; letter-spacing: 0.06em; margin-top: 4px; }
+    .r72-text { color: white; }
+    .r72-text h3 { font-size: 1.05rem; font-weight: 700; margin-bottom: 8px; }
+    .r72-text p { font-size: 0.88rem; line-height: 1.7; opacity: 0.85; }
+    .r72-text strong { color: #f0c060; }
+    @media(max-width: 640px) { .rule72-spotlight { flex-direction: column; gap: 20px; padding: 20px; } }
+
+    /* Custom calc results */
+    .custom-results { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 20px; }
+    @media(max-width: 700px) { .custom-results { grid-template-columns: 1fr 1fr; } }
+    .metric-box { background: white; border-radius: var(--radius); padding: 16px 18px; box-shadow: var(--shadow); text-align: center; }
+    .metric-val { font-size: 1.45rem; font-weight: 800; color: var(--blue); margin-bottom: 4px; }
+    .metric-val.green { color: var(--green-dark); }
+    .metric-val.purple { color: var(--purple); }
+    .metric-label { font-size: 0.76rem; color: var(--gray-500); line-height: 1.4; }
+
+    /* What-if comparison */
+    .four-col { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 20px; }
+    @media(max-width: 700px) { .four-col { grid-template-columns: 1fr 1fr; } }
+    .rate-col { border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); }
+    .rate-col-hdr { padding: 10px 14px; font-size: 1.1rem; font-weight: 800; text-align: center; color: white; }
+    .rate-col-hdr.r3 { background: #6b7280; }
+    .rate-col-hdr.r5 { background: #0d9488; }
+    .rate-col-hdr.r7 { background: var(--blue); }
+    .rate-col-hdr.r10 { background: var(--green-dark); }
+    .rate-col-hdr.highlighted { outline: 3px solid #f0c060; outline-offset: -2px; }
+    .rate-col-body { background: white; padding: 12px 14px; }
+    .rate-item { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid var(--gray-200); font-size: 0.8rem; color: var(--gray-700); }
+    .rate-item:last-child { border-bottom: none; }
+    .rate-item strong { color: var(--gray-900); font-size: 0.85rem; }
+
+    .horizon-wrap { margin-bottom: 6px; }
+    .horizon-display { font-size: 1.4rem; font-weight: 800; color: var(--blue); text-align: center; margin-bottom: 6px; }
+    .horizon-btns { display: flex; gap: 8px; justify-content: center; margin-bottom: 8px; }
+    .h-btn { padding: 5px 14px; border-radius: 20px; border: 2px solid var(--gray-300); background: white; font-size: 0.82rem; font-weight: 600; cursor: pointer; color: var(--gray-700); }
+    .h-btn:hover, .h-btn.active { background: var(--blue); border-color: var(--blue); color: white; }
+
+    .re-framing { background: #fffbeb; border-left: 4px solid var(--amber); border-radius: 6px; padding: 16px 18px; font-size: 0.85rem; line-height: 1.7; color: var(--gray-700); margin-bottom: 20px; }
+    .re-framing strong { color: var(--amber); }
+
+    .chart-wrap { background: white; border-radius: var(--radius); box-shadow: var(--shadow); padding: 20px; margin-bottom: 20px; }
+    .chart-title { font-size: 0.82rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--gray-500); margin-bottom: 14px; }
+
+    .edu-footer { font-size: 0.72rem; color: var(--gray-500); line-height: 1.65; padding-top: 16px; border-top: 1px solid var(--gray-200); }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <h1>Rule of 72 — Financial Education</h1>
+    <p>HomeWealth Solutions LLC &nbsp;·&nbsp; NMLS #2742458</p>
+  </div>
+  <div class="header-right">
+    <a href="https://tools.homewealthsolutions.com" class="back-link">← Hub</a>
+    <span class="edu-badge">Education</span>
+    <button class="btn-print" onclick="window.print()">Print</button>
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- Inputs -->
+  <div class="two-col">
+    <div class="card">
+      <div class="card-header">Your Numbers</div>
+      <div class="card-body">
+        <div class="field-row">
+          <div class="field-label">Starting Amount <small>Your down payment or initial investment</small></div>
+          <div class="field-input-wrap">
+            <input type="text" id="r72_start" value="$50,000" oninput="calcR72()" onblur="fmtDollar(this)" onfocus="clearFmt(this)">
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field-label">Monthly Contribution</div>
+          <div class="field-input-wrap">
+            <input type="text" id="r72_monthly" value="$0" oninput="calcR72()" onblur="fmtDollar(this)" onfocus="clearFmt(this)">
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field-label">Annual Rate of Return</div>
+          <div class="field-input-wrap">
+            <input type="text" id="r72_rate" value="7.0%" oninput="calcR72()">
+            <span class="unit">%</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header">Time Horizon</div>
+      <div class="card-body">
+        <div class="field-row" style="flex-direction: column; align-items: flex-start; gap: 10px;">
+          <div class="horizon-wrap" style="width:100%">
+            <div class="horizon-display" id="horizon_display">20 years</div>
+            <div class="horizon-btns">
+              <button class="h-btn" onclick="setHorizon(10)">10 yr</button>
+              <button class="h-btn" onclick="setHorizon(15)">15 yr</button>
+              <button class="h-btn active" onclick="setHorizon(20)">20 yr</button>
+              <button class="h-btn" onclick="setHorizon(30)">30 yr</button>
+            </div>
+            <input type="range" id="r72_horizon" min="1" max="40" value="20" oninput="onHorizonSlide()">
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Rule of 72 Spotlight -->
+  <div class="rule72-spotlight">
+    <div class="r72-big">
+      <div class="r72-number" id="r72_doubleyears">10.3</div>
+      <div class="r72-label">years to double</div>
+    </div>
+    <div class="r72-text">
+      <h3 id="r72_headline">The Rule of 72</h3>
+      <p id="r72_explain">At <strong id="r72_rateshow">7.0%</strong>, your <strong id="r72_startshow">$50,000</strong> doubles to <strong id="r72_doubleshow">$100,000</strong> in approximately <strong id="r72_yearsshow">10.3 years</strong>. Simply divide 72 by the rate — no calculator needed. It's a quick mental shortcut used by investors and advisors everywhere.</p>
+    </div>
+  </div>
+
+  <!-- Custom Calc Results -->
+  <div class="custom-results">
+    <div class="metric-box">
+      <div class="metric-val" id="r72_proj_val">—</div>
+      <div class="metric-label">Projected Value at <span id="r72_hor_lbl">20</span> Years</div>
+    </div>
+    <div class="metric-box">
+      <div class="metric-val" id="r72_total_contrib">—</div>
+      <div class="metric-label">Total Contributed (incl. monthly)</div>
+    </div>
+    <div class="metric-box">
+      <div class="metric-val green" id="r72_growth">—</div>
+      <div class="metric-label">Growth (Interest/Gains)</div>
+    </div>
+    <div class="metric-box">
+      <div class="metric-val purple" id="r72_multiple">—</div>
+      <div class="metric-label">Growth Multiple</div>
+    </div>
+  </div>
+
+  <!-- What-If Comparison -->
+  <div class="card">
+    <div class="card-header blue">What-If Rate Comparison at <span id="wif_hor">20</span> Years</div>
+    <div class="card-body" style="padding: 16px;">
+      <div class="four-col">
+        <div class="rate-col" id="col3">
+          <div class="rate-col-hdr r3">3%</div>
+          <div class="rate-col-body">
+            <div class="rate-item"><span>Years to double</span><strong id="wif3_dbl">24.0 yrs</strong></div>
+            <div class="rate-item"><span>Projected value</span><strong id="wif3_val">—</strong></div>
+          </div>
+        </div>
+        <div class="rate-col" id="col5">
+          <div class="rate-col-hdr r5">5%</div>
+          <div class="rate-col-body">
+            <div class="rate-item"><span>Years to double</span><strong id="wif5_dbl">14.4 yrs</strong></div>
+            <div class="rate-item"><span>Projected value</span><strong id="wif5_val">—</strong></div>
+          </div>
+        </div>
+        <div class="rate-col" id="col7">
+          <div class="rate-col-hdr r7">7%</div>
+          <div class="rate-col-body">
+            <div class="rate-item"><span>Years to double</span><strong id="wif7_dbl">10.3 yrs</strong></div>
+            <div class="rate-item"><span>Projected value</span><strong id="wif7_val">—</strong></div>
+          </div>
+        </div>
+        <div class="rate-col" id="col10">
+          <div class="rate-col-hdr r10">10%</div>
+          <div class="rate-col-body">
+            <div class="rate-item"><span>Years to double</span><strong id="wif10_dbl">7.2 yrs</strong></div>
+            <div class="rate-item"><span>Projected value</span><strong id="wif10_val">—</strong></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Real Estate Framing -->
+  <div class="re-framing">
+    <strong>Applied to real estate:</strong> A home appreciating at 4% doubles in value in approximately 18 years. Your down payment — the leveraged piece — can grow even faster as a percentage return because you control the full asset value with a fraction of it in equity. A $50,000 down payment on a $350,000 home that appreciates to $700,000 represents a 13× return on your actual cash invested, even though the property only doubled.
+  </div>
+
+  <!-- Chart -->
+  <div class="chart-wrap">
+    <div class="chart-title">Growth Curves — All Rates Over Selected Horizon</div>
+    <canvas id="r72Chart" height="300"></canvas>
+  </div>
+
+  <div class="edu-footer">
+    This tool is for educational purposes only and does not constitute investment or financial advice. Actual returns vary and are not guaranteed. Past performance does not predict future results. The Rule of 72 is an approximation and may vary slightly from actual compounding calculations. &nbsp;|&nbsp; HomeWealth Solutions LLC &nbsp;·&nbsp; NMLS #2742458
+  </div>
+
+</div>
+
+<script>
+  let r72Chart = null;
+
+  function pct(id) { return parseFloat((document.getElementById(id).value || '').replace(/[%,]/g, '')) / 100 || 0; }
+  function dollar(id) { return parseFloat((document.getElementById(id).value || '').replace(/[$,]/g, '')) || 0; }
+  function num(id) { return parseFloat((document.getElementById(id).value || '').replace(/[$,%]/g, '')) || 0; }
+  function fmtD(n) { return '$' + Math.round(n).toLocaleString('en-US'); }
+  function fmtDK(n) { return n >= 1e6 ? '$' + (n/1e6).toFixed(2) + 'M' : '$' + Math.round(n).toLocaleString('en-US'); }
+  function set(id, v) { document.getElementById(id).textContent = v; }
+
+  function fmtDollar(el) {
+    const raw = parseFloat((el.value || '').replace(/[$,]/g, ''));
+    if (!isNaN(raw)) el.value = '$' + Math.round(raw).toLocaleString('en-US');
+  }
+  function clearFmt(el) {
+    const raw = parseFloat((el.value || '').replace(/[$,]/g, ''));
+    if (!isNaN(raw)) el.value = raw;
+  }
+
+  function projFV(start, monthly, rate, years) {
+    const r = rate / 12;
+    const n = years * 12;
+    const fvLump = start * Math.pow(1 + r, n);
+    const fvAnn = monthly > 0 && r > 0 ? monthly * (Math.pow(1 + r, n) - 1) / r : monthly * n;
+    return fvLump + fvAnn;
+  }
+
+  function setHorizon(yr) {
+    document.getElementById('r72_horizon').value = yr;
+    document.querySelectorAll('.h-btn').forEach((b, i) => {
+      b.classList.toggle('active', [10,15,20,30][i] === yr);
+    });
+    set('horizon_display', yr + ' years');
+    calcR72();
+  }
+
+  function onHorizonSlide() {
+    const v = parseInt(document.getElementById('r72_horizon').value);
+    set('horizon_display', v + ' years');
+    document.querySelectorAll('.h-btn').forEach((b, i) => {
+      b.classList.toggle('active', [10,15,20,30][i] === v);
+    });
+    calcR72();
+  }
+
+  function calcR72() {
+    const start = dollar('r72_start');
+    const monthly = dollar('r72_monthly');
+    const rate = pct('r72_rate');
+    const horizon = parseInt(document.getElementById('r72_horizon').value);
+
+    // Rule of 72
+    const dblYears = rate > 0 ? (72 / (rate * 100)) : Infinity;
+    set('r72_doubleyears', rate > 0 ? dblYears.toFixed(1) : '∞');
+    set('r72_rateshow', (rate * 100).toFixed(1) + '%');
+    set('r72_startshow', fmtD(start));
+    set('r72_doubleshow', fmtD(start * 2));
+    set('r72_yearsshow', rate > 0 ? dblYears.toFixed(1) + ' years' : 'never');
+
+    // Custom calc
+    const projVal = projFV(start, monthly, rate, horizon);
+    const totalContrib = start + monthly * 12 * horizon;
+    const growth = projVal - totalContrib;
+    const multiple = totalContrib > 0 ? (projVal / totalContrib).toFixed(1) + '×' : '—';
+
+    set('r72_proj_val', fmtDK(projVal));
+    set('r72_total_contrib', fmtDK(totalContrib));
+    set('r72_growth', fmtDK(growth));
+    set('r72_multiple', multiple);
+    set('r72_hor_lbl', horizon);
+    set('wif_hor', horizon);
+
+    // What-if columns
+    const rates = [0.03, 0.05, 0.07, 0.10];
+    const ids = ['3', '5', '7', '10'];
+    rates.forEach((r, i) => {
+      const dbl = (72 / (r * 100)).toFixed(1) + ' yrs';
+      set('wif' + ids[i] + '_dbl', dbl);
+      set('wif' + ids[i] + '_val', fmtDK(projFV(start, monthly, r, horizon)));
+    });
+
+    // Highlight the column closest to user's rate
+    const userRatePct = rate * 100;
+    const diffs = rates.map(r => Math.abs(r * 100 - userRatePct));
+    const minIdx = diffs.indexOf(Math.min(...diffs));
+    ['col3','col5','col7','col10'].forEach((id, i) => {
+      const hdr = document.getElementById(id).querySelector('.rate-col-hdr');
+      hdr.classList.toggle('highlighted', i === minIdx);
+    });
+
+    buildChart(start, monthly, horizon);
+  }
+
+  function buildChart(start, monthly, horizonYrs) {
+    const colors = ['#6b7280', '#0d9488', '#2491EB', '#6aaa1f'];
+    const rates = [0.03, 0.05, 0.07, 0.10];
+    const labels = [0, 5, 10, 15, 20, 25, 30].filter(y => y <= horizonYrs + 1);
+    const fullLabels = [];
+    for (let y = 0; y <= horizonYrs; y++) fullLabels.push(y);
+
+    if (r72Chart) r72Chart.destroy();
+    const ctx = document.getElementById('r72Chart').getContext('2d');
+    r72Chart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: fullLabels,
+        datasets: rates.map((r, i) => ({
+          label: (r * 100) + '% Return',
+          data: fullLabels.map(y => projFV(start, monthly, r, y)),
+          borderColor: colors[i],
+          borderWidth: 2.5,
+          fill: false,
+          tension: 0.3,
+          pointRadius: 0
+        }))
+      },
+      options: {
+        responsive: true,
+        interaction: { mode: 'index', intersect: false },
+        plugins: {
+          legend: { position: 'top', labels: { font: { size: 12 }, padding: 16 } },
+          tooltip: {
+            callbacks: {
+              label: ctx => `${ctx.dataset.label}: ${fmtDK(ctx.parsed.y)}`
+            }
+          }
+        },
+        scales: {
+          x: {
+            title: { display: true, text: 'Years', font: { size: 12 } }
+          },
+          y: {
+            title: { display: true, text: 'Value ($)', font: { size: 12 } },
+            ticks: { callback: v => v >= 1e6 ? '$' + (v/1e6).toFixed(1) + 'M' : '$' + (v/1000).toFixed(0) + 'k' }
+          }
+        }
+      }
+    });
+  }
+
+  calcR72();
+</script>
+
+<!-- HWS Hub back button -->
+<div id="hws-back-btn" style="position:fixed;bottom:20px;right:20px;z-index:99999;">
+  <button onclick="window.close()" style="
+    background:#1a2332;
+    color:white;
+    border:none;
+    border-radius:8px;
+    padding:9px 16px;
+    font-size:13px;
+    font-weight:600;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    gap:7px;
+    box-shadow:0 2px 12px rgba(0,0,0,0.25);
+    opacity:0.85;
+    transition:opacity .15s;
+  " onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.85'">
+    ← Hub
+  </button>
+</div>
+<script src="/hws-session.js"></script>
+</body>
+</html>

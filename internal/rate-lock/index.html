@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rate Lock Decision Cheat Sheet — HomeWealth Solutions</title>
+<style>
+:root {
+  --blue: #2491EB;
+  --green: #8EC73F;
+  --dark: #1c2b3a;
+  --mid: #3a4f62;
+  --red: #dc3545;
+  --green-bg: #f0f9e4;
+  --red-bg: #fff0f0;
+  --blue-bg: #eaf5fe;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+  background: #f5f7fa;
+  color: #222;
+  font-size: 14px;
+}
+
+/* ── Header ── */
+.hdr {
+  background: var(--dark);
+  color: white;
+  padding: 18px 28px 16px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+}
+.hdr-brand { font-size: 12px; color: rgba(255,255,255,.5); letter-spacing: .4px; }
+.hdr-title { font-size: 21px; font-weight: 700; margin-top: 3px; }
+.hdr-sub { font-size: 12px; color: rgba(255,255,255,.45); margin-top: 3px; }
+.hdr-right { text-align: right; font-size: 12px; color: rgba(255,255,255,.5); }
+.hdr-right strong { display: block; color: rgba(255,255,255,.85); font-size: 13px; }
+.print-btn {
+  background: transparent;
+  border: 1.5px solid rgba(255,255,255,.4);
+  color: rgba(255,255,255,.85);
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-size: 12px;
+  cursor: pointer;
+  margin-bottom: 6px;
+  white-space: nowrap;
+}
+.print-btn:hover { background: rgba(255,255,255,.1); }
+
+/* ── Main ── */
+.main { max-width: 1100px; margin: 0 auto; padding: 20px 18px 48px; }
+
+/* ── Section titles ── */
+.section-title {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--mid);
+  border-bottom: 2px solid #e0e4ea;
+  padding-bottom: 7px;
+  margin-bottom: 14px;
+  margin-top: 26px;
+}
+
+/* ── Cards ── */
+.card {
+  background: white;
+  border-radius: 10px;
+  padding: 16px 18px;
+  box-shadow: 0 1px 5px rgba(0,0,0,.07);
+}
+
+/* ── Grids ── */
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: start; }
+
+/* ── Decision steps ── */
+.decision-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 11px 0;
+  border-bottom: 1px solid #f2f2f2;
+}
+.decision-step:last-child { border-bottom: none; }
+.step-num {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  background: var(--blue);
+  color: white;
+  font-weight: 800;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+.step-q { font-weight: 700; color: #111; margin-bottom: 5px; font-size: 13px; }
+.step-detail { font-size: 12px; color: #555; line-height: 1.55; }
+.tag {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .3px;
+}
+.tag-lock   { background: #ffe5e5; color: var(--red); }
+.tag-float  { background: var(--green-bg); color: #3c6e10; }
+.tag-watch  { background: #fff3cd; color: #7a5c00; }
+
+/* ── 12bp box ── */
+.threshold-box {
+  background: var(--dark);
+  color: white;
+  border-radius: 10px;
+  padding: 18px 18px 14px;
+  text-align: center;
+}
+.threshold-num { font-size: 56px; font-weight: 900; color: var(--red); line-height: 1; }
+.threshold-label { font-size: 13px; color: rgba(255,255,255,.75); margin-top: 4px; font-weight: 600; }
+.threshold-sub { font-size: 11px; color: rgba(255,255,255,.4); margin-top: 10px; line-height: 1.55; }
+
+/* ── Coupon table ── */
+.coupon-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.coupon-table th { background: var(--blue-bg); color: var(--mid); font-weight: 700; padding: 7px 10px; text-align: left; font-size: 11px; letter-spacing: .3px; }
+.coupon-table td { padding: 7px 10px; border-bottom: 1px solid #f0f0f0; }
+.coupon-table tr:last-child td { border-bottom: none; }
+
+/* ── Western signals ── */
+.signal-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 9px 0;
+  border-bottom: 1px solid #f5f5f5;
+  font-size: 12px;
+}
+.signal-row:first-child { padding-top: 0; }
+.signal-row:last-child  { border-bottom: none; padding-bottom: 0; }
+.signal-badge {
+  flex-shrink: 0;
+  font-size: 10px;
+  font-weight: 800;
+  padding: 2px 7px;
+  border-radius: 3px;
+  margin-top: 1px;
+  letter-spacing: .3px;
+}
+.badge-bull { background: var(--green-bg); color: #3c6e10; }
+.badge-bear { background: #ffe5e5; color: var(--red); }
+.badge-info { background: var(--blue-bg); color: #1055a0; }
+.signal-name  { font-weight: 700; color: #111; font-size: 12px; }
+.signal-detail { color: #555; margin-top: 2px; line-height: 1.5; }
+
+/* ── Confluence box ── */
+.confluence-box {
+  background: linear-gradient(135deg, #1c2b3a 0%, #253c50 100%);
+  color: white;
+  border-radius: 10px;
+  padding: 16px 20px;
+}
+.confluence-box h4 { font-size: 13px; color: var(--green); margin-bottom: 12px; font-weight: 800; letter-spacing: .3px; text-transform: uppercase; }
+.ci { display: flex; align-items: flex-start; gap: 9px; margin-bottom: 9px; font-size: 12px; color: rgba(255,255,255,.82); line-height: 1.5; }
+.ci:last-child { margin-bottom: 0; }
+.ci-ico { font-size: 14px; flex-shrink: 0; }
+
+/* ── Candlestick grid ── */
+.candle-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 10px;
+}
+.candle-card {
+  background: white;
+  border-radius: 8px;
+  padding: 12px 8px 10px;
+  box-shadow: 0 1px 4px rgba(0,0,0,.07);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.candle-card.bullish { border-top: 3px solid var(--green); }
+.candle-card.bearish { border-top: 3px solid var(--red); }
+.candle-card.neutral { border-top: 3px solid #aaa; }
+.candle-name  { font-size: 11px; font-weight: 800; color: #111; margin-bottom: 6px; line-height: 1.3; }
+.candle-svg   { margin: 4px 0; }
+.candle-signal { font-size: 10px; font-weight: 800; margin-top: 6px; }
+.candle-card.bullish .candle-signal { color: #3c6e10; }
+.candle-card.bearish .candle-signal { color: var(--red); }
+.candle-card.neutral .candle-signal { color: #666; }
+.candle-desc { font-size: 10px; color: #777; margin-top: 4px; line-height: 1.4; }
+
+/* ── MBS context note ── */
+.mbs-note {
+  background: var(--blue-bg);
+  border-left: 4px solid var(--blue);
+  border-radius: 0 8px 8px 0;
+  padding: 10px 14px;
+  font-size: 12px;
+  color: #1055a0;
+  margin-bottom: 14px;
+  line-height: 1.5;
+}
+
+/* ── Economic table ── */
+.eco-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.eco-table th {
+  background: #f5f7fa;
+  color: var(--mid);
+  font-weight: 700;
+  padding: 8px 12px;
+  text-align: left;
+  border-bottom: 2px solid #e0e4ea;
+  font-size: 11px;
+  letter-spacing: .3px;
+  text-transform: uppercase;
+}
+.eco-table td { padding: 9px 12px; border-bottom: 1px solid #f0f0f0; vertical-align: top; line-height: 1.5; }
+.eco-table tr:last-child td { border-bottom: none; }
+.eco-impact { display: inline-block; padding: 2px 7px; border-radius: 3px; font-size: 10px; font-weight: 800; }
+.impact-high { background: #ffe5e5; color: var(--red); }
+.impact-med  { background: #fff3cd; color: #7a5c00; }
+
+/* ── Footer ── */
+.footer-note { margin-top: 22px; font-size: 11px; color: #aaa; text-align: center; line-height: 1.6; }
+
+/* ── Print ── */
+@media print {
+  body { background: white; font-size: 11px; }
+  .main { padding: 0; max-width: 100%; }
+  .print-btn { display: none !important; }
+  .card, .threshold-box, .confluence-box { box-shadow: none; border: 1px solid #ddd; }
+  .candle-card { box-shadow: none; border: 1px solid #e0e0e0; border-top-width: 3px; }
+  .section-title { margin-top: 18px; }
+}
+
+/* ── Mobile ── */
+@media (max-width: 700px) {
+  .grid-2 { grid-template-columns: 1fr; }
+  .candle-grid { grid-template-columns: repeat(3, 1fr); }
+  .hdr-right { display: none; }
+  .eco-table th:nth-child(2), .eco-table td:nth-child(2) { display: none; }
+}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div>
+    <div class="hdr-brand">HomeWealth Solutions LLC &nbsp;·&nbsp; NMLS #2742458</div>
+    <div class="hdr-title">Rate Lock Decision Cheat Sheet</div>
+    <div class="hdr-sub">MBS Monitoring &nbsp;·&nbsp; Technical Signals &nbsp;·&nbsp; Candlestick Patterns &nbsp;·&nbsp; Economic Reports</div>
+  </div>
+  <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px">
+    <button class="print-btn" onclick="window.print()">🖨 Print / Save PDF</button>
+    <div class="hdr-right">
+      Doug Smith, CMA®<br>
+      <strong>813-733-7371</strong><br>
+      doug@homewealthsolutions.com
+    </div>
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- ═══ LOCK DECISION FRAMEWORK ═══ -->
+  <div class="section-title">Lock Decision Framework — Ask These 4 Questions</div>
+  <div class="grid-2">
+
+    <div class="card">
+      <div class="decision-step">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <div class="step-q">How far are MBS from lender's opening price?</div>
+          <div class="step-detail">
+            <span class="tag tag-lock">LOCK</span>&nbsp; ≥ 12bp below lender's pricing time → reprice risk is real<br>
+            <span class="tag tag-watch" style="margin-top:4px;margin-left:0">WATCH</span>&nbsp; 6–11bp below → monitor closely, don't leave unattended<br>
+            <span class="tag tag-float" style="margin-top:4px;margin-left:0">FLOAT</span>&nbsp; Within 5bp → minimal risk, technicals can guide decision
+          </div>
+        </div>
+      </div>
+      <div class="decision-step">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <div class="step-q">What are the technicals showing?</div>
+          <div class="step-detail">Is price at a support level with a reversal signal (bullish hammer, engulfing) — or is it breaking down with no bottom signal? See candlestick and signal sections below.</div>
+        </div>
+      </div>
+      <div class="decision-step">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <div class="step-q">How many signals are in confluence?</div>
+          <div class="step-detail">
+            <span class="tag tag-float" style="margin-left:0">FLOAT</span>&nbsp; Bullish candle + oversold stochastic + Fibonacci support = high-probability bounce<br>
+            <span class="tag tag-lock" style="margin-top:4px;margin-left:0">LOCK</span>&nbsp; Bearish candle + below 200-day MA + at resistance = continuation likely
+          </div>
+        </div>
+      </div>
+      <div class="decision-step">
+        <div class="step-num">4</div>
+        <div class="step-body">
+          <div class="step-q">What's the macro backdrop?</div>
+          <div class="step-detail">
+            <span class="tag tag-lock" style="margin-left:0">LOCK</span>&nbsp; Major data release imminent (NFP, CPI) with no clear signal yet<br>
+            <span class="tag tag-float" style="margin-top:4px;margin-left:0">FLOAT</span>&nbsp; Reports are behind us, favorable reversal at support, soft data tone<br>
+            <span class="tag tag-lock" style="margin-top:4px;margin-left:0">LOCK</span>&nbsp; No identifiable bottom signal + continued downtrend = don't wait
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div class="threshold-box">
+        <div class="threshold-num">12bp</div>
+        <div class="threshold-label">below lender's opening price = reprice risk</div>
+        <div class="threshold-sub">
+          Track MBS price vs. the time your lender issued pricing — not the day's open.<br>
+          Day change can be misleading if lender priced mid-morning and MBS have moved since then.<br><br>
+          Threshold varies by lender (~10–15bp). Know your lender's typical trigger.
+        </div>
+      </div>
+
+      <div class="card">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--mid);margin-bottom:10px">Which MBS Coupon to Monitor</div>
+        <table class="coupon-table">
+          <thead><tr><th>Current Mortgage Rate Range</th><th>Watch This UMBS Coupon</th></tr></thead>
+          <tbody>
+            <tr><td>5.00% – 5.75%</td><td><strong>UMBS 4.0% – 4.5%</strong></td></tr>
+            <tr><td>5.75% – 6.25%</td><td><strong>UMBS 4.5% – 5.0%</strong></td></tr>
+            <tr><td>6.25% – 6.75%</td><td><strong>UMBS 5.0% – 5.5%</strong></td></tr>
+            <tr><td>6.75% – 7.25%</td><td><strong>UMBS 5.5% – 6.0%</strong></td></tr>
+            <tr><td>7.25% – 8.00%</td><td><strong>UMBS 6.0% – 6.5%</strong></td></tr>
+          </tbody>
+        </table>
+        <div style="font-size:10px;color:#999;margin-top:9px;line-height:1.5">Rule: MBS coupon ≈ mortgage rate − 1.0% to 1.5%&nbsp; ·&nbsp; If Fed is active MBS buyer, check newyorkfed.org and follow their target coupon</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ WESTERN TECHNICAL SIGNALS ═══ -->
+  <div class="section-title">Western Technical Signals</div>
+  <div class="grid-2">
+    <div class="card">
+      <div class="signal-row">
+        <div><div class="signal-badge badge-bull">BULL</div></div>
+        <div>
+          <div class="signal-name">Golden Cross</div>
+          <div class="signal-detail">50-day MA crosses <em>above</em> 200-day MA → strong, sustained uptrend. Prices up = rates falling. Often marks a long-term sea change. Float-friendly environment.</div>
+        </div>
+      </div>
+      <div class="signal-row">
+        <div><div class="signal-badge badge-bear">BEAR</div></div>
+        <div>
+          <div class="signal-name">Death Cross</div>
+          <div class="signal-detail">50-day MA crosses <em>below</em> 200-day MA → sustained downtrend. Prices falling = rates rising. Strong signal to lock; expect continued deterioration.</div>
+        </div>
+      </div>
+      <div class="signal-row">
+        <div><div class="signal-badge badge-bull">BULL</div></div>
+        <div>
+          <div class="signal-name">Support Level Hold</div>
+          <div class="signal-detail">Price bounces at a proven floor — buying demand reasserting. The more times a level has held, the stronger it is. Watch for bullish candle confirmation before floating.</div>
+        </div>
+      </div>
+      <div class="signal-row">
+        <div><div class="signal-badge badge-bear">BEAR</div></div>
+        <div>
+          <div class="signal-name">Resistance Rejection / Double Top</div>
+          <div class="signal-detail">Price fails at a ceiling twice → sellers accumulated; strong resistance established. Broken support also flips to future resistance (Rule of Polarity).</div>
+        </div>
+      </div>
+      <div class="signal-row">
+        <div><div class="signal-badge badge-info">INFO</div></div>
+        <div>
+          <div class="signal-name">Gaps / Windows</div>
+          <div class="signal-detail">Gap higher (open above prior close) = bullish premarket news. Gap lower = bearish. Top of a Falling Window becomes resistance; bottom of a Rising Window becomes support.</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div class="card">
+        <div class="signal-row">
+          <div><div class="signal-badge badge-info">INFO</div></div>
+          <div>
+            <div class="signal-name">Moving Averages (25 / 50 / 100 / 200-day)</div>
+            <div class="signal-detail">Price above MA = bullish. Below MA = bearish. Longer MA = stronger signal. 200-day breaks tend to hold for extended periods.</div>
+          </div>
+        </div>
+        <div class="signal-row">
+          <div><div class="signal-badge badge-info">INFO</div></div>
+          <div>
+            <div class="signal-name">Leash Effect (25-day MA)</div>
+            <div class="signal-detail">When price strays far from the 25-day MA, it tends to snap back — like a dog on a leash. Extreme extension = reversal warning in either direction.</div>
+          </div>
+        </div>
+        <div class="signal-row">
+          <div><div class="signal-badge badge-info">INFO</div></div>
+          <div>
+            <div class="signal-name">Fibonacci Retracements</div>
+            <div class="signal-detail">Key levels: 23.6%, 38.2%, 50%, 61.8%, 76.4%. Price often stalls or reverses here. Use the most recent meaningful high/low as your anchor. Back-test to confirm validity.</div>
+          </div>
+        </div>
+        <div class="signal-row">
+          <div><div class="signal-badge badge-info">INFO</div></div>
+          <div>
+            <div class="signal-name">Slow Stochastic</div>
+            <div class="signal-detail">%K ≥ 80 = overbought &nbsp;·&nbsp; %K ≤ 20 = oversold.<br>
+            <strong>Float signal</strong>: %K crosses above %D from oversold zone.<br>
+            <strong>Lock signal</strong>: %K crosses below %D from overbought zone.<br>
+            Slow Stochastic (smoothed) gives fewer false signals than Fast.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="confluence-box">
+        <h4>⚡ Confluence = Confidence</h4>
+        <div class="ci"><span class="ci-ico">📍</span><span>A candle signal AT a Fibonacci level or moving average is far more powerful than either signal alone.</span></div>
+        <div class="ci"><span class="ci-ico">🔒</span><span><strong>Lock:</strong> Bearish candle + below 200-day MA + at resistance + overbought stochastic</span></div>
+        <div class="ci"><span class="ci-ico">🟢</span><span><strong>Float:</strong> Bullish candle + oversold stochastic + at Fibonacci support level</span></div>
+        <div class="ci"><span class="ci-ico">⚠️</span><span>One signal alone = proceed with caution. Three aligned signals = act with confidence. Can't unlock a loan.</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ CANDLESTICK PATTERNS ═══ -->
+  <div class="section-title">Candlestick Patterns — Quick Reference</div>
+  <div class="mbs-note">
+    <strong>MBS context:</strong> In MBS/bond charts, <strong>bullish patterns = prices rising = rates falling</strong> (float opportunity). <strong>Bearish patterns = prices falling = rates rising</strong> (lock signal). Always confirm with context — a bullish candle in a downtrend without additional confluence is not enough on its own.
+  </div>
+
+  <div class="candle-grid">
+
+    <!-- Bullish Engulfing -->
+    <div class="candle-card bullish">
+      <div class="candle-name">Bullish Engulfing</div>
+      <svg class="candle-svg" width="54" height="68" viewBox="0 0 54 68">
+        <line x1="15" y1="6"  x2="15" y2="12" stroke="#dc3545" stroke-width="1.5"/>
+        <rect x="10" y="12" width="10" height="14" fill="#dc3545" rx="1"/>
+        <line x1="15" y1="26" x2="15" y2="32" stroke="#dc3545" stroke-width="1.5"/>
+        <line x1="38" y1="14" x2="38" y2="22" stroke="#28a745" stroke-width="1.5"/>
+        <rect x="33" y="22" width="10" height="26" fill="#28a745" rx="1"/>
+        <line x1="38" y1="48" x2="38" y2="56" stroke="#28a745" stroke-width="1.5"/>
+      </svg>
+      <div class="candle-signal">↑ BULLISH REVERSAL</div>
+      <div class="candle-desc">After downtrend. Large green body engulfs the prior red body.</div>
+    </div>
+
+    <!-- Bearish Engulfing -->
+    <div class="candle-card bearish">
+      <div class="candle-name">Bearish Engulfing</div>
+      <svg class="candle-svg" width="54" height="68" viewBox="0 0 54 68">
+        <line x1="15" y1="10" x2="15" y2="16" stroke="#28a745" stroke-width="1.5"/>
+        <rect x="10" y="16" width="10" height="14" fill="#28a745" rx="1"/>
+        <line x1="15" y1="30" x2="15" y2="36" stroke="#28a745" stroke-width="1.5"/>
+        <line x1="38" y1="6"  x2="38" y2="14" stroke="#dc3545" stroke-width="1.5"/>
+        <rect x="33" y="14" width="10" height="26" fill="#dc3545" rx="1"/>
+        <line x1="38" y1="40" x2="38" y2="48" stroke="#dc3545" stroke-width="1.5"/>
+      </svg>
+      <div class="candle-signal">↓ BEARISH REVERSAL</div>
+      <div class="candle-desc">After uptrend. Large red body engulfs the prior green body.</div>
+    </div>
+
+    <!-- Hammer -->
+    <div class="candle-card bullish">
+      <div class="candle-name">Hammer</div>
+      <svg class="candle-svg" width="30" height="68" viewBox="0 0 30 68">
+        <line x1="15" y1="6"  x2="15" y2="14" stroke="#28a745" stroke-width="1.5"/>
+        <rect x="10" y="14" width="10" height="10" fill="#28a745" rx="1"/>
+        <line x1="15" y1="24" x2="15" y2="62" stroke="#28a745" stroke-width="1.5"/>
+      </svg>
+      <div class="candle-signal">↑ BOTTOM REVERSAL</div>
+      <div class="candle-desc">After downtrend. Long lower wick (≥2× body). Bulls rejected the lows.</div>
+    </div>
+
+    <!-- Hanging Man -->
+    <div class="candle-card bearish">
+      <div class="candle-name">Hanging Man</div>
+      <svg class="candle-svg" width="30" height="68" viewBox="0 0 30 68">
+        <line x1="15" y1="6"  x2="15" y2="14" stroke="#dc3545" stroke-width="1.5"/>
+        <rect x="10" y="14" width="10" height="10" fill="#dc3545" rx="1"/>
+        <line x1="15" y1="24" x2="15" y2="62" stroke="#dc3545" stroke-width="1.5"/>
+      </svg>
+      <div class="candle-signal">↓ TOP REVERSAL</div>
+      <div class="candle-desc">After uptrend. Same shape as hammer. Bears first attempt at control.</div>
+    </div>
+
+    <!-- Inverted Hammer -->
+    <div class="candle-card bullish">
+      <div class="candle-name">Inverted Hammer</div>
+      <svg class="candle-svg" width="30" height="68" viewBox="0 0 30 68">
+        <line x1="15" y1="6"  x2="15" y2="40" stroke="#28a745" stroke-width="1.5"/>
+        <rect x="10" y="40" width="10" height="10" fill="#28a745" rx="1"/>
+        <line x1="15" y1="50" x2="15" y2="58" stroke="#28a745" stroke-width="1.5"/>
+      </svg>
+      <div class="candle-signal">↑ BOTTOM PROBE</div>
+      <div class="candle-desc">After downtrend. Long upper wick. Bulls probing upside from lows.</div>
+    </div>
+
+    <!-- Shooting Star -->
+    <div class="candle-card bearish">
+      <div class="candle-name">Shooting Star</div>
+      <svg class="candle-svg" width="30" height="68" viewBox="0 0 30 68">
+        <line x1="15" y1="6"  x2="15" y2="38" stroke="#dc3545" stroke-width="1.5"/>
+        <rect x="10" y="38" width="10" height="10" fill="#dc3545" rx="1"/>
+        <line x1="15" y1="48" x2="15" y2="58" stroke="#dc3545" stroke-width="1.5"/>
+      </svg>
+      <div class="candle-signal">↓ TOP REVERSAL</div>
+      <div class="candle-desc">After uptrend. Long upper wick. Bears took over intraday.</div>
+    </div>
+
+    <!-- Doji -->
+    <div class="candle-card neutral">
+      <div class="candle-name">Doji</div>
+      <svg class="candle-svg" width="30" height="68" viewBox="0 0 30 68">
+        <line x1="15" y1="6"  x2="15" y2="32" stroke="#666" stroke-width="1.5"/>
+        <rect x="6"  y="32" width="18" height="3" fill="#666" rx="1"/>
+        <line x1="15" y1="35" x2="15" y2="62" stroke="#666" stroke-width="1.5"/>
+      </svg>
+      <div class="candle-signal">⚡ INDECISION</div>
+      <div class="candle-desc">Open ≈ close. Neither bulls nor bears in control. Direction on next candle.</div>
+    </div>
+
+    <!-- Morning Star -->
+    <div class="candle-card bullish">
+      <div class="candle-name">Morning Star</div>
+      <svg class="candle-svg" width="80" height="68" viewBox="0 0 80 68">
+        <line x1="14" y1="6"  x2="14" y2="14" stroke="#dc3545" stroke-width="1.5"/>
+        <rect x="9"  y="14" width="10" height="22" fill="#dc3545" rx="1"/>
+        <line x1="14" y1="36" x2="14" y2="44" stroke="#dc3545" stroke-width="1.5"/>
+        <line x1="40" y1="32" x2="40" y2="38" stroke="#888" stroke-width="1.5"/>
+        <rect x="35" y="38" width="10" height="6" fill="#888" rx="1"/>
+        <line x1="40" y1="44" x2="40" y2="50" stroke="#888" stroke-width="1.5"/>
+        <line x1="66" y1="14" x2="66" y2="22" stroke="#28a745" stroke-width="1.5"/>
+        <rect x="61" y="22" width="10" height="22" fill="#28a745" rx="1"/>
+        <line x1="66" y1="44" x2="66" y2="52" stroke="#28a745" stroke-width="1.5"/>
+      </svg>
+      <div class="candle-signal">↑ BULLISH REVERSAL</div>
+      <div class="candle-desc">3-day: long red → small body → long green. Sellers exhausting.</div>
+    </div>
+
+    <!-- Evening Star -->
+    <div class="candle-card bearish">
+      <div class="candle-name">Evening Star</div>
+      <svg class="candle-svg" width="80" height="68" viewBox="0 0 80 68">
+        <line x1="14" y1="14" x2="14" y2="22" stroke="#28a745" stroke-width="1.5"/>
+        <rect x="9"  y="22" width="10" height="22" fill="#28a745" rx="1"/>
+        <line x1="14" y1="44" x2="14" y2="52" stroke="#28a745" stroke-width="1.5"/>
+        <line x1="40" y1="14" x2="40" y2="20" stroke="#888" stroke-width="1.5"/>
+        <rect x="35" y="20" width="10" height="6" fill="#888" rx="1"/>
+        <line x1="40" y1="26" x2="40" y2="32" stroke="#888" stroke-width="1.5"/>
+        <line x1="66" y1="6"  x2="66" y2="14" stroke="#dc3545" stroke-width="1.5"/>
+        <rect x="61" y="14" width="10" height="22" fill="#dc3545" rx="1"/>
+        <line x1="66" y1="36" x2="66" y2="44" stroke="#dc3545" stroke-width="1.5"/>
+      </svg>
+      <div class="candle-signal">↓ BEARISH REVERSAL</div>
+      <div class="candle-desc">3-day: long green → small body → long red. Buyers fading.</div>
+    </div>
+
+  </div>
+
+  <!-- ═══ ECONOMIC REPORTS ═══ -->
+  <div class="section-title">Key Economic Reports — Rate Impact</div>
+  <div class="card" style="padding:0;overflow:hidden">
+    <table class="eco-table">
+      <thead>
+        <tr>
+          <th style="width:22%">Report</th>
+          <th style="width:20%">Release Schedule</th>
+          <th style="width:8%">Impact</th>
+          <th>Rate Effect &amp; Notes</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>BLS Non-Farm Payrolls</strong></td>
+          <td>First Friday of month, 8:30am ET</td>
+          <td><span class="eco-impact impact-high">HIGH</span></td>
+          <td>Strong jobs → <em>rates rise</em>. Weak jobs → <em>rates fall</em>. Biggest single report for mortgage rates. Lock before if uncertain.</td>
+        </tr>
+        <tr>
+          <td><strong>CPI</strong></td>
+          <td>~Mid-month, 8:30am ET</td>
+          <td><span class="eco-impact impact-high">HIGH</span></td>
+          <td>Hot CPI → <em>rates rise</em>. Cool CPI → <em>rates fall</em>. Core CPI (ex food/energy) is what the market focuses on. Second biggest mover.</td>
+        </tr>
+        <tr>
+          <td><strong>Core PCE Deflator</strong></td>
+          <td>Last week of month</td>
+          <td><span class="eco-impact impact-high">HIGH</span></td>
+          <td>Fed's preferred inflation measure. Target = 2% YoY. Same directional logic as CPI. PCE typically runs 0.25–0.5% below CPI.</td>
+        </tr>
+        <tr>
+          <td><strong>FOMC Statement</strong></td>
+          <td>8 meetings/year, 2pm ET</td>
+          <td><span class="eco-impact impact-high">HIGH</span></td>
+          <td>Hawkish tone → <em>rates rise</em>. Dovish → <em>rates fall</em>. Dot Plot quarterly. Minutes 3 weeks later. Don't leave locks open day of meeting.</td>
+        </tr>
+        <tr>
+          <td><strong>ADP Private Payrolls</strong></td>
+          <td>Wednesday before NFP, 8:15am ET</td>
+          <td><span class="eco-impact impact-med">MED</span></td>
+          <td>Preview of Friday's BLS report. Strong ADP = caution before Friday. Correlation with NFP is imperfect but directionally useful.</td>
+        </tr>
+        <tr>
+          <td><strong>Initial Jobless Claims</strong></td>
+          <td>Every Thursday, 8:30am ET</td>
+          <td><span class="eco-impact impact-med">MED</span></td>
+          <td>Rising claims → labor softening → rates potentially <em>fall</em>. Early warning indicator. Big surprises can move MBS 20–30bp.</td>
+        </tr>
+        <tr>
+          <td><strong>GDP (Quarterly)</strong></td>
+          <td>Advance, revised, final estimates</td>
+          <td><span class="eco-impact impact-med">MED</span></td>
+          <td>Strong GDP → inflationary → <em>rates rise</em>. Negative GDP → recession fear → <em>rates fall</em>. Advance estimate creates the most movement.</td>
+        </tr>
+        <tr>
+          <td><strong>Treasury Auctions (10yr/30yr)</strong></td>
+          <td>Monthly; results ~1pm ET</td>
+          <td><span class="eco-impact impact-med">MED</span></td>
+          <td>Weak auction (low demand, few indirect bidders) → yields rise → <em>mortgage rates rise</em>. Watch indirect bidder % as the key health metric.</td>
+        </tr>
+        <tr>
+          <td><strong>PPI</strong></td>
+          <td>~Mid-month, day before CPI</td>
+          <td><span class="eco-impact impact-med">MED</span></td>
+          <td>Leading indicator for CPI — cost pressure at production level feeds through to consumer prices 1–2 months later. Sets expectations for CPI day.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="footer-note">
+    Source: CMA® curriculum — Barry Habib / MBS Highway &nbsp;·&nbsp; CMPS® coursework &nbsp;·&nbsp; HomeWealth Solutions LLC, NMLS #2742458 &nbsp;·&nbsp; Doug Smith, CMA® NMLS #2609118
+  </div>
+
+</div>
+<a href="javascript:window.close()" id="hws-hub-btn" style="position:fixed;top:14px;right:16px;z-index:9999;background:#1c2b3a;color:rgba(255,255,255,0.9);text-decoration:none;font-size:12px;font-weight:700;padding:6px 14px;border-radius:8px;font-family:-apple-system,BlinkMacSystemFont,sans-serif;letter-spacing:0.2px;box-shadow:0 2px 8px rgba(0,0,0,0.25);">← Hub</a>
+
+<!-- HWS Hub back button -->
+<div id="hws-back-btn" style="position:fixed;bottom:20px;right:20px;z-index:99999;">
+  <button onclick="window.close()" style="
+    background:#1a2332;
+    color:white;
+    border:none;
+    border-radius:8px;
+    padding:9px 16px;
+    font-size:13px;
+    font-weight:600;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    gap:7px;
+    box-shadow:0 2px 12px rgba(0,0,0,0.25);
+    opacity:0.85;
+    transition:opacity .15s;
+  " onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.85'">
+    ← Hub
+  </button>
+</div>
+</body>
+</html>

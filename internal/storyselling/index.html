@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>StorySelling Discovery Guide — HomeWealth Solutions</title>
+<style>
+:root {
+  --blue:  #2491EB;
+  --green: #8EC73F;
+  --dark:  #1c2b3a;
+  --mid:   #3a4f62;
+  --red:   #dc3545;
+  --amber: #e8900a;
+  --purple: #7b4fc4;
+  --teal:   #0d9488;
+  --bg-green: #f0f9e4;
+  --bg-blue:  #eaf5fe;
+  --bg-amber: #fff8ee;
+  --bg-purple: #f5f0ff;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+  background: #f5f7fa;
+  color: #222;
+  font-size: 14px;
+}
+
+/* ── Header ── */
+.hdr {
+  background: var(--dark);
+  color: white;
+  padding: 18px 28px 16px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+}
+.hdr-brand { font-size: 12px; color: rgba(255,255,255,.5); letter-spacing: .4px; }
+.hdr-title { font-size: 21px; font-weight: 700; margin-top: 3px; }
+.hdr-sub   { font-size: 12px; color: rgba(255,255,255,.45); margin-top: 3px; }
+.hdr-right { text-align: right; font-size: 12px; color: rgba(255,255,255,.5); }
+.hdr-right strong { display: block; color: rgba(255,255,255,.85); font-size: 13px; }
+.print-btn {
+  background: transparent;
+  border: 1.5px solid rgba(255,255,255,.4);
+  color: rgba(255,255,255,.85);
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-size: 12px;
+  cursor: pointer;
+  margin-bottom: 6px;
+  white-space: nowrap;
+}
+.print-btn:hover { background: rgba(255,255,255,.1); }
+
+/* ── Main ── */
+.main { max-width: 1060px; margin: 0 auto; padding: 22px 18px 48px; }
+
+/* ── Section titles ── */
+.section-title {
+  font-size: 11px; font-weight: 700; letter-spacing: 1px;
+  text-transform: uppercase; color: var(--mid);
+  border-bottom: 2px solid #e0e4ea;
+  padding-bottom: 7px; margin-bottom: 16px; margin-top: 28px;
+}
+
+/* ── Card ── */
+.card {
+  background: white;
+  border-radius: 10px;
+  padding: 18px 20px;
+  box-shadow: 0 1px 5px rgba(0,0,0,.07);
+}
+
+/* ── Grids ── */
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: start; }
+.grid-4 { display: grid; grid-template-columns: repeat(4,1fr); gap: 14px; }
+
+/* ── Story arc ── */
+.arc-wrap {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 10px rgba(0,0,0,.08);
+}
+.arc-step {
+  flex: 1;
+  padding: 18px 16px;
+  position: relative;
+}
+.arc-step::after {
+  content: '›';
+  position: absolute;
+  right: -10px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 24px;
+  font-weight: 900;
+  color: rgba(255,255,255,.5);
+  z-index: 2;
+}
+.arc-step:last-child::after { display: none; }
+.arc-icon  { font-size: 28px; margin-bottom: 8px; display: block; }
+.arc-label { font-size: 11px; font-weight: 800; letter-spacing: .8px; text-transform: uppercase; opacity: .75; margin-bottom: 4px; }
+.arc-title { font-size: 16px; font-weight: 800; margin-bottom: 6px; }
+.arc-desc  { font-size: 12px; opacity: .85; line-height: 1.5; }
+.arc-step.villain { background: #2c1a2e; color: white; }
+.arc-step.hero    { background: var(--blue); color: white; }
+.arc-step.guide   { background: #1c2b3a; color: white; }
+.arc-step.victory { background: var(--green); color: white; }
+
+/* ── Archetypes ── */
+.archetype-card {
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 1px 5px rgba(0,0,0,.07);
+  overflow: hidden;
+}
+.arch-header {
+  padding: 16px;
+  color: white;
+  text-align: center;
+}
+.arch-icon  { font-size: 32px; display: block; margin-bottom: 6px; }
+.arch-name  { font-size: 17px; font-weight: 800; }
+.arch-tagline { font-size: 11px; opacity: .8; margin-top: 3px; }
+.arch-body  { padding: 14px 16px; }
+.arch-trait {
+  display: flex; gap: 8px;
+  font-size: 12px; color: #555;
+  padding: 5px 0;
+  border-bottom: 1px solid #f5f5f5;
+  line-height: 1.5;
+}
+.arch-trait:last-child { border-bottom: none; }
+.arch-trait-ico { flex-shrink: 0; }
+.arch-approach {
+  margin-top: 10px;
+  background: #f9f9fb;
+  border-radius: 7px;
+  padding: 10px 12px;
+  font-size: 12px;
+  color: #444;
+  line-height: 1.55;
+  border-left: 3px solid;
+}
+
+/* ── Discovery framework ── */
+.cpcc-step {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  padding: 16px 0;
+  border-bottom: 1px solid #f2f2f2;
+}
+.cpcc-step:last-child { border-bottom: none; }
+.cpcc-letter {
+  width: 42px; height: 42px;
+  border-radius: 10px;
+  font-size: 22px;
+  font-weight: 900;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  color: white;
+}
+.cpcc-name { font-size: 16px; font-weight: 800; color: #111; margin-bottom: 3px; }
+.cpcc-what { font-size: 12px; color: #777; margin-bottom: 10px; line-height: 1.5; }
+.q-list { display: flex; flex-direction: column; gap: 6px; }
+.q-item {
+  background: #f9f9fb;
+  border-left: 3px solid;
+  border-radius: 0 7px 7px 0;
+  padding: 8px 12px;
+  font-size: 13px;
+  color: #333;
+  font-style: italic;
+  line-height: 1.5;
+}
+
+/* ── Techniques ── */
+.tech-card {
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 1px 5px rgba(0,0,0,.07);
+  padding: 16px 18px;
+}
+.tech-name { font-size: 15px; font-weight: 800; color: #111; margin-bottom: 6px; }
+.tech-how  { font-size: 12px; color: #555; line-height: 1.6; margin-bottom: 10px; }
+.tech-example {
+  background: #f0f9e4;
+  border-left: 3px solid var(--green);
+  border-radius: 0 7px 7px 0;
+  padding: 9px 12px;
+  font-size: 12px;
+  color: #2a5e10;
+  line-height: 1.55;
+}
+.tech-example strong { display: block; margin-bottom: 3px; font-size: 11px; text-transform: uppercase; letter-spacing: .4px; }
+
+/* ── 6-Step Story Sell ── */
+.step6-grid { display: flex; flex-direction: column; gap: 0; }
+.step6-item {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  padding: 14px 0;
+  border-bottom: 1px solid #f2f2f2;
+}
+.step6-item:last-child { border-bottom: none; }
+.step6-num {
+  width: 34px; height: 34px;
+  border-radius: 50%;
+  font-weight: 900;
+  font-size: 16px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  color: white;
+}
+.step6-title { font-size: 14px; font-weight: 800; color: #111; margin-bottom: 5px; }
+.step6-body  { font-size: 12px; color: #555; line-height: 1.6; }
+.step6-script {
+  margin-top: 8px;
+  background: var(--bg-blue);
+  border-left: 3px solid var(--blue);
+  border-radius: 0 7px 7px 0;
+  padding: 8px 12px;
+  font-size: 12px;
+  color: #0d3d6b;
+  font-style: italic;
+  line-height: 1.5;
+}
+.step6-script strong { font-style: normal; font-size: 10px; letter-spacing: .4px; text-transform: uppercase; display: block; margin-bottom: 3px; }
+
+/* ── Villains ── */
+.villain-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 14px; }
+.villain-card {
+  background: #2c1a2e;
+  color: white;
+  border-radius: 10px;
+  padding: 16px 16px;
+  box-shadow: 0 2px 8px rgba(0,0,0,.15);
+}
+.villain-icon  { font-size: 28px; margin-bottom: 8px; display: block; }
+.villain-name  { font-size: 15px; font-weight: 800; margin-bottom: 6px; }
+.villain-desc  { font-size: 12px; color: rgba(255,255,255,.7); line-height: 1.55; margin-bottom: 10px; }
+.villain-reframe {
+  background: rgba(142,199,63,.15);
+  border: 1px solid rgba(142,199,63,.4);
+  border-radius: 7px;
+  padding: 9px 11px;
+  font-size: 12px;
+  color: #b8e672;
+  line-height: 1.5;
+}
+.villain-reframe strong { display: block; font-size: 10px; letter-spacing: .4px; text-transform: uppercase; margin-bottom: 3px; color: var(--green); }
+
+/* ── Annual review ── */
+.review-step {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  padding: 13px 0;
+  border-bottom: 1px solid #f2f2f2;
+  font-size: 13px;
+}
+.review-step:last-child { border-bottom: none; }
+.review-num {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  background: var(--green);
+  color: white;
+  font-weight: 800;
+  font-size: 13px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.review-title { font-weight: 800; color: #111; margin-bottom: 4px; }
+.review-body  { font-size: 12px; color: #555; line-height: 1.55; }
+
+/* ── Print ── */
+@media print {
+  body { background: white; font-size: 12px; }
+  .main { padding: 0; max-width: 100%; }
+  .print-btn { display: none !important; }
+  .card, .archetype-card, .tech-card, .villain-card { box-shadow: none; border: 1px solid #ddd; }
+  .section-title { margin-top: 18px; }
+  .arc-wrap { box-shadow: none; }
+}
+
+/* ── Mobile ── */
+@media (max-width: 720px) {
+  .arc-wrap { flex-direction: column; }
+  .arc-step::after { display: none; }
+  .grid-4 { grid-template-columns: 1fr 1fr; }
+  .grid-2 { grid-template-columns: 1fr; }
+  .villain-grid { grid-template-columns: 1fr; }
+  .hdr-right { display: none; }
+}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div>
+    <div class="hdr-brand">HomeWealth Solutions LLC &nbsp;·&nbsp; NMLS #2742458</div>
+    <div class="hdr-title">StorySelling Discovery Guide</div>
+    <div class="hdr-sub">Client Archetypes · CPCC Discovery Framework · 6-Step Story Sell · Annual Review</div>
+  </div>
+  <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px">
+    <button class="print-btn" onclick="window.print()">🖨 Print / Save PDF</button>
+    <div class="hdr-right">
+      Doug Smith, CMA®<br>
+      <strong>813-733-7371</strong><br>
+      doug@homewealthsolutions.com
+    </div>
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- ═══ THE STORY ARC ═══ -->
+  <div class="section-title">The StorySelling Framework — Every Great Story Has These 4 Elements</div>
+  <div class="arc-wrap">
+    <div class="arc-step villain">
+      <span class="arc-icon">⚔️</span>
+      <div class="arc-label">The Problem</div>
+      <div class="arc-title">The Villain</div>
+      <div class="arc-desc">The conflict the client faces — the thing standing between them and the home or financial outcome they want. Inventory, rates, uncertainty, bad timing.</div>
+    </div>
+    <div class="arc-step hero">
+      <span class="arc-icon">🦸</span>
+      <div class="arc-label">The Client</div>
+      <div class="arc-title">The Hero</div>
+      <div class="arc-desc">Your client is the hero of their own story — not you. They have goals, fears, and people who depend on them. Your job is to serve their journey, not star in it.</div>
+    </div>
+    <div class="arc-step guide">
+      <span class="arc-icon">🧭</span>
+      <div class="arc-label">The Advisor</div>
+      <div class="arc-title">The Guide</div>
+      <div class="arc-desc">You are Yoda, not Luke. You bring the tools, clarity, and strategy. You've been here before. You show the path — but they walk it. Education first.</div>
+    </div>
+    <div class="arc-step victory">
+      <span class="arc-icon">🏠</span>
+      <div class="arc-label">The Outcome</div>
+      <div class="arc-title">Victory</div>
+      <div class="arc-desc">The life they want on the other side — financial stability, the right home, building equity, protecting their family. Paint this picture clearly in every conversation.</div>
+    </div>
+  </div>
+
+  <!-- ═══ CURRENT MARKET VILLAINS ═══ -->
+  <div class="section-title">The 3 Current Market Villains</div>
+  <div class="villain-grid">
+    <div class="villain-card">
+      <span class="villain-icon">🏗</span>
+      <div class="villain-name">Low Housing Inventory</div>
+      <div class="villain-desc">There aren't enough homes for the number of buyers. Prices stay elevated, competition is fierce, and buyers feel like the market is working against them.</div>
+      <div class="villain-reframe">
+        <strong>Your Reframe</strong>
+        "There's a structural reason prices aren't crashing — demand is real and supply is historically low. Waiting doesn't solve the inventory problem. It just means higher prices later."
+      </div>
+    </div>
+    <div class="villain-card">
+      <span class="villain-icon">📰</span>
+      <div class="villain-name">Economic Uncertainty</div>
+      <div class="villain-desc">Headlines, rate anxiety, recession fear, and mixed signals paralyze buyers. They feel like the timing is never right — so they do nothing.</div>
+      <div class="villain-reframe">
+        <strong>Your Reframe</strong>
+        "There has never been a perfect time to buy. Uncertainty is permanent. The question is whether the math works for you over the period you plan to own the home."
+      </div>
+    </div>
+    <div class="villain-card">
+      <span class="villain-icon">💸</span>
+      <div class="villain-name">Lack of Affordability</div>
+      <div class="villain-desc">Higher rates + higher prices have stretched monthly payments beyond what many expected. Buyers feel priced out — even when they technically qualify.</div>
+      <div class="villain-reframe">
+        <strong>Your Reframe</strong>
+        "Affordability is a real constraint — let's solve it strategically. Buydowns, seller concessions, different loan structures, and right-sizing the loan can all move the needle."
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ CLIENT ARCHETYPES ═══ -->
+  <div class="section-title">4 Client Archetypes — Know Who You're Talking To</div>
+  <div class="grid-4">
+
+    <div class="archetype-card">
+      <div class="arch-header" style="background:#c0392b">
+        <span class="arch-icon">⚔️</span>
+        <div class="arch-name">Warriors</div>
+        <div class="arch-tagline">Results-driven. Direct. Decisive.</div>
+      </div>
+      <div class="arch-body">
+        <div class="arch-trait"><span class="arch-trait-ico">→</span> Goal-focused, competitive, want to win</div>
+        <div class="arch-trait"><span class="arch-trait-ico">→</span> Hate wasting time — don't over-explain</div>
+        <div class="arch-trait"><span class="arch-trait-ico">→</span> Respond to challenges and data</div>
+        <div class="arch-trait"><span class="arch-trait-ico">→</span> Decisions are made fast once they trust you</div>
+        <div class="arch-approach" style="border-color:#c0392b;color:#7a1a10">
+          <strong>How to engage:</strong> Lead with the bottom line. Give them the numbers, the strategy, and a clear recommendation. Skip the preamble. Let them feel like they're making the call.
+        </div>
+      </div>
+    </div>
+
+    <div class="archetype-card">
+      <div class="arch-header" style="background:var(--amber)">
+        <span class="arch-icon">🧭</span>
+        <div class="arch-name">Explorers</div>
+        <div class="arch-tagline">Curious. Open. Possibility-minded.</div>
+      </div>
+      <div class="arch-body">
+        <div class="arch-trait"><span class="arch-trait-ico">→</span> Love options and alternatives</div>
+        <div class="arch-trait"><span class="arch-trait-ico">→</span> Engaged by "what if" questions</div>
+        <div class="arch-trait"><span class="arch-trait-ico">→</span> Can get stuck in analysis — need focus</div>
+        <div class="arch-trait"><span class="arch-trait-ico">→</span> Respond to creative solutions and vision</div>
+        <div class="arch-approach" style="border-color:var(--amber);color:#6b3d00">
+          <strong>How to engage:</strong> Give them options but frame the decision clearly. Use "here's what most people in your situation do" to anchor without restricting. Help them close the loop.
+        </div>
+      </div>
+    </div>
+
+    <div class="archetype-card">
+      <div class="arch-header" style="background:var(--purple)">
+        <span class="arch-icon">✨</span>
+        <div class="arch-name">Magicians</div>
+        <div class="arch-tagline">Visionary. Feeling-driven. Big-picture.</div>
+      </div>
+      <div class="arch-body">
+        <div class="arch-trait"><span class="arch-trait-ico">→</span> Buy on emotion first, logic second</div>
+        <div class="arch-trait"><span class="arch-trait-ico">→</span> Want to feel understood, not just advised</div>
+        <div class="arch-trait"><span class="arch-trait-ico">→</span> Respond to storytelling and transformation</div>
+        <div class="arch-trait"><span class="arch-trait-ico">→</span> Need reassurance at decision point</div>
+        <div class="arch-approach" style="border-color:var(--purple);color:#4a1f8a">
+          <strong>How to engage:</strong> Paint the victorious ending clearly. Help them feel what life looks like on the other side. Then back it up with numbers. Their heart decides; give their brain a reason to agree.
+        </div>
+      </div>
+    </div>
+
+    <div class="archetype-card">
+      <div class="arch-header" style="background:var(--teal)">
+        <span class="arch-icon">👑</span>
+        <div class="arch-name">Rulers</div>
+        <div class="arch-tagline">Control-oriented. Analytical. Precise.</div>
+      </div>
+      <div class="arch-body">
+        <div class="arch-trait"><span class="arch-trait-ico">→</span> Need to understand everything before deciding</div>
+        <div class="arch-trait"><span class="arch-trait-ico">→</span> Value credibility and expertise above warmth</div>
+        <div class="arch-trait"><span class="arch-trait-ico">→</span> Distrust vagueness — want specifics</div>
+        <div class="arch-trait"><span class="arch-trait-ico">→</span> Loyal once trust is established</div>
+        <div class="arch-approach" style="border-color:var(--teal);color:#064e47">
+          <strong>How to engage:</strong> Show your work. Bring the data, the comparisons, the calculations. Be precise. Don't rush them. Earn their trust through competence — not rapport-building alone.
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ═══ CPCC DISCOVERY FRAMEWORK ═══ -->
+  <div class="section-title">CPCC Discovery Framework — What to Uncover in Every Conversation</div>
+  <div class="card">
+    <div class="cpcc-step">
+      <div class="cpcc-letter" style="background:var(--blue)">C</div>
+      <div style="flex:1">
+        <div class="cpcc-name">Context</div>
+        <div class="cpcc-what">Their history, past experience, and current situation. What's their starting point? What have they already tried or believed about mortgages and home buying?</div>
+        <div class="q-list">
+          <div class="q-item" style="border-color:var(--blue)">"Have you gone through the mortgage process before? What was that experience like?"</div>
+          <div class="q-item" style="border-color:var(--blue)">"Tell me about your current situation — renting, own already, or something else?"</div>
+          <div class="q-item" style="border-color:var(--blue)">"How long have you been thinking about this move?"</div>
+        </div>
+      </div>
+    </div>
+    <div class="cpcc-step">
+      <div class="cpcc-letter" style="background:var(--purple)">P</div>
+      <div style="flex:1">
+        <div class="cpcc-name">Plot</div>
+        <div class="cpcc-what">Their goals — the victorious ending they want — and the bad ending they're trying to avoid. What does success look like? What are they afraid of?</div>
+        <div class="q-list">
+          <div class="q-item" style="border-color:var(--purple)">"What does the perfect outcome look like for you on the other side of this transaction?"</div>
+          <div class="q-item" style="border-color:var(--purple)">"What would have to happen for this to feel like a win six months from now?"</div>
+          <div class="q-item" style="border-color:var(--purple)">"What's your biggest concern about moving forward?"</div>
+        </div>
+      </div>
+    </div>
+    <div class="cpcc-step">
+      <div class="cpcc-letter" style="background:var(--amber)">C</div>
+      <div style="flex:1">
+        <div class="cpcc-name">Characters</div>
+        <div class="cpcc-what">Who else influences their decision? Spouse, parents, a friend who's "in finance," a prior bad experience. Understanding the characters shapes how you frame everything.</div>
+        <div class="q-list">
+          <div class="q-item" style="border-color:var(--amber)">"Who else is involved in this decision? Is your partner aligned on timing?"</div>
+          <div class="q-item" style="border-color:var(--amber)">"Has anyone else given you advice on this — family, a financial advisor, a previous lender?"</div>
+          <div class="q-item" style="border-color:var(--amber)">"What are the people in your life saying about whether now is a good time to buy?"</div>
+        </div>
+      </div>
+    </div>
+    <div class="cpcc-step">
+      <div class="cpcc-letter" style="background:var(--red)">C</div>
+      <div style="flex:1">
+        <div class="cpcc-name">Conflict</div>
+        <div class="cpcc-what">The specific, named problem standing in their way. This is the villain. Get precise — "I'm nervous about rates" is not the same as "I can only afford $2,400/month and everything I've seen is $2,800."</div>
+        <div class="q-list">
+          <div class="q-item" style="border-color:var(--red)">"What's the biggest challenge you're facing right now with this?"</div>
+          <div class="q-item" style="border-color:var(--red)">"Is there anything about your housing situation you'd like to improve?"</div>
+          <div class="q-item" style="border-color:var(--red)">"If I could wave a wand and solve one thing for you today, what would it be?"</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ CONVERSATION TECHNIQUES ═══ -->
+  <div class="section-title">3 Conversation Techniques That Build Trust Fast</div>
+  <div class="grid-2" style="gap:14px">
+
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div class="tech-card">
+        <div class="tech-name">🔁 Mirroring</div>
+        <div class="tech-how">Repeat the last 1–3 words the client said, slightly upward in tone. Creates connection and opens them up. They feel heard without you having to say anything profound.</div>
+        <div class="tech-example">
+          <strong>Example</strong>
+          Client: "We've just been really nervous about making the wrong move."<br>
+          You: "The wrong move?"<br>
+          Client: [explains exactly what they fear — gold for your discovery]
+        </div>
+      </div>
+
+      <div class="tech-card">
+        <div class="tech-name">🏷 Labeling</div>
+        <div class="tech-how">Name the emotion you think they're feeling. Start with "Seems like…" or "Sounds like…" — not "I feel like you're…" (which is about you). Makes people feel understood, not analyzed.</div>
+        <div class="tech-example">
+          <strong>Example</strong>
+          "Seems like the rate situation has made it harder to feel confident about timing."<br>
+          "It sounds like you've been waiting for a clearer sign before committing."
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div class="tech-card">
+        <div class="tech-name">🎭 Mis-labeling</div>
+        <div class="tech-how">Deliberately label the emotion slightly wrong. People are more motivated to correct you than to confirm you. "That's not right" unlocks more truth than "Yes, exactly." Use strategically when someone is being vague or guarded.</div>
+        <div class="tech-example">
+          <strong>Example</strong>
+          Client seems hesitant about rate.<br>
+          You: "Seems like you're not that concerned about the rate — more focused on finding the right house."<br>
+          Client: "No, the rate is actually a big deal for us…" [opens up]
+        </div>
+      </div>
+
+      <div class="card" style="background:linear-gradient(135deg,#1c2b3a,#253c50);color:white">
+        <div style="font-size:13px;font-weight:800;color:var(--green);margin-bottom:10px;text-transform:uppercase;letter-spacing:.4px">Listening Rule</div>
+        <div style="font-size:13px;color:rgba(255,255,255,.85);line-height:1.6;margin-bottom:10px">
+          The goal of discovery is to understand their story — not to demonstrate yours. Ask, then stop talking. Let silence work for you.
+        </div>
+        <div style="font-size:12px;color:rgba(255,255,255,.6);line-height:1.6">
+          Key pain questions to keep in rotation:<br>
+          <em>"What's the biggest challenge you're facing?"</em><br>
+          <em>"Is there anything about your housing situation you'd like to improve?"</em>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ 6-STEP STORY SELL ═══ -->
+  <div class="section-title">6-Step Story Sell — The Conversation Arc</div>
+  <div class="card">
+    <div class="step6-grid">
+
+      <div class="step6-item">
+        <div class="step6-num" style="background:#c0392b">1</div>
+        <div>
+          <div class="step6-title">Identify the Problem (Name the Villain)</div>
+          <div class="step6-body">Restate the conflict back to them in their own words. Show you understand what's standing in their way before you offer anything.</div>
+          <div class="step6-script"><strong>Script starter</strong>"So it sounds like the real challenge here is [X] — is that right?"</div>
+        </div>
+      </div>
+
+      <div class="step6-item">
+        <div class="step6-num" style="background:var(--blue)">2</div>
+        <div>
+          <div class="step6-title">Introduce Your Magic Weapons</div>
+          <div class="step6-body">Present your tools, strategy, and knowledge as the solution — not a product pitch. What specific thing do you know or offer that solves their named problem?</div>
+          <div class="step6-script"><strong>Script starter</strong>"Here's what I do differently, and why it matters for your situation…"</div>
+        </div>
+      </div>
+
+      <div class="step6-item">
+        <div class="step6-num" style="background:var(--green)">3</div>
+        <div>
+          <div class="step6-title">Paint the Victorious Ending</div>
+          <div class="step6-body">Make the good outcome vivid and personal. What does their life look like when this is resolved? Be specific to their situation, not generic.</div>
+          <div class="step6-script"><strong>Script starter</strong>"Imagine it's 90 days from now — you're in your home, you know exactly what your payment is, and that uncertainty is behind you. That's what we're building toward."</div>
+        </div>
+      </div>
+
+      <div class="step6-item">
+        <div class="step6-num" style="background:var(--amber)">4</div>
+        <div>
+          <div class="step6-title">Show the Bad Ending (What Happens If They Don't Act)</div>
+          <div class="step6-body">Briefly — without fear-mongering — name the cost of inaction. This is not manipulation; it's helping them make a fully-informed decision.</div>
+          <div class="step6-script"><strong>Script starter</strong>"The risk of waiting is that [prices rise / rates don't come down / inventory stays tight]. Six months from now, the same decision costs more."</div>
+        </div>
+      </div>
+
+      <div class="step6-item">
+        <div class="step6-num" style="background:var(--purple)">5</div>
+        <div>
+          <div class="step6-title">Handle Objections (Before They Say Them)</div>
+          <div class="step6-body">Pre-empt the 2–3 most common objections for this client type. Raise them yourself — it shows confidence and eliminates the awkward "what about…" moment.</div>
+          <div class="step6-script"><strong>Script starter</strong>"You're probably thinking, 'But what if rates come down?' — that's a fair question. Here's how I'd answer it…"</div>
+        </div>
+      </div>
+
+      <div class="step6-item">
+        <div class="step6-num" style="background:var(--teal)">6</div>
+        <div>
+          <div class="step6-title">Define the Next Step (Clear, Single Action)</div>
+          <div class="step6-body">Never end without a specific next step. Not "let me know what you decide" — a named action with a timeframe. Make it easy to say yes.</div>
+          <div class="step6-script"><strong>Script starter</strong>"The next step is simple — let's get your pre-approval started so you're in position when the right home appears. It takes about 15 minutes. Want to do that now or schedule for tomorrow?"</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ═══ ANNUAL REVIEW ═══ -->
+  <div class="section-title">Annual Review Process — Turning Clients Into Referral Partners</div>
+  <div class="grid-2">
+    <div class="card">
+      <div class="review-step">
+        <div class="review-num">1</div>
+        <div>
+          <div class="review-title">The Outreach — Trigger the Conversation</div>
+          <div class="review-body">Send an outreach email or text around the home's anniversary date (or end of year). Don't lead with "how's everything?" — lead with something specific and valuable: a rate update, market stat, or equity estimate.</div>
+        </div>
+      </div>
+      <div class="review-step">
+        <div class="review-num">2</div>
+        <div>
+          <div class="review-title">The 3-Question Conversation</div>
+          <div class="review-body">
+            Keep it to three questions — same framework as the market conversation:<br><br>
+            <strong>1. "What's going on?"</strong> — Where are rates, their equity, their life situation?<br>
+            <strong>2. "Why does it matter?"</strong> — What does the data mean for their specific situation?<br>
+            <strong>3. "What should they do?"</strong> — Refi? Cash-out? Stay put? Have a clear recommendation.
+          </div>
+        </div>
+      </div>
+      <div class="review-step">
+        <div class="review-num">3</div>
+        <div>
+          <div class="review-title">The Referral Ask — Natural, Not Salesy</div>
+          <div class="review-body">After delivering value, ask simply: <em>"If you know anyone thinking about buying or refinancing, I'd love to help them the same way I helped you."</em> That's it. No script needed — just ask.</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div class="card" style="background:var(--bg-green);border-left:4px solid var(--green)">
+        <div style="font-weight:800;font-size:13px;color:#2a6e12;margin-bottom:8px">Lifetime Value Framing</div>
+        <div style="font-size:12px;color:#3c6e10;line-height:1.65">
+          Every client you close is worth far more than one transaction. The math:<br><br>
+          <strong>1 good Realtor relationship</strong> = ~1 referral/month<br>
+          <strong>1 good financial advisor relationship</strong> = ~1 referral/month<br>
+          <strong>20 VIP past clients (annual review)</strong> = ~1 deal/month<br><br>
+          Track client relationships in LTV terms — not just transaction fees. A well-served client who refers two others over five years is worth 3–5x the original deal.
+        </div>
+      </div>
+      <div class="card">
+        <div style="font-weight:800;font-size:13px;color:#111;margin-bottom:8px">The "Motivation Dip" Problem</div>
+        <div style="font-size:12px;color:#555;line-height:1.65">
+          Partners and clients go through a motivation dip after the transaction closes. They were engaged and excited — then life moves on and you fade into the background.<br><br>
+          The annual review exists to prevent that drift. It keeps you in the "guide" position — not just a name they used once.<br><br>
+          <strong>Key question to always ask yourself:</strong> "How do I get from 'one transaction' to 'their trusted advisor for life?'"
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div style="margin-top:22px;font-size:11px;color:#aaa;text-align:center;line-height:1.6">
+    Source: CMPS® coursework — Module 12 (StorySelling &amp; Annual Reviews) &nbsp;·&nbsp; HomeWealth Solutions LLC, NMLS #2742458 &nbsp;·&nbsp; Doug Smith, CMA® NMLS #2609118
+  </div>
+
+</div>
+<a href="javascript:window.close()" id="hws-hub-btn" style="position:fixed;top:14px;right:16px;z-index:9999;background:#1c2b3a;color:rgba(255,255,255,0.9);text-decoration:none;font-size:12px;font-weight:700;padding:6px 14px;border-radius:8px;font-family:-apple-system,BlinkMacSystemFont,sans-serif;letter-spacing:0.2px;box-shadow:0 2px 8px rgba(0,0,0,0.25);">← Hub</a>
+
+<!-- HWS Hub back button -->
+<div id="hws-back-btn" style="position:fixed;bottom:20px;right:20px;z-index:99999;">
+  <button onclick="window.close()" style="
+    background:#1a2332;
+    color:white;
+    border:none;
+    border-radius:8px;
+    padding:9px 16px;
+    font-size:13px;
+    font-weight:600;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    gap:7px;
+    box-shadow:0 2px 12px rgba(0,0,0,0.25);
+    opacity:0.85;
+    transition:opacity .15s;
+  " onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.85'">
+    ← Hub
+  </button>
+</div>
+</body>
+</html>

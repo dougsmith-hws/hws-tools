@@ -1,0 +1,921 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Realtor Business Planning Calculator — HomeWealth Solutions</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --blue: #2491EB;
+      --blue-light: #e8f4fd;
+      --blue-mid: #c5e1fa;
+      --green: #8EC73F;
+      --green-light: #f0f8e6;
+      --green-dark: #6aaa1f;
+      --gray-100: #f7f8fa;
+      --gray-200: #edf0f4;
+      --gray-300: #d1d8e0;
+      --gray-500: #8892a0;
+      --gray-700: #4a5568;
+      --gray-900: #1a2332;
+      --radius: 10px;
+      --shadow: 0 2px 12px rgba(0,0,0,0.08);
+    }
+
+    body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--gray-100); color: var(--gray-900); min-height: 100vh; }
+
+    /* ── Header ── */
+    .header {
+      background: white;
+      border-bottom: 3px solid var(--blue);
+      padding: 16px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+    .header-left h1 { font-size: 1.2rem; font-weight: 700; color: var(--blue); }
+    .header-left p { font-size: 0.78rem; color: var(--gray-500); margin-top: 1px; }
+    .header-right { display: flex; align-items: center; gap: 10px; }
+    .header-badge { background: var(--green); color: white; font-size: 0.72rem; font-weight: 600; padding: 4px 12px; border-radius: 20px; letter-spacing: 0.04em; }
+    .reset-btn { padding: 6px 14px; border: 1.5px solid var(--gray-300); border-radius: 6px; background: white; color: var(--gray-700); font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: all 0.15s; }
+    .reset-btn:hover { border-color: var(--blue); color: var(--blue); }
+
+    /* ── Profile Strip ── */
+    .profile-strip {
+      background: white;
+      border-bottom: 2px solid var(--gray-200);
+      padding: 8px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .profile-left, .profile-right { display: flex; align-items: center; gap: 8px; }
+    .profile-label { font-size: 0.8rem; font-weight: 700; color: var(--gray-700); white-space: nowrap; }
+    .profile-name-input {
+      width: 200px;
+      padding: 5px 10px;
+      border: 1.5px solid var(--gray-300);
+      border-radius: 6px;
+      font-size: 0.84rem;
+      color: var(--gray-900);
+      background: white;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    .profile-name-input:focus { border-color: var(--blue); }
+    .profile-name-input::placeholder { color: var(--gray-500); font-style: italic; }
+    .profile-select {
+      padding: 5px 10px;
+      border: 1.5px solid var(--gray-300);
+      border-radius: 6px;
+      font-size: 0.82rem;
+      color: var(--gray-700);
+      background: white;
+      cursor: pointer;
+      max-width: 220px;
+      outline: none;
+    }
+    .profile-select:focus { border-color: var(--blue); }
+    .profile-btn { padding: 5px 13px; border: 1.5px solid var(--gray-300); border-radius: 6px; background: white; color: var(--gray-700); font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: all 0.15s; white-space: nowrap; }
+    .save-btn:hover { border-color: var(--green); color: var(--green-dark); background: var(--green-light); }
+    .delete-btn:hover { border-color: #c0392b; color: #c0392b; background: #fef2f2; }
+    .profile-saved-msg { font-size: 0.78rem; color: var(--green-dark); font-weight: 600; display: none; }
+
+    /* ── Tabs ── */
+    .tabs-wrapper { background: white; border-bottom: 1px solid var(--gray-200); padding: 0 32px; }
+    .tabs { display: flex; }
+    .tab { padding: 13px 22px; font-size: 0.88rem; font-weight: 600; color: var(--gray-500); cursor: pointer; border-bottom: 3px solid transparent; transition: all 0.2s; white-space: nowrap; user-select: none; }
+    .tab:hover { color: var(--blue); }
+    .tab.active { color: var(--blue); border-bottom-color: var(--blue); }
+    .tab-number { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; background: var(--gray-200); border-radius: 50%; font-size: 0.72rem; margin-right: 7px; }
+    .tab.active .tab-number { background: var(--blue); color: white; }
+
+    /* ── Main Content ── */
+    .main { max-width: 860px; margin: 28px auto; padding: 0 24px 60px; }
+    .panel { display: none; }
+    .panel.active { display: block; }
+
+    /* ── Cards ── */
+    .card { background: white; border-radius: var(--radius); box-shadow: var(--shadow); margin-bottom: 20px; overflow: hidden; }
+    .card-header { background: var(--blue); color: white; padding: 12px 20px; font-size: 0.88rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; display: flex; align-items: center; gap: 8px; }
+    .card-header .step-badge { background: rgba(255,255,255,0.25); border-radius: 12px; padding: 1px 9px; font-size: 0.75rem; }
+    .card-body { padding: 20px; }
+
+    /* ── Field Rows ── */
+    .field-row { display: flex; align-items: center; padding: 9px 0; border-bottom: 1px solid var(--gray-200); gap: 12px; }
+    .field-row:last-child { border-bottom: none; }
+    .field-label { flex: 1; font-size: 0.875rem; color: var(--gray-700); line-height: 1.3; }
+    .field-label small { display: block; font-size: 0.76rem; color: var(--gray-500); margin-top: 2px; }
+    .field-input-wrap { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+    .unit { font-size: 0.8rem; color: var(--gray-500); min-width: 55px; }
+
+    /* ── Inputs ── */
+    input[type="number"] {
+      width: 110px; padding: 7px 10px; border: 1.5px solid var(--blue-mid); border-radius: 6px;
+      font-size: 0.9rem; font-weight: 600; color: var(--blue); text-align: right;
+      background: var(--blue-light); outline: none; transition: border-color 0.15s;
+      -moz-appearance: textfield;
+    }
+    input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; }
+    input[type="number"]:focus { border-color: var(--blue); background: white; }
+
+    /* ── Calculated Values ── */
+    .calc-value { width: 110px; padding: 7px 10px; border-radius: 6px; font-size: 0.95rem; font-weight: 700; text-align: right; background: var(--green-light); color: var(--green-dark); border: 1.5px solid #c3e69a; }
+    .calc-value.highlight { background: var(--green); color: white; border-color: var(--green-dark); font-size: 1.05rem; }
+    .calc-value.blue-calc { background: var(--blue-light); color: var(--blue); border-color: var(--blue-mid); }
+
+    /* ── Sides Toggle ── */
+    .toggle-group { display: flex; border: 1.5px solid var(--blue-mid); border-radius: 6px; overflow: hidden; }
+    .toggle-btn { padding: 6px 14px; font-size: 0.82rem; font-weight: 600; border: none; background: var(--blue-light); color: var(--blue); cursor: pointer; transition: all 0.15s; }
+    .toggle-btn:first-child { border-right: 1px solid var(--blue-mid); }
+    .toggle-btn.active { background: var(--blue); color: white; }
+    .toggle-btn:hover:not(.active) { background: var(--blue-mid); }
+
+    /* ── Grand Total ── */
+    .grand-total { background: linear-gradient(135deg, var(--blue) 0%, #1a78cc 100%); border-radius: var(--radius); padding: 22px 28px; display: flex; align-items: center; justify-content: space-between; margin-top: 8px; color: white; }
+    .grand-total-label { font-size: 0.95rem; font-weight: 600; opacity: 0.9; }
+    .grand-total-sublabel { font-size: 0.78rem; opacity: 0.7; margin-top: 3px; }
+    .grand-total-value { font-size: 2.4rem; font-weight: 800; line-height: 1; }
+    .grand-total-unit { font-size: 0.85rem; opacity: 0.8; margin-top: 4px; text-align: right; }
+
+    /* ── Gap Banner ── */
+    .gap-banner { border-radius: var(--radius); padding: 16px 22px; display: flex; align-items: center; justify-content: space-between; margin-top: 12px; font-weight: 600; }
+    .gap-banner.surplus { background: var(--green-light); color: var(--green-dark); border: 1.5px solid #c3e69a; }
+    .gap-banner.deficit { background: #fef2f2; color: #c0392b; border: 1.5px solid #f5c6c6; }
+    .gap-banner.even { background: var(--gray-200); color: var(--gray-700); }
+    .gap-banner-label { font-size: 0.9rem; }
+    .gap-banner-value { font-size: 1.4rem; }
+
+    /* ── Section Divider ── */
+    .section-divider { font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--gray-500); padding: 10px 0 4px; }
+
+    /* ── Highlight Row ── */
+    .total-row { background: var(--gray-100); border-radius: 6px; padding: 10px 8px; margin-top: 4px; }
+
+    /* ── Lifetime Value Grid ── */
+    .lv-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start; }
+    @media (max-width: 620px) { .lv-grid { grid-template-columns: 1fr; } }
+
+    /* ── Result Boxes ── */
+    .result-box { background: var(--green-light); border: 1.5px solid #c3e69a; border-radius: var(--radius); padding: 20px; text-align: center; }
+    .result-box .rb-label { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--gray-500); margin-bottom: 6px; }
+    .result-box .rb-value { font-size: 2rem; font-weight: 800; color: var(--green-dark); line-height: 1; }
+    .result-box .rb-sub { font-size: 0.78rem; color: var(--gray-500); margin-top: 6px; }
+    .result-box.blue-box { background: var(--blue-light); border-color: var(--blue-mid); }
+    .result-box.blue-box .rb-value { color: var(--blue); }
+
+    /* ── Lead Conversion Grid ── */
+    .lc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    @media (max-width: 580px) { .lc-grid { grid-template-columns: 1fr; } }
+
+    /* ── Advisor Note ── */
+    .advisor-note { background: white; border-radius: var(--radius); padding: 18px 22px; margin-top: 20px; box-shadow: var(--shadow); font-size: 0.84rem; color: var(--gray-700); line-height: 1.6; }
+    .advisor-note.blue { border-left: 4px solid var(--blue); }
+    .advisor-note.green { border-left: 4px solid var(--green); }
+
+    /* ── Hint ── */
+    .hint { display: inline-block; background: var(--gray-200); border-radius: 3px; font-size: 0.72rem; color: var(--gray-500); padding: 1px 6px; margin-left: 6px; vertical-align: middle; }
+
+    /* ── Page Footer ── */
+    .page-footer { text-align: center; font-size: 0.72rem; color: var(--gray-500); padding-top: 20px; line-height: 1.6; }
+  
+  .back-link-rp { color: rgba(255,255,255,0.85); text-decoration: none; font-size: 12px; }
+  .back-link-rp:hover { color: white; }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-left">
+    <h1>Realtor Business Planning Calculator</h1>
+    <p>HomeWealth Solutions LLC &nbsp;·&nbsp; Doug Smith, CMA® &nbsp;·&nbsp; NMLS #2609118</p>
+  </div>
+  <div class="header-right">
+    <a href="https://tools.homewealthsolutions.com" class="back-link-rp">← Hub</a>
+    <button class="reset-btn" onclick="resetForm()">↺ New / Reset</button>
+    <span class="header-badge">Discovery Meeting Tool</span>
+  </div>
+</div>
+
+<!-- PROFILE STRIP -->
+<div class="profile-strip">
+  <div class="profile-left">
+    <span class="profile-label">Realtor:</span>
+    <input type="text" id="profile_name" class="profile-name-input" placeholder="Enter name to save…" autocomplete="off">
+    <button class="profile-btn save-btn" onclick="saveProfile()">💾 Save</button>
+    <span class="profile-saved-msg" id="profile_saved_msg">✓ Saved</span>
+  </div>
+  <div class="profile-right">
+    <span class="profile-label">Load:</span>
+    <select id="profile_load_select" class="profile-select" onchange="loadProfile(this.value)">
+      <option value="">Select a saved realtor…</option>
+    </select>
+    <button class="profile-btn delete-btn" onclick="deleteProfile()" title="Delete selected profile">🗑 Delete</button>
+  </div>
+</div>
+
+<!-- TABS -->
+<div class="tabs-wrapper">
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab(0)"><span class="tab-number">1</span>Business Planning</div>
+    <div class="tab" onclick="switchTab(1)"><span class="tab-number">2</span>Lead Conversion</div>
+    <div class="tab" onclick="switchTab(2)"><span class="tab-number">3</span>Lifetime Client Value</div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- ══════════════════════════════
+       PANEL 1: Business Planning
+  ══════════════════════════════ -->
+  <div class="panel active" id="panel-0">
+
+    <!-- Income Goal -->
+    <div class="card">
+      <div class="card-header">Monthly Income Goal &amp; Closings Needed</div>
+      <div class="card-body">
+        <div class="field-row">
+          <div class="field-label">Monthly Income Goal</div>
+          <div class="field-input-wrap">
+            <span class="unit" style="text-align:right;">$</span>
+            <input type="text" inputmode="decimal" id="bp_income_goal" value="10000" min="0" oninput="calcBP()" onblur="fmtInput(this)" onfocus="clearFmt(this)">
+            <span class="unit"></span>
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field-label">Average Sales Price</div>
+          <div class="field-input-wrap">
+            <span class="unit" style="text-align:right;">$</span>
+            <input type="text" inputmode="decimal" id="bp_avg_price" value="300000" min="0" oninput="calcBP()" onblur="fmtInput(this)" onfocus="clearFmt(this)">
+            <span class="unit"></span>
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field-label">Commission Rate</div>
+          <div class="field-input-wrap">
+            <span class="unit"></span>
+            <input type="text" inputmode="decimal" id="bp_commission_pct" value="2.00" min="0" max="10" oninput="calcBP()" onblur="fmtPct(this)" onfocus="clearPct(this)">
+            <span class="unit">%</span>
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field-label">Your Split <span class="hint">your share after brokerage</span></div>
+          <div class="field-input-wrap">
+            <span class="unit"></span>
+            <input type="text" inputmode="decimal" id="bp_split_pct" value="60" min="0" max="100" oninput="calcBP()" onblur="fmtPct(this)" onfocus="clearPct(this)">
+            <span class="unit">%</span>
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field-label">Income Per Side</div>
+          <div class="field-input-wrap">
+            <span class="unit" style="text-align:right;">$</span>
+            <div class="calc-value blue-calc" id="bp_income_per_sale">3,600</div>
+            <span class="unit"></span>
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field-label">Monthly Business Expenses</div>
+          <div class="field-input-wrap">
+            <span class="unit" style="text-align:right;">$</span>
+            <input type="text" inputmode="decimal" id="bp_expenses" value="1000" min="0" oninput="calcBP()" onblur="fmtInput(this)" onfocus="clearFmt(this)">
+            <span class="unit"></span>
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field-label" style="font-weight:700; color:var(--gray-900);">Monthly Closings Needed to Hit Goal</div>
+          <div class="field-input-wrap">
+            <span class="unit"></span>
+            <div class="calc-value highlight" id="bp_closings_needed">3.1</div>
+            <span class="unit">/ mo</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 1: Client Database -->
+    <div class="card">
+      <div class="card-header"><span class="step-badge">1</span> Client Database</div>
+      <div class="card-body">
+        <div class="field-row">
+          <div class="field-label">Number of clients in my database</div>
+          <div class="field-input-wrap">
+            <input type="number" id="bp_db_clients" value="200" min="0" oninput="calcBP()">
+            <span class="unit">clients</span>
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field-label">On average, clients move once every</div>
+          <div class="field-input-wrap">
+            <input type="number" id="bp_db_years" value="8" min="1" oninput="calcBP()">
+            <span class="unit">years</span>
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field-label">Sides per transaction <small>1 side = you represent buyer OR seller. 2 sides = you represent both on the same move.</small></div>
+          <div class="field-input-wrap">
+            <input type="hidden" id="bp_db_sides" value="1">
+            <div class="toggle-group" id="bp_sides_toggle">
+              <button class="toggle-btn active" onclick="setSides(1, this)">1 side</button>
+              <button class="toggle-btn" onclick="setSides(2, this)">2 sides</button>
+            </div>
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field-label">(a) Transactions from clients moving</div>
+          <div class="field-input-wrap">
+            <div class="calc-value" id="bp_db_txn_moving">2.08</div>
+            <span class="unit">/ mo</span>
+          </div>
+        </div>
+
+        <div class="section-divider">Referrals from Database</div>
+
+        <div class="field-row">
+          <div class="field-label">% of clients who give at least one referral per year</div>
+          <div class="field-input-wrap">
+            <input type="text" inputmode="decimal" id="bp_db_ref_pct" value="30" min="0" max="100" oninput="calcBP()" onblur="fmtPct(this)" onfocus="clearPct(this)">
+            <span class="unit">%</span>
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field-label">Referrals from database</div>
+          <div class="field-input-wrap">
+            <div class="calc-value" id="bp_db_referrals">5.00</div>
+            <span class="unit">/ mo</span>
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field-label">Lead-to-closing ratio on client referrals</div>
+          <div class="field-input-wrap">
+            <input type="text" inputmode="decimal" id="bp_db_ref_close_pct" value="50" min="0" max="100" oninput="calcBP()" onblur="fmtPct(this)" onfocus="clearPct(this)">
+            <span class="unit">%</span>
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field-label">(b) Transactions from client referrals</div>
+          <div class="field-input-wrap">
+            <div class="calc-value" id="bp_db_txn_referrals">2.50</div>
+            <span class="unit">/ mo</span>
+          </div>
+        </div>
+        <div class="field-row total-row">
+          <div class="field-label" style="font-weight:700;">Total Closings from Client Database</div>
+          <div class="field-input-wrap">
+            <div class="calc-value highlight" id="bp_db_total">4.58</div>
+            <span class="unit">/ mo</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 2: Other Referral Sources -->
+    <div class="card">
+      <div class="card-header"><span class="step-badge">2</span> Other Referral Sources</div>
+      <div class="card-body">
+        <div class="field-row">
+          <div class="field-label">Monthly referrals from outside sources <small>Attorneys, CPAs, financial advisors, past colleagues, etc.</small></div>
+          <div class="field-input-wrap">
+            <input type="number" id="bp_sp_refs" value="1" min="0" step="0.5" oninput="calcBP()">
+            <span class="unit">/ mo</span>
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field-label">Lead-to-closing ratio on these referrals</div>
+          <div class="field-input-wrap">
+            <input type="text" inputmode="decimal" id="bp_sp_close_pct" value="50" min="0" max="100" oninput="calcBP()" onblur="fmtPct(this)" onfocus="clearPct(this)">
+            <span class="unit">%</span>
+          </div>
+        </div>
+        <div class="field-row total-row">
+          <div class="field-label" style="font-weight:700;">Total Closings from Other Referral Sources</div>
+          <div class="field-input-wrap">
+            <div class="calc-value highlight" id="bp_sp_total">0.50</div>
+            <span class="unit">/ mo</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 3: Consumer-Direct -->
+    <div class="card">
+      <div class="card-header"><span class="step-badge">3</span> Consumer-Direct Leads</div>
+      <div class="card-body">
+        <div class="field-row">
+          <div class="field-label">Monthly leads from consumer-direct sources <small>Zillow, open houses, online ads, etc.</small></div>
+          <div class="field-input-wrap">
+            <input type="number" id="bp_cd_leads" value="20" min="0" oninput="calcBP()">
+            <span class="unit">/ mo</span>
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field-label">Lead-to-closing ratio on consumer-direct</div>
+          <div class="field-input-wrap">
+            <input type="text" inputmode="decimal" id="bp_cd_close_pct" value="10" min="0" max="100" oninput="calcBP()" onblur="fmtPct(this)" onfocus="clearPct(this)">
+            <span class="unit">%</span>
+          </div>
+        </div>
+        <div class="field-row total-row">
+          <div class="field-label" style="font-weight:700;">Total Closings from Consumer-Direct</div>
+          <div class="field-input-wrap">
+            <div class="calc-value highlight" id="bp_cd_total">2.00</div>
+            <span class="unit">/ mo</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Grand Total -->
+    <div class="grand-total">
+      <div>
+        <div class="grand-total-label">Total Projected Closings Per Month</div>
+        <div class="grand-total-sublabel" id="bp_grand_total_sub">Database + Other Sources + Consumer-Direct</div>
+      </div>
+      <div>
+        <div class="grand-total-value" id="bp_grand_total_value">7.1</div>
+        <div class="grand-total-unit">closings / month</div>
+      </div>
+    </div>
+
+    <!-- Gap Banner -->
+    <div class="gap-banner surplus" id="bp_gap_banner">
+      <div class="gap-banner-label" id="bp_gap_label">✓ Projected surplus vs. goal</div>
+      <div class="gap-banner-value" id="bp_gap_value">+4.0 closings/mo</div>
+    </div>
+
+  </div><!-- /panel-0 -->
+
+
+  <!-- ══════════════════════════════
+       PANEL 2: Lead Conversion
+  ══════════════════════════════ -->
+  <div class="panel" id="panel-1">
+
+    <div class="lc-grid">
+
+      <!-- Part A -->
+      <div>
+        <div class="card">
+          <div class="card-header">What's My Lead-to-Close Ratio?</div>
+          <div class="card-body">
+            <div class="field-row">
+              <div class="field-label">Leads Generated (last 12 mo)</div>
+              <div class="field-input-wrap">
+                <input type="number" id="lc_leads_gen" value="100" min="0" oninput="calcLC()">
+                <span class="unit">leads</span>
+              </div>
+            </div>
+            <div class="field-row">
+              <div class="field-label">Closings from those leads</div>
+              <div class="field-input-wrap">
+                <input type="number" id="lc_closings" value="10" min="0" oninput="calcLC()">
+                <span class="unit">closed</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="result-box blue-box" style="margin-top:12px;">
+          <div class="rb-label">My Lead-to-Close Ratio</div>
+          <div class="rb-value" id="lc_ratio_display">10.0%</div>
+          <div class="rb-sub">1 in every <span id="lc_ratio_1_in">10</span> leads converts to a closing</div>
+        </div>
+      </div>
+
+      <!-- Part B -->
+      <div>
+        <div class="card">
+          <div class="card-header">How Many Leads Do I Need?</div>
+          <div class="card-body">
+            <div class="field-row">
+              <div class="field-label">Target closings per month</div>
+              <div class="field-input-wrap">
+                <input type="number" id="lc_target_closings" value="3" min="0" step="0.5" oninput="calcLC()">
+                <span class="unit">/ mo</span>
+              </div>
+            </div>
+            <div class="field-row">
+              <div class="field-label">Lead-to-closing ratio <span class="hint">from left</span></div>
+              <div class="field-input-wrap">
+                <div class="calc-value blue-calc" id="lc_ratio_carry">10.0%</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="result-box" style="margin-top:12px;">
+          <div class="rb-label">Monthly Leads Needed</div>
+          <div class="rb-value" id="lc_leads_needed">30</div>
+          <div class="rb-sub">to hit <span id="lc_target_display">3</span> closings/mo at your current ratio</div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="advisor-note blue">
+      <strong style="color:var(--blue);">Advisor note:</strong> Industry averages vary significantly by source —
+      client referrals typically close at 40–60%, online/portal leads at 5–15%, and cold outreach below 5%.
+      Improving your ratio matters more than generating more leads.
+    </div>
+
+  </div><!-- /panel-1 -->
+
+
+  <!-- ══════════════════════════════
+       PANEL 3: Lifetime Client Value
+  ══════════════════════════════ -->
+  <div class="panel" id="panel-2">
+
+    <div class="lv-grid">
+
+      <div>
+        <div class="card">
+          <div class="card-header">Market Dynamics</div>
+          <div class="card-body">
+            <div class="field-row">
+              <div class="field-label">Average commission per transaction</div>
+              <div class="field-input-wrap">
+                <span class="unit" style="text-align:right;">$</span>
+                <input type="text" inputmode="decimal" id="lv_commission" value="9000" min="0" oninput="calcLV()" onblur="fmtInput(this)" onfocus="clearFmt(this)">
+              </div>
+            </div>
+            <div class="field-row">
+              <div class="field-label">Clients are likely to move once every</div>
+              <div class="field-input-wrap">
+                <input type="number" id="lv_move_freq" value="10" min="1" oninput="calcLV()">
+                <span class="unit">years</span>
+              </div>
+            </div>
+            <div class="field-row">
+              <div class="field-label">Likely length of the relationship</div>
+              <div class="field-input-wrap">
+                <input type="number" id="lv_rel_length" value="20" min="1" oninput="calcLV()">
+                <span class="unit">years</span>
+              </div>
+            </div>
+            <div class="field-row">
+              <div class="field-label">% likely to buy an investment property</div>
+              <div class="field-input-wrap">
+                <input type="text" inputmode="decimal" id="lv_invest_pct" value="10" min="0" max="100" oninput="calcLV()" onblur="fmtPct(this)" onfocus="clearPct(this)">
+                <span class="unit">%</span>
+              </div>
+            </div>
+            <div class="field-row">
+              <div class="field-label">% who send at least one referral per year</div>
+              <div class="field-input-wrap">
+                <input type="text" inputmode="decimal" id="lv_ref_pct" value="20" min="0" max="100" oninput="calcLV()" onblur="fmtPct(this)" onfocus="clearPct(this)">
+                <span class="unit">%</span>
+              </div>
+            </div>
+            <div class="field-row">
+              <div class="field-label">Lead-to-close ratio on client referrals</div>
+              <div class="field-input-wrap">
+                <input type="text" inputmode="decimal" id="lv_ref_close_pct" value="50" min="0" max="100" oninput="calcLV()" onblur="fmtPct(this)" onfocus="clearPct(this)">
+                <span class="unit">%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex; flex-direction:column; gap:16px;">
+        <div class="card">
+          <div class="card-header">Transactions Over Relationship</div>
+          <div class="card-body">
+            <div class="field-row">
+              <div class="field-label">Direct transactions (they move)</div>
+              <div class="field-input-wrap"><div class="calc-value blue-calc" id="lv_direct_txn">2.0</div></div>
+            </div>
+            <div class="field-row">
+              <div class="field-label">Investment property transaction</div>
+              <div class="field-input-wrap"><div class="calc-value blue-calc" id="lv_invest_txn">0.1</div></div>
+            </div>
+            <div class="field-row">
+              <div class="field-label">Referral-sourced closings</div>
+              <div class="field-input-wrap"><div class="calc-value blue-calc" id="lv_ref_txn">2.0</div></div>
+            </div>
+            <div class="field-row total-row">
+              <div class="field-label" style="font-weight:700;">Total Transactions</div>
+              <div class="field-input-wrap"><div class="calc-value highlight" id="lv_total_txn">4.1</div></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="result-box">
+          <div class="rb-label">Lifetime Value of Each Client</div>
+          <div class="rb-value" id="lv_lifetime_value">$36,900</div>
+          <div class="rb-sub">over a <span id="lv_years_display">20</span>-year relationship</div>
+        </div>
+
+        <div class="result-box blue-box">
+          <div class="rb-label">Value of 100-Person Database</div>
+          <div class="rb-value" id="lv_db_100">$3,690,000</div>
+          <div class="rb-sub">if every client reaches their lifetime potential</div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="advisor-note green">
+      <strong style="color:var(--green-dark);">The point of this exercise:</strong> Most agents are sitting on a database worth millions of dollars
+      and treating it like a mailing list. Consistent, value-driven contact — not just holiday postcards — is what
+      converts the math above into actual income.
+    </div>
+
+  </div><!-- /panel-2 -->
+
+  <div class="page-footer">
+    HomeWealth Solutions LLC &nbsp;|&nbsp; NMLS #2609118 &nbsp;|&nbsp; FL OFR License #MBR8082 &nbsp;|&nbsp; homewealthsolutions.com<br>
+    This tool is for educational and planning purposes only. Results are illustrative and based on inputs provided.
+  </div>
+
+</div><!-- /main -->
+
+<script>
+  // ── Storage key ──
+  const STORAGE_KEY = 'hwsCalcProfiles_v1';
+
+  // ── Tab switching ──
+  function switchTab(i) {
+    document.querySelectorAll('.tab').forEach((t, j) => t.classList.toggle('active', i === j));
+    document.querySelectorAll('.panel').forEach((p, j) => p.classList.toggle('active', i === j));
+  }
+
+  // ── Helpers ──
+  
+function fmtInput(el) {
+  const raw = parseFloat((el.value||'').replace(/[$,]/g,''));
+  if (!isNaN(raw) && el.value.trim() !== '') el.value = '$' + raw.toLocaleString('en-US',{maximumFractionDigits:2});
+}
+function clearFmt(el) {
+  const raw = parseFloat((el.value||'').replace(/[$,]/g,''));
+  if (!isNaN(raw) && raw > 0) el.value = raw;
+}
+function fmtPct(el) {
+  if (el.value.trim()===''||el.value.trim()==='%') { el.value=''; return; }
+  const raw = parseFloat((el.value||'').replace(/%/g,''));
+  if (!isNaN(raw)) el.value = raw + '%';
+}
+function clearPct(el) {
+  const raw = parseFloat((el.value||'').replace(/%/g,''));
+  if (!isNaN(raw)) el.value = raw;
+}
+function val(id) { return parseFloat((document.getElementById(id).value||'').replace(/[$,]/g,'')) || 0; }
+  function set(id, text) { document.getElementById(id).textContent = text; }
+  function fmt(n, dec = 2) { return n.toLocaleString('en-US', { minimumFractionDigits: dec, maximumFractionDigits: dec }); }
+  function fmtDollar(n) { return '$' + n.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 }); }
+
+  // ── Sides toggle ──
+  function setSides(n, btn) {
+    document.getElementById('bp_db_sides').value = n;
+    document.querySelectorAll('#bp_sides_toggle .toggle-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    calcBP();
+  }
+
+  // ── Business Planning ──
+  function calcBP() {
+    const incomeGoal = val('bp_income_goal');
+    const avgPrice   = val('bp_avg_price');
+    const commPct    = val('bp_commission_pct') / 100;
+    const splitPct   = val('bp_split_pct') / 100;
+    const expenses   = val('bp_expenses');
+
+    const incomePerSale = avgPrice * commPct * splitPct;
+    set('bp_income_per_sale', fmt(incomePerSale, 0));
+
+    const closingsNeeded = incomePerSale > 0 ? (incomeGoal + expenses) / incomePerSale : 0;
+    set('bp_closings_needed', fmt(closingsNeeded, 1));
+
+    // Section 1 — Client Database
+    const dbClients = val('bp_db_clients');
+    const dbYears   = val('bp_db_years');
+    const sides     = parseFloat(document.getElementById('bp_db_sides').value) || 1;
+    const txnMoving = dbYears > 0 ? (dbClients / dbYears / 12) * sides : 0;
+    set('bp_db_txn_moving', fmt(txnMoving, 2));
+
+    const refPct       = val('bp_db_ref_pct') / 100;
+    const refPerMo     = (dbClients * refPct) / 12;
+    set('bp_db_referrals', fmt(refPerMo, 2));
+
+    const refClosePct  = val('bp_db_ref_close_pct') / 100;
+    const txnReferrals = refPerMo * refClosePct;
+    set('bp_db_txn_referrals', fmt(txnReferrals, 2));
+
+    const dbTotal = txnMoving + txnReferrals;
+    set('bp_db_total', fmt(dbTotal, 2));
+
+    // Section 2 — Other Referral Sources
+    const spRefs     = val('bp_sp_refs');
+    const spClosePct = val('bp_sp_close_pct') / 100;
+    const spTotal    = spRefs * spClosePct;
+    set('bp_sp_total', fmt(spTotal, 2));
+
+    // Section 3 — Consumer-Direct
+    const cdLeads    = val('bp_cd_leads');
+    const cdClosePct = val('bp_cd_close_pct') / 100;
+    const cdTotal    = cdLeads * cdClosePct;
+    set('bp_cd_total', fmt(cdTotal, 2));
+
+    // Grand Total
+    const grandTotal = dbTotal + spTotal + cdTotal;
+    set('bp_grand_total_value', fmt(grandTotal, 1));
+    set('bp_grand_total_sub', `Database (${fmt(dbTotal, 1)}) + Other Sources (${fmt(spTotal, 1)}) + Direct (${fmt(cdTotal, 1)})`);
+
+    // Gap
+    const gap = grandTotal - closingsNeeded;
+    const gapBanner = document.getElementById('bp_gap_banner');
+    const gapAbs = Math.abs(gap).toFixed(1);
+    if (gap > 0.05) {
+      gapBanner.className = 'gap-banner surplus';
+      set('bp_gap_label', '✓  Projected surplus vs. goal');
+      set('bp_gap_value', `+${gapAbs} closings/mo`);
+    } else if (gap < -0.05) {
+      gapBanner.className = 'gap-banner deficit';
+      set('bp_gap_label', '⚠  Projected shortfall vs. goal');
+      set('bp_gap_value', `–${gapAbs} closings/mo`);
+    } else {
+      gapBanner.className = 'gap-banner even';
+      set('bp_gap_label', 'Exactly on track');
+      set('bp_gap_value', '0 closings/mo gap');
+    }
+  }
+
+  // ── Lead Conversion ──
+  function calcLC() {
+    const leadsGen = val('lc_leads_gen');
+    const closings = val('lc_closings');
+    const ratio    = leadsGen > 0 ? closings / leadsGen : 0;
+    const rDisplay = (ratio * 100).toFixed(1) + '%';
+    const oneIn    = ratio > 0 ? Math.round(1 / ratio) : '—';
+
+    set('lc_ratio_display', rDisplay);
+    set('lc_ratio_carry', rDisplay);
+    set('lc_ratio_1_in', oneIn);
+
+    const target      = val('lc_target_closings');
+    const leadsNeeded = ratio > 0 ? Math.ceil(target / ratio) : '—';
+    set('lc_leads_needed', leadsNeeded);
+    set('lc_target_display', target % 1 === 0 ? target : target.toFixed(1));
+  }
+
+  // ── Lifetime Client Value ──
+  function calcLV() {
+    const commission  = val('lv_commission');
+    const moveFreq    = val('lv_move_freq');
+    const relLength   = val('lv_rel_length');
+    const investPct   = val('lv_invest_pct') / 100;
+    const refPct      = val('lv_ref_pct') / 100;
+    const refClosePct = val('lv_ref_close_pct') / 100;
+
+    const directTxn = moveFreq > 0 ? relLength / moveFreq : 0;
+    const investTxn = investPct;
+    const refTxn    = refPct * relLength * refClosePct;
+    const totalTxn  = directTxn + investTxn + refTxn;
+    const lifetime  = totalTxn * commission;
+
+    set('lv_direct_txn', fmt(directTxn, 1));
+    set('lv_invest_txn', fmt(investTxn, 1));
+    set('lv_ref_txn', fmt(refTxn, 1));
+    set('lv_total_txn', fmt(totalTxn, 1));
+    set('lv_lifetime_value', fmtDollar(lifetime));
+    set('lv_db_100', fmtDollar(lifetime * 100));
+    set('lv_years_display', relLength);
+  }
+
+  // ── Profile System ──
+  const DEFAULTS = {
+    bp_income_goal: 10000, bp_avg_price: 300000, bp_commission_pct: 2.00,
+    bp_split_pct: 60, bp_expenses: 1000,
+    bp_db_clients: 200, bp_db_years: 8,
+    bp_db_ref_pct: 30, bp_db_ref_close_pct: 50,
+    bp_sp_refs: 1, bp_sp_close_pct: 50,
+    bp_cd_leads: 20, bp_cd_close_pct: 10,
+    lc_leads_gen: 100, lc_closings: 10, lc_target_closings: 3,
+    lv_commission: 9000, lv_move_freq: 10, lv_rel_length: 20,
+    lv_invest_pct: 10, lv_ref_pct: 20, lv_ref_close_pct: 50
+  };
+
+  function getProfiles() {
+    try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}'); } catch { return {}; }
+  }
+
+  function getCurrentData() {
+    const data = {};
+    Object.keys(DEFAULTS).forEach(id => {
+      const el = document.getElementById(id);
+      if (el) data[id] = el.value;
+    });
+    data.bp_db_sides = document.getElementById('bp_db_sides').value;
+    data.savedAt = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    return data;
+  }
+
+  function saveProfile() {
+    const name = document.getElementById('profile_name').value.trim();
+    if (!name) { alert('Enter a realtor name first.'); return; }
+    const profiles = getProfiles();
+    profiles[name] = getCurrentData();
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(profiles));
+    refreshProfileSelect(name);
+    const msg = document.getElementById('profile_saved_msg');
+    msg.style.display = 'inline';
+    setTimeout(() => msg.style.display = 'none', 2000);
+  }
+
+  function loadProfile(name) {
+    if (!name) return;
+    const profiles = getProfiles();
+    const data = profiles[name];
+    if (!data) return;
+
+    document.getElementById('profile_name').value = name;
+    Object.keys(DEFAULTS).forEach(id => {
+      const el = document.getElementById(id);
+      if (el && data[id] !== undefined) el.value = data[id];
+    });
+
+    // Restore sides toggle
+    const sides = parseInt(data.bp_db_sides) || 1;
+    document.getElementById('bp_db_sides').value = sides;
+    document.querySelectorAll('#bp_sides_toggle .toggle-btn').forEach((b, i) => b.classList.toggle('active', i === sides - 1));
+
+    calcBP(); calcLC(); calcLV();
+  }
+
+  function deleteProfile() {
+    const select = document.getElementById('profile_load_select');
+    const name = select.value;
+    if (!name) { alert('Select a saved realtor to delete.'); return; }
+    if (!confirm(`Delete saved data for "${name}"?`)) return;
+    const profiles = getProfiles();
+    delete profiles[name];
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(profiles));
+    refreshProfileSelect('');
+    document.getElementById('profile_name').value = '';
+  }
+
+  function refreshProfileSelect(selectName) {
+    const select = document.getElementById('profile_load_select');
+    const profiles = getProfiles();
+    select.innerHTML = '<option value="">Select a saved realtor…</option>';
+    Object.keys(profiles).sort().forEach(name => {
+      const opt = document.createElement('option');
+      opt.value = name;
+      const saved = profiles[name].savedAt ? ` — ${profiles[name].savedAt}` : '';
+      opt.textContent = name + saved;
+      if (name === selectName) opt.selected = true;
+      select.appendChild(opt);
+    });
+  }
+
+  function resetForm() {
+    document.getElementById('profile_name').value = '';
+    document.getElementById('profile_load_select').value = '';
+    Object.entries(DEFAULTS).forEach(([id, v]) => {
+      const el = document.getElementById(id);
+      if (el) el.value = v;
+    });
+    document.getElementById('bp_db_sides').value = 1;
+    document.querySelectorAll('#bp_sides_toggle .toggle-btn').forEach((b, i) => b.classList.toggle('active', i === 0));
+    calcBP(); calcLC(); calcLV();
+    switchTab(0);
+  }
+
+  // ── Init ──
+  refreshProfileSelect('');
+  calcBP(); calcLC(); calcLV();
+</script>
+
+
+<!-- HWS Hub back button -->
+<div id="hws-back-btn" style="position:fixed;bottom:20px;right:20px;z-index:99999;">
+  <button onclick="window.close()" style="
+    background:#1a2332;
+    color:white;
+    border:none;
+    border-radius:8px;
+    padding:9px 16px;
+    font-size:13px;
+    font-weight:600;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    gap:7px;
+    box-shadow:0 2px 12px rgba(0,0,0,0.25);
+    opacity:0.85;
+    transition:opacity .15s;
+  " onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.85'">
+    ← Hub
+  </button>
+</div>
+</body>
+</html>

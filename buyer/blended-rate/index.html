@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Blended Rate Calculator — HomeWealth Solutions</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root {
+  --blue: #2491EB;
+  --green: #8EC73F;
+  --dark: #1c2b3a;
+  --mid: #3a4f62;
+  --light: #f0f4f8;
+  --border: #dde3ea;
+  --white: #ffffff;
+  --red: #dc3545;
+  --amber: #e8900a;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--light); color: var(--dark); font-size: 14px; }
+
+/* HEADER */
+.hdr { background: var(--dark); color: #fff; padding: 14px 24px; display: flex; align-items: center; justify-content: space-between; }
+.hdr-left { display: flex; align-items: center; gap: 14px; }
+.logo-bar { width: 4px; height: 36px; background: linear-gradient(to bottom, var(--blue), var(--green)); border-radius: 2px; }
+.hdr-brand { font-size: 13px; font-weight: 700; color: #fff; letter-spacing: 0.5px; }
+.hdr-sub { font-size: 11px; color: #8fa3bc; margin-top: 2px; }
+.hdr-nmls { font-size: 10px; color: #6a85a0; margin-top: 1px; }
+.btn-print { background: rgba(255,255,255,0.12); color: #fff; border: 1px solid rgba(255,255,255,0.25); padding: 7px 16px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600; }
+.btn-print:hover { background: rgba(255,255,255,0.22); }
+
+/* PRINT HEADER */
+.print-header { display: none; padding: 0 0 12px; border-bottom: 2px solid var(--blue); margin-bottom: 16px; }
+.print-header .ph-name { font-size: 18px; font-weight: 800; color: var(--blue); }
+.print-header .ph-meta { font-size: 12px; color: #666; margin-top: 4px; display: flex; gap: 20px; }
+
+/* LAYOUT */
+.main { max-width: 1060px; margin: 0 auto; padding: 24px 20px 40px; }
+
+/* BLENDED RATE HERO */
+.hero-panel { background: var(--dark); border-radius: 12px; padding: 28px 32px; margin-bottom: 24px; display: flex; align-items: center; justify-content: space-between; gap: 24px; flex-wrap: wrap; }
+.hero-rate-wrap { text-align: center; }
+.hero-rate-label { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #8fa3bc; margin-bottom: 6px; }
+.hero-rate { font-size: 72px; font-weight: 900; color: var(--blue); line-height: 1; font-variant-numeric: tabular-nums; }
+.hero-rate-pct { font-size: 32px; font-weight: 700; color: #8fa3bc; vertical-align: super; }
+.hero-stats { display: flex; gap: 32px; flex-wrap: wrap; }
+.hero-stat { text-align: center; }
+.hero-stat-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: #6a85a0; margin-bottom: 4px; }
+.hero-stat-val { font-size: 26px; font-weight: 800; color: #fff; }
+.hero-stat-sub { font-size: 11px; color: #6a85a0; margin-top: 2px; }
+
+/* TWO COL */
+.two-col { display: grid; grid-template-columns: 1fr 360px; gap: 20px; align-items: start; }
+
+/* DEBT TABLE */
+.debt-table-wrap { background: var(--white); border-radius: 10px; border: 1px solid var(--border); overflow: hidden; margin-bottom: 20px; }
+.debt-table-header { background: var(--dark); color: #fff; padding: 10px 16px; font-size: 12px; font-weight: 700; display: flex; justify-content: space-between; align-items: center; }
+table.debt-tbl { width: 100%; border-collapse: collapse; }
+table.debt-tbl th { background: var(--light); font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--mid); padding: 8px 10px; border-bottom: 1px solid var(--border); text-align: left; }
+table.debt-tbl td { padding: 7px 8px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+table.debt-tbl tr:last-child td { border-bottom: none; }
+table.debt-tbl input[type=text] { width: 100%; padding: 6px 8px; border: 1.5px solid var(--border); border-radius: 5px; font-size: 13px; background: #fafbfc; color: var(--dark); }
+table.debt-tbl input[type=text]:focus { outline: none; border-color: var(--blue); }
+.btn-remove { background: none; border: none; color: #aaa; font-size: 18px; cursor: pointer; padding: 0 4px; line-height: 1; transition: color 0.15s; }
+.btn-remove:hover { color: var(--red); }
+.btn-add { background: var(--white); color: var(--blue); border: 1.5px solid var(--blue); padding: 8px 16px; border-radius: 6px; font-size: 12px; font-weight: 700; cursor: pointer; margin: 10px 14px 12px; display: block; transition: background 0.15s; }
+.btn-add:hover { background: #eef6ff; }
+
+/* BREAKDOWN TABLE */
+.panel { background: var(--white); border-radius: 10px; border: 1px solid var(--border); overflow: hidden; margin-bottom: 20px; }
+.panel-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: var(--blue); padding: 12px 16px; border-bottom: 1px solid var(--border); background: var(--light); }
+table.breakdown-tbl { width: 100%; border-collapse: collapse; }
+table.breakdown-tbl th { background: var(--dark); color: #fff; font-size: 11px; font-weight: 600; padding: 9px 12px; text-align: right; }
+table.breakdown-tbl th:first-child { text-align: left; }
+table.breakdown-tbl td { padding: 8px 12px; border-bottom: 1px solid var(--border); font-size: 12.5px; text-align: right; font-variant-numeric: tabular-nums; }
+table.breakdown-tbl td:first-child { text-align: left; font-weight: 600; color: var(--mid); }
+table.breakdown-tbl tr:last-child td { border-bottom: none; }
+table.breakdown-tbl tr.total-row td { background: var(--light); font-weight: 700; color: var(--dark); border-top: 2px solid var(--border); }
+table.breakdown-tbl tr:nth-child(even) td { background: #fafbfc; }
+.contrib-bar-wrap { height: 8px; background: var(--border); border-radius: 4px; margin-top: 4px; }
+.contrib-bar { height: 8px; background: var(--blue); border-radius: 4px; transition: width 0.3s; }
+
+/* CHART PANEL */
+.chart-panel { background: var(--white); border-radius: 10px; border: 1px solid var(--border); padding: 18px; }
+.chart-panel-title { font-size: 13px; font-weight: 700; color: var(--mid); margin-bottom: 14px; }
+.chart-canvas-wrap { position: relative; height: 280px; }
+
+/* CTA */
+.cta-banner { background: linear-gradient(135deg, var(--dark) 0%, var(--mid) 100%); border-radius: 10px; padding: 22px 28px; margin-top: 20px; display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap; }
+.cta-text { color: #fff; }
+.cta-headline { font-size: 16px; font-weight: 700; line-height: 1.4; }
+.cta-headline span { color: var(--blue); }
+.cta-sub { font-size: 12.5px; color: #8fa3bc; margin-top: 6px; line-height: 1.5; }
+.cta-btn { background: var(--blue); color: #fff; border: none; padding: 13px 24px; border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer; text-decoration: none; display: inline-block; white-space: nowrap; transition: background 0.15s; }
+.cta-btn:hover { background: #1a7fd4; }
+
+/* PRINT FIELDS */
+.print-fields-row { display: flex; gap: 14px; margin-bottom: 20px; }
+.print-fields-row .pf { flex: 1; }
+.print-fields-row label { font-size: 11px; font-weight: 700; color: var(--mid); text-transform: uppercase; letter-spacing: 0.04em; display: block; margin-bottom: 4px; }
+.print-fields-row input { width: 100%; padding: 8px 10px; border: 1.5px solid var(--border); border-radius: 6px; font-size: 13px; background: #fafbfc; }
+
+/* PRINT */
+@media print {
+  body { background: #fff; }
+  .hdr { display: none; }
+  .print-header { display: block !important; }
+  .btn-print, .print-fields-row { display: none !important; }
+  .hero-panel { background: var(--dark) !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .two-col { grid-template-columns: 1fr 320px !important; }
+  .panel, .debt-table-wrap, .chart-panel { break-inside: avoid; }
+  .chart-canvas-wrap { height: 220px !important; }
+  .cta-banner { background: var(--dark) !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  @page { margin: 0.6in; }
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="hdr">
+  <div class="hdr-left">
+    <div class="logo-bar"></div>
+    <div>
+      <div class="hdr-brand">HOMEWEALTH SOLUTIONS</div>
+      <div class="hdr-sub">Blended Rate Calculator</div>
+      <div class="hdr-nmls">NMLS #2742458</div>
+    </div>
+  </div>
+  <button class="btn-print" onclick="printView()">&#9113; Print / Save PDF</button>
+</div>
+
+<!-- PRINT HEADER -->
+<div class="print-header" id="printHdr">
+  <div class="ph-name">HomeWealth Solutions — Blended Rate Calculator</div>
+  <div class="ph-meta">
+    <span id="ph_client"></span><span id="ph_agent"></span><span id="ph_date"></span>
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- PRINT FIELDS (hidden on print) -->
+  <div class="print-fields-row">
+    <div class="pf">
+      <label>Prepared For</label>
+      <input type="text" id="print_client" placeholder="Client name">
+    </div>
+    <div class="pf">
+      <label>Prepared By</label>
+      <input type="text" id="print_agent" value="Doug Smith, CMA&#174;">
+    </div>
+  </div>
+
+  <!-- HERO: BLENDED RATE -->
+  <div class="hero-panel">
+    <div class="hero-rate-wrap">
+      <div class="hero-rate-label">Your Blended Rate</div>
+      <div>
+        <span class="hero-rate" id="heroRate">—</span><span class="hero-rate-pct">%</span>
+      </div>
+      <div style="font-size:11px;color:#6a85a0;margin-top:6px;">weighted average across all debts</div>
+    </div>
+    <div class="hero-stats">
+      <div class="hero-stat">
+        <div class="hero-stat-label">Total Balance</div>
+        <div class="hero-stat-val" id="heroBalance">—</div>
+        <div class="hero-stat-sub">outstanding debt</div>
+      </div>
+      <div class="hero-stat">
+        <div class="hero-stat-label">Total Monthly Payment</div>
+        <div class="hero-stat-val" id="heroPayment">—</div>
+        <div class="hero-stat-sub">combined obligations</div>
+      </div>
+      <div class="hero-stat">
+        <div class="hero-stat-label">Number of Debts</div>
+        <div class="hero-stat-val" id="heroCount">—</div>
+        <div class="hero-stat-sub">active accounts</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="two-col">
+
+    <!-- LEFT -->
+    <div>
+
+      <!-- DEBT TABLE -->
+      <div class="debt-table-wrap">
+        <div class="debt-table-header">
+          <span>Enter Your Debts</span>
+          <span style="font-size:10px;color:#8fa3bc;">Add all outstanding balances and rates</span>
+        </div>
+        <table class="debt-tbl" id="debtTable">
+          <thead>
+            <tr>
+              <th style="width:30%">Creditor</th>
+              <th style="width:26%">Balance</th>
+              <th style="width:22%">Monthly Pmt</th>
+              <th style="width:16%">Rate %</th>
+              <th style="width:6%"></th>
+            </tr>
+          </thead>
+          <tbody id="debtTbody"></tbody>
+        </table>
+        <button class="btn-add" onclick="addDebt()">+ Add Debt</button>
+      </div>
+
+      <!-- BREAKDOWN TABLE -->
+      <div class="panel">
+        <div class="panel-title">Rate Contribution Breakdown</div>
+        <table class="breakdown-tbl">
+          <thead>
+            <tr>
+              <th>Creditor</th>
+              <th>Balance</th>
+              <th>% of Total</th>
+              <th>Rate</th>
+              <th>Contribution</th>
+            </tr>
+          </thead>
+          <tbody id="breakdownTbody"></tbody>
+        </table>
+      </div>
+
+    </div><!-- /left -->
+
+    <!-- RIGHT: CHART -->
+    <div>
+      <div class="chart-panel">
+        <div class="chart-panel-title">Debt Breakdown by Balance</div>
+        <div class="chart-canvas-wrap">
+          <canvas id="pieChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /two-col -->
+
+  <!-- CTA BANNER -->
+  <div class="cta-banner" id="ctaBanner">
+    <div class="cta-text">
+      <div class="cta-headline">You're paying an effective rate of <span id="ctaRate">—%</span> across all your debts.</div>
+      <div class="cta-sub">A debt consolidation refinance could restructure this into a single, lower payment — freeing up cash flow every month.</div>
+    </div>
+    <a href="./debt-consolidation.html" class="cta-btn">Run Debt Consolidation Analysis &#8594;</a>
+  </div>
+
+</div><!-- /main -->
+
+<script>
+// ── STATE ──
+let _debts = [];
+let _debtIdSeq = 0;
+let _pieChart = null;
+
+const PALETTE = [
+  '#2491EB','#8EC73F','#e8900a','#dc3545','#6f42c1',
+  '#17a2b8','#fd7e14','#20c997','#e83e8c','#6c757d'
+];
+
+// ── FORMAT HELPERS ──
+function stripDollar(v) { return parseFloat((v||'').toString().replace(/[$,\s]/g,'')) || 0; }
+function stripPct(v)    { return parseFloat((v||'').toString().replace(/[%\s]/g,''))   || 0; }
+
+function fmtDebtDollar(el) {
+  const raw = (el.value||'').replace(/[$,]/g,'');
+  const n = parseFloat(raw);
+  if (!isNaN(n) && raw.trim() !== '') {
+    const c = el.selectionStart, ol = el.value.length;
+    el.value = '$' + Math.round(n).toLocaleString('en-US');
+    const nl = el.value.length;
+    try { el.setSelectionRange(c+(nl-ol), c+(nl-ol)); } catch(e) {}
+  }
+}
+function fmtDebtPct(el) {
+  const raw = (el.value||'').replace(/[%]/g,'');
+  const n = parseFloat(raw);
+  if (!isNaN(n) && raw.trim() !== '') el.value = n.toFixed(2) + '%';
+}
+function fmt$(v) { return isNaN(v)||v===null ? '—' : '$' + Math.round(v).toLocaleString(); }
+function fmtPct(v,d=2) { return isNaN(v) ? '—' : v.toFixed(d) + '%'; }
+
+// ── DEBT TABLE ──
+function addDebt(name='', balance='', payment='', rate='') {
+  const id = ++_debtIdSeq;
+  _debts.push({ id, name, balance, payment, rate });
+  renderDebtTable();
+  calc();
+}
+
+function removeDebt(id) {
+  _debts = _debts.filter(d => d.id !== id);
+  renderDebtTable();
+  calc();
+}
+
+function syncDebtsFromDOM() {
+  _debts.forEach(d => {
+    const n = document.getElementById(`d_name_${d.id}`);
+    const b = document.getElementById(`d_bal_${d.id}`);
+    const p = document.getElementById(`d_pmt_${d.id}`);
+    const r = document.getElementById(`d_rate_${d.id}`);
+    if (n) d.name    = n.value;
+    if (b) d.balance = b.value;
+    if (p) d.payment = p.value;
+    if (r) d.rate    = r.value;
+  });
+}
+
+function renderDebtTable() {
+  const tbody = document.getElementById('debtTbody');
+  tbody.innerHTML = _debts.map((d, i) => `
+    <tr>
+      <td>
+        <input type="text" id="d_name_${d.id}" value="${d.name}"
+          placeholder="${['Credit Card','Auto Loan','Personal Loan','Student Loan','HELOC','Medical Bill','Store Card','Other'][i % 8]}"
+          oninput="syncDebtsFromDOM();calc()">
+      </td>
+      <td>
+        <input type="text" id="d_bal_${d.id}" value="${d.balance}" placeholder="$0"
+          oninput="fmtDebtDollar(this);syncDebtsFromDOM();calc()">
+      </td>
+      <td>
+        <input type="text" id="d_pmt_${d.id}" value="${d.payment}" placeholder="$0"
+          oninput="fmtDebtDollar(this);syncDebtsFromDOM();calc()">
+      </td>
+      <td>
+        <input type="text" id="d_rate_${d.id}" value="${d.rate}" placeholder="0.00%"
+          oninput="fmtDebtPct(this);syncDebtsFromDOM();calc()">
+      </td>
+      <td>
+        <button class="btn-remove" onclick="removeDebt(${d.id})" title="Remove">&#215;</button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+// ── MAIN CALC ──
+function calc() {
+  syncDebtsFromDOM();
+
+  const items = _debts.map(d => ({
+    name:    d.name || 'Debt',
+    balance: stripDollar(d.balance),
+    payment: stripDollar(d.payment),
+    rate:    stripPct(d.rate)
+  })).filter(d => d.balance > 0);
+
+  if (items.length === 0) {
+    document.getElementById('heroRate').textContent = '—';
+    document.getElementById('heroBalance').textContent = '—';
+    document.getElementById('heroPayment').textContent = '—';
+    document.getElementById('heroCount').textContent = '0';
+    document.getElementById('breakdownTbody').innerHTML = '<tr><td colspan="5" style="text-align:center;color:#aaa;padding:14px;">Add debts above to see analysis.</td></tr>';
+    document.getElementById('ctaRate').textContent = '—%';
+    if (_pieChart) { _pieChart.destroy(); _pieChart = null; }
+    return;
+  }
+
+  const totalBal  = items.reduce((s,d) => s + d.balance, 0);
+  const totalPmt  = items.reduce((s,d) => s + d.payment, 0);
+  const blendedRate = totalBal > 0 ? items.reduce((s,d) => s + d.balance * d.rate, 0) / totalBal : 0;
+
+  // Hero
+  document.getElementById('heroRate').textContent = blendedRate.toFixed(2);
+  document.getElementById('heroBalance').textContent = fmt$(totalBal);
+  document.getElementById('heroPayment').textContent = fmt$(totalPmt) + '/mo';
+  document.getElementById('heroCount').textContent = items.length;
+  document.getElementById('ctaRate').textContent = blendedRate.toFixed(2) + '%';
+
+  // Breakdown table
+  const tbody = document.getElementById('breakdownTbody');
+  tbody.innerHTML = items.map((d, i) => {
+    const pct = totalBal > 0 ? (d.balance / totalBal * 100) : 0;
+    const contrib = blendedRate > 0 ? (d.balance * d.rate / totalBal) : 0;
+    const color = PALETTE[i % PALETTE.length];
+    return `
+      <tr>
+        <td>
+          <span style="display:inline-block;width:10px;height:10px;background:${color};border-radius:2px;margin-right:6px;vertical-align:middle;"></span>
+          ${d.name}
+        </td>
+        <td>${fmt$(d.balance)}</td>
+        <td>
+          ${pct.toFixed(1)}%
+          <div class="contrib-bar-wrap"><div class="contrib-bar" style="width:${Math.min(100,pct).toFixed(1)}%;background:${color};"></div></div>
+        </td>
+        <td>${fmtPct(d.rate)}</td>
+        <td>${fmtPct(contrib, 2)}</td>
+      </tr>
+    `;
+  }).join('') + `
+    <tr class="total-row">
+      <td>Total / Blended Rate</td>
+      <td>${fmt$(totalBal)}</td>
+      <td>100%</td>
+      <td>—</td>
+      <td style="color:var(--blue);">${fmtPct(blendedRate)}</td>
+    </tr>
+  `;
+
+  // Pie chart
+  buildPieChart(items);
+}
+
+function buildPieChart(items) {
+  const labels = items.map(d => d.name || 'Debt');
+  const data   = items.map(d => d.balance);
+  const colors = items.map((_, i) => PALETTE[i % PALETTE.length]);
+
+  const cfg = {
+    type: 'doughnut',
+    data: {
+      labels,
+      datasets: [{
+        data,
+        backgroundColor: colors,
+        borderColor: '#fff',
+        borderWidth: 2,
+        hoverOffset: 8
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      cutout: '50%',
+      plugins: {
+        legend: {
+          position: 'bottom',
+          labels: { boxWidth: 12, font: { size: 11 }, padding: 10,
+            generateLabels: (chart) => {
+              const ds = chart.data.datasets[0];
+              const total = ds.data.reduce((s,v) => s+v, 0);
+              return chart.data.labels.map((lbl, i) => ({
+                text: lbl + ' — $' + Math.round(ds.data[i]).toLocaleString(),
+                fillStyle: ds.backgroundColor[i],
+                strokeStyle: '#fff',
+                lineWidth: 1,
+                hidden: false,
+                index: i
+              }));
+            }
+          }
+        },
+        tooltip: {
+          callbacks: {
+            label: c => {
+              const total = c.dataset.data.reduce((s,v) => s+v, 0);
+              const pct = (c.raw / total * 100).toFixed(1);
+              return ` ${c.label}: $${Math.round(c.raw).toLocaleString()} (${pct}%)`;
+            }
+          }
+        }
+      }
+    }
+  };
+
+  if (_pieChart) _pieChart.destroy();
+  _pieChart = new Chart(document.getElementById('pieChart').getContext('2d'), cfg);
+}
+
+function printView() {
+  const client = (document.getElementById('print_client').value||'').trim();
+  const agent  = (document.getElementById('print_agent').value||'').trim();
+  const now    = new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
+  document.getElementById('ph_client').innerHTML = client ? `<strong>Prepared for:</strong> ${client}` : '';
+  document.getElementById('ph_agent').innerHTML  = agent  ? `<strong>Prepared by:</strong> ${agent}` : '';
+  document.getElementById('ph_date').innerHTML   = `<strong>Date:</strong> ${now}`;
+  if (_pieChart) { _pieChart.resize(); _pieChart.update('none'); }
+  window.print();
+}
+
+// ── INIT ──
+window.addEventListener('DOMContentLoaded', () => {
+  addDebt('Credit Card',   '$8,500',  '$220', '22.99%');
+  addDebt('Auto Loan',     '$14,000', '$325', '7.49%');
+  addDebt('Personal Loan', '$5,000',  '$165', '14.99%');
+  calc();
+});
+</script>
+<a href="https://tools.homewealthsolutions.com" id="hws-hub-btn" style="position:fixed;top:14px;right:16px;z-index:9999;background:#1c2b3a;color:rgba(255,255,255,0.9);text-decoration:none;font-size:12px;font-weight:700;padding:6px 14px;border-radius:8px;font-family:-apple-system,BlinkMacSystemFont,sans-serif;letter-spacing:0.2px;box-shadow:0 2px 8px rgba(0,0,0,0.25);">← Hub</a>
+
+<!-- HWS Hub back button -->
+<div id="hws-back-btn" style="position:fixed;bottom:20px;right:20px;z-index:99999;">
+  <button onclick="window.close()" style="
+    background:#1a2332;
+    color:white;
+    border:none;
+    border-radius:8px;
+    padding:9px 16px;
+    font-size:13px;
+    font-weight:600;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    gap:7px;
+    box-shadow:0 2px 12px rgba(0,0,0,0.25);
+    opacity:0.85;
+    transition:opacity .15s;
+  " onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.85'">
+    ← Hub
+  </button>
+</div>
+<script src="/hws-session.js"></script>
+</body>
+</html>

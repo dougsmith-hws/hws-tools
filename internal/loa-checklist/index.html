@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LOA Checklist — HWS</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: #f0f4f9;
+    color: #1a2332;
+    min-height: 100vh;
+  }
+
+  .header {
+    background: #2491EB;
+    color: white;
+    padding: 16px 20px 14px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 12px rgba(36,145,235,0.25);
+  }
+  .header-inner {
+    max-width: 680px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .logo { font-size: 15px; font-weight: 800; }
+  .logo span { color: #8EC73F; }
+  .header-sub { font-size: 11px; opacity: 0.8; margin-top: 1px; }
+  .back-link { color: rgba(255,255,255,0.85); text-decoration: none; font-size: 12px; }
+
+  .main { max-width: 680px; margin: 0 auto; padding: 16px 16px 50px; }
+
+  /* Tab bar */
+  .tabs {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+  }
+  .tab-btn {
+    padding: 7px 13px;
+    border-radius: 8px;
+    border: 1.5px solid #e2e8f0;
+    background: white;
+    font-size: 12px;
+    font-weight: 700;
+    color: #64748b;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .tab-btn.active { background: #2491EB; border-color: #2491EB; color: white; }
+  .tab-btn:hover:not(.active) { border-color: #2491EB; color: #2491EB; }
+
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  /* Progress bar */
+  .progress-wrap { margin-bottom: 16px; }
+  .progress-bar-bg {
+    background: #e2e8f0;
+    border-radius: 99px;
+    height: 6px;
+    overflow: hidden;
+  }
+  .progress-bar-fill {
+    height: 100%;
+    background: #8EC73F;
+    border-radius: 99px;
+    transition: width 0.3s;
+  }
+  .progress-label {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+    font-size: 11px;
+    color: #64748b;
+  }
+  .progress-label strong { color: #1a2332; }
+
+  /* Section headers */
+  .section-header {
+    font-size: 10px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.7px;
+    color: #94a3b8;
+    margin: 16px 0 8px;
+    padding-left: 2px;
+  }
+
+  /* Checklist card */
+  .checklist-card {
+    background: white;
+    border-radius: 12px;
+    border: 1.5px solid #e2e8f0;
+    overflow: hidden;
+    margin-bottom: 10px;
+  }
+
+  .check-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 11px 14px;
+    border-bottom: 1px solid #f1f5f9;
+    cursor: pointer;
+    transition: background 0.1s;
+    user-select: none;
+  }
+  .check-item:last-child { border-bottom: none; }
+  .check-item:hover { background: #f8fafc; }
+  .check-item.done { opacity: 0.55; }
+  .check-item.done .check-label { text-decoration: line-through; color: #94a3b8; }
+
+  .check-box {
+    width: 20px;
+    height: 20px;
+    border: 2px solid #cbd5e1;
+    border-radius: 6px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 1px;
+    transition: all 0.15s;
+  }
+  .check-item.done .check-box {
+    background: #8EC73F;
+    border-color: #8EC73F;
+  }
+  .check-tick { color: white; font-size: 11px; display: none; }
+  .check-item.done .check-tick { display: block; }
+
+  .check-content { flex: 1; min-width: 0; }
+  .check-label { font-size: 13px; color: #1a2332; line-height: 1.4; }
+  .check-note { font-size: 11px; color: #64748b; margin-top: 2px; line-height: 1.4; }
+
+  .priority-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    margin-top: 6px;
+    flex-shrink: 0;
+  }
+  .p-high { background: #ef4444; }
+  .p-med { background: #f59e0b; }
+  .p-low { background: #94a3b8; }
+
+  /* Reset / actions */
+  .action-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+  }
+  .action-btn {
+    padding: 7px 13px;
+    border-radius: 8px;
+    border: 1.5px solid #e2e8f0;
+    background: white;
+    font-size: 11px;
+    font-weight: 700;
+    color: #64748b;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .action-btn:hover { border-color: #2491EB; color: #2491EB; }
+  .action-btn.primary {
+    background: #2491EB;
+    border-color: #2491EB;
+    color: white;
+  }
+
+  /* Follow-up cadence table */
+  .cadence-card {
+    background: white;
+    border-radius: 12px;
+    border: 1.5px solid #e2e8f0;
+    overflow: hidden;
+    margin-bottom: 10px;
+  }
+  .cadence-header {
+    padding: 12px 14px;
+    background: #f8fafc;
+    border-bottom: 1px solid #e2e8f0;
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #475569;
+  }
+  .cadence-row {
+    display: flex;
+    padding: 10px 14px;
+    gap: 12px;
+    border-bottom: 1px solid #f1f5f9;
+    font-size: 12px;
+    align-items: flex-start;
+  }
+  .cadence-row:last-child { border-bottom: none; }
+  .cadence-stage {
+    width: 130px;
+    font-weight: 700;
+    color: #1a2332;
+    flex-shrink: 0;
+  }
+  .cadence-action { color: #475569; flex: 1; line-height: 1.5; }
+  .cadence-freq {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 5px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .freq-high { background: #fee2e2; color: #991b1b; }
+  .freq-med { background: #fef3c7; color: #92400e; }
+  .freq-low { background: #f0f4f9; color: #475569; }
+
+  /* Pipeline email template */
+  .email-box {
+    background: white;
+    border-radius: 12px;
+    border: 1.5px solid #e2e8f0;
+    padding: 16px;
+    margin-bottom: 10px;
+  }
+  .email-subject {
+    font-size: 12px;
+    font-weight: 700;
+    color: #1a2332;
+    margin-bottom: 8px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #f1f5f9;
+  }
+  .email-body {
+    font-size: 12px;
+    color: #475569;
+    line-height: 1.8;
+    white-space: pre-line;
+  }
+  .email-placeholder { background: #fef3c7; border-radius: 4px; padding: 1px 4px; font-weight: 700; color: #92400e; }
+
+  .note-box {
+    background: #fefce8;
+    border: 1.5px solid #fde047;
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-size: 12px;
+    color: #713f12;
+    line-height: 1.5;
+    margin-bottom: 10px;
+  }
+
+  .step-card {
+    background: white;
+    border-radius: 12px;
+    border: 1.5px solid #e2e8f0;
+    padding: 14px 16px;
+    margin-bottom: 8px;
+    font-size: 12px;
+    line-height: 1.6;
+    color: #475569;
+  }
+  .step-num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    background: #2491EB;
+    color: white;
+    border-radius: 50%;
+    font-size: 11px;
+    font-weight: 700;
+    flex-shrink: 0;
+    margin-right: 8px;
+  }
+  .step-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 8px;
+  }
+  .step-row:last-child { margin-bottom: 0; }
+  .step-row-content { flex: 1; padding-top: 1px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-inner">
+    <div>
+      <div class="logo">HomeWealth<span>.</span></div>
+      <div class="header-sub">LOA Checklist</div>
+    </div>
+    <a href="javascript:window.close()" class="back-link">← Hub</a>
+  </div>
+</div>
+
+<div class="main">
+
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('daily')">📅 Daily</button>
+    <button class="tab-btn" onclick="switchTab('weekly')">📋 Weekly</button>
+    <button class="tab-btn" onclick="switchTab('followup')">📞 Follow-Up Cadence</button>
+    <button class="tab-btn" onclick="switchTab('pipeline')">📧 Pipeline Email</button>
+  </div>
+
+  <!-- ========================= DAILY ========================= -->
+  <div class="panel active" id="panel-daily">
+
+    <div class="action-row">
+      <button class="action-btn primary" onclick="resetPanel('daily')">🔄 New Day</button>
+      <button class="action-btn" onclick="checkAll('daily')">✅ Check All</button>
+    </div>
+
+    <div class="progress-wrap" id="daily-progress">
+      <div class="progress-label">
+        <strong id="daily-count">0 / 0 completed</strong>
+        <span id="daily-pct">0%</span>
+      </div>
+      <div class="progress-bar-bg">
+        <div class="progress-bar-fill" id="daily-bar" style="width:0%"></div>
+      </div>
+    </div>
+
+    <div class="section-header">🔴 First Thing</div>
+    <div class="checklist-card" data-panel="daily">
+      <div class="check-item" onclick="toggle(this)">
+        <div class="check-box"><span class="check-tick">✓</span></div>
+        <div class="check-content">
+          <div class="check-label">Check FUB inbox — new leads, messages, task alerts</div>
+          <div class="check-note">Open FUB → Inbox. Respond to any same-day leads immediately.</div>
+        </div>
+        <div class="priority-dot p-high"></div>
+      </div>
+      <div class="check-item" onclick="toggle(this)">
+        <div class="check-box"><span class="check-tick">✓</span></div>
+        <div class="check-content">
+          <div class="check-label">Review open FUB tasks due today</div>
+          <div class="check-note">Every lead should always have an open task — this is your action list.</div>
+        </div>
+        <div class="priority-dot p-high"></div>
+      </div>
+      <div class="check-item" onclick="toggle(this)">
+        <div class="check-box"><span class="check-tick">✓</span></div>
+        <div class="check-content">
+          <div class="check-label">Review email — respond to lender, title, and client questions</div>
+          <div class="check-note">Prioritize items that could delay a closing or stall a pre-approval.</div>
+        </div>
+        <div class="priority-dot p-high"></div>
+      </div>
+    </div>
+
+    <div class="section-header">📂 Active File Review</div>
+    <div class="checklist-card" data-panel="daily">
+      <div class="check-item" onclick="toggle(this)">
+        <div class="check-box"><span class="check-tick">✓</span></div>
+        <div class="check-content">
+          <div class="check-label">Check all files under contract — note any conditions or lender requests</div>
+          <div class="check-note">Look for outstanding conditions, appraisal status, and HOI confirmation.</div>
+        </div>
+        <div class="priority-dot p-high"></div>
+      </div>
+      <div class="check-item" onclick="toggle(this)">
+        <div class="check-box"><span class="check-tick">✓</span></div>
+        <div class="check-content">
+          <div class="check-label">Check any files in pre-approval — are documents still needed?</div>
+          <div class="check-note">If docs were requested but not received in 1–2 days, follow up with client.</div>
+        </div>
+        <div class="priority-dot p-med"></div>
+      </div>
+      <div class="check-item" onclick="toggle(this)">
+        <div class="check-box"><span class="check-tick">✓</span></div>
+        <div class="check-content">
+          <div class="check-label">Review Arive for any new lender messages or conditions</div>
+          <div class="check-note">Check lender portal for each active file — new notes or requests.</div>
+        </div>
+        <div class="priority-dot p-high"></div>
+      </div>
+    </div>
+
+    <div class="section-header">📞 Lead Management</div>
+    <div class="checklist-card" data-panel="daily">
+      <div class="check-item" onclick="toggle(this)">
+        <div class="check-box"><span class="check-tick">✓</span></div>
+        <div class="check-content">
+          <div class="check-label">Call or text same-day leads — initial contact same day as inquiry</div>
+          <div class="check-note">Fast leads → call same day. Every new lead gets a task set in FUB before you hang up.</div>
+        </div>
+        <div class="priority-dot p-high"></div>
+      </div>
+      <div class="check-item" onclick="toggle(this)">
+        <div class="check-box"><span class="check-tick">✓</span></div>
+        <div class="check-content">
+          <div class="check-label">Update FUB last-touch notes after any contact</div>
+          <div class="check-note">FUB → Lead contact → Last Touch. Be specific: what was discussed, what's next.</div>
+        </div>
+        <div class="priority-dot p-high"></div>
+      </div>
+      <div class="check-item" onclick="toggle(this)">
+        <div class="check-box"><span class="check-tick">✓</span></div>
+        <div class="check-content">
+          <div class="check-label">Set or update next task for every lead touched today</div>
+          <div class="check-note">If no open task → there is no follow-up. Always leave an open task.</div>
+        </div>
+        <div class="priority-dot p-high"></div>
+      </div>
+      <div class="check-item" onclick="toggle(this)">
+        <div class="check-box"><span class="check-tick">✓</span></div>
+        <div class="check-content">
+          <div class="check-label">Follow up on applications awaiting documents (target: docs within 1–2 days)</div>
+          <div class="check-note">If docs not received: follow up by phone or text — don't let it go 3+ days.</div>
+        </div>
+        <div class="priority-dot p-med"></div>
+      </div>
+    </div>
+
+    <div class="section-header">✏️ New Leads</div>
+    <div class="checklist-card" data-panel="daily">
+      <div class="check-item" onclick="toggle(this)">
+        <div class="check-box"><span class="check-tick">✓</span></div>
+        <div class="check-content">
+          <div class="check-label">Add any new lead to FUB — name, phone, email, referral source, last-touch note</div>
+          <div class="check-note">FUB → New Contact. Check for duplicates first. Set stage = Lead.</div>
+        </div>
+        <div class="priority-dot p-high"></div>
+      </div>
+      <div class="check-item" onclick="toggle(this)">
+        <div class="check-box"><span class="check-tick">✓</span></div>
+        <div class="check-content">
+          <div class="check-label">Set a Referred By field (Realtor or source) in FUB</div>
+          <div class="check-note">Critical for tracking which partners are sending business.</div>
+        </div>
+        <div class="priority-dot p-med"></div>
+      </div>
+    </div>
+
+    <div class="section-header">🏁 End of Day</div>
+    <div class="checklist-card" data-panel="daily">
+      <div class="check-item" onclick="toggle(this)">
+        <div class="check-box"><span class="check-tick">✓</span></div>
+        <div class="check-content">
+          <div class="check-label">Confirm every active lead has an open FUB task for tomorrow</div>
+          <div class="check-note">No task = no follow-up. Non-negotiable.</div>
+        </div>
+        <div class="priority-dot p-high"></div>
+      </div>
+      <div class="check-item" onclick="toggle(this)">
+        <div class="check-box"><span class="check-tick">✓</span></div>
+        <div class="check-content">
+          <div class="check-label">Note anything urgent to bring to Doug's attention</div>
+          <div class="check-note">DTI concerns, income questions, rate lock expiration, anything off-script.</div>
+        </div>
+        <div class="priority-dot p-med"></div>
+      </div>
+    </div>
+
+  </div><!-- /panel-daily -->
+
+  <!-- ========================= WEEKLY ========================= -->
+  <div class="panel" id="panel-weekly">
+
+    <div class="action-row">
+      <button class="action-btn primary" onclick="resetPanel('weekly')">🔄 New Week</button>
+      <button class="action-btn" onclick="checkAll('weekly')">✅ Check All</button>
+    </div>
+
+    <div class="progress-wrap" id="weekly-progress">
+      <div class="progress-label">
+        <strong id="weekly-count">0 / 0 completed</strong>
+        <span id="weekly-pct">0%</span>
+      </div>
+      <div class="progress-bar-bg">
+        <div class="progress-bar-fill" id="weekly-bar" style="width:0%"></div>
+      </div>
+    </div>
+
+    <div class="section-header">📋 Monday — Pipeline Review</div>
+    <div class="checklist-card" data-panel="weekly">
+      <div class="check-item" onclick="toggle(this)">
+        <div class="check-box"><span class="check-tick">✓</span></div>
+        <div class="check-content">
+          <div class="check-label">Send Monday pipeline email update to agents and title for all active files</div>
+          <div class="check-note">FUB → Buyer's Agent → Email tab. Reply all to last week's thread. CC doug@homewealthsolutions.com and processor.</div>
+        </div>
+        <div class="priority-dot p-high"></div>
+      </div>
+      <div class="check-item" onclick="toggle(this)">
+        <div class="check-box"><span class="check-tick">✓</span></div>
+        <div class="check-content">
+          <div class="check-label">Review each active loan for the week: underwriting, appraisal, conditions, HOI, anything special</div>
+          <div class="check-note">Be able to answer: Are we on pace to close? What's outstanding?</div>
+        </div>
+        <div class="priority-dot p-high"></div>
+      </div>
+    </div>
+
+    <div class="section-header">🔁 Ongoing Weekly</div>
+    <div class="checklist-card" data-panel="weekly">
+      <div class="check-item" onclick="toggle(this)">
+        <div class="check-box"><span class="check-tick">✓</span></div>
+        <div class="check-content">
+          <div class="check-label">Follow up on all pre-approved clients not yet under contract — weekly touch</div>
+          <div class="check-note">Keep them warm. Check FUB for last touch and set next task.</div>
+        </div>
+        <div class="priority-dot p-med"></div>
+      </div>
+      <div class="check-item" onclick="toggle(this)">
+        <div class="check-box"><span class="check-tick">✓</span></div>
+        <div class="check-content">
+          <div class="check-label">Check all rate lock expirations — flag anything expiring in the next 14 days</div>
+          <div class="check-note">Alert Doug immediately if a lock is at risk. Check lender portal.</div>
+        </div>
+        <div class="priority-dot p-high"></div>
+      </div>
+      <div class="check-item" onclick="toggle(this)">
+        <div class="check-box"><span class="check-tick">✓</span></div>
+        <div class="check-content">
+          <div class="check-label">Review pipeline for any CDs (Closing Disclosures) that need to go out</div>
+          <div class="check-note">CD must be sent 3 business days before closing. Flag any upcoming closings.</div>
+        </div>
+        <div class="priority-dot p-high"></div>
+      </div>
+      <div class="check-item" onclick="toggle(this)">
+        <div class="check-box"><span class="check-tick">✓</span></div>
+        <div class="check-content">
+          <div class="check-label">Verify HOI is in place for any files closing in the next 2 weeks</div>
+          <div class="check-note">Contact Ryan Obenreder (ryan@stateinsureonline.com / 813-345-4647) if needed.</div>
+        </div>
+        <div class="priority-dot p-high"></div>
+      </div>
+      <div class="check-item" onclick="toggle(this)">
+        <div class="check-box"><span class="check-tick">✓</span></div>
+        <div class="check-content">
+          <div class="check-label">Process any new document uploads from clients in Arive</div>
+          <div class="check-note">Review, label, and confirm they match what was requested. Flag discrepancies.</div>
+        </div>
+        <div class="priority-dot p-med"></div>
+      </div>
+    </div>
+
+    <div class="section-header">📂 File Review — Per Loan In Process</div>
+    <div class="checklist-card" data-panel="weekly">
+      <div class="check-item" onclick="toggle(this)">
+        <div class="check-box"><span class="check-tick">✓</span></div>
+        <div class="check-content">
+          <div class="check-label">Full and complete 1003 — confirm all sections populated correctly</div>
+          <div class="check-note">Run through Loan Info, Borrower, Financial Info. No red fields.</div>
+        </div>
+        <div class="priority-dot p-med"></div>
+      </div>
+      <div class="check-item" onclick="toggle(this)">
+        <div class="check-box"><span class="check-tick">✓</span></div>
+        <div class="check-content">
+          <div class="check-label">Credit confirmed and imported into Octane</div>
+        </div>
+        <div class="priority-dot p-med"></div>
+      </div>
+      <div class="check-item" onclick="toggle(this)">
+        <div class="check-box"><span class="check-tick">✓</span></div>
+        <div class="check-content">
+          <div class="check-label">Clean AUS run (DU/LP) in file — no unresolved criticals</div>
+        </div>
+        <div class="priority-dot p-high"></div>
+      </div>
+      <div class="check-item" onclick="toggle(this)">
+        <div class="check-box"><span class="check-tick">✓</span></div>
+        <div class="check-content">
+          <div class="check-label">Income calculated and confirmed with Doug</div>
+        </div>
+        <div class="priority-dot p-high"></div>
+      </div>
+      <div class="check-item" onclick="toggle(this)">
+        <div class="check-box"><span class="check-tick">✓</span></div>
+        <div class="check-content">
+          <div class="check-label">Assets verified and match LO notes</div>
+        </div>
+        <div class="priority-dot p-med"></div>
+      </div>
+    </div>
+
+    <div class="section-header">🤝 Nurture / Slow Leads</div>
+    <div class="checklist-card" data-panel="weekly">
+      <div class="check-item" onclick="toggle(this)">
+        <div class="check-box"><span class="check-tick">✓</span></div>
+        <div class="check-content">
+          <div class="check-label">Review FUB nurture leads — check last touch date</div>
+          <div class="check-note">Anyone not touched in 30+ days should get a personal check-in.</div>
+        </div>
+        <div class="priority-dot p-low"></div>
+      </div>
+      <div class="check-item" onclick="toggle(this)">
+        <div class="check-box"><span class="check-tick">✓</span></div>
+        <div class="check-content">
+          <div class="check-label">Update tasks for all nurture leads — set next appropriate follow-up date</div>
+          <div class="check-note">Frequency is individual-based on their timeline and readiness.</div>
+        </div>
+        <div class="priority-dot p-low"></div>
+      </div>
+    </div>
+
+  </div><!-- /panel-weekly -->
+
+  <!-- ========================= FOLLOW-UP CADENCE ========================= -->
+  <div class="panel" id="panel-followup">
+
+    <div class="cadence-card">
+      <div class="cadence-header">Lead Stage → Follow-Up Frequency</div>
+      <div class="cadence-row">
+        <div class="cadence-stage">New Inquiry / Lead</div>
+        <div class="cadence-action">Initial contact by phone or text. Set intake call or send application link. Log in FUB immediately.</div>
+        <div class="cadence-freq freq-high">Same Day</div>
+      </div>
+      <div class="cadence-row">
+        <div class="cadence-stage">Application Sent</div>
+        <div class="cadence-action">Follow up if application not completed. Get it done or understand the obstacle.</div>
+        <div class="cadence-freq freq-high">Next Day</div>
+      </div>
+      <div class="cadence-row">
+        <div class="cadence-stage">Docs Requested</div>
+        <div class="cadence-action">If docs not received, follow up. Don't let it go past 2 days without contact.</div>
+        <div class="cadence-freq freq-high">1–2 Days</div>
+      </div>
+      <div class="cadence-row">
+        <div class="cadence-stage">Pre-Approved, Searching</div>
+        <div class="cadence-action">Weekly check-in. Ask about search progress, any offers, questions. Keep them engaged.</div>
+        <div class="cadence-freq freq-med">Weekly</div>
+      </div>
+      <div class="cadence-row">
+        <div class="cadence-stage">Under Contract</div>
+        <div class="cadence-action">Monday pipeline email to agents/title. Client updates as milestones hit (appraisal ordered, CD sent, CTC, clear to close).</div>
+        <div class="cadence-freq freq-high">Weekly + Milestones</div>
+      </div>
+      <div class="cadence-row">
+        <div class="cadence-stage">Nurture / Not Ready</div>
+        <div class="cadence-action">Individual cadence based on their timeline. Could be monthly, quarterly. Note specific situation in FUB.</div>
+        <div class="cadence-freq freq-low">Individual</div>
+      </div>
+      <div class="cadence-row">
+        <div class="cadence-stage">Closed Client</div>
+        <div class="cadence-action">Birthday email. Closing anniversary. Any relevant market updates. Build the relationship long-term.</div>
+        <div class="cadence-freq freq-low">Annually + Triggered</div>
+      </div>
+    </div>
+
+    <div class="note-box">
+      💡 <strong>Rule:</strong> Every lead in FUB always has an open task. If there's no task, there's no follow-up. No exceptions.
+    </div>
+
+    <!-- Fast vs Slow guidance -->
+    <div class="cadence-card">
+      <div class="cadence-header">Fast vs Slow Leads</div>
+      <div class="cadence-row">
+        <div class="cadence-stage" style="color:#dc2626;">Fast Lead 🔴</div>
+        <div class="cadence-action">Actively searching, ready to apply now, has a property in mind, recent credit pull. Call same day — these leads go cold fast.</div>
+        <div class="cadence-freq freq-high">Same Day</div>
+      </div>
+      <div class="cadence-row">
+        <div class="cadence-stage" style="color:#d97706;">Slow Lead 🟡</div>
+        <div class="cadence-action">6–12 months out, credit work needed, lease not up yet. Establish rapport, set a future check-in date, let them know you're here when ready.</div>
+        <div class="cadence-freq freq-low">Individual</div>
+      </div>
+    </div>
+
+  </div><!-- /panel-followup -->
+
+  <!-- ========================= PIPELINE EMAIL ========================= -->
+  <div class="panel" id="panel-pipeline">
+
+    <div class="note-box">
+      📧 Monday morning — reply to last week's email thread for each active file. Find the thread in FUB under the Buyer's Agent contact → Email tab.
+    </div>
+
+    <div class="section-header">Step-by-Step</div>
+    <div class="step-card">
+      <div class="step-row"><span class="step-num">1</span><div class="step-row-content">Open FUB → go to the Buyer's Agent contact for the file</div></div>
+      <div class="step-row"><span class="step-num">2</span><div class="step-row-content">Click Email tab → scroll down to find last week's update thread</div></div>
+      <div class="step-row"><span class="step-num">3</span><div class="step-row-content">Double-click to open in a new window → Reply All</div></div>
+      <div class="step-row"><span class="step-num">4</span><div class="step-row-content">Copy last week's email body → paste at top → update bullet points with current status</div></div>
+      <div class="step-row"><span class="step-num">5</span><div class="step-row-content">CC: doug@homewealthsolutions.com and processor (Sheri)</div></div>
+      <div class="step-row"><span class="step-num">6</span><div class="step-row-content">Re-read before sending → confirm all info is accurate → Send</div></div>
+      <div class="step-row"><span class="step-num">7</span><div class="step-row-content">Repeat for each active file under contract</div></div>
+    </div>
+
+    <div class="section-header">If No Previous Thread Exists</div>
+    <div class="step-card">
+      Find any prior weekly update email → Forward → open in new window → Delete "FW:" from subject line → Replace address in subject with this property's address → Start email at "Hi all" → Delete everything above and below Doug's signature → Fill in all transaction partners from FUB → Update bullet points.
+    </div>
+
+    <div class="section-header">Email Template</div>
+    <div class="email-box">
+      <div class="email-subject">Subject: Weekly Update — <span class="email-placeholder">[123 Main St, Tampa FL]</span></div>
+      <div class="email-body">Hi all,
+
+Here is your weekly update for <span class="email-placeholder">[Borrower Name]</span> at <span class="email-placeholder">[Property Address]</span>:
+
+• <span class="email-placeholder">[Underwriting status — submitted / conditional approval / final approval]</span>
+• <span class="email-placeholder">[Appraisal status — ordered / received / value confirmed]</span>
+• <span class="email-placeholder">[HOI — confirmed / pending from Ryan]</span>
+• <span class="email-placeholder">[Conditions — outstanding items, what's needed]</span>
+• <span class="email-placeholder">[Estimated closing date — on track / any concerns]</span>
+• <span class="email-placeholder">[Anything else agents/title should know]</span>
+
+Please don't hesitate to reach out with any questions.
+
+All the best,
+Doug Smith | HomeWealth Solutions
+813-733-8778 | doug@homewealthsolutions.com</div>
+    </div>
+
+    <div class="note-box">
+      ✅ <strong>What to cover in bullet points:</strong> Are we on pace to close? Where are we in underwriting? Appraisal status? Anything agents should know? Any outstanding conditions?
+    </div>
+
+  </div><!-- /panel-pipeline -->
+
+</div><!-- /main -->
+
+<script>
+function switchTab(name) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('panel-' + name).classList.add('active');
+  event.target.classList.add('active');
+}
+
+function toggle(el) {
+  el.classList.toggle('done');
+  updateProgress(el.closest('[data-panel]').dataset.panel);
+}
+
+function updateProgress(panel) {
+  const items = document.querySelectorAll('[data-panel="' + panel + '"] .check-item');
+  const done = document.querySelectorAll('[data-panel="' + panel + '"] .check-item.done');
+  const total = items.length;
+  const count = done.length;
+  const pct = total > 0 ? Math.round(count / total * 100) : 0;
+  document.getElementById(panel + '-count').textContent = count + ' / ' + total + ' completed';
+  document.getElementById(panel + '-pct').textContent = pct + '%';
+  document.getElementById(panel + '-bar').style.width = pct + '%';
+}
+
+function resetPanel(panel) {
+  document.querySelectorAll('[data-panel="' + panel + '"] .check-item').forEach(el => el.classList.remove('done'));
+  updateProgress(panel);
+}
+
+function checkAll(panel) {
+  document.querySelectorAll('[data-panel="' + panel + '"] .check-item').forEach(el => el.classList.add('done'));
+  updateProgress(panel);
+}
+
+// Init progress counts
+['daily','weekly'].forEach(p => updateProgress(p));
+</script>
+
+<!-- HWS Hub back button -->
+<div id="hws-back-btn" style="position:fixed;bottom:20px;right:20px;z-index:99999;">
+  <button onclick="window.close()" style="
+    background:#1a2332;
+    color:white;
+    border:none;
+    border-radius:8px;
+    padding:9px 16px;
+    font-size:13px;
+    font-weight:600;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    gap:7px;
+    box-shadow:0 2px 12px rgba(0,0,0,0.25);
+    opacity:0.85;
+    transition:opacity .15s;
+  " onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.85'">
+    ← Hub
+  </button>
+</div>
+</body>
+</html>

@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Your Rate Options — HomeWealth Solutions</title>
+<style>
+:root {
+  --blue: #2491EB;
+  --green: #8EC73F;
+  --dark: #1c2b3a;
+  --mid: #3a4f62;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+  background: #f5f7fa;
+  color: #222;
+  font-size: 15px;
+}
+
+/* ── Header ── */
+.hdr {
+  background: var(--dark);
+  color: white;
+  padding: 18px 28px 16px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+}
+.hdr-brand { font-size: 13px; color: rgba(255,255,255,.55); letter-spacing: .4px; }
+.hdr-title { font-size: 22px; font-weight: 700; margin-top: 3px; }
+.hdr-right { text-align: right; font-size: 12px; color: rgba(255,255,255,.55); }
+.hdr-right strong { display: block; color: rgba(255,255,255,.85); font-size: 13px; }
+
+/* ── Main ── */
+.main { max-width: 900px; margin: 0 auto; padding: 24px 18px 48px; }
+
+/* ── Intro ── */
+.intro {
+  font-size: 15px;
+  color: #555;
+  margin-bottom: 22px;
+  line-height: 1.6;
+}
+.intro strong { color: #222; }
+
+/* ── Scenario bar ── */
+.scenario-bar {
+  background: white;
+  border-radius: 10px;
+  padding: 14px 18px;
+  display: flex;
+  gap: 28px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+  box-shadow: 0 1px 4px rgba(0,0,0,.07);
+  font-size: 13px;
+  color: #666;
+}
+.scenario-item strong { display: block; font-size: 16px; color: #222; font-weight: 700; margin-top: 2px; }
+
+/* ── Rate Table ── */
+.table-wrap {
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 10px rgba(0,0,0,.08);
+  margin-bottom: 24px;
+}
+
+.rate-table { width: 100%; border-collapse: collapse; }
+
+/* Column header row — shows the rates */
+.rate-table thead tr th {
+  padding: 14px 16px;
+  text-align: center;
+  font-weight: 700;
+  font-size: 18px;
+  background: var(--dark);
+  color: white;
+  border-right: 1px solid rgba(255,255,255,.08);
+}
+.rate-table thead tr th:first-child {
+  background: var(--mid);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  color: rgba(255,255,255,.6);
+  text-align: left;
+  padding-left: 18px;
+  width: 28%;
+}
+.rate-table thead tr th.col-best { background: var(--blue); }
+.rate-table thead tr th.col-par  { background: #6b7f8e; }
+
+/* Body rows */
+.rate-table tbody tr td {
+  padding: 10px 16px;
+  text-align: center;
+  border-bottom: 1px solid #f0f2f5;
+  border-right: 1px solid #f0f2f5;
+  font-size: 14px;
+}
+.rate-table tbody tr td:first-child {
+  text-align: left;
+  padding-left: 18px;
+  font-size: 11px;
+  font-weight: 700;
+  color: white;
+  background: var(--mid);
+  text-transform: uppercase;
+  letter-spacing: .4px;
+  border-right: none;
+}
+.rate-table tbody tr:last-child td { border-bottom: none; }
+
+/* Highlighted rows */
+.rate-table tbody tr.row-rate td { background: #eaf5fe; font-size: 17px; font-weight: 800; }
+.rate-table tbody tr.row-rate td:first-child { background: var(--dark); }
+.rate-table tbody tr.row-pmt td  { background: #f0f9e4; font-size: 16px; font-weight: 700; }
+.rate-table tbody tr.row-pmt td:first-child  { background: var(--dark); }
+.rate-table tbody tr.row-savings td { font-weight: 700; font-size: 15px; }
+.rate-table tbody tr.row-savings td:first-child { background: var(--dark); }
+.rate-table tbody tr.row-horizon td { font-weight: 700; font-size: 15px; background: #fafbfc; }
+.rate-table tbody tr.row-horizon td:first-child { background: var(--dark); }
+
+/* Best column glow */
+.rate-table td.col-best-data { background: inherit; }
+.rate-table thead th.col-best { position: relative; }
+
+/* Savings colors */
+.pos  { color: #28a745; }
+.neg  { color: #dc3545; }
+.muted { color: #aaa; }
+
+/* ── Slider ── */
+.slider-section {
+  background: white;
+  border-radius: 10px;
+  padding: 20px 22px;
+  margin-bottom: 20px;
+  box-shadow: 0 1px 4px rgba(0,0,0,.07);
+}
+.slider-label {
+  font-size: 14px;
+  font-weight: 700;
+  color: #333;
+  margin-bottom: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.slider-label span {
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--blue);
+}
+input[type=range] {
+  width: 100%;
+  accent-color: var(--blue);
+  height: 6px;
+  cursor: pointer;
+  margin-bottom: 10px;
+}
+.quick-btns { display: flex; gap: 6px; flex-wrap: wrap; }
+.qbtn {
+  background: #f0f4f8;
+  border: 1px solid #dde;
+  border-radius: 5px;
+  padding: 5px 14px;
+  font-size: 12px;
+  cursor: pointer;
+  font-family: inherit;
+  font-weight: 600;
+  transition: all .15s;
+}
+.qbtn:hover  { background: #e0ecf8; border-color: var(--blue); }
+.qbtn.active { background: var(--blue); color: white; border-color: var(--blue); }
+
+/* ── Best-option callout ── */
+.callout {
+  background: linear-gradient(135deg, #f0f9e4, #e8f7d4);
+  border: 1.5px solid var(--green);
+  border-radius: 10px;
+  padding: 16px 20px;
+  margin-bottom: 20px;
+  font-size: 14px;
+  color: #3a5c10;
+  line-height: 1.6;
+  display: none;
+}
+.callout.visible { display: block; }
+.callout strong { font-size: 16px; }
+.callout.opt4-wins {
+  background: linear-gradient(135deg, #f5f7fa, #edf0f3);
+  border-color: #aab;
+  color: #445;
+}
+
+/* ── Inputs (advisor fill-in) ── */
+.advisor-inputs {
+  background: white;
+  border-radius: 10px;
+  padding: 16px 18px;
+  margin-bottom: 20px;
+  box-shadow: 0 1px 4px rgba(0,0,0,.07);
+  border-left: 4px solid var(--blue);
+}
+.advisor-inputs summary {
+  font-size: 12px;
+  font-weight: 700;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  cursor: pointer;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.advisor-inputs summary::before { content: '⚙'; }
+.advisor-inputs[open] summary { margin-bottom: 14px; }
+.input-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 10px; }
+.input-row-5 { grid-template-columns: repeat(5, 1fr); }
+.field { display: flex; flex-direction: column; gap: 3px; }
+.field label { font-size: 10px; font-weight: 700; color: #aaa; text-transform: uppercase; }
+.field input, .field select {
+  border: 1px solid #dde;
+  border-radius: 5px;
+  padding: 6px 9px;
+  font-size: 13px;
+  font-family: inherit;
+  width: 100%;
+}
+.field input:focus, .field select:focus { outline: none; border-color: var(--blue); }
+.opt-label {
+  font-size: 10px;
+  font-weight: 700;
+  color: white;
+  background: var(--blue);
+  text-align: center;
+  padding: 3px 6px;
+  border-radius: 4px;
+  margin-bottom: 4px;
+  text-transform: uppercase;
+}
+.opt-label.par { background: #888; }
+.opt-group { display: flex; flex-direction: column; gap: 6px; }
+.opt-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+
+/* ── Note ── */
+.note-bar {
+  font-size: 11px;
+  color: #888;
+  margin-bottom: 20px;
+  padding: 10px 14px;
+  background: #fffbee;
+  border-radius: 7px;
+  border: 1px solid #e8cc60;
+  color: #665500;
+}
+
+/* ── Compliance ── */
+.compliance {
+  font-size: 9px;
+  color: #bbb;
+  line-height: 1.6;
+  padding: 12px;
+  background: #f8f8f8;
+  border-radius: 8px;
+}
+
+/* ── Print Button ── */
+.print-btn {
+  background: transparent;
+  border: 1.5px solid rgba(255,255,255,.45);
+  color: rgba(255,255,255,.85);
+  padding: 7px 16px;
+  border-radius: 6px;
+  font-size: 13px;
+  cursor: pointer;
+  white-space: nowrap;
+  margin-top: 4px;
+  transition: background .15s;
+}
+.print-btn:hover { background: rgba(255,255,255,.12); }
+
+/* ── Print ── */
+@media print {
+  body { background: white; font-size: 13px; }
+  .main { padding: 0; max-width: 100%; }
+  .advisor-inputs, .slider-section, .intro, .print-btn { display: none !important; }
+  .table-wrap { box-shadow: none; border: 1px solid #ddd; }
+  .scenario-bar { box-shadow: none; border: 1px solid #eee; }
+  .callout { page-break-inside: avoid; }
+}
+
+/* ── Mobile ── */
+@media (max-width: 640px) {
+  .input-row, .input-row-5 { grid-template-columns: 1fr 1fr; }
+  .rate-table thead tr th { font-size: 14px; padding: 10px 8px; }
+  .rate-table tbody tr td { padding: 8px 8px; font-size: 13px; }
+  .rate-table tbody tr.row-rate td { font-size: 14px; }
+  .hdr-right { display: none; }
+}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div>
+    <div class="hdr-brand">HomeWealth Solutions LLC &nbsp;·&nbsp; NMLS #2742458</div>
+    <div class="hdr-title">Your Rate Options</div>
+  </div>
+  <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px">
+    <button class="print-btn" onclick="window.print()">🖨 Print / Save PDF</button>
+    <div class="hdr-right">
+      Doug Smith, CMA®<br>
+      <strong>813-733-7371</strong><br>
+      doug@homewealthsolutions.com
+    </div>
+  </div>
+</div>
+
+<div class="main">
+
+  <p class="intro">
+    Below are your rate options based on your scenario. Each column shows a different rate — the tradeoff is <strong>lower rate = more upfront cost</strong>.
+    Use the slider at the bottom to see which option makes the most sense based on how long you plan to keep this loan.
+  </p>
+
+  <!-- Advisor fill-in (hidden in print) -->
+  <details class="advisor-inputs">
+    <summary>Advisor — Fill In Scenario</summary>
+    <div class="input-row">
+      <div class="field"><label>Purchase Price</label>
+        <input type="text" id="purchasePrice" value="$400,000"
+          onfocus="clearFmt(this)" onblur="applyDollar(this)" oninput="onLoanChange()">
+      </div>
+      <div class="field"><label>Down Payment %</label>
+        <input type="text" id="downPct" value="5.000%"
+          onfocus="clearFmt(this)" onblur="applyPct(this,3)" oninput="onLoanChange()">
+      </div>
+      <div class="field"><label>Loan Amount</label>
+        <input type="text" id="loanAmtInput" placeholder="Auto"
+          onfocus="clearFmt(this)" onblur="applyDollar(this)" oninput="calculate()"
+          style="border-color:var(--blue)">
+      </div>
+      <div class="field"><label>Closing Costs</label>
+        <input type="text" id="closingCosts" value="$3,500"
+          onfocus="clearFmt(this)" onblur="applyDollar(this)" oninput="calculate()">
+      </div>
+    </div>
+    <div class="input-row input-row-5" style="margin-top:6px">
+      <div class="field"><label>Term</label>
+        <select id="loanTerm" onchange="calculate()">
+          <option value="360">30-Yr Fixed</option>
+          <option value="180">15-Yr Fixed</option>
+        </select>
+      </div>
+    </div>
+    <!-- Rate Options -->
+    <div class="input-row" style="margin-top:10px">
+      <div class="opt-group">
+        <div class="opt-label">Option 1</div>
+        <div class="opt-inputs">
+          <div class="field"><label>Rate %</label>
+            <input type="text" id="rate1" value="6.250%"
+              onfocus="clearFmt(this)" onblur="applyPct(this,3)" oninput="calculate()">
+          </div>
+          <div class="field"><label>Points %</label>
+            <input type="text" id="pts1" value="1.500%"
+              onfocus="clearFmt(this)" onblur="applyPct(this,3)" oninput="calculate()">
+          </div>
+        </div>
+      </div>
+      <div class="opt-group">
+        <div class="opt-label">Option 2</div>
+        <div class="opt-inputs">
+          <div class="field"><label>Rate %</label>
+            <input type="text" id="rate2" value="6.500%"
+              onfocus="clearFmt(this)" onblur="applyPct(this,3)" oninput="calculate()">
+          </div>
+          <div class="field"><label>Points %</label>
+            <input type="text" id="pts2" value="1.000%"
+              onfocus="clearFmt(this)" onblur="applyPct(this,3)" oninput="calculate()">
+          </div>
+        </div>
+      </div>
+      <div class="opt-group">
+        <div class="opt-label">Option 3</div>
+        <div class="opt-inputs">
+          <div class="field"><label>Rate %</label>
+            <input type="text" id="rate3" value="6.750%"
+              onfocus="clearFmt(this)" onblur="applyPct(this,3)" oninput="calculate()">
+          </div>
+          <div class="field"><label>Points %</label>
+            <input type="text" id="pts3" value="0.500%"
+              onfocus="clearFmt(this)" onblur="applyPct(this,3)" oninput="calculate()">
+          </div>
+        </div>
+      </div>
+      <div class="opt-group">
+        <div class="opt-label par">Option 4</div>
+        <div class="opt-inputs">
+          <div class="field"><label>Rate %</label>
+            <input type="text" id="rate4" value="7.000%"
+              onfocus="clearFmt(this)" onblur="applyPct(this,3)" oninput="calculate()">
+          </div>
+          <div class="field"><label>Points %</label>
+            <input type="text" id="pts4" value="0.000%"
+              onfocus="clearFmt(this)" onblur="applyPct(this,3)" oninput="calculate()">
+          </div>
+        </div>
+      </div>
+    </div>
+  </details>
+
+  <!-- Scenario summary bar -->
+  <div class="scenario-bar">
+    <div class="scenario-item">Purchase Price<strong id="sc-price">—</strong></div>
+    <div class="scenario-item">Loan Amount<strong id="sc-loan">—</strong></div>
+    <div class="scenario-item">Down Payment<strong id="sc-dp">—</strong></div>
+    <div class="scenario-item">Loan Term<strong id="sc-term">—</strong></div>
+  </div>
+
+  <!-- Rate comparison table -->
+  <div class="table-wrap">
+    <table class="rate-table">
+      <thead>
+        <tr>
+          <th>Rate Options</th>
+          <th id="h1">—</th>
+          <th id="h2">—</th>
+          <th id="h3">—</th>
+          <th id="h4" class="col-par">—</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="row-rate">
+          <td>Interest Rate</td>
+          <td id="r1"></td><td id="r2"></td><td id="r3"></td><td id="r4"></td>
+        </tr>
+        <tr>
+          <td>APR</td>
+          <td id="apr1"></td><td id="apr2"></td><td id="apr3"></td><td id="apr4"></td>
+        </tr>
+        <tr>
+          <td>Term</td>
+          <td id="term1"></td><td id="term2"></td><td id="term3"></td><td id="term4"></td>
+        </tr>
+        <tr class="row-pmt">
+          <td>Monthly Payment</td>
+          <td id="pmt1"></td><td id="pmt2"></td><td id="pmt3"></td><td id="pmt4"></td>
+        </tr>
+        <tr>
+          <td>Cash to Close</td>
+          <td id="ctc1"></td><td id="ctc2"></td><td id="ctc3"></td><td id="ctc4"></td>
+        </tr>
+        <tr class="row-savings">
+          <td>Monthly Savings</td>
+          <td id="msav1"></td><td id="msav2"></td><td id="msav3"></td>
+          <td id="msav4" class="muted">$0.00</td>
+        </tr>
+        <tr>
+          <td>Breaks Even At</td>
+          <td id="be1"></td><td id="be2"></td><td id="be3"></td>
+          <td id="be4" class="muted">—</td>
+        </tr>
+        <tr class="row-horizon">
+          <td id="savAtLabel">Net Savings at 36 Mo</td>
+          <td id="nsav1"></td><td id="nsav2"></td><td id="nsav3"></td>
+          <td id="nsav4" class="muted">—</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Best option callout -->
+  <div class="callout" id="callout"></div>
+
+  <!-- Slider -->
+  <div class="slider-section">
+    <div class="slider-label">
+      How long do you plan to keep this loan?
+      <span id="sliderDisplay">36 months</span>
+    </div>
+    <input type="range" id="horizonSlider" min="1" max="120" value="36"
+      oninput="onSlider(this.value)">
+    <div class="quick-btns">
+      <button class="qbtn" onclick="setSlider(12)">1 yr</button>
+      <button class="qbtn" onclick="setSlider(24)">2 yr</button>
+      <button class="qbtn active" onclick="setSlider(36)">3 yr</button>
+      <button class="qbtn" onclick="setSlider(48)">4 yr</button>
+      <button class="qbtn" onclick="setSlider(60)">5 yr</button>
+      <button class="qbtn" onclick="setSlider(72)">6 yr</button>
+      <button class="qbtn" onclick="setSlider(84)">7 yr</button>
+      <button class="qbtn" onclick="setSlider(96)">8 yr</button>
+      <button class="qbtn" onclick="setSlider(108)">9 yr</button>
+      <button class="qbtn" onclick="setSlider(120)">10 yr</button>
+    </div>
+  </div>
+
+  <!-- Note -->
+  <div class="note-bar">
+    ⓘ Monthly payment shown is principal &amp; interest only. Escrow (taxes &amp; insurance) is the same across all options and not included here. Breakeven uses interest savings only — the principal paydown difference is equity you keep either way.
+  </div>
+
+  <!-- Compliance -->
+  <div class="compliance">
+    This communication is for informational and educational purposes only and does not constitute an offer to lend or a commitment to make a loan. All loans are subject to credit approval, underwriting guidelines, and property approval. Interest rates, payment examples, programs, and terms are illustrative, vary by borrower qualification, and are subject to change without notice. Not all applicants will qualify. Examples shown do not reflect all costs of a mortgage transaction. Consult a licensed tax or legal advisor regarding your individual situation. HomeWealth Solutions LLC is licensed by the Florida Office of Financial Regulation, Mortgage Broker License #MBR8082. Verify our licensure at www.nmlsconsumeraccess.org. Equal Housing Opportunity.
+  </div>
+
+</div><!-- /main -->
+
+<script>
+// ── State ──────────────────────────────────────────────────────────────────────
+let _cumSavArrs = [[], [], [], []];
+let _horizon = 36;
+const UW_FEE = 1095;
+
+// ── Format helpers ─────────────────────────────────────────────────────────────
+function parseDollar(s) { return parseFloat((s||'').replace(/[$,\s]/g,'')) || 0; }
+function parsePct(s)    { return parseFloat((s||'').replace(/[%\s]/g,''))  || 0; }
+function fmtD(n)  { return '$' + Math.round(Math.abs(n)).toLocaleString('en-US'); }
+function fmtD2(n) { return '$' + Math.abs(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function fmtPct(v,d){ return v.toFixed(d)+'%'; }
+
+function clearFmt(el) { el.value = el.value.replace(/[$%,\s]/g,'').trim(); el.select(); }
+function applyDollar(el) {
+  const v = parseDollar(el.value);
+  if (v > 0) el.value = '$' + Math.round(v).toLocaleString('en-US');
+}
+function applyPct(el, dec) {
+  el.value = parsePct(el.value).toFixed(dec||3) + '%';
+}
+function setText(id, txt, cls) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.textContent = txt;
+  if (cls !== undefined) el.className = cls;
+}
+
+// ── Math ───────────────────────────────────────────────────────────────────────
+function calcPMT(loan, r, n) {
+  if (!loan || !r) return 0;
+  const mo = r / 12;
+  return loan * mo * Math.pow(1+mo, n) / (Math.pow(1+mo, n) - 1);
+}
+
+function calcAPR(loan, pmt, n, fees) {
+  if (!loan || !pmt || fees <= 0) return 0;
+  const pv = loan - fees;
+  if (pv <= 0) return 0;
+  let lo = 0.000001, hi = 0.08;
+  for (let i = 0; i < 200; i++) {
+    const m = (lo+hi)/2;
+    pmt * (1 - Math.pow(1+m,-n)) / m > pv ? lo=m : hi=m;
+  }
+  return ((lo+hi)/2) * 12;
+}
+
+function buildCumSavArr(loan, optRate, parRate, n, maxMo) {
+  const arr = [];
+  let bO = loan, bP = loan;
+  const rO = optRate/12, rP = parRate/12;
+  const pO = calcPMT(loan, optRate, n);
+  const pP = calcPMT(loan, parRate, n);
+  let cum = 0;
+  for (let m = 0; m < maxMo; m++) {
+    cum += (bP*rP) - (bO*rO);
+    bO = bO*(1+rO) - pO;
+    bP = bP*(1+rP) - pP;
+    arr.push(cum);
+  }
+  return arr;
+}
+
+function findBreakeven(arr, ptsCost) {
+  if (ptsCost <= 0) return 0;
+  for (let i = 0; i < arr.length; i++) if (arr[i] >= ptsCost) return i+1;
+  return null;
+}
+
+// ── Loan sync ──────────────────────────────────────────────────────────────────
+function onLoanChange() {
+  const price = parseDollar(document.getElementById('purchasePrice').value);
+  const dp    = parsePct(document.getElementById('downPct').value) / 100;
+  const loan  = price * (1 - dp);
+  if (loan > 0)
+    document.getElementById('loanAmtInput').value = '$' + Math.round(loan).toLocaleString('en-US');
+  calculate();
+}
+
+// ── Main calculate ─────────────────────────────────────────────────────────────
+function calculate() {
+  const price     = parseDollar(document.getElementById('purchasePrice').value);
+  const dpPct     = parsePct(document.getElementById('downPct').value) / 100;
+  const baseCosts = parseDollar(document.getElementById('closingCosts').value);
+  const termMo    = parseInt(document.getElementById('loanTerm').value);
+  const loan      = parseDollar(document.getElementById('loanAmtInput').value) || price*(1-dpPct);
+  const dp        = price > 0 ? price - loan : 0;
+
+  if (!loan) return;
+
+  const termLabel = termMo === 360 ? '30-Year Fixed' : '15-Year Fixed';
+  const termShort = termMo === 360 ? '30-Yr Fixed' : '15-Yr Fixed';
+
+  // Scenario bar
+  document.getElementById('sc-price').textContent = price > 0 ? fmtD(price) : '—';
+  document.getElementById('sc-loan').textContent  = fmtD(loan);
+  document.getElementById('sc-dp').textContent    = price > 0 ? fmtD(dp) + ' (' + (dpPct*100).toFixed(1) + '%)' : '—';
+  document.getElementById('sc-term').textContent  = termLabel;
+
+  const rates = [], pts = [];
+  for (let i = 1; i <= 4; i++) {
+    rates.push(parsePct(document.getElementById('rate'+i).value) / 100);
+    pts.push(parsePct(document.getElementById('pts'+i).value) / 100);
+  }
+  const parRate = rates[3];
+  const pmts = rates.map(r => calcPMT(loan, r, termMo));
+  const parPmt = pmts[3];
+
+  // Build cum savings arrays
+  for (let i = 0; i < 4; i++)
+    _cumSavArrs[i] = buildCumSavArr(loan, rates[i], parRate, termMo, 360);
+
+  // Column headers = rates
+  for (let i = 0; i < 4; i++) {
+    const j = i+1;
+    const h = document.getElementById('h'+j);
+    if (h) h.textContent = fmtPct(rates[i]*100, 3);
+  }
+
+  // Row data
+  for (let i = 0; i < 4; i++) {
+    const j      = i+1;
+    const pmt    = pmts[i];
+    const ptsCost = loan * pts[i];
+    const ctc    = baseCosts + ptsCost;
+    const mSav   = parPmt - pmt;
+    const apr    = calcAPR(loan, pmt, termMo, ptsCost + UW_FEE);
+    const beM    = findBreakeven(_cumSavArrs[i], ptsCost);
+    const isPar  = i === 3;
+
+    setText('r'+j,    fmtPct(rates[i]*100, 3));
+    setText('apr'+j,  apr > 0 ? fmtPct(apr*100, 3) : fmtPct(rates[i]*100, 3));
+    setText('term'+j, termShort);
+    setText('pmt'+j,  fmtD2(pmt));
+
+    // Cash to close — show credit if negative points
+    const ctcEl = document.getElementById('ctc'+j);
+    if (ctcEl) ctcEl.textContent = fmtD(ctc);
+
+    if (!isPar) {
+      const msEl = document.getElementById('msav'+j);
+      if (msEl) { msEl.textContent = '+' + fmtD2(mSav) + '/mo'; msEl.className = 'pos'; }
+
+      const beEl = document.getElementById('be'+j);
+      if (beEl) {
+        if (beM === 0)  { beEl.textContent = 'Instant'; beEl.className = 'pos'; }
+        else if (!beM)  { beEl.textContent = '> 30 yrs'; beEl.className = 'neg'; }
+        else            { beEl.textContent = beM + ' months'; beEl.className = beM <= 60 ? 'pos' : 'muted'; }
+      }
+    }
+  }
+
+  onSlider(_horizon);
+}
+
+// ── Slider ─────────────────────────────────────────────────────────────────────
+function onSlider(val) {
+  _horizon = parseInt(val);
+  document.getElementById('horizonSlider').value = _horizon;
+  document.getElementById('sliderDisplay').textContent = _horizon + ' months';
+  document.getElementById('savAtLabel').textContent = 'Net Savings at ' + _horizon + ' Mo';
+
+  const qMos = [12,24,36,48,60,72,84,96,108,120];
+  document.querySelectorAll('.qbtn').forEach((b,i) => b.classList.toggle('active', qMos[i] === _horizon));
+
+  const loan = parseDollar(document.getElementById('loanAmtInput').value) ||
+    parseDollar(document.getElementById('purchasePrice').value) *
+    (1 - parsePct(document.getElementById('downPct').value)/100);
+
+  let bestI = -1, bestVal = -Infinity;
+  const netSavs = [];
+
+  for (let i = 0; i < 3; i++) {
+    const j       = i+1;
+    const ptsCost = loan * (parsePct(document.getElementById('pts'+j).value)/100);
+    const idx     = Math.min(_horizon-1, _cumSavArrs[i].length-1);
+    const cumSav  = _cumSavArrs[i].length > 0 ? (_cumSavArrs[i][idx] || 0) : 0;
+    const net     = cumSav - ptsCost;
+    netSavs.push(net);
+
+    const el = document.getElementById('nsav'+j);
+    if (el) {
+      el.textContent = (net >= 0 ? '+' : '') + fmtD(net);
+      el.className   = net >= 0 ? 'pos' : 'neg';
+    }
+    if (net > bestVal) { bestVal = net; bestI = i; }
+  }
+
+  const opt4Wins = bestVal < 0;
+  if (opt4Wins) bestI = 3;
+
+  // Update column header highlights
+  for (let j = 1; j <= 4; j++) {
+    const h = document.getElementById('h'+j);
+    if (!h) continue;
+    h.className = j === 4 ? 'col-par' : '';
+    if (j === bestI+1) h.className = 'col-best';
+  }
+
+  // Callout
+  const callout = document.getElementById('callout');
+  if (opt4Wins) {
+    callout.className = 'callout opt4-wins visible';
+    callout.innerHTML = `At <strong>${_horizon} months</strong>, no buydown option has recovered its upfront cost yet. <strong>Option 4 is the most cost-efficient choice at this horizon.</strong> Slide right to see when each option starts paying off.`;
+  } else {
+    const yrs = (_horizon/12).toFixed(1).replace('.0','');
+    const hrLabel = _horizon % 12 === 0 ? yrs + ' year' + (yrs==='1'?'':'s') : _horizon + ' months';
+    const optName = 'Option ' + (bestI+1);
+    const savAmt = fmtD(bestVal);
+    callout.className = 'callout visible';
+    callout.innerHTML = `At <strong>${hrLabel}</strong>, <strong>${optName}</strong> gives you the best value — <strong>${savAmt} net savings</strong> after accounting for the upfront cost.`;
+  }
+}
+
+function setSlider(v) { onSlider(v); }
+
+// ── Init ───────────────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  onLoanChange();
+});
+</script>
+<a href="javascript:window.close()" id="hws-hub-btn" style="position:fixed;top:14px;right:16px;z-index:9999;background:#1c2b3a;color:rgba(255,255,255,0.9);text-decoration:none;font-size:12px;font-weight:700;padding:6px 14px;border-radius:8px;font-family:-apple-system,BlinkMacSystemFont,sans-serif;letter-spacing:0.2px;box-shadow:0 2px 8px rgba(0,0,0,0.25);">← Hub</a>
+
+<!-- HWS Hub back button -->
+<div id="hws-back-btn" style="position:fixed;bottom:20px;right:20px;z-index:99999;">
+  <button onclick="window.close()" style="
+    background:#1a2332;
+    color:white;
+    border:none;
+    border-radius:8px;
+    padding:9px 16px;
+    font-size:13px;
+    font-weight:600;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    gap:7px;
+    box-shadow:0 2px 12px rgba(0,0,0,0.25);
+    opacity:0.85;
+    transition:opacity .15s;
+  " onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.85'">
+    ← Hub
+  </button>
+</div>
+</body>
+</html>

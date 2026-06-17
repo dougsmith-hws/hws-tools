@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>True Breakeven Calculator — HomeWealth Solutions</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-datalabels/2.2.0/chartjs-plugin-datalabels.min.js"></script>
+<style>
+  :root {
+    --blue: #2491EB;
+    --green: #8EC73F;
+    --dark: #1a2332;
+    --mid: #2d3f55;
+    --light: #f0f4f8;
+    --border: #dde3ea;
+    --white: #ffffff;
+    --warn: #e85c4a;
+    --amber: #f0a500;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--light); color: var(--dark); font-size: 15px; }
+
+  /* ── HEADER ── */
+  .hdr { background: var(--dark); color: #fff; padding: 16px 28px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+  .hdr-left { display: flex; align-items: center; gap: 14px; }
+  .hdr-logo { background: var(--blue); color: #fff; font-weight: 800; font-size: 18px; padding: 6px 12px; border-radius: 6px; letter-spacing: -0.5px; }
+  .hdr-title { font-size: 17px; font-weight: 600; opacity: 0.95; }
+  .hdr-sub { font-size: 12px; opacity: 0.55; margin-top: 2px; }
+  .btn-print { background: rgba(255,255,255,0.12); color: #fff; border: 1px solid rgba(255,255,255,0.25); padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600; transition: background 0.15s; }
+  .btn-print:hover { background: rgba(255,255,255,0.22); }
+
+  /* ── PRINT HEADER ── */
+  .print-header { display: none; padding: 0 0 12px 0; border-bottom: 2px solid var(--blue); margin-bottom: 18px; }
+  .print-header .ph-logo { color: var(--blue); font-size: 20px; font-weight: 800; }
+  .print-header .ph-meta { display: flex; gap: 24px; margin-top: 6px; font-size: 13px; color: #555; }
+
+  /* ── LAYOUT ── */
+  .main { max-width: 1040px; margin: 0 auto; padding: 24px 20px 40px; }
+  .two-col { display: grid; grid-template-columns: 340px 1fr; gap: 20px; align-items: start; }
+
+  /* ── PANELS ── */
+  .panel { background: var(--white); border-radius: 10px; border: 1px solid var(--border); padding: 22px 24px; }
+  .panel-title { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--blue); margin-bottom: 16px; padding-bottom: 10px; border-bottom: 1px solid var(--border); }
+
+  /* ── INPUTS ── */
+  .field { margin-bottom: 14px; }
+  .field label { display: block; font-size: 13px; font-weight: 600; color: var(--mid); margin-bottom: 5px; }
+  .field label .hint { font-weight: 400; color: #888; font-size: 12px; }
+  .field input, .field select { width: 100%; padding: 9px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 14px; color: var(--dark); background: #fafbfc; transition: border-color 0.15s; }
+  .field input:focus, .field select:focus { outline: none; border-color: var(--blue); background: #fff; }
+  .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+  /* ── CONCEPT BOX ── */
+  .concept { background: #eef6ff; border-left: 4px solid var(--blue); border-radius: 0 8px 8px 0; padding: 14px 16px; margin-bottom: 18px; font-size: 13px; line-height: 1.6; color: var(--mid); }
+  .concept strong { color: var(--blue); }
+
+  /* ── PRINT NAME FIELDS ── */
+  .print-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border); }
+  .print-fields label { font-size: 12px; font-weight: 600; color: var(--mid); display: block; margin-bottom: 4px; }
+  .print-fields input { width: 100%; padding: 7px 10px; border: 1px solid var(--border); border-radius: 5px; font-size: 13px; }
+
+  /* ── RESULT CARDS ── */
+  .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 20px; }
+  .card { background: var(--white); border-radius: 10px; border: 2px solid var(--border); padding: 18px 16px; text-align: center; }
+  .card.blue  { border-color: var(--blue); }
+  .card.green { border-color: var(--green); }
+  .card.warn  { border-color: var(--warn); }
+  .card.amber { border-color: var(--amber); }
+  .card-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #888; margin-bottom: 6px; }
+  .card-val { font-size: 28px; font-weight: 800; color: var(--dark); line-height: 1; }
+  .card-val.blue  { color: var(--blue); }
+  .card-val.green { color: var(--green); }
+  .card-val.warn  { color: var(--warn); }
+  .card-val.amber { color: var(--amber); }
+  .card-sub { font-size: 12px; color: #888; margin-top: 5px; }
+
+  /* ── COMPARISON TABLE ── */
+  .tbl-wrap { overflow-x: auto; margin-bottom: 20px; }
+  table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+  thead th { background: var(--dark); color: #fff; padding: 10px 14px; text-align: left; font-weight: 600; }
+  thead th:not(:first-child) { text-align: right; }
+  tbody tr:nth-child(even) { background: #f7f9fb; }
+  tbody tr:hover { background: #eef3f8; }
+  tbody td { padding: 9px 14px; border-bottom: 1px solid var(--border); }
+  tbody td:not(:first-child) { text-align: right; font-variant-numeric: tabular-nums; }
+  tbody td.row-label { font-weight: 600; color: var(--mid); }
+  .section-hdr td { background: #e8edf3 !important; font-weight: 700; font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--mid); padding: 7px 14px; }
+  .highlight-row td { background: #eef8e8 !important; font-weight: 700; color: var(--dark); }
+  .highlight-row td:not(:first-child) { color: var(--green); }
+  .warn-row td:not(:first-child) { color: var(--warn); }
+  .standard-be td:not(:first-child) { color: var(--amber); }
+  .true-be td:not(:first-child) { color: var(--green); font-weight: 700; }
+
+  /* ── CHART ── */
+  .chart-wrap { background: var(--white); border-radius: 10px; border: 1px solid var(--border); padding: 18px 20px; margin-bottom: 20px; }
+  .chart-title { font-size: 13px; font-weight: 700; color: var(--mid); margin-bottom: 14px; }
+  .chart-canvas-wrap { position: relative; height: 270px; }
+
+  /* ── SLIDER ── */
+  .slider-row { display: flex; align-items: center; gap: 14px; margin-bottom: 8px; }
+  .slider-row label { font-size: 13px; font-weight: 600; color: var(--mid); white-space: nowrap; }
+  .slider-row input[type=range] { flex: 1; accent-color: var(--blue); }
+  .slider-val { font-size: 15px; font-weight: 800; color: var(--blue); min-width: 80px; text-align: right; }
+  .slider-caption { font-size: 12px; color: #888; margin-bottom: 16px; }
+
+  /* ── INSIGHT BOX ── */
+  .insight { background: #f5fdf0; border: 1px solid var(--green); border-radius: 8px; padding: 14px 16px; margin-bottom: 20px; font-size: 13.5px; line-height: 1.7; color: var(--dark); }
+  .insight .insight-title { font-weight: 700; color: #3a7a00; margin-bottom: 6px; font-size: 13px; text-transform: uppercase; letter-spacing: 0.05em; }
+  .insight.warn-insight { background: #fff8f5; border-color: var(--warn); }
+  .insight.warn-insight .insight-title { color: var(--warn); }
+
+  /* ── FOOTER ── */
+  .compliance { font-size: 10.5px; color: #888; line-height: 1.6; border-top: 1px solid var(--border); padding-top: 16px; margin-top: 24px; }
+
+  /* ── PRINT ── */
+  @media print {
+    body { background: #fff; font-size: 13px; }
+    .hdr { display: none; }
+    .print-header { display: block !important; }
+    .two-col { grid-template-columns: 1fr !important; }
+    .left-col { display: none !important; }
+    .cards { grid-template-columns: repeat(3,1fr); }
+    .btn-print, .print-fields { display: none !important; }
+    .panel, .card, .chart-wrap, .tbl-wrap, .insight { break-inside: avoid; }
+    .chart-canvas-wrap { height: 220px !important; }
+    @page { margin: 0.6in; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="hdr">
+  <div class="hdr-left">
+    <div class="hdr-logo">HWS</div>
+    <div>
+      <div class="hdr-title">True Breakeven Calculator</div>
+      <div class="hdr-sub">HomeWealth Solutions — Advisor Tools</div>
+    </div>
+  </div>
+  <button class="btn-print" onclick="printView()">⎙ Print / Save PDF</button>
+</div>
+
+<!-- PRINT HEADER -->
+<div class="print-header" id="printHdr">
+  <div class="ph-logo">HomeWealth Solutions</div>
+  <div class="ph-meta">
+    <span id="ph_client"></span>
+    <span id="ph_agent"></span>
+    <span id="ph_date"></span>
+  </div>
+</div>
+
+<div class="main">
+
+  <div class="two-col">
+
+    <!-- LEFT: INPUTS -->
+    <div class="left-col">
+      <div class="panel">
+        <div class="panel-title">Loan Inputs</div>
+
+        <div class="concept">
+          <strong>Standard vs. True Breakeven</strong><br>
+          Standard breakeven divides cost of points by total P&amp;I savings — but principal is equity you'd build anyway, not a cost reduction. The <strong>true breakeven</strong> uses <em>interest savings only</em>, giving a more accurate picture of when points actually pay off.
+        </div>
+
+        <div class="field">
+          <label>Purchase Price</label>
+          <input type="text" id="price" value="$400,000" onblur="fmtInput(this,'$')" onfocus="clearFmt(this,'$')" oninput="calc()">
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>Down Payment %</label>
+            <input type="text" id="dpPct" value="20%" onblur="fmtInput(this,'%')" onfocus="clearFmt(this,'%')" oninput="calc()">
+          </div>
+          <div class="field">
+            <label>Down Payment $</label>
+            <input type="text" id="dpAmt" value="$80,000" onblur="fmtInput(this,'$')" onfocus="clearFmt(this,'$')" oninput="calcFromAmt()">
+          </div>
+        </div>
+        <div class="field">
+          <label>Base Rate (no points) <span class="hint">%</span></label>
+          <input type="text" id="baseRate" value="7.00%" onblur="fmtInput(this,'%')" onfocus="clearFmt(this,'%')" oninput="calc()">
+        </div>
+        <div class="field">
+          <label>Buydown Rate (with points) <span class="hint">%</span></label>
+          <input type="text" id="bdRate" value="6.50%" onblur="fmtInput(this,'%')" onfocus="clearFmt(this,'%')" oninput="calc()">
+        </div>
+        <div class="field">
+          <label>Cost of Points ($ or % of loan) <span class="hint">e.g. $4,000 or 2%</span></label>
+          <input type="text" id="ptsCost" value="$4,000" onblur="fmtInput(this,'$')" onfocus="clearFmt(this,'$')" oninput="calc()">
+        </div>
+
+        <div class="field">
+          <label>Tax Bracket <span class="hint">for after-tax breakeven</span></label>
+          <select id="taxBracket" onchange="calc()">
+            <option value="0">0% — Not itemizing / no benefit</option>
+            <option value="0.10">10%</option>
+            <option value="0.12">12%</option>
+            <option value="0.22" selected>22%</option>
+            <option value="0.24">24%</option>
+            <option value="0.32">32%</option>
+            <option value="0.35">35%</option>
+            <option value="0.37">37%</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>Analysis Horizon <span class="hint">months</span></label>
+          <input type="text" id="horizon" value="84" oninput="calc()">
+        </div>
+
+        <!-- Print fields -->
+        <div class="print-fields">
+          <div>
+            <label>Prepared For</label>
+            <input type="text" id="print_client" placeholder="Client name">
+          </div>
+          <div>
+            <label>Prepared By</label>
+            <input type="text" id="print_agent" placeholder="Your name" value="Doug Smith, CMA®">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: RESULTS -->
+    <div class="right-col">
+
+      <!-- CARDS -->
+      <div class="cards">
+        <div class="card blue">
+          <div class="card-label">Monthly Interest Savings</div>
+          <div class="card-val blue" id="c_intSav">—</div>
+          <div class="card-sub">at lower rate</div>
+        </div>
+        <div class="card amber" id="card_std">
+          <div class="card-label">Standard Breakeven</div>
+          <div class="card-val amber" id="c_stdBe">—</div>
+          <div class="card-sub">P&amp;I savings (overstated)</div>
+        </div>
+        <div class="card green" id="card_true">
+          <div class="card-label">True Breakeven</div>
+          <div class="card-val green" id="c_trueBe">—</div>
+          <div class="card-sub">interest savings only</div>
+        </div>
+      </div>
+
+      <!-- INSIGHT -->
+      <div class="insight" id="insightBox">
+        <div class="insight-title">Analysis</div>
+        <div id="insightText">Enter loan details to see analysis.</div>
+      </div>
+
+      <!-- CHART -->
+      <div class="chart-wrap">
+        <div class="chart-title">Cumulative Net Savings vs. Cost of Points</div>
+        <div class="slider-row">
+          <label>Month:</label>
+          <input type="range" id="horizSlider" min="1" max="84" step="1" value="36" oninput="onSlider(this.value)">
+          <span class="slider-val" id="sliderLbl">36 mo</span>
+        </div>
+        <div id="sliderStats" style="display:flex; gap:18px; flex-wrap:wrap; margin-bottom:14px; font-size:13px;">
+          <span style="color:#888;">Drag slider to see cumulative savings at any month.</span>
+        </div>
+        <div class="chart-canvas-wrap">
+          <canvas id="beChart"></canvas>
+        </div>
+      </div>
+
+      <!-- COMPARISON TABLE -->
+      <div class="tbl-wrap">
+        <table id="beTable">
+          <thead>
+            <tr>
+              <th>Detail</th>
+              <th>Base Rate</th>
+              <th>With Points</th>
+              <th>Difference</th>
+            </tr>
+          </thead>
+          <tbody id="tBody"></tbody>
+        </table>
+      </div>
+
+      <!-- AFTER-TAX SECTION -->
+      <div class="chart-wrap" id="afterTaxBox">
+        <div class="chart-title">After-Tax Breakeven (if itemizing)</div>
+        <div id="atContent" style="font-size:13.5px; color: var(--mid); line-height: 1.8;"></div>
+      </div>
+
+      <p class="compliance">
+        This communication is for informational and educational purposes only and does not constitute an offer to lend or a commitment to make a loan. All loans are subject to credit approval, underwriting guidelines, and property approval. Interest rates, payment examples, programs, and terms are illustrative, vary by borrower qualification, and are subject to change without notice. Not all applicants will qualify. Examples shown do not reflect all costs of a mortgage transaction. Consult a licensed tax or legal advisor regarding your individual situation. HomeWealth Solutions LLC is licensed by the Florida Office of Financial Regulation, Mortgage Broker License #MBR8082. Verify our licensure at www.nmlsconsumeraccess.org. Equal Housing Opportunity.
+      </p>
+
+    </div><!-- /right-col -->
+  </div><!-- /two-col -->
+</div><!-- /main -->
+
+<script>
+Chart.register(ChartDataLabels);
+
+/* ─── FORMAT HELPERS ─── */
+function stripFmt(v, type) {
+  if (type === '$') return parseFloat((v || '').toString().replace(/[$,\s]/g, '')) || 0;
+  if (type === '%') return parseFloat((v || '').toString().replace(/[%\s]/g, '')) || 0;
+  return parseFloat(v) || 0;
+}
+function fmtInput(el, type) {
+  const v = stripFmt(el.value, type);
+  if (type === '$') el.value = v ? '$' + v.toLocaleString('en-US', { maximumFractionDigits: 0 }) : '';
+  if (type === '%') el.value = isNaN(v) ? '' : v + '%';
+}
+function clearFmt(el, type) {
+  const v = stripFmt(el.value, type);
+  el.value = isNaN(v) || v === 0 ? '' : v;
+}
+function fmt$(v) { return '$' + Math.round(v).toLocaleString(); }
+function fmtMo(m) {
+  if (!isFinite(m) || m <= 0) return 'Never';
+  const mo = Math.ceil(m);
+  if (mo > 360) return '> 30 yr';
+  const y = Math.floor(mo / 12), r = mo % 12;
+  if (y === 0) return mo + ' mo';
+  return y + ' yr' + (r ? ' ' + r + ' mo' : '');
+}
+
+/* ─── MORTGAGE MATH ─── */
+function calcPI(loan, annualRate, n) {
+  const r = annualRate / 100 / 12;
+  if (r === 0) return loan / n;
+  return loan * r * Math.pow(1 + r, n) / (Math.pow(1 + r, n) - 1);
+}
+function monthlyInterest(balance, annualRate) {
+  return balance * (annualRate / 100 / 12);
+}
+function loanBal(loan, annualRate, n, m) {
+  const r = annualRate / 100 / 12;
+  if (r === 0) return loan - (loan / n) * m;
+  const pi = calcPI(loan, annualRate, n);
+  return loan * Math.pow(1 + r, m) - pi * (Math.pow(1 + r, m) - 1) / r;
+}
+
+/* ─── SYNC DOWN PAYMENT FIELDS ─── */
+function calcFromAmt() {
+  const price = stripFmt(document.getElementById('price').value, '$');
+  const amt   = stripFmt(document.getElementById('dpAmt').value, '$');
+  if (price > 0) {
+    const pct = amt / price * 100;
+    document.getElementById('dpPct').value = pct.toFixed(2) + '%';
+  }
+  calc();
+}
+
+/* ─── GLOBAL SAVINGS ARRAYS (for slider) ─── */
+let _stdArr  = [];
+let _trueArr = [];
+let _atArr   = [];
+let _taxBkt  = 0;
+
+/* ─── CHART ─── */
+let beChartInst = null;
+function buildChart(baseData, trueData, atData, ptsCost, horizon) {
+  const ctx = document.getElementById('beChart').getContext('2d');
+  const labels = baseData.map((_, i) => {
+    const mo = i + 1;
+    if (mo % 12 === 0) return 'Yr ' + (mo / 12);
+    return '';
+  });
+
+  const datasets = [
+    {
+      label: 'Standard Breakeven (P&I savings)',
+      data: baseData,
+      borderColor: '#f0a500',
+      backgroundColor: 'rgba(240,165,0,0.08)',
+      borderWidth: 2,
+      pointRadius: 0,
+      tension: 0.3,
+      fill: false,
+      datalabels: { display: false }
+    },
+    {
+      label: 'True Breakeven (interest only)',
+      data: trueData,
+      borderColor: '#8EC73F',
+      backgroundColor: 'rgba(142,199,63,0.08)',
+      borderWidth: 2.5,
+      pointRadius: 0,
+      tension: 0.3,
+      fill: false,
+      datalabels: { display: false }
+    }
+  ];
+
+  if (atData && atData.some(v => v !== null)) {
+    datasets.push({
+      label: 'After-Tax True Breakeven',
+      data: atData,
+      borderColor: '#2491EB',
+      backgroundColor: 'rgba(36,145,235,0.07)',
+      borderWidth: 2,
+      borderDash: [5, 3],
+      pointRadius: 0,
+      tension: 0.3,
+      fill: false,
+      datalabels: { display: false }
+    });
+  }
+
+  const data = { labels, datasets };
+
+  if (beChartInst) beChartInst.destroy();
+  beChartInst = new Chart(ctx, {
+    type: 'line',
+    data,
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      layout: { padding: { top: 10 } },
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        datalabels: { display: false },
+        legend: { position: 'bottom', labels: { boxWidth: 14, font: { size: 12 }, padding: 14 } },
+        tooltip: {
+          callbacks: {
+            label: ctx => {
+              const v = ctx.raw;
+              return ' ' + ctx.dataset.label + ': ' + (v >= 0 ? '+' : '') + fmt$(v);
+            }
+          }
+        },
+        annotation: {
+          annotations: {
+            zeroline: {
+              type: 'line',
+              yMin: 0, yMax: 0,
+              borderColor: '#ccc',
+              borderWidth: 1,
+              borderDash: [4, 4]
+            },
+            costline: {
+              type: 'line',
+              yMin: -ptsCost, yMax: -ptsCost,
+              borderColor: '#e85c4a',
+              borderWidth: 1.5,
+              label: { content: 'Cost of Points', display: true, position: 'start', color: '#e85c4a', font: { size: 11 } }
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          ticks: { color: '#888', font: { size: 11 }, maxRotation: 0 },
+          grid: { color: 'rgba(0,0,0,0.04)' }
+        },
+        y: {
+          ticks: {
+            color: '#888', font: { size: 11 },
+            callback: v => (Math.abs(v) >= 1000 ? (v >= 0 ? '' : '-') + '$' + Math.abs(Math.round(v/1000)) + 'k' : (v >= 0 ? '$' : '-$') + Math.abs(Math.round(v)))
+          },
+          grid: { color: 'rgba(0,0,0,0.05)' }
+        }
+      }
+    }
+  });
+}
+
+/* ─── MAIN CALC ─── */
+function calc() {
+  const price     = stripFmt(document.getElementById('price').value, '$');
+  const dpPct     = stripFmt(document.getElementById('dpPct').value, '%');
+  const baseRate  = stripFmt(document.getElementById('baseRate').value, '%');
+  const bdRate    = stripFmt(document.getElementById('bdRate').value, '%');
+  const taxBkt    = parseFloat(document.getElementById('taxBracket').value) || 0;
+  const horizon   = parseInt(document.getElementById('horizon').value) || 84;
+
+  // Sync dp fields
+  const dp = price * dpPct / 100;
+  document.getElementById('dpAmt').value = dp ? '$' + Math.round(dp).toLocaleString() : '';
+
+  const loan = price - dp;
+  if (loan <= 0 || baseRate <= 0 || bdRate <= 0 || bdRate >= baseRate) {
+    resetResults();
+    return;
+  }
+
+  // Cost of points — accept $ or %
+  let rawPts = document.getElementById('ptsCost').value.trim();
+  let ptsCost;
+  if (rawPts.includes('%')) {
+    ptsCost = loan * stripFmt(rawPts, '%') / 100;
+  } else {
+    ptsCost = stripFmt(rawPts, '$');
+  }
+  if (ptsCost <= 0) { resetResults(); return; }
+
+  const n = 360;
+  const basePI  = calcPI(loan, baseRate, n);
+  const bdPI    = calcPI(loan, bdRate, n);
+  const piSav   = basePI - bdPI;   // total P&I savings / month
+
+  // True breakeven uses INTEREST savings only
+  // Month 1 interest savings: loan * (baseRate - bdRate) / 100 / 12
+  // Interest savings decreases over time because balances converge
+  // We'll track month-by-month
+
+  let stdCumSav  = [];  // standard: cumulative (piSav * mo) - ptsCost
+  let trueCumSav = [];  // true: cumulative interest savings - ptsCost
+  let atCumSav   = [];  // after-tax: if itemizing
+
+  let stdBe  = null;
+  let trueBe = null;
+  let atBe   = null;
+
+  let cumStd  = -ptsCost;
+  let cumTrue = -ptsCost;
+  let cumAt   = -ptsCost;
+
+  for (let mo = 1; mo <= horizon; mo++) {
+    // Standard: full P&I difference
+    cumStd += piSav;
+    stdCumSav.push(cumStd);
+    if (stdBe === null && cumStd >= 0) stdBe = mo;
+
+    // True: interest savings only (base balance - bd balance rates)
+    const balBase = loanBal(loan, baseRate, n, mo - 1);
+    const balBd   = loanBal(loan, bdRate,   n, mo - 1);
+    const intBase = monthlyInterest(balBase, baseRate);
+    const intBd   = monthlyInterest(balBd,   bdRate);
+    const intSav  = intBase - intBd;
+    cumTrue += intSav;
+    trueCumSav.push(cumTrue);
+    if (trueBe === null && cumTrue >= 0) trueBe = mo;
+
+    // After-tax: interest savings reduced by tax bracket (deductible interest means less savings)
+    if (taxBkt > 0) {
+      const atIntSav = intSav * (1 - taxBkt);
+      cumAt += atIntSav;
+      atCumSav.push(cumAt);
+      if (atBe === null && cumAt >= 0) atBe = mo;
+    } else {
+      atCumSav.push(null);
+    }
+  }
+
+  // Month 1 interest savings (approximate, for display)
+  const mo1IntSav = loan * (baseRate - bdRate) / 100 / 12;
+  const mo1PiSav  = piSav;
+
+  // ── Update cards
+  document.getElementById('c_intSav').textContent = fmt$(mo1IntSav) + '/mo';
+  document.getElementById('c_stdBe').textContent  = stdBe  ? fmtMo(stdBe)  : '> Horizon';
+  document.getElementById('c_trueBe').textContent = trueBe ? fmtMo(trueBe) : '> Horizon';
+
+  // ── Style card based on urgency
+  const trueBeCard = document.getElementById('card_true');
+  const trueBeVal  = document.getElementById('c_trueBe');
+  if (!trueBe || trueBe > horizon) {
+    trueBeCard.className = 'card warn';
+    trueBeVal.className  = 'card-val warn';
+  } else if (trueBe > 60) {
+    trueBeCard.className = 'card amber';
+    trueBeVal.className  = 'card-val amber';
+  } else {
+    trueBeCard.className = 'card green';
+    trueBeVal.className  = 'card-val green';
+  }
+
+  // ── Insight
+  buildInsight(trueBe, stdBe, atBe, piSav, mo1IntSav, ptsCost, taxBkt, horizon);
+
+  // ── Table
+  buildTable(loan, baseRate, bdRate, basePI, bdPI, piSav, mo1IntSav, ptsCost, stdBe, trueBe, atBe, taxBkt);
+
+  // ── After-tax box
+  buildAfterTax(mo1IntSav, taxBkt, ptsCost, trueBe, atBe, horizon);
+
+  // ── Store arrays for slider
+  _stdArr  = stdCumSav;
+  _trueArr = trueCumSav;
+  _atArr   = atCumSav;
+  _taxBkt  = taxBkt;
+
+  // ── Chart
+  buildChart(stdCumSav, trueCumSav, taxBkt > 0 ? atCumSav : null, ptsCost, horizon);
+
+  // ── Sync slider
+  const sl = document.getElementById('horizSlider');
+  sl.max   = horizon;
+  sl.min   = 1;
+  sl.value = Math.min(Math.max(parseInt(sl.value), 1), horizon);
+  onSlider(sl.value);
+}
+
+function resetResults() {
+  ['c_intSav','c_stdBe','c_trueBe'].forEach(id => document.getElementById(id).textContent = '—');
+  document.getElementById('tBody').innerHTML = '';
+  document.getElementById('insightText').textContent = 'Complete all fields to see analysis.';
+  document.getElementById('atContent').innerHTML = '';
+  if (beChartInst) beChartInst.destroy();
+}
+
+function buildInsight(trueBe, stdBe, atBe, piSav, intSav, ptsCost, taxBkt, horizon) {
+  const box  = document.getElementById('insightBox');
+  const txt  = document.getElementById('insightText');
+  const diff = trueBe && stdBe ? trueBe - stdBe : null;
+
+  if (!trueBe || trueBe > horizon) {
+    box.className = 'insight warn-insight';
+    txt.innerHTML = `<strong>Points don't break even within your ${horizon}-month horizon.</strong> The true breakeven exceeds the analysis period — meaning the borrower would need to keep this loan longer than expected for the points to pay off. Consider lender credits instead, or a shorter-term buydown strategy.`;
+    return;
+  }
+
+  box.className = 'insight';
+  let html = `With a true breakeven of <strong>${fmtMo(trueBe)}</strong>, these points pay off if the borrower keeps the loan at least that long.`;
+
+  if (diff && diff > 0) {
+    html += ` Standard breakeven shows ${fmtMo(stdBe)} — but that overstates the benefit by counting <strong>${fmt$(piSav - intSav)}/mo</strong> in principal paydown as savings. Principal is equity you'd build anyway; it's not a cost reduction.`;
+  }
+
+  if (taxBkt > 0 && atBe && atBe > trueBe) {
+    html += ` If the borrower is <strong>itemizing deductions</strong>, the after-tax breakeven extends to <strong>${fmtMo(atBe)}</strong> — because deductible interest at the higher rate reduces the tax benefit of the lower rate.`;
+  }
+
+  if (trueBe <= 36) {
+    html += ` At under 3 years, this is a strong case for points.`;
+  } else if (trueBe <= 60) {
+    html += ` A 5-year expected hold would make this worthwhile.`;
+  } else {
+    html += ` At over ${fmtMo(trueBe)}, make sure the borrower realistically expects to hold this loan that long before refinancing or selling.`;
+  }
+
+  txt.innerHTML = html;
+}
+
+function buildTable(loan, baseRate, bdRate, basePI, bdPI, piSav, intSav, ptsCost, stdBe, trueBe, atBe, taxBkt) {
+  const rows = [
+    { sec: 'Loan Structure' },
+    { lbl: 'Loan Amount',              base: fmt$(loan),             bd: fmt$(loan),             diff: '—' },
+    { lbl: 'Interest Rate',            base: baseRate.toFixed(3)+'%', bd: bdRate.toFixed(3)+'%', diff: '-' + (baseRate - bdRate).toFixed(3) + '%' },
+    { lbl: 'Monthly P&I',              base: fmt$(basePI),            bd: fmt$(bdPI),             diff: fmt$(piSav) + '/mo', cls: '' },
+
+    { sec: 'Monthly Savings Breakdown' },
+    { lbl: 'Total P&I Difference',     base: '—', bd: '—', diff: fmt$(piSav) + '/mo', note: 'Standard measure' },
+    { lbl: '  ↳ Interest savings',     base: '—', bd: '—', diff: fmt$(intSav) + '/mo', note: 'True savings', cls: 'highlight-row' },
+    { lbl: '  ↳ Extra principal paid', base: '—', bd: '—', diff: fmt$(piSav - intSav) + '/mo', note: 'Equity (not cost reduction)' },
+
+    { sec: 'Breakeven Analysis' },
+    { lbl: 'Cost of Points',           base: '—', bd: fmt$(ptsCost), diff: '—' },
+    { lbl: 'Standard Breakeven',       base: '—', bd: '—', diff: stdBe ? fmtMo(stdBe) : '> Horizon', cls: 'standard-be' },
+    { lbl: 'True Breakeven (interest only)', base: '—', bd: '—', diff: trueBe ? fmtMo(trueBe) : '> Horizon', cls: 'true-be' },
+  ];
+
+  if (taxBkt > 0) {
+    rows.push({ lbl: 'After-Tax True Breakeven (' + (taxBkt*100) + '% bracket)', base: '—', bd: '—', diff: atBe ? fmtMo(atBe) : '> Horizon', cls: 'standard-be' });
+  }
+
+  let html = '';
+  rows.forEach(r => {
+    if (r.sec) {
+      html += `<tr class="section-hdr"><td colspan="4">${r.sec}</td></tr>`;
+    } else {
+      const cls = r.cls || '';
+      html += `<tr class="${cls}">
+        <td class="row-label">${r.lbl}</td>
+        <td>${r.base || '—'}</td>
+        <td>${r.bd   || '—'}</td>
+        <td>${r.diff || '—'}</td>
+      </tr>`;
+    }
+  });
+
+  document.getElementById('tBody').innerHTML = html;
+}
+
+function buildAfterTax(intSav, taxBkt, ptsCost, trueBe, atBe, horizon) {
+  const box = document.getElementById('afterTaxBox');
+  if (taxBkt === 0) {
+    box.style.display = 'none';
+    return;
+  }
+  box.style.display = 'block';
+  const atIntSav = intSav * (1 - taxBkt);
+  const html = `
+    At a <strong>${(taxBkt*100)}% marginal bracket</strong> and itemizing deductions:<br>
+    &bull; Pre-tax interest savings: <strong>${fmt$(intSav)}/mo</strong><br>
+    &bull; Tax cost of lost deduction: <strong>${fmt$(intSav * taxBkt)}/mo</strong> (higher-rate loan was more deductible)<br>
+    &bull; Net after-tax interest savings: <strong>${fmt$(atIntSav)}/mo</strong><br>
+    &bull; After-tax true breakeven: <strong>${atBe ? fmtMo(atBe) : '> Horizon'}</strong>
+    <br><br>
+    <em style="color:#888; font-size:12px;">Note: Many borrowers below the $30,000 MFJ standard deduction threshold do not itemize. Consult a CPA to confirm deductibility before applying after-tax savings.</em>
+  `;
+  document.getElementById('atContent').innerHTML = html;
+}
+
+function onSlider(val) {
+  val = parseInt(val);
+  document.getElementById('horizSlider').value = val;
+  const y = Math.floor(val / 12), m = val % 12;
+  document.getElementById('sliderLbl').textContent = val + ' mo' + (y > 0 ? ' (' + y + ' yr' + (m ? ' ' + m + ' mo' : '') + ')' : '');
+
+  const stdVal  = _stdArr[val - 1];
+  const trueVal = _trueArr[val - 1];
+  const atVal   = (_taxBkt > 0 && _atArr[val - 1] != null) ? _atArr[val - 1] : null;
+
+  function fmtSav(v) {
+    if (v == null) return '—';
+    const abs = fmt$(Math.abs(v));
+    return v >= 0
+      ? '<span style="color:#8EC73F; font-weight:700;">+' + abs + '</span>'
+      : '<span style="color:#e85c4a; font-weight:700;">-' + abs + '</span>';
+  }
+
+  let html = `
+    <span><strong style="color:#888; font-size:11px; text-transform:uppercase; letter-spacing:.05em;">Standard</strong><br>${fmtSav(stdVal)}</span>
+    <span><strong style="color:#888; font-size:11px; text-transform:uppercase; letter-spacing:.05em;">True</strong><br>${fmtSav(trueVal)}</span>
+  `;
+  if (atVal != null) {
+    html += `<span><strong style="color:#888; font-size:11px; text-transform:uppercase; letter-spacing:.05em;">After-Tax</strong><br>${fmtSav(atVal)}</span>`;
+  }
+  document.getElementById('sliderStats').innerHTML = html;
+}
+
+function printView() {
+  const client = (document.getElementById('print_client').value || '').trim();
+  const agent  = (document.getElementById('print_agent').value || '').trim();
+  const now    = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+  document.getElementById('ph_client').innerHTML = client ? `<strong>Prepared for:</strong> ${client}` : '';
+  document.getElementById('ph_agent').innerHTML  = agent  ? `<strong>Prepared by:</strong> ${agent}`   : '';
+  document.getElementById('ph_date').innerHTML   = `<strong>Date:</strong> ${now}`;
+  if (beChartInst) { beChartInst.resize(); beChartInst.update('none'); }
+  window.print();
+}
+
+// Init
+window.addEventListener('DOMContentLoaded', () => {
+  calc();
+});
+</script>
+<a href="https://tools.homewealthsolutions.com" id="hws-hub-btn" style="position:fixed;top:14px;right:16px;z-index:9999;background:#1c2b3a;color:rgba(255,255,255,0.9);text-decoration:none;font-size:12px;font-weight:700;padding:6px 14px;border-radius:8px;font-family:-apple-system,BlinkMacSystemFont,sans-serif;letter-spacing:0.2px;box-shadow:0 2px 8px rgba(0,0,0,0.25);">← Hub</a>
+
+<!-- HWS Hub back button -->
+<div id="hws-back-btn" style="position:fixed;bottom:20px;right:20px;z-index:99999;">
+  <button onclick="window.close()" style="
+    background:#1a2332;
+    color:white;
+    border:none;
+    border-radius:8px;
+    padding:9px 16px;
+    font-size:13px;
+    font-weight:600;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    gap:7px;
+    box-shadow:0 2px 12px rgba(0,0,0,0.25);
+    opacity:0.85;
+    transition:opacity .15s;
+  " onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.85'">
+    ← Hub
+  </button>
+</div>
+<script src="/hws-session.js"></script>
+</body>
+</html>

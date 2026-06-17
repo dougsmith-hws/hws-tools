@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Equity Growth Calculator — HomeWealth Solutions</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root {
+    --blue: #2491EB;
+    --green: #8EC73F;
+    --dark: #1c2b3a;
+    --mid: #3a4f62;
+    --light: #f0f4f8;
+    --border: #dde3ea;
+    --white: #ffffff;
+    --red: #dc3545;
+    --amber: #e8900a;
+    --blue-light: #5ab3f4;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--light); color: var(--dark); font-size: 15px; }
+
+  /* HEADER */
+  .hdr { background: var(--dark); color: #fff; padding: 16px 28px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+  .hdr-left { display: flex; align-items: center; gap: 14px; }
+  .hdr-logo { background: var(--blue); color: #fff; font-weight: 800; font-size: 18px; padding: 6px 12px; border-radius: 6px; letter-spacing: -0.5px; }
+  .hdr-title { font-size: 17px; font-weight: 600; opacity: 0.95; }
+  .hdr-sub { font-size: 12px; opacity: 0.55; margin-top: 2px; }
+  .btn-print { background: rgba(255,255,255,0.12); color: #fff; border: 1px solid rgba(255,255,255,0.25); padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600; transition: background 0.15s; }
+  .btn-print:hover { background: rgba(255,255,255,0.22); }
+
+  /* PRINT HEADER */
+  .print-header { display: none; padding: 0 0 12px 0; border-bottom: 2px solid var(--blue); margin-bottom: 18px; }
+  .print-header .ph-logo { color: var(--blue); font-size: 20px; font-weight: 800; }
+  .print-header .ph-meta { display: flex; gap: 24px; margin-top: 6px; font-size: 13px; color: #555; }
+
+  /* LAYOUT */
+  .main { max-width: 1060px; margin: 0 auto; padding: 24px 20px 40px; }
+  .two-col { display: grid; grid-template-columns: 320px 1fr; gap: 20px; align-items: start; }
+
+  /* PANELS */
+  .panel { background: var(--white); border-radius: 10px; border: 1px solid var(--border); padding: 22px 24px; }
+  .panel-title { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--blue); margin-bottom: 16px; padding-bottom: 10px; border-bottom: 1px solid var(--border); }
+
+  /* INPUTS */
+  .field { margin-bottom: 14px; }
+  .field label { display: block; font-size: 13px; font-weight: 600; color: var(--mid); margin-bottom: 5px; }
+  .field label .hint { font-weight: 400; color: #888; font-size: 12px; }
+  .field input, .field select { width: 100%; padding: 9px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 14px; color: var(--dark); background: #fafbfc; transition: border-color 0.15s; }
+  .field input:focus { outline: none; border-color: var(--blue); background: #fff; }
+  .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .field-note { font-size: 11px; color: #aaa; margin-top: 4px; }
+
+  /* PERIOD BUTTONS */
+  .period-btns { display: flex; gap: 6px; margin-bottom: 10px; flex-wrap: wrap; }
+  .period-btn { padding: 6px 12px; border: 1px solid var(--border); border-radius: 6px; background: #fafbfc; cursor: pointer; font-size: 13px; font-weight: 600; color: var(--mid); transition: all 0.15s; }
+  .period-btn:hover { border-color: var(--blue); color: var(--blue); }
+  .period-btn.active { background: var(--blue); border-color: var(--blue); color: #fff; }
+
+  /* SLIDER */
+  .slider-wrap { margin-bottom: 6px; }
+  .slider-wrap input[type=range] { width: 100%; accent-color: var(--blue); }
+  .slider-val-row { display: flex; justify-content: space-between; font-size: 12px; color: #888; margin-top: 2px; }
+
+  /* CONCEPT */
+  .concept { background: #eef6ff; border-left: 4px solid var(--blue); border-radius: 0 8px 8px 0; padding: 14px 16px; margin-bottom: 18px; font-size: 13px; line-height: 1.6; color: var(--mid); }
+  .concept strong { color: var(--blue); }
+
+  /* PRINT FIELDS */
+  .print-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border); }
+  .print-fields label { font-size: 12px; font-weight: 600; color: var(--mid); display: block; margin-bottom: 4px; }
+  .print-fields input { width: 100%; padding: 7px 10px; border: 1px solid var(--border); border-radius: 5px; font-size: 13px; }
+
+  /* RESULT CARDS */
+  .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 14px; }
+  .cards-row2 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 20px; }
+  .card { background: var(--white); border-radius: 10px; border: 2px solid var(--border); padding: 16px 12px; text-align: center; }
+  .card.blue  { border-color: var(--blue); }
+  .card.green { border-color: var(--green); }
+  .card.amber { border-color: var(--amber); }
+  .card.dark  { border-color: var(--dark); }
+  .card-label { font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #888; margin-bottom: 6px; }
+  .card-val { font-size: 22px; font-weight: 800; color: var(--dark); line-height: 1; }
+  .card-val.blue  { color: var(--blue); }
+  .card-val.green { color: var(--green); }
+  .card-val.amber { color: var(--amber); }
+  .card-sub { font-size: 11px; color: #888; margin-top: 5px; }
+
+  /* INSIGHT */
+  .insight { background: #f5fdf0; border: 1px solid var(--green); border-radius: 8px; padding: 16px 18px; margin-bottom: 20px; font-size: 14px; line-height: 1.7; color: var(--dark); }
+  .insight-title { font-weight: 700; color: #3a7a00; margin-bottom: 8px; font-size: 13px; text-transform: uppercase; letter-spacing: 0.05em; }
+
+  /* EQUITY BREAKDOWN */
+  .eq-breakdown { background: var(--white); border-radius: 10px; border: 1px solid var(--border); padding: 18px 20px; margin-bottom: 20px; }
+  .eq-title { font-size: 13px; font-weight: 700; color: var(--mid); margin-bottom: 14px; }
+  .eq-bar-row { margin-bottom: 10px; }
+  .eq-bar-label { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 4px; }
+  .eq-bar-label .lbl { font-weight: 600; }
+  .eq-bar-label .val { font-weight: 700; }
+  .eq-bar-track { height: 12px; background: #eef3f8; border-radius: 6px; overflow: hidden; }
+  .eq-bar-fill { height: 100%; border-radius: 6px; transition: width 0.4s; }
+
+  /* CHART */
+  .chart-wrap { background: var(--white); border-radius: 10px; border: 1px solid var(--border); padding: 18px 20px; margin-bottom: 20px; }
+  .chart-title { font-size: 13px; font-weight: 700; color: var(--mid); margin-bottom: 14px; }
+  .chart-canvas-wrap { position: relative; height: 300px; }
+
+  /* TABLE */
+  .tbl-wrap { overflow-x: auto; margin-bottom: 20px; }
+  table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  thead th { background: var(--dark); color: #fff; padding: 9px 12px; text-align: left; font-weight: 600; font-size: 12px; }
+  thead th:not(:first-child) { text-align: right; }
+  tbody tr:nth-child(even) { background: #f7f9fb; }
+  tbody tr:hover { background: #eef3f8; }
+  tbody td { padding: 7px 12px; border-bottom: 1px solid var(--border); }
+  tbody td:not(:first-child) { text-align: right; font-variant-numeric: tabular-nums; }
+  tbody td.row-label { font-weight: 600; color: var(--mid); }
+  .highlight-row td { background: #eef8e8 !important; font-weight: 700; }
+  .highlight-row td:not(:first-child) { color: var(--green); }
+
+  /* DISCLAIMER */
+  .disclaimer { font-size: 11px; color: #999; line-height: 1.6; border-top: 1px solid var(--border); padding-top: 14px; margin-top: 20px; font-style: italic; }
+
+  /* PRINT */
+  @media print {
+    body { background: #fff; font-size: 13px; }
+    .hdr { display: none; }
+    .print-header { display: block !important; }
+    .two-col { grid-template-columns: 1fr !important; }
+    .left-col { display: none !important; }
+    .btn-print, .print-fields { display: none !important; }
+    .panel, .card, .chart-wrap, .insight, .tbl-wrap, .eq-breakdown { break-inside: avoid; }
+    .chart-canvas-wrap { height: 240px !important; }
+    .cards, .cards-row2 { grid-template-columns: repeat(3,1fr); }
+    @page { margin: 0.6in; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="hdr">
+  <div class="hdr-left">
+    <div class="hdr-logo">HWS</div>
+    <div>
+      <div class="hdr-title">Equity Growth Calculator</div>
+      <div class="hdr-sub">HomeWealth Solutions — NMLS #2742458</div>
+    </div>
+  </div>
+  <button class="btn-print" onclick="printView()">⎙ Print / Save PDF</button>
+</div>
+
+<!-- PRINT HEADER -->
+<div class="print-header" id="printHdr">
+  <div class="ph-logo">HomeWealth Solutions</div>
+  <div class="ph-meta">
+    <span id="ph_client"></span>
+    <span id="ph_agent"></span>
+    <span id="ph_date"></span>
+  </div>
+</div>
+
+<div class="main">
+  <div class="two-col">
+
+    <!-- LEFT: INPUTS -->
+    <div class="left-col">
+      <div class="panel">
+        <div class="panel-title">Property & Loan Inputs</div>
+
+        <div class="concept">
+          <strong>Two Engines of Wealth</strong><br>
+          Real estate builds equity two ways simultaneously: <strong>appreciation</strong> increases what the home is worth, and <strong>principal paydown</strong> decreases what you owe — both working every month.
+        </div>
+
+        <div class="field">
+          <label>Purchase Price</label>
+          <input type="text" id="price" value="$400,000" onblur="fmtDollar(this)" onfocus="clearFmt(this,'$')" oninput="syncLoan()">
+        </div>
+        <div class="field">
+          <label>Down Payment</label>
+          <input type="text" id="downAmt" value="$20,000" onblur="fmtDollar(this)" onfocus="clearFmt(this,'$')" oninput="syncLoan()">
+        </div>
+        <div class="field">
+          <label>Loan Amount <span class="hint">(auto or override)</span></label>
+          <input type="text" id="loanAmt" value="$380,000" onblur="fmtDollar(this)" onfocus="clearFmt(this,'$')" oninput="calc()">
+          <div class="field-note">Auto-calculated from price − down. Override if needed.</div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>Interest Rate %</label>
+            <input type="text" id="rate" value="7.0%" onblur="fmtPct(this)" onfocus="clearFmt(this,'%')" oninput="calc()">
+          </div>
+          <div class="field">
+            <label>Loan Term (years)</label>
+            <input type="text" id="term" value="30" oninput="calc()">
+          </div>
+        </div>
+        <div class="field">
+          <label>Annual Appreciation Rate %</label>
+          <input type="text" id="appRate" value="4.0%" onblur="fmtPct(this)" onfocus="clearFmt(this,'%')" oninput="calc()">
+        </div>
+
+        <div class="field">
+          <label>Analysis Period <span class="hint">(years)</span></label>
+          <div class="period-btns" id="periodBtns">
+            <button class="period-btn" onclick="setPeriod(5,this)">5</button>
+            <button class="period-btn active" onclick="setPeriod(10,this)">10</button>
+            <button class="period-btn" onclick="setPeriod(15,this)">15</button>
+            <button class="period-btn" onclick="setPeriod(20,this)">20</button>
+            <button class="period-btn" onclick="setPeriod(30,this)">30</button>
+          </div>
+          <div class="slider-wrap">
+            <input type="range" id="periodSlider" min="1" max="30" value="10" oninput="onSlider(this.value)">
+            <div class="slider-val-row"><span>1 yr</span><span id="sliderLbl" style="font-weight:700; color:var(--blue);">10 years</span><span>30 yr</span></div>
+          </div>
+        </div>
+
+        <!-- Print fields -->
+        <div class="print-fields">
+          <div>
+            <label>Prepared For</label>
+            <input type="text" id="print_client" placeholder="Client name">
+          </div>
+          <div>
+            <label>Prepared By</label>
+            <input type="text" id="print_agent" placeholder="Your name" value="Doug Smith, CMA®">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: RESULTS -->
+    <div class="right-col">
+
+      <!-- SUMMARY CARDS ROW 1 -->
+      <div class="cards">
+        <div class="card green">
+          <div class="card-label">Total Equity</div>
+          <div class="card-val green" id="c_totalEquity">—</div>
+          <div class="card-sub" id="c_eqSub">at 10 years</div>
+        </div>
+        <div class="card blue">
+          <div class="card-label">Appreciation Equity</div>
+          <div class="card-val blue" id="c_appEquity">—</div>
+          <div class="card-sub">from home value growth</div>
+        </div>
+        <div class="card amber">
+          <div class="card-label">Paydown Equity</div>
+          <div class="card-val amber" id="c_paydownEquity">—</div>
+          <div class="card-sub">principal paid down</div>
+        </div>
+      </div>
+
+      <!-- SUMMARY CARDS ROW 2 -->
+      <div class="cards-row2">
+        <div class="card dark">
+          <div class="card-label">Starting Equity</div>
+          <div class="card-val" id="c_startEquity">—</div>
+          <div class="card-sub">down payment</div>
+        </div>
+        <div class="card green">
+          <div class="card-label">Down Payment ROI</div>
+          <div class="card-val green" id="c_roi">—</div>
+          <div class="card-sub">return on investment</div>
+        </div>
+        <div class="card blue">
+          <div class="card-label">Down Payment Multiplier</div>
+          <div class="card-val blue" id="c_multiplier">—</div>
+          <div class="card-sub" id="c_multSub">X your investment</div>
+        </div>
+      </div>
+
+      <!-- INSIGHT -->
+      <div class="insight">
+        <div class="insight-title">Your Wealth-Building Summary</div>
+        <div id="insightText">Enter property details to see equity analysis.</div>
+      </div>
+
+      <!-- EQUITY BREAKDOWN BARS -->
+      <div class="eq-breakdown">
+        <div class="eq-title">Equity Breakdown at Selected Horizon</div>
+        <div class="eq-bar-row">
+          <div class="eq-bar-label">
+            <span class="lbl" style="color:var(--dark);">Starting Equity (Down Payment)</span>
+            <span class="val" id="bar_start_val">—</span>
+          </div>
+          <div class="eq-bar-track"><div class="eq-bar-fill" id="bar_start" style="background:var(--dark); width:0%;"></div></div>
+        </div>
+        <div class="eq-bar-row">
+          <div class="eq-bar-label">
+            <span class="lbl" style="color:var(--amber);">Paydown Equity (Principal Paid)</span>
+            <span class="val" id="bar_paydown_val">—</span>
+          </div>
+          <div class="eq-bar-track"><div class="eq-bar-fill" id="bar_paydown" style="background:var(--amber); width:0%;"></div></div>
+        </div>
+        <div class="eq-bar-row">
+          <div class="eq-bar-label">
+            <span class="lbl" style="color:var(--blue);">Appreciation Equity (Home Value Growth)</span>
+            <span class="val" id="bar_app_val">—</span>
+          </div>
+          <div class="eq-bar-track"><div class="eq-bar-fill" id="bar_app" style="background:var(--blue); width:0%;"></div></div>
+        </div>
+      </div>
+
+      <!-- CHART -->
+      <div class="chart-wrap">
+        <div class="chart-title">Equity Growth Over Time — Stacked by Source</div>
+        <div class="chart-canvas-wrap">
+          <canvas id="eqChart"></canvas>
+        </div>
+      </div>
+
+      <!-- TABLE -->
+      <div class="tbl-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Year</th>
+              <th>Home Value</th>
+              <th>Loan Balance</th>
+              <th>App. Equity</th>
+              <th>Paydown Equity</th>
+              <th>Total Equity</th>
+              <th>ROI</th>
+            </tr>
+          </thead>
+          <tbody id="tBody"></tbody>
+        </table>
+      </div>
+
+      <p class="disclaimer">
+        Appreciation rates are illustrative and not guaranteed. Past performance does not predict future results. Amortization assumes standard fixed-rate mortgage with no additional principal payments. This analysis is for educational purposes only and does not constitute financial or investment advice.
+      </p>
+
+    </div><!-- /right-col -->
+  </div><!-- /two-col -->
+</div><!-- /main -->
+
+<script>
+/* FORMAT HELPERS */
+function stripDollar(v) { return parseFloat((v||'').toString().replace(/[$,\s]/g,'')) || 0; }
+function stripPct(v)    { return parseFloat((v||'').toString().replace(/[%\s]/g,''))    || 0; }
+function fmtDollar(el)  { const v = stripDollar(el.value); el.value = v ? '$' + Math.round(v).toLocaleString() : ''; }
+function fmtPct(el)     { const v = stripPct(el.value);    el.value = isNaN(v) ? '' : v + '%'; }
+function clearFmt(el, type) {
+  const v = type === '$' ? stripDollar(el.value) : stripPct(el.value);
+  el.value = (!v) ? '' : v;
+}
+function fmt$(v) { return '$' + Math.round(v).toLocaleString(); }
+
+function calcPI(loan, annRate, n) {
+  const r = annRate / 100 / 12;
+  if (r === 0) return loan / n;
+  return loan * r * Math.pow(1+r, n) / (Math.pow(1+r, n) - 1);
+}
+
+function loanBalance(loan, annRate, n, months) {
+  const r = annRate / 100 / 12;
+  if (r === 0) return loan - (loan / n) * months;
+  const pmt = calcPI(loan, annRate, n);
+  return loan * Math.pow(1+r, months) - pmt * (Math.pow(1+r, months) - 1) / r;
+}
+
+let eqChartInst = null;
+let currentPeriod = 10;
+let _loanManual = false;
+
+function syncLoan() {
+  const price = stripDollar(document.getElementById('price').value);
+  const down  = stripDollar(document.getElementById('downAmt').value);
+  if (price > 0 && down >= 0) {
+    const loan = Math.max(0, price - down);
+    document.getElementById('loanAmt').value = '$' + Math.round(loan).toLocaleString();
+  }
+  calc();
+}
+
+function setPeriod(yr, btn) {
+  currentPeriod = yr;
+  document.getElementById('periodSlider').value = yr;
+  document.getElementById('sliderLbl').textContent = yr + ' year' + (yr !== 1 ? 's' : '');
+  document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  calc();
+}
+
+function onSlider(val) {
+  val = parseInt(val);
+  currentPeriod = val;
+  document.getElementById('sliderLbl').textContent = val + ' year' + (val !== 1 ? 's' : '');
+  document.querySelectorAll('.period-btn').forEach(b => {
+    b.classList.toggle('active', parseInt(b.textContent) === val);
+  });
+  calc();
+}
+
+function calc() {
+  const price   = stripDollar(document.getElementById('price').value);
+  const downAmt = stripDollar(document.getElementById('downAmt').value);
+  const loanAmt = stripDollar(document.getElementById('loanAmt').value);
+  const rate    = stripPct(document.getElementById('rate').value);
+  const term    = parseInt(document.getElementById('term').value) || 30;
+  const appRate = stripPct(document.getElementById('appRate').value);
+  const period  = currentPeriod;
+
+  if (!price || !loanAmt || !rate) return;
+
+  const n = term * 12;
+  const rows = [];
+
+  for (let yr = 1; yr <= 30; yr++) {
+    const homeValue     = price * Math.pow(1 + appRate/100, yr);
+    const balance       = Math.max(0, loanBalance(loanAmt, rate, n, yr * 12));
+    const appEquity     = homeValue - price;
+    const paydownEquity = loanAmt - balance;
+    const totalEquity   = downAmt + appEquity + paydownEquity;
+    const roi           = downAmt > 0 ? (totalEquity / downAmt - 1) * 100 : 0;
+    rows.push({ yr, homeValue, balance, appEquity, paydownEquity, totalEquity, roi });
+  }
+
+  // At selected period
+  const row = rows[Math.min(period, 30) - 1];
+  if (!row) return;
+
+  document.getElementById('c_totalEquity').textContent  = fmt$(row.totalEquity);
+  document.getElementById('c_eqSub').textContent        = 'at ' + period + ' year' + (period !== 1 ? 's' : '');
+  document.getElementById('c_appEquity').textContent    = fmt$(row.appEquity);
+  document.getElementById('c_paydownEquity').textContent = fmt$(row.paydownEquity);
+  document.getElementById('c_startEquity').textContent  = fmt$(downAmt);
+  document.getElementById('c_roi').textContent          = row.roi.toFixed(1) + '%';
+
+  const multiplier = downAmt > 0 ? row.totalEquity / downAmt : 0;
+  document.getElementById('c_multiplier').textContent   = multiplier.toFixed(1) + 'x';
+  document.getElementById('c_multSub').textContent      = fmt$(downAmt) + ' → ' + fmt$(row.totalEquity);
+
+  // Insight
+  document.getElementById('insightText').innerHTML =
+    `Real estate builds wealth two ways simultaneously. Over ${period} year${period !== 1 ? 's' : ''}, your <strong>${fmt$(downAmt)}</strong> down payment grows into <strong>${fmt$(row.totalEquity)}</strong> in total equity — a <strong>${row.roi.toFixed(0)}% return</strong>. ` +
+    `Appreciation added <strong>${fmt$(row.appEquity)}</strong> as the home grew to <strong>${fmt$(row.homeValue)}</strong>. ` +
+    `Principal paydown added another <strong>${fmt$(row.paydownEquity)}</strong> through forced savings. ` +
+    `Both engines work for you every single month.`;
+
+  // Equity bars
+  const totalForPct = row.totalEquity;
+  document.getElementById('bar_start_val').textContent   = fmt$(downAmt);
+  document.getElementById('bar_paydown_val').textContent = fmt$(row.paydownEquity);
+  document.getElementById('bar_app_val').textContent     = fmt$(row.appEquity);
+  document.getElementById('bar_start').style.width   = Math.min(100, downAmt / totalForPct * 100).toFixed(1) + '%';
+  document.getElementById('bar_paydown').style.width = Math.min(100, row.paydownEquity / totalForPct * 100).toFixed(1) + '%';
+  document.getElementById('bar_app').style.width     = Math.min(100, row.appEquity / totalForPct * 100).toFixed(1) + '%';
+
+  // Table
+  let html = '';
+  for (let i = 0; i < Math.min(period, 30); i++) {
+    const r = rows[i];
+    const isLast = (i === Math.min(period, 30) - 1);
+    html += `<tr class="${isLast ? 'highlight-row' : ''}">
+      <td class="row-label">Year ${r.yr}</td>
+      <td>${fmt$(r.homeValue)}</td>
+      <td>${fmt$(r.balance)}</td>
+      <td>${fmt$(r.appEquity)}</td>
+      <td>${fmt$(r.paydownEquity)}</td>
+      <td>${fmt$(r.totalEquity)}</td>
+      <td>${r.roi.toFixed(1)}%</td>
+    </tr>`;
+  }
+  document.getElementById('tBody').innerHTML = html;
+
+  // Chart
+  buildChart(rows, period, downAmt);
+}
+
+function buildChart(rows, period, downAmt) {
+  const displayRows = rows.slice(0, Math.min(period, 30));
+  const labels       = displayRows.map(r => 'Yr ' + r.yr);
+  const startData    = displayRows.map(() => Math.round(downAmt));
+  const paydownData  = displayRows.map(r => Math.round(r.paydownEquity));
+  const appData      = displayRows.map(r => Math.round(r.appEquity));
+  const totalData    = displayRows.map(r => Math.round(r.totalEquity));
+
+  const ctx = document.getElementById('eqChart').getContext('2d');
+  if (eqChartInst) eqChartInst.destroy();
+  eqChartInst = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        {
+          label: 'Starting Equity (Down Payment)',
+          data: startData,
+          backgroundColor: 'rgba(28,43,58,0.85)',
+          borderColor: 'rgba(28,43,58,1)',
+          borderWidth: 0,
+          stack: 'equity'
+        },
+        {
+          label: 'Paydown Equity (Principal)',
+          data: paydownData,
+          backgroundColor: 'rgba(232,144,10,0.80)',
+          borderColor: 'rgba(232,144,10,1)',
+          borderWidth: 0,
+          stack: 'equity'
+        },
+        {
+          label: 'Appreciation Equity',
+          data: appData,
+          backgroundColor: 'rgba(36,145,235,0.80)',
+          borderColor: 'rgba(36,145,235,1)',
+          borderWidth: 0,
+          stack: 'equity'
+        },
+        {
+          label: 'Total Equity',
+          data: totalData,
+          type: 'line',
+          borderColor: '#8EC73F',
+          backgroundColor: 'transparent',
+          borderWidth: 2.5,
+          pointRadius: displayRows.length <= 15 ? 4 : 0,
+          pointBackgroundColor: '#8EC73F',
+          tension: 0.3,
+          stack: undefined,
+          order: 0
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { position: 'bottom', labels: { boxWidth: 14, font: { size: 12 }, padding: 12 } },
+        tooltip: {
+          callbacks: {
+            label: ctx => ' ' + ctx.dataset.label + ': $' + (ctx.raw||0).toLocaleString()
+          }
+        }
+      },
+      scales: {
+        x: {
+          stacked: true,
+          ticks: { color: '#888', font: { size: 11 }, maxRotation: 0,
+            callback: (val, idx) => {
+              // Show every other label if too many
+              return (idx % Math.ceil(Math.min(currentPeriod,30)/10) === 0) ? labels[idx] : '';
+            }
+          },
+          grid: { color: 'rgba(0,0,0,0.04)' }
+        },
+        y: {
+          stacked: true,
+          ticks: { color: '#888', font: { size: 11 }, callback: v => '$' + Math.round(v/1000) + 'k' },
+          grid: { color: 'rgba(0,0,0,0.05)' }
+        }
+      }
+    }
+  });
+}
+
+function printView() {
+  const client = (document.getElementById('print_client').value || '').trim();
+  const agent  = (document.getElementById('print_agent').value  || '').trim();
+  const now    = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+  document.getElementById('ph_client').innerHTML = client ? `<strong>Prepared for:</strong> ${client}` : '';
+  document.getElementById('ph_agent').innerHTML  = agent  ? `<strong>Prepared by:</strong> ${agent}`   : '';
+  document.getElementById('ph_date').innerHTML   = `<strong>Date:</strong> ${now}`;
+  if (eqChartInst) { eqChartInst.resize(); eqChartInst.update('none'); }
+  window.print();
+}
+
+window.addEventListener('DOMContentLoaded', () => { calc(); });
+</script>
+<a href="https://tools.homewealthsolutions.com" id="hws-hub-btn" style="position:fixed;top:14px;right:16px;z-index:9999;background:#1c2b3a;color:rgba(255,255,255,0.9);text-decoration:none;font-size:12px;font-weight:700;padding:6px 14px;border-radius:8px;font-family:-apple-system,BlinkMacSystemFont,sans-serif;letter-spacing:0.2px;box-shadow:0 2px 8px rgba(0,0,0,0.25);">← Hub</a>
+
+<!-- HWS Hub back button -->
+<div id="hws-back-btn" style="position:fixed;bottom:20px;right:20px;z-index:99999;">
+  <button onclick="window.close()" style="
+    background:#1a2332;
+    color:white;
+    border:none;
+    border-radius:8px;
+    padding:9px 16px;
+    font-size:13px;
+    font-weight:600;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    gap:7px;
+    box-shadow:0 2px 12px rgba(0,0,0,0.25);
+    opacity:0.85;
+    transition:opacity .15s;
+  " onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.85'">
+    ← Hub
+  </button>
+</div>
+<script src="/hws-session.js"></script>
+</body>
+</html>
