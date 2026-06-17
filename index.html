@@ -9,7 +9,7 @@
 
   body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    background: #f0f4f9;
+    background: #f9fafb;
     color: #1a2332;
     min-height: 100vh;
   }
@@ -667,8 +667,8 @@
     <div class="modal-title">Who's this session for?</div>
     <div class="modal-sub">Enter the client's name and last 4 of their phone — tool runs log automatically.</div>
     <div class="modal-field">
-      <label>Client First Name</label>
-      <input type="text" id="modal-name" placeholder="e.g. Sarah" maxlength="40" autocomplete="off">
+      <label>Client Full Name</label>
+      <input type="text" id="modal-name" placeholder="e.g. Sarah Johnson" maxlength="40" autocomplete="off">
     </div>
     <div class="modal-field">
       <label>Phone Last 4</label>
@@ -681,19 +681,37 @@
 
 <script>
 const HWS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbylPGtxYpbKBaqqmkR21tmJ4vd13oB2FRriFqMQBRQ3KUGEImORdGZbcG6rUWusw19qYQ/exec';
+const SESSION_KEY   = 'hws_client_session';
 
-// ── Session (in-memory: clears when tab closes) ───────────────────────────
+// ── Session (sessionStorage: survives back-nav, clears when tab closes) ───
 let _session  = null;
 let _pendingUrl = null;
 
+function loadSession() {
+  try {
+    const saved = sessionStorage.getItem(SESSION_KEY);
+    if (saved) {
+      const data = JSON.parse(saved);
+      _session = data;
+      _showBadge(data.name);
+    }
+  } catch(e) {}
+}
+
 function setSession(name, phone4) {
   _session = { name, phone4 };
+  sessionStorage.setItem(SESSION_KEY, JSON.stringify({ name, phone4 }));
+  _showBadge(name);
+}
+
+function _showBadge(name) {
   document.getElementById('session-badge').style.display = 'flex';
   document.getElementById('session-badge-name').textContent = name;
 }
 
 function switchClient() {
   _session = null;
+  sessionStorage.removeItem(SESSION_KEY);
   document.getElementById('session-badge').style.display = 'none';
   document.getElementById('session-badge-name').textContent = '';
 }
@@ -799,6 +817,7 @@ function filterTools() {
 
 // ── Init ───────────────────────────────────────────────────────────────────
 // Script is at bottom of body — DOM is already parsed. Call directly.
+loadSession();      // restore session badge if user navigated back
 interceptBuyerCards();
 document.getElementById('modal-submit').addEventListener('click', submitSession);
 document.getElementById('session-modal').addEventListener('click', function(e) {
