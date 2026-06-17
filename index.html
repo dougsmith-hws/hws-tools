@@ -235,6 +235,7 @@
     </div>
   </div>
 </div>
+</div>
 
 <!-- AUDIENCE TABS -->
 <div class="tabs-bar">
@@ -742,28 +743,25 @@ function submitSession() {
   hideModal();
   if (_pendingUrl) {
     logRun(name, phone4, _pendingUrl);
-    window.location.href = _pendingUrl + '?client=' + encodeURIComponent(name);
+    const _dest = _pendingUrl + '?client=' + encodeURIComponent(name);
     _pendingUrl = null;
+    setTimeout(() => { window.location.href = _dest; }, 300);
   }
 }
 
 // ── Logging ───────────────────────────────────────────────────────────────
-// Uses sendBeacon so the request survives page navigation.
-// fetch() would be aborted by window.location.href firing immediately after.
+// Apps Script does a 302 redirect on POST — sendBeacon doesn't follow redirects
+// so requests silently disappear. Use fetch instead, and delay navigation by
+// 300ms so the POST completes before the page unloads.
 function logRun(name, phone4, url) {
   const slug    = url.replace(/\/+$/, '').split('/').pop();
   const tool    = slug.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
   const payload = JSON.stringify({ name, phone4, tool, url, ts: new Date().toISOString(), outputs: {} });
-  if (navigator.sendBeacon) {
-    navigator.sendBeacon(HWS_SCRIPT_URL, new Blob([payload], { type: 'text/plain' }));
-  } else {
-    fetch(HWS_SCRIPT_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/plain' },
-      keepalive: true,
-      body: payload
-    }).catch(() => {});
-  }
+  fetch(HWS_SCRIPT_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain' },
+    body: payload
+  }).catch(() => {});
 }
 
 // ── Buyer card intercept ───────────────────────────────────────────────────
@@ -775,7 +773,7 @@ function interceptBuyerCards() {
       if (!url) return;
       if (_session) {
         logRun(_session.name, _session.phone4, url);
-        window.location.href = url + '?client=' + encodeURIComponent(_session.name);
+        setTimeout(() => { window.location.href = url + '?client=' + encodeURIComponent(_session.name); }, 300);
       } else {
         showModal(url);
       }
