@@ -234,9 +234,7 @@
       <button class="session-switch-btn" onclick="switchClient()">Switch</button>
     </div>
   </div>
-  </div>
 </div>
-<!-- /header -->
 
 <!-- AUDIENCE TABS -->
 <div class="tabs-bar">
@@ -741,40 +739,38 @@ function submitSession() {
   }
   document.getElementById('modal-err').style.display = 'none';
   setSession(name, phone4);
+  hideModal();
   if (_pendingUrl) {
-    // Keep the modal overlay up as a full-screen cover through navigation so the
-    // tool page never flashes in behind it. The overlay is replaced when the
-    // destination page loads.
-    const btn = document.getElementById('modal-submit');
-    btn.textContent = 'Starting…';
-    btn.disabled = true;
-    const dest = _pendingUrl + '?client=' + encodeURIComponent(name);
     logRun(name, phone4, _pendingUrl);
+    window.location.href = _pendingUrl + '?client=' + encodeURIComponent(name);
     _pendingUrl = null;
-    window.location.href = dest;
-  } else {
-    hideModal();
   }
 }
 
-// ── Logging (fire-and-forget) ─────────────────────────────────────────────
+// ── Logging ───────────────────────────────────────────────────────────────
+// Uses sendBeacon so the request survives page navigation.
+// fetch() would be aborted by window.location.href firing immediately after.
 function logRun(name, phone4, url) {
-  const slug = url.replace(/\/+$/, '').split('/').pop();
-  const tool = slug.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
-  fetch(HWS_SCRIPT_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'text/plain' },
-    body: JSON.stringify({ name, phone4, tool, url, ts: new Date().toISOString(), outputs: {} })
-  }).catch(() => {});
+  const slug    = url.replace(/\/+$/, '').split('/').pop();
+  const tool    = slug.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+  const payload = JSON.stringify({ name, phone4, tool, url, ts: new Date().toISOString(), outputs: {} });
+  if (navigator.sendBeacon) {
+    navigator.sendBeacon(HWS_SCRIPT_URL, new Blob([payload], { type: 'text/plain' }));
+  } else {
+    fetch(HWS_SCRIPT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      keepalive: true,
+      body: payload
+    }).catch(() => {});
+  }
 }
 
 // ── Buyer card intercept ───────────────────────────────────────────────────
 function interceptBuyerCards() {
   document.querySelectorAll('#tab-buyer .card').forEach(card => {
     card.addEventListener('click', function(e) {
-      // Fully block the anchor's default navigation before anything else can fire.
       e.preventDefault();
-      e.stopImmediatePropagation();
       const url = this.getAttribute('href');
       if (!url) return;
       if (_session) {
@@ -783,7 +779,7 @@ function interceptBuyerCards() {
       } else {
         showModal(url);
       }
-    }, true);
+    });
   });
 }
 
