@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FL Property Tax Estimator — HWS</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: #f0f4f9;
+    color: #1a2332;
+    min-height: 100vh;
+  }
+
+  /* ── HWS Dark Nav ── */
+  .hws-header {
+    background: #1a2332; color: #fff; padding: 0 20px; height: 52px;
+    display: flex; align-items: center; gap: 12px;
+    position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 8px rgba(0,0,0,.3);
+  }
+  .hws-logo { font-size: 15px; font-weight: 700; color: #fff; white-space: nowrap; }
+  .hws-logo span { color: #8EC73F; }
+  .tool-badge {
+    background: rgba(36,145,235,.25); border: 1px solid rgba(36,145,235,.4);
+    color: #7ec8fa; font-size: 11px; font-weight: 600;
+    padding: 2px 8px; border-radius: 4px; letter-spacing: .4px; text-transform: uppercase;
+  }
+  .header-nav { margin-left: auto; display: flex; gap: 2px; align-items: center; }
+  .header-nav > a {
+    color: rgba(255,255,255,.6); text-decoration: none; font-size: 12px;
+    padding: 5px 10px; border-radius: 5px; transition: background .15s, color .15s; white-space: nowrap;
+  }
+  .header-nav > a:hover { background: rgba(255,255,255,.1); color: #fff; }
+  .header-nav > a.active { color: #fff; background: rgba(255,255,255,.12); }
+  .nav-dropdown { position: relative; }
+  .nav-dd-btn {
+    background: none; border: none; cursor: pointer; font-family: inherit;
+    color: rgba(255,255,255,.6); font-size: 12px;
+    padding: 5px 10px; border-radius: 5px; transition: background .15s, color .15s;
+    display: flex; align-items: center; gap: 4px; white-space: nowrap;
+  }
+  .nav-dd-btn:hover, .nav-dropdown.open .nav-dd-btn { background: rgba(255,255,255,.1); color: #fff; }
+  .nav-dd-caret { font-size: 8px; opacity: .6; transition: transform .15s; }
+  .nav-dropdown.open .nav-dd-caret { transform: rotate(180deg); }
+  .nav-dd-menu {
+    display: none; position: absolute; top: calc(100% + 6px); right: 0;
+    background: #1e2d42; border: 1px solid rgba(255,255,255,.12); border-radius: 10px;
+    min-width: 210px; padding: 6px; box-shadow: 0 10px 30px rgba(0,0,0,.5); z-index: 999;
+  }
+  .nav-dropdown.open .nav-dd-menu { display: block; }
+  .nav-dd-label {
+    font-size: 9px; font-weight: 800; color: rgba(255,255,255,.3); letter-spacing: 1px;
+    text-transform: uppercase; padding: 6px 10px 4px;
+  }
+  .nav-dd-menu a {
+    display: block; padding: 7px 12px; color: rgba(255,255,255,.7);
+    text-decoration: none; font-size: 12px; border-radius: 6px;
+    transition: background .1s, color .1s; white-space: nowrap;
+  }
+  .nav-dd-menu a:hover { background: rgba(255,255,255,.1); color: #fff; }
+  .nav-dd-menu a.active { background: rgba(36,145,235,.2); color: #7ec8fa; }
+  .nav-dd-divider { height: 1px; background: rgba(255,255,255,.07); margin: 4px 0; }
+
+  /* ── Client bar ── */
+  .client-bar {
+    background: #fff; border-bottom: 1.5px solid #e2e8f0;
+    padding: 8px 20px; display: flex; align-items: center; gap: 12px;
+    position: sticky; top: 52px; z-index: 90;
+    box-shadow: 0 2px 6px rgba(0,0,0,.06);
+  }
+  .client-bar label { font-size: 11px; font-weight: 700; color: #64748b; white-space: nowrap; }
+  .client-search-wrap { position: relative; flex: 1; max-width: 280px; }
+  .client-search-wrap input {
+    width: 100%; padding: 6px 10px; border: 1.5px solid #e2e8f0;
+    border-radius: 6px; font-size: 13px; color: #1e293b; outline: none;
+    transition: border-color .15s;
+  }
+  .client-search-wrap input:focus { border-color: #2491EB; }
+  .client-sugg {
+    display: none; position: absolute; top: calc(100% + 4px); left: 0; right: 0;
+    background: #fff; border: 1.5px solid #e2e8f0; border-radius: 8px;
+    box-shadow: 0 8px 24px rgba(0,0,0,.12); z-index: 200; overflow: hidden;
+  }
+  .client-sugg.open { display: block; }
+  .csugg-item {
+    padding: 8px 12px; font-size: 12px; color: #1e293b; cursor: pointer;
+    transition: background .1s;
+  }
+  .csugg-item:hover, .csugg-item.hi { background: #f0f7ff; }
+  .cb-div { width: 1px; height: 28px; background: #e2e8f0; flex-shrink: 0; }
+  .prop-addr-wrap { flex: 1; max-width: 340px; }
+  .prop-addr-wrap input {
+    width: 100%; padding: 6px 10px; border: 1.5px solid #e2e8f0;
+    border-radius: 6px; font-size: 12px; color: #1e293b; outline: none;
+    transition: border-color .15s;
+  }
+  .prop-addr-wrap input:focus { border-color: #2491EB; }
+  .client-name-tag {
+    margin-left: auto; font-size: 11px; font-weight: 700; color: #2491EB;
+    background: #eff6ff; border: 1.5px solid #bfdbfe; border-radius: 6px;
+    padding: 4px 10px; white-space: nowrap; display: none;
+  }
+
+  /* ── Main layout ── */
+  .main { max-width: 1060px; margin: 0 auto; padding: 20px 16px 60px; }
+
+  .page-title { font-size: 20px; font-weight: 800; color: #1a2332; margin-bottom: 4px; }
+  .page-sub { font-size: 13px; color: #64748b; margin-bottom: 20px; }
+
+  .two-col { display: grid; grid-template-columns: 420px 1fr; gap: 20px; align-items: start; }
+  @media (max-width: 900px) { .two-col { grid-template-columns: 1fr; } }
+
+  /* ── Input panel ── */
+  .input-panel { display: flex; flex-direction: column; gap: 14px; }
+
+  .icard {
+    background: #fff; border-radius: 14px; border: 1.5px solid #e2e8f0;
+    padding: 18px 20px;
+  }
+  .icard-title {
+    font-size: 10px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase;
+    color: #94a3b8; margin-bottom: 14px;
+  }
+
+  .field { margin-bottom: 12px; }
+  .field:last-child { margin-bottom: 0; }
+  .field label {
+    display: block; font-size: 11px; font-weight: 700; color: #475569;
+    margin-bottom: 5px;
+  }
+  .field label .hint { font-weight: 400; color: #94a3b8; }
+  .field input[type="text"], .field input[type="number"] {
+    width: 100%; padding: 8px 10px; border: 1.5px solid #e2e8f0;
+    border-radius: 8px; font-size: 14px; font-weight: 600; color: #1e293b; outline: none;
+    transition: border-color .15s; background: #f8fafc;
+  }
+  .field input:focus { border-color: #2491EB; background: #fff; }
+  .field-note {
+    font-size: 11px; color: #94a3b8; margin-top: 4px; line-height: 1.4;
+  }
+  .field-note.warn { color: #d97706; }
+
+  /* Rate toggle */
+  .rate-toggle {
+    display: flex; gap: 0; border: 1.5px solid #e2e8f0; border-radius: 8px;
+    overflow: hidden; margin-bottom: 10px;
+  }
+  .rate-toggle button {
+    flex: 1; padding: 7px 12px; font-size: 12px; font-weight: 700;
+    border: none; cursor: pointer; transition: all .15s;
+    background: #f8fafc; color: #64748b;
+  }
+  .rate-toggle button.active { background: #2491EB; color: #fff; }
+  .rate-toggle button:first-child { border-right: 1px solid #e2e8f0; }
+
+  /* Checkbox section */
+  .check-row {
+    display: flex; align-items: flex-start; gap: 8px; margin-bottom: 10px;
+  }
+  .check-row:last-child { margin-bottom: 0; }
+  .check-row input[type="checkbox"] {
+    width: 15px; height: 15px; accent-color: #2491EB;
+    margin-top: 2px; flex-shrink: 0; cursor: pointer;
+  }
+  .check-label { font-size: 12px; font-weight: 600; color: #1e293b; cursor: pointer; }
+
+  .homestead-info-box {
+    background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px;
+    padding: 10px 12px; margin-bottom: 12px; font-size: 12px; color: #1e40af;
+    line-height: 1.5;
+  }
+  .homestead-info-box strong { font-weight: 700; }
+
+  .portability-fields { padding-top: 2px; }
+  .portability-fields .field { margin-bottom: 8px; }
+
+  /* ── Results panel ── */
+  .results-panel { display: flex; flex-direction: column; gap: 14px; }
+
+  .results-title {
+    font-size: 10px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase;
+    color: #94a3b8; margin-bottom: 2px; padding-left: 2px;
+  }
+
+  .yr-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+  .yr-card {
+    border-radius: 12px; padding: 14px 16px;
+  }
+  .yr-card.y1 { background: #fffbeb; border: 1.5px solid #fde68a; }
+  .yr-card.y2 { background: #f0fdf4; border: 1.5px solid #bbf7d0; }
+  .yr-label {
+    font-size: 9px; font-weight: 800; letter-spacing: .8px; text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  .yr-card.y1 .yr-label { color: #b45309; }
+  .yr-card.y2 .yr-label { color: #15803d; }
+  .yr-desc { font-size: 10px; color: #64748b; margin-bottom: 10px; line-height: 1.4; }
+  .yr-amount { font-size: 26px; font-weight: 800; line-height: 1; margin-bottom: 4px; }
+  .yr-card.y1 .yr-amount { color: #b45309; }
+  .yr-card.y2 .yr-amount { color: #15803d; }
+  .yr-mo { font-size: 12px; color: #64748b; }
+
+  .savings-card {
+    background: #f0fdf4; border: 1.5px solid #86efac; border-radius: 12px;
+    padding: 12px 16px; display: flex; align-items: center; gap: 10px;
+  }
+  .savings-icon { font-size: 18px; flex-shrink: 0; }
+  .savings-label { font-size: 12px; font-weight: 700; color: #15803d; }
+  .savings-sub { font-size: 11px; color: #64748b; }
+  .savings-amount { margin-left: auto; font-size: 20px; font-weight: 800; color: #15803d; white-space: nowrap; }
+
+  /* Breakdown table */
+  .breakdown-card {
+    background: #fff; border-radius: 14px; border: 1.5px solid #e2e8f0;
+    overflow: hidden;
+  }
+  .breakdown-header {
+    padding: 12px 16px; background: #f8fafc; border-bottom: 1.5px solid #e2e8f0;
+    font-size: 11px; font-weight: 800; letter-spacing: .6px; text-transform: uppercase;
+    color: #475569;
+  }
+  .breakdown-table { width: 100%; border-collapse: collapse; }
+  .breakdown-table tr { border-bottom: 1px solid #f1f5f9; }
+  .breakdown-table tr:last-child { border-bottom: none; }
+  .breakdown-table td {
+    padding: 7px 16px; font-size: 12px; color: #475569;
+  }
+  .breakdown-table td:last-child { text-align: right; font-weight: 600; color: #1e293b; }
+  .breakdown-table tr.section-head td {
+    font-size: 9px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase;
+    color: #94a3b8; padding-top: 10px; padding-bottom: 4px; background: #fafbfc;
+  }
+  .breakdown-table tr.section-head td:last-child { color: #94a3b8; font-weight: 800; text-align: right; }
+  .breakdown-table tr.total-row td {
+    font-size: 13px; font-weight: 800; color: #1a2332; padding-top: 10px; padding-bottom: 10px;
+    border-top: 2px solid #e2e8f0;
+  }
+  .breakdown-table tr.total-row td:last-child { color: #2491EB; }
+  .breakdown-table tr.escrow-row td { color: #64748b; font-size: 11px; }
+  .breakdown-table tr.escrow-row td:last-child { color: #64748b; font-weight: 700; }
+  .reduction { color: #dc2626 !important; }
+
+  /* Empty state */
+  .empty-state {
+    background: #fff; border: 1.5px solid #e2e8f0; border-radius: 14px;
+    padding: 40px 20px; text-align: center; color: #94a3b8;
+  }
+  .empty-icon { font-size: 2rem; margin-bottom: 10px; }
+  .empty-text { font-size: 14px; font-weight: 600; }
+
+  /* Calc button */
+  .calc-btn {
+    width: 100%; padding: 12px; background: #2491EB; color: #fff;
+    border: none; border-radius: 10px; font-size: 14px; font-weight: 800;
+    cursor: pointer; transition: background .15s; margin-top: 4px;
+  }
+  .calc-btn:hover { background: #1a7fd4; }
+
+  /* Year-1 note */
+  .y1-note { font-size: 11px; color: #64748b; text-align: center; padding: 2px 0; }
+</style>
+</head>
+<body>
+
+<header class="hws-header">
+  <div class="hws-logo">HomeWealth<span>.</span></div>
+  <div class="tool-badge">Property Tax</div>
+  <nav class="header-nav">
+    <a href="/hub.html" id="nav-hub">Hub</a>
+    <a href="/pipeline.html" id="nav-pipeline">Pipeline</a>
+    <div class="nav-dropdown" id="dd-discovery">
+      <button class="nav-dd-btn" onclick="toggleDD('dd-discovery')">Discovery <span class="nav-dd-caret">▼</span></button>
+      <div class="nav-dd-menu">
+        <div class="nav-dd-label">Lead Stage</div>
+        <a href="/comfort-calc.html" id="nav-comfort-calc">Comfort Calc</a>
+        <a href="/credit-intake.html" id="nav-credit-intake">Credit Intake</a>
+      </div>
+    </div>
+    <div class="nav-dropdown" id="dd-ops">
+      <button class="nav-dd-btn" onclick="toggleDD('dd-ops')">UW &amp; Ops <span class="nav-dd-caret">▼</span></button>
+      <div class="nav-dd-menu">
+        <div class="nav-dd-label">Qualification</div>
+        <a href="/pre-approval.html" id="nav-pre-approval">Pre-Approval</a>
+        <a href="/income-calc.html" id="nav-income-calc">Income Calculator</a>
+        <div class="nav-dd-divider"></div>
+        <div class="nav-dd-label">Processing</div>
+        <a href="/arive-entry.html" id="nav-arive-entry">Arive Entry</a>
+        <a href="/" id="nav-uw-prep">UW Prep Scrubber</a>
+      </div>
+    </div>
+    <div class="nav-dropdown" id="dd-strategy">
+      <button class="nav-dd-btn" onclick="toggleDD('dd-strategy')">Client Strategy <span class="nav-dd-caret">▼</span></button>
+      <div class="nav-dd-menu">
+        <div class="nav-dd-label">Buyer Tools</div>
+        <a href="/net-worth-dp.html" id="nav-net-worth-dp">Net Worth vs Down Payment</a>
+        <a href="/seller-buydown.html" id="nav-seller-buydown">Seller Buydown Helper</a>
+        <div class="nav-dd-divider"></div>
+        <div class="nav-dd-label">Property</div>
+        <a href="/property-tax.html" id="nav-property-tax" class="active">Property Tax Estimator</a>
+        <a href="/insurance-est.html" id="nav-insurance-est">Insurance Estimator</a>
+      </div>
+    </div>
+  </nav>
+</header>
+
+<!-- Client bar -->
+<div class="client-bar">
+  <label>CLIENT</label>
+  <div class="client-search-wrap">
+    <input id="client-input" type="text" placeholder="Search or create client…"
+           autocomplete="off"
+           oninput="clientSearch()"
+           onblur="setTimeout(()=>{ document.getElementById('client-sugg').classList.remove('open'); }, 180)">
+    <div class="client-sugg" id="client-sugg"></div>
+  </div>
+  <div class="cb-div"></div>
+  <label>PROPERTY</label>
+  <div class="prop-addr-wrap">
+    <input id="prop-address" type="text" placeholder="Address (optional)">
+  </div>
+  <div class="client-name-tag" id="client-tag"></div>
+</div>
+
+<div class="main">
+
+  <div class="page-title">Florida Property Tax Estimator</div>
+  <div class="page-sub">Estimates year-1 taxes (no homestead) and year-2+ taxes (after homestead filing). Used when running numbers on a specific property.</div>
+
+  <div class="two-col">
+
+    <!-- ── LEFT: Inputs ── -->
+    <div class="input-panel">
+
+      <div class="icard">
+        <div class="icard-title">Property Details</div>
+
+        <div class="field">
+          <label>Purchase Price <span class="hint">(market value)</span></label>
+          <input type="text" id="purchase-price" placeholder="$0" oninput="fmtDollar(this)" onchange="calculate()">
+        </div>
+
+        <div class="field">
+          <label>Assessed Value <span class="hint">(leave blank = purchase price)</span></label>
+          <input type="text" id="assessed-value" placeholder="Same as purchase price" oninput="fmtDollar(this)" onchange="calculate()">
+        </div>
+
+        <div class="field">
+          <label>Enter rate as:</label>
+          <div class="rate-toggle">
+            <button id="btn-mills" class="active" onclick="setRateMode('mills')">Mills (per $1,000)</button>
+            <button id="btn-annual" onclick="setRateMode('annual')">Annual $ Amount</button>
+          </div>
+          <input type="text" id="millage-rate" placeholder="e.g. 14.2785" oninput="fmtDecimal(this)" onchange="calculate()" style="margin-bottom:4px;">
+          <div class="field-note warn" id="millage-note">Enter exact millage rate from the county property appraiser website. Do not estimate.</div>
+          <div class="field-note" id="annual-note" style="display:none;">Enter total annual property tax amount from a recent tax bill or county records.</div>
+        </div>
+
+        <div class="field">
+          <label>Non-Ad Valorem Assessments <span class="hint">(annual — fire, solid waste, stormwater)</span></label>
+          <input type="text" id="non-ad-val" placeholder="$350" oninput="fmtDollar(this)" onchange="calculate()">
+          <div class="field-note">Flat annual amounts — varies by parcel. Auto-fills $350 as a rough Tampa estimate; verify with county records.</div>
+        </div>
+
+      </div>
+
+      <div class="icard">
+        <div class="icard-title">Homestead &amp; Portability</div>
+
+        <div class="homestead-info-box">
+          <strong>How FL homestead works:</strong> Year-1 taxes are based on the new assessed value with no buyer exemption. After filing homestead by <strong>March 1 of the following year</strong>, year-2 taxes benefit from the $50K exemption and SOH assessment cap.
+        </div>
+
+        <div class="check-row">
+          <input type="checkbox" id="chk-homestead" checked onchange="toggleHomestead()">
+          <label class="check-label" for="chk-homestead">Buyer will file homestead exemption</label>
+        </div>
+
+        <div id="portability-section">
+          <div class="check-row" style="margin-top:8px;">
+            <input type="checkbox" id="chk-portability" checked onchange="togglePortability()">
+            <label class="check-label" for="chk-portability">Applying SOH portability from prior FL homestead</label>
+          </div>
+
+          <div class="portability-fields" id="portability-fields">
+            <div class="field" style="margin-top:10px;">
+              <label>Prior Home — Market Value <span class="hint">at time of sale/move</span></label>
+              <input type="text" id="prior-market" placeholder="$0" oninput="fmtDollar(this)" onchange="calculate()">
+            </div>
+            <div class="field">
+              <label>Prior Home — Assessed Value <span class="hint">most recent assessed</span></label>
+              <input type="text" id="prior-assessed" placeholder="$0" oninput="fmtDollar(this)" onchange="calculate()">
+              <div class="field-note">Find on your most recent TRIM notice or county appraiser website.</div>
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-top:14px;">
+          <button class="calc-btn" onclick="calculate()">Calculate</button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ── RIGHT: Results ── -->
+    <div class="results-panel" id="results-panel">
+      <div class="empty-state" id="empty-state">
+        <div class="empty-icon">🏡</div>
+        <div class="empty-text">Enter property details to estimate taxes</div>
+      </div>
+    </div>
+
+  </div><!-- end .two-col -->
+
+</div><!-- end .main -->
+
+<script src="/hws-session.js"></script>
+<script src="/client-tag.js"></script>
+<script>
+/* ─── Formatting helpers ─── */
+function parseDollar(str) {
+  if (!str) return 0;
+  return parseFloat(str.replace(/[$,]/g, '')) || 0;
+}
+function parseNum(str) {
+  if (!str) return 0;
+  return parseFloat(str.replace(/,/g, '')) || 0;
+}
+function fmtDollar(el) {
+  const raw = el.value.replace(/[$,]/g, '');
+  const n = parseFloat(raw);
+  if (!isNaN(n) && raw !== '') {
+    el.value = '$' + n.toLocaleString('en-US', { maximumFractionDigits: 0 });
+  }
+}
+function fmtDecimal(el) {
+  // Allow numbers and decimal only
+  el.value = el.value.replace(/[^0-9.]/g, '');
+}
+function fmtMoney(n) {
+  return '$' + Math.round(n).toLocaleString('en-US');
+}
+function fmtMoneyDec(n) {
+  return '$' + n.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+}
+
+/* ─── Rate mode ─── */
+let rateMode = 'mills'; // 'mills' | 'annual'
+function setRateMode(mode) {
+  rateMode = mode;
+  document.getElementById('btn-mills').classList.toggle('active', mode === 'mills');
+  document.getElementById('btn-annual').classList.toggle('active', mode === 'annual');
+  const millInput = document.getElementById('millage-rate');
+  const millNote = document.getElementById('millage-note');
+  const annNote = document.getElementById('annual-note');
+  if (mode === 'mills') {
+    millInput.placeholder = 'e.g. 14.2785';
+    millNote.style.display = '';
+    annNote.style.display = 'none';
+  } else {
+    millInput.placeholder = 'e.g. $8,500';
+    millNote.style.display = 'none';
+    annNote.style.display = '';
+  }
+  calculate();
+}
+
+/* ─── Homestead / portability toggles ─── */
+function toggleHomestead() {
+  const on = document.getElementById('chk-homestead').checked;
+  document.getElementById('portability-section').style.display = on ? '' : 'none';
+  calculate();
+}
+function togglePortability() {
+  const on = document.getElementById('chk-portability').checked;
+  document.getElementById('portability-fields').style.display = on ? '' : 'none';
+  calculate();
+}
+
+/* ─── Client search (uses HWS session) ─── */
+function clientSearch() {
+  const q = document.getElementById('client-input').value.trim().toLowerCase();
+  const sugg = document.getElementById('client-sugg');
+  if (!q) { sugg.classList.remove('open'); return; }
+  // Try to pull from session store if available
+  let clients = [];
+  try { clients = JSON.parse(localStorage.getItem('hws_clients') || '[]'); } catch(e) {}
+  const matches = clients.filter(c => (c.name||'').toLowerCase().includes(q)).slice(0, 6);
+  if (!matches.length) { sugg.classList.remove('open'); return; }
+  sugg.innerHTML = matches.map((c,i) =>
+    `<div class="csugg-item" onclick="selectClient('${c.name}')">${c.name}</div>`
+  ).join('');
+  sugg.classList.add('open');
+}
+function selectClient(name) {
+  document.getElementById('client-input').value = name;
+  document.getElementById('client-sugg').classList.remove('open');
+  const tag = document.getElementById('client-tag');
+  tag.textContent = name;
+  tag.style.display = '';
+}
+
+/* ─── Main calculation ─── */
+function calculate() {
+  const purchasePrice = parseDollar(document.getElementById('purchase-price').value);
+  if (!purchasePrice) { showEmpty(); return; }
+
+  const assessedRaw = parseDollar(document.getElementById('assessed-value').value);
+  const assessedBase = assessedRaw > 0 ? assessedRaw : purchasePrice;
+
+  const rateRaw = parseNum(document.getElementById('millage-rate').value);
+  const nonAdVal = parseDollar(document.getElementById('non-ad-val').value) || 350;
+  const hasHomestead = document.getElementById('chk-homestead').checked;
+  const hasPortability = hasHomestead && document.getElementById('chk-portability').checked;
+
+  // ── Year 1 (no homestead) ──
+  let y1AdVal;
+  if (rateMode === 'mills') {
+    y1AdVal = rateRaw > 0 ? assessedBase * (rateRaw / 1000) : 0;
+  } else {
+    // Annual dollar amount entered directly — that IS the ad valorem for year 1
+    y1AdVal = rateRaw;
+  }
+  const y1Total = y1AdVal + nonAdVal;
+
+  // ── Year 2+ (with homestead) ──
+  let y2AdVal = 0;
+  let portabilityBenefit = 0;
+  let assessedAfterPort = assessedBase;
+  let schoolTaxable = 0;
+  let nonSchoolTaxable = 0;
+  let y2Total = 0;
+  let effectiveMills = rateRaw;
+
+  if (hasHomestead) {
+    if (hasPortability) {
+      const priorMarket = parseDollar(document.getElementById('prior-market').value);
+      const priorAssessed = parseDollar(document.getElementById('prior-assessed').value);
+      if (priorMarket > 0 && priorAssessed >= 0 && priorMarket > priorAssessed) {
+        portabilityBenefit = Math.min(priorMarket - priorAssessed, 500000);
+        portabilityBenefit = Math.min(portabilityBenefit, assessedBase); // can't exceed new assessed
+      }
+    }
+    assessedAfterPort = Math.max(0, assessedBase - portabilityBenefit);
+    schoolTaxable = Math.max(0, assessedAfterPort - 25000);
+    nonSchoolTaxable = Math.max(0, assessedAfterPort - 50000);
+
+    if (rateMode === 'mills' && rateRaw > 0) {
+      // FL splits $50K exemption: first $25K applies to school + non-school; second $25K applies to non-school only
+      // We approximate using the average of both taxable values since we have a single blended millage rate
+      const avgTaxable = (schoolTaxable + nonSchoolTaxable) / 2;
+      y2AdVal = avgTaxable * (rateRaw / 1000);
+    } else if (rateMode === 'annual' && rateRaw > 0) {
+      // Scale from Y1 using ratio of taxable values
+      const avgTaxable = (schoolTaxable + nonSchoolTaxable) / 2;
+      y2AdVal = assessedBase > 0 ? (rateRaw * avgTaxable / assessedBase) : 0;
+    }
+    y2Total = y2AdVal + nonAdVal;
+  }
+
+  // ── Render results ──
+  const panel = document.getElementById('results-panel');
+  document.getElementById('empty-state') && (document.getElementById('empty-state').style.display = 'none');
+
+  const savingsAnnual = hasHomestead ? Math.max(0, y1Total - y2Total) : 0;
+  const savingsMo = savingsAnnual / 12;
+
+  let html = `
+    <div class="results-title">Results</div>
+
+    <div class="yr-cards">
+      <div class="yr-card y1">
+        <div class="yr-label">Year 1 — No Homestead</div>
+        <div class="yr-desc">Taxes at full assessed value, no exemption</div>
+        <div class="yr-amount">${fmtMoneyDec(y1Total)}/yr</div>
+        <div class="yr-mo">${fmtMoneyDec(y1Total/12)}/mo</div>
+      </div>
+      ${hasHomestead ? `
+      <div class="yr-card y2">
+        <div class="yr-label">Year 2+ — With Homestead</div>
+        <div class="yr-desc">After homestead filed by March 1 following close</div>
+        <div class="yr-amount">${fmtMoneyDec(y2Total)}/yr</div>
+        <div class="yr-mo">${fmtMoneyDec(y2Total/12)}/mo</div>
+      </div>
+      ` : `
+      <div class="yr-card y2" style="background:#f8fafc;border-color:#e2e8f0;">
+        <div class="yr-label" style="color:#94a3b8;">Year 2+ — No Filing</div>
+        <div class="yr-desc">Homestead not selected — taxes remain at full rate</div>
+        <div class="yr-amount" style="color:#94a3b8;">${fmtMoneyDec(y1Total)}/yr</div>
+        <div class="yr-mo" style="color:#94a3b8;">${fmtMoneyDec(y1Total/12)}/mo</div>
+      </div>
+      `}
+    </div>`;
+
+  if (hasHomestead && savingsAnnual > 0) {
+    html += `
+    <div class="savings-card">
+      <div class="savings-icon">✅</div>
+      <div>
+        <div class="savings-label">Homestead Savings</div>
+        <div class="savings-sub">${fmtMoneyDec(savingsMo)}/mo savings once homestead is active</div>
+      </div>
+      <div class="savings-amount">${fmtMoneyDec(savingsAnnual)}/yr</div>
+    </div>`;
+  }
+
+  if (hasHomestead) {
+    html += `
+    <div class="breakdown-card">
+      <div class="breakdown-header">Year 2+ Breakdown (With Homestead)</div>
+      <table class="breakdown-table">
+        <tr class="section-head"><td colspan="2">Ad Valorem Taxes</td></tr>
+        <tr><td>Assessed value (market)</td><td>${fmtMoneyDec(assessedBase)}</td></tr>`;
+
+    if (portabilityBenefit > 0) {
+      html += `
+        <tr><td>SOH portability reduction</td><td class="reduction">−${fmtMoneyDec(portabilityBenefit)}</td></tr>
+        <tr><td>Assessed after portability</td><td>${fmtMoneyDec(assessedAfterPort)}</td></tr>`;
+    }
+
+    html += `
+        <tr><td>Homestead exemption (school)</td><td class="reduction">−${fmtMoneyDec(Math.min(25000, assessedAfterPort))}</td></tr>
+        <tr><td>Homestead exemption (non-school)</td><td class="reduction">−${fmtMoneyDec(Math.min(25000, Math.max(0, assessedAfterPort - 25000)))}</td></tr>
+        <tr><td>Taxable value (school portion)</td><td>${fmtMoneyDec(schoolTaxable)}</td></tr>
+        <tr><td>Taxable value (non-school portion)</td><td>${fmtMoneyDec(nonSchoolTaxable)}</td></tr>`;
+
+    if (rateMode === 'mills') {
+      html += `<tr><td>Millage rate</td><td>${rateRaw.toFixed(4)} mills</td></tr>`;
+    }
+
+    html += `
+        <tr><td>Ad valorem tax (Y2+)</td><td>${fmtMoneyDec(y2AdVal)}</td></tr>
+        <tr class="section-head"><td colspan="2">Non-Ad Valorem Assessments</td></tr>
+        <tr><td>Fire / solid waste / stormwater (est.)</td><td>${fmtMoneyDec(nonAdVal)}/yr</td></tr>
+        <tr class="total-row"><td>Total Annual Taxes (Y2+)</td><td>${fmtMoneyDec(y2Total)}</td></tr>
+        <tr class="escrow-row"><td>Monthly Escrow (÷ 12)</td><td>${fmtMoneyDec(y2Total/12)}</td></tr>
+      </table>
+    </div>
+
+    <div class="y1-note">Year-1 estimate: ${fmtMoneyDec(y1Total)}/yr (${fmtMoneyDec(y1Total/12)}/mo) — no homestead, full assessed value</div>
+    `;
+  } else {
+    html += `
+    <div class="breakdown-card">
+      <div class="breakdown-header">Year 1+ Breakdown (No Homestead)</div>
+      <table class="breakdown-table">
+        <tr class="section-head"><td colspan="2">Ad Valorem Taxes</td></tr>
+        <tr><td>Assessed value (market)</td><td>${fmtMoneyDec(assessedBase)}</td></tr>`;
+    if (rateMode === 'mills') {
+      html += `<tr><td>Millage rate</td><td>${rateRaw.toFixed(4)} mills</td></tr>`;
+    }
+    html += `
+        <tr><td>Ad valorem tax</td><td>${fmtMoneyDec(y1AdVal)}</td></tr>
+        <tr class="section-head"><td colspan="2">Non-Ad Valorem Assessments</td></tr>
+        <tr><td>Fire / solid waste / stormwater (est.)</td><td>${fmtMoneyDec(nonAdVal)}/yr</td></tr>
+        <tr class="total-row"><td>Total Annual Taxes</td><td>${fmtMoneyDec(y1Total)}</td></tr>
+        <tr class="escrow-row"><td>Monthly Escrow (÷ 12)</td><td>${fmtMoneyDec(y1Total/12)}</td></tr>
+      </table>
+    </div>`;
+  }
+
+  panel.innerHTML = html;
+}
+
+function showEmpty() {
+  const panel = document.getElementById('results-panel');
+  panel.innerHTML = `
+    <div class="empty-state" id="empty-state">
+      <div class="empty-icon">🏡</div>
+      <div class="empty-text">Enter property details to estimate taxes</div>
+    </div>`;
+}
+
+/* ─── Nav dropdown toggle ─── */
+function toggleDD(id) {
+  const el = document.getElementById(id);
+  const isOpen = el.classList.contains('open');
+  document.querySelectorAll('.nav-dropdown').forEach(d => d.classList.remove('open'));
+  if (!isOpen) el.classList.add('open');
+}
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('.nav-dropdown')) {
+    document.querySelectorAll('.nav-dropdown').forEach(d => d.classList.remove('open'));
+  }
+});
+
+/* ─── Init defaults ─── */
+document.addEventListener('DOMContentLoaded', function() {
+  document.getElementById('non-ad-val').value = '$350';
+  // Pull client from session if available
+  try {
+    const s = JSON.parse(sessionStorage.getItem('hws_session') || '{}');
+    if (s && s.name) {
+      document.getElementById('client-input').value = s.name;
+      const tag = document.getElementById('client-tag');
+      tag.textContent = s.name;
+      tag.style.display = '';
+    }
+  } catch(e) {}
+});
+</script>
+</body>
+</html>
