@@ -372,7 +372,7 @@ function calc() {
   const monthlyApp = app / 100 / 12;
   const beMonths = monthlyApp > 0
     ? Math.log(bid / ask) / Math.log(1 + monthlyApp)
-    : Infinity;
+    : null;
 
   // Extra cash at close (Option A vs. hypothetical at asking)
   const extraCash = aDown - askDown;
