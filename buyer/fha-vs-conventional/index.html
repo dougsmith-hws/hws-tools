@@ -1,0 +1,1045 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Conv vs. FHA vs. VA — HomeWealth Solutions</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root {
+  --blue:     #2491EB;
+  --green:    #8EC73F;
+  --dark:     #1c2b3a;
+  --mid:      #3a4f62;
+  --red:      #dc3545;
+  --amber:    #e8900a;
+  --purple:   #7c3aed;
+  --bg-green: #f0f9e4;
+  --bg-blue:  #eaf5fe;
+  --conv:     #2491EB;
+  --fha:      #8EC73F;
+  --va:       #7c3aed;
+  --conv-bg:  #eaf5fe;
+  --fha-bg:   #f0f9e4;
+  --va-bg:    #f3f0fd;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+  background: #f5f7fa; color: #222; font-size: 14px;
+}
+
+/* Header */
+.hdr {
+  background: var(--dark); color: white;
+  padding: 18px 28px 16px;
+  display: flex; align-items: flex-end; justify-content: space-between;
+}
+.hdr-brand { font-size: 12px; color: rgba(255,255,255,.5); letter-spacing: .4px; }
+.hdr-title { font-size: 21px; font-weight: 700; margin-top: 3px; }
+.hdr-sub   { font-size: 12px; color: rgba(255,255,255,.45); margin-top: 3px; }
+.hdr-right { text-align: right; font-size: 12px; color: rgba(255,255,255,.5); }
+.hdr-right strong { display: block; color: rgba(255,255,255,.85); font-size: 13px; }
+.print-btn {
+  background: transparent; border: 1.5px solid rgba(255,255,255,.4);
+  color: rgba(255,255,255,.85); padding: 6px 14px; border-radius: 6px;
+  font-size: 12px; cursor: pointer; margin-bottom: 6px; white-space: nowrap;
+}
+.print-btn:hover { background: rgba(255,255,255,.1); }
+
+/* Main */
+.main { max-width: 1140px; margin: 0 auto; padding: 22px 18px 60px; }
+
+/* Section title */
+.section-title {
+  font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
+  color: var(--mid); border-bottom: 2px solid #e0e4ea;
+  padding-bottom: 7px; margin-bottom: 16px; margin-top: 28px;
+}
+
+/* Cards */
+.card { background: white; border-radius: 10px; padding: 18px 20px; box-shadow: 0 1px 5px rgba(0,0,0,.07); }
+
+/* Global inputs */
+.global-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 14px;
+}
+.field { margin-bottom: 12px; }
+.field:last-child { margin-bottom: 0; }
+.field label { display: block; font-size: 11px; font-weight: 700; color: #555; margin-bottom: 4px; letter-spacing: .2px; }
+.field input, .field select {
+  width: 100%; border: 1.5px solid #dde2ea; border-radius: 7px;
+  padding: 8px 11px; font-size: 13px; font-family: inherit; color: #222; background: white;
+}
+.field input:focus, .field select:focus { outline: none; border-color: var(--blue); }
+.field .hint { font-size: 10px; color: #888; margin-top: 3px; }
+
+/* Loan columns */
+.loan-cols { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+.loan-col { background: white; border-radius: 10px; padding: 18px 18px 14px; box-shadow: 0 1px 5px rgba(0,0,0,.07); }
+.loan-col-header {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 16px; padding-bottom: 12px; border-bottom: 3px solid;
+}
+.loan-col.conv .loan-col-header { border-color: var(--conv); }
+.loan-col.fha  .loan-col-header { border-color: var(--fha); }
+.loan-col.va   .loan-col-header { border-color: var(--va); }
+.loan-badge {
+  font-size: 11px; font-weight: 800; letter-spacing: .5px; text-transform: uppercase;
+  padding: 3px 9px; border-radius: 4px; color: white;
+}
+.conv .loan-badge { background: var(--conv); }
+.fha  .loan-badge { background: var(--fha); }
+.va   .loan-badge { background: var(--va); }
+.loan-col-name { font-size: 15px; font-weight: 700; color: var(--dark); }
+.conv .loan-col-name { color: var(--conv); }
+.fha  .loan-col-name { color: var(--fha); }
+.va   .loan-col-name { color: var(--va); }
+
+.auto-tag {
+  font-size: 10px; background: #f0f0f0; border-radius: 4px;
+  padding: 2px 7px; color: #888; font-weight: 600;
+}
+.auto-val {
+  font-size: 13px; font-weight: 700; padding: 8px 11px;
+  border-radius: 7px; border: 1.5px solid #e8e8e8; background: #f8f8f8;
+  color: var(--mid); letter-spacing: .2px;
+}
+
+/* Toggle */
+.toggle-row { display: flex; align-items: center; gap: 10px; margin-top: 8px; }
+.toggle-label { font-size: 11px; font-weight: 700; color: #555; letter-spacing: .2px; }
+.toggle { position: relative; width: 38px; height: 22px; }
+.toggle input { opacity: 0; width: 0; height: 0; }
+.slider {
+  position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+  background-color: #ccc; transition: .3s; border-radius: 22px;
+}
+.slider:before {
+  position: absolute; content: ""; height: 16px; width: 16px; left: 3px; bottom: 3px;
+  background-color: white; transition: .3s; border-radius: 50%;
+}
+input:checked + .slider { background-color: var(--va); }
+input:checked + .slider:before { transform: translateX(16px); }
+
+/* MI info box */
+.mi-infobox {
+  background: #f8faf5; border: 1.5px solid #d0e8b0; border-radius: 7px;
+  padding: 10px 12px; margin-top: 8px; font-size: 11px; line-height: 1.6;
+}
+.mi-infobox strong { color: var(--dark); }
+.mi-infobox.fha-info { background: #f8faf5; border-color: #b5d97f; }
+.mi-infobox.va-info  { background: #f5f3fd; border-color: #c4b3f0; }
+.mi-infobox.conv-info { background: #eaf5fe; border-color: #a8d8f7; }
+
+/* Results table */
+.results-table {
+  width: 100%; border-collapse: collapse; font-size: 13px;
+}
+.results-table th, .results-table td {
+  padding: 9px 14px; text-align: right; border-bottom: 1px solid #eef0f4;
+}
+.results-table th { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: .5px; }
+.results-table td:first-child, .results-table th:first-child { text-align: left; font-weight: 600; color: #555; }
+.results-table tr:hover td { background: #fafbfc; }
+.results-table .row-total td { font-weight: 800; font-size: 14px; border-top: 2px solid #e0e4ea; border-bottom: 2px solid #e0e4ea; background: #f8f9fb; }
+.results-table .row-section td { background: #f4f6f9; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: var(--mid); padding: 7px 14px; }
+
+.conv-col { color: var(--conv); }
+.fha-col  { color: #5a8a1c; }
+.va-col   { color: var(--va); }
+.best     { font-weight: 800; }
+th.conv-col { border-bottom: 3px solid var(--conv); }
+th.fha-col  { border-bottom: 3px solid var(--fha); }
+th.va-col   { border-bottom: 3px solid var(--va); }
+
+/* Horizon tabs */
+.horizon-tabs { display: flex; gap: 6px; margin-bottom: 18px; flex-wrap: wrap; }
+.horizon-tab {
+  padding: 5px 13px; border-radius: 5px; border: 1.5px solid #dde2ea;
+  background: white; font-size: 12px; font-weight: 700; cursor: pointer; color: #666;
+}
+.horizon-tab.active { background: var(--dark); color: white; border-color: var(--dark); }
+
+/* Callout cards */
+.callout-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+.callout-card {
+  border-radius: 9px; padding: 14px 16px;
+  border-left: 4px solid;
+}
+.callout-card.conv-card { background: var(--conv-bg); border-color: var(--conv); }
+.callout-card.fha-card  { background: var(--fha-bg);  border-color: var(--fha); }
+.callout-card.va-card   { background: var(--va-bg);   border-color: var(--va); }
+.callout-label { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 6px; }
+.conv-card .callout-label { color: var(--conv); }
+.fha-card  .callout-label { color: #5a8a1c; }
+.va-card   .callout-label { color: var(--va); }
+.callout-key { font-size: 20px; font-weight: 800; color: var(--dark); margin-bottom: 4px; }
+.callout-note { font-size: 11px; color: #555; line-height: 1.5; }
+
+/* Chart */
+.chart-wrap { height: 300px; position: relative; }
+
+/* Winner badge */
+.winner-badge {
+  display: inline-block; font-size: 9px; font-weight: 800; text-transform: uppercase;
+  letter-spacing: .4px; padding: 2px 7px; border-radius: 4px; margin-left: 6px;
+  vertical-align: middle; color: white; background: var(--amber);
+}
+
+/* Disclaimer */
+.disclaimer {
+  font-size: 10px; color: #999; line-height: 1.6; margin-top: 32px;
+  padding: 14px 18px; background: white; border-radius: 8px;
+  border-top: 3px solid #eee;
+}
+
+/* Print */
+@media print {
+  body { background: white; font-size: 12px; }
+  .hdr { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+  .no-print { display: none; }
+}
+
+@media (max-width: 820px) {
+  .loan-cols { grid-template-columns: 1fr; }
+  .callout-grid { grid-template-columns: 1fr; }
+  .global-grid { grid-template-columns: 1fr 1fr; }
+}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div>
+    <div class="hdr-brand">HomeWealth Solutions LLC · NMLS #2609118</div>
+    <div class="hdr-title">Conv vs. FHA vs. VA</div>
+    <div class="hdr-sub">Loan type comparison — monthly payment, mortgage insurance &amp; total cost</div>
+  </div>
+  <div class="hdr-right">
+    <strong>Doug Smith, CMA®</strong>
+    813-733-7371 · homewealthsolutions.com
+    <br><br>
+    <button class="print-btn no-print" onclick="window.print()">⎙ Print / PDF</button>
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- GLOBAL INPUTS -->
+  <div class="section-title">Property &amp; Borrower</div>
+  <div class="card">
+    <div class="global-grid">
+      <div class="field">
+        <label>Purchase Price</label>
+        <input type="text" id="purchasePrice" value="400,000" oninput="recalc()">
+      </div>
+      <div class="field">
+        <label>Annual Property Taxes</label>
+        <input type="text" id="annualTax" value="5,000" oninput="recalc()">
+      </div>
+      <div class="field">
+        <label>Annual Homeowner's Insurance</label>
+        <input type="text" id="annualHOI" value="2,400" oninput="recalc()">
+      </div>
+      <div class="field">
+        <label>Loan Term</label>
+        <select id="term" onchange="recalc()">
+          <option value="30" selected>30 Years</option>
+          <option value="15">15 Years</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>FICO Score</label>
+        <select id="fico" onchange="recalc()">
+          <option value="780">780+ (Excellent)</option>
+          <option value="760">760–779 (Very Good)</option>
+          <option value="740" selected>740–759 (Good)</option>
+          <option value="720">720–739 (Good)</option>
+          <option value="700">700–719 (Fair)</option>
+          <option value="680">680–699 (Fair)</option>
+          <option value="660">660–679 (Below Average)</option>
+          <option value="640">640–659 (Below Average)</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Client Name <span style="font-weight:400;color:#bbb">(optional)</span></label>
+        <input type="text" id="clientName" placeholder="e.g. John &amp; Jane Buyer" oninput="recalc()">
+      </div>
+    </div>
+  </div>
+
+  <!-- LOAN COLUMNS -->
+  <div class="section-title">Loan Parameters</div>
+  <div class="loan-cols">
+
+    <!-- CONVENTIONAL -->
+    <div class="loan-col conv">
+      <div class="loan-col-header">
+        <span class="loan-badge">Conv</span>
+        <span class="loan-col-name">Conventional</span>
+      </div>
+      <div class="field">
+        <label>Interest Rate (%)</label>
+        <input type="number" id="convRate" value="6.875" step="0.125" oninput="recalc()">
+      </div>
+      <div class="field">
+        <label>Down Payment (%)</label>
+        <input type="number" id="convDown" value="5" step="0.5" min="3" max="40" oninput="recalc()">
+        <div class="hint">Min 3% conventional. 20%+ eliminates PMI.</div>
+      </div>
+      <div class="field">
+        <label>PMI Rate (% / yr) <span class="auto-tag">Auto-estimated</span></label>
+        <div id="convPMIAuto" class="auto-val">—</div>
+        <div class="hint">Based on FICO + LTV. Override below.</div>
+      </div>
+      <div class="field">
+        <label>Override PMI Rate (leave blank to use auto)</label>
+        <input type="number" id="convPMIOverride" placeholder="e.g. 0.65" step="0.01" oninput="recalc()">
+      </div>
+      <div id="convPMIInfo" class="mi-infobox conv-info">
+        Conventional PMI cancels automatically when LTV reaches <strong>78%</strong> (amortization) or on request at <strong>80% LTV</strong>.
+      </div>
+    </div>
+
+    <!-- FHA -->
+    <div class="loan-col fha">
+      <div class="loan-col-header">
+        <span class="loan-badge">FHA</span>
+        <span class="loan-col-name">FHA Loan</span>
+      </div>
+      <div class="field">
+        <label>Interest Rate (%)</label>
+        <input type="number" id="fhaRate" value="6.625" step="0.125" oninput="recalc()">
+      </div>
+      <div class="field">
+        <label>Down Payment (%)</label>
+        <input type="number" id="fhaDown" value="3.5" step="0.5" min="3.5" max="20" oninput="recalc()">
+        <div class="hint">Min 3.5% (FICO ≥ 580). ≥10% = 11-yr MIP.</div>
+      </div>
+      <div class="field">
+        <label>Upfront MIP (UFMIP) <span class="auto-tag">Auto</span></label>
+        <div id="fhaUFMIP" class="auto-val">—</div>
+      </div>
+      <div class="field">
+        <label>Annual MIP Rate (% / yr) <span class="auto-tag">Auto</span></label>
+        <div id="fhaAnnualMIP" class="auto-val">—</div>
+      </div>
+      <div id="fhaMIPInfo" class="mi-infobox fha-info">
+        FHA MIP: <strong id="fhaMIPDuration">—</strong><br>
+        UFMIP of 1.75% is financed into the loan balance.
+      </div>
+    </div>
+
+    <!-- VA -->
+    <div class="loan-col va">
+      <div class="loan-col-header">
+        <span class="loan-badge">VA</span>
+        <span class="loan-col-name">VA Loan</span>
+      </div>
+      <div class="field">
+        <label>Interest Rate (%)</label>
+        <input type="number" id="vaRate" value="6.500" step="0.125" oninput="recalc()">
+      </div>
+      <div class="field">
+        <label>Down Payment (%)</label>
+        <input type="number" id="vaDown" value="0" step="0.5" min="0" max="20" oninput="recalc()">
+        <div class="hint">VA allows 0% down. No down payment required.</div>
+      </div>
+      <div class="field">
+        <label>VA Funding Fee</label>
+        <select id="vaFeeType" onchange="recalc()">
+          <option value="2.15">2.15% — First use, 0% down</option>
+          <option value="1.50">1.50% — First use, 5–9.99% down</option>
+          <option value="1.25">1.25% — First use, 10%+ down</option>
+          <option value="3.30">3.30% — Subsequent use, 0% down</option>
+          <option value="1.50b">1.50% — Subsequent, 5–9.99% down</option>
+          <option value="1.25b">1.25% — Subsequent, 10%+ down</option>
+          <option value="0">0% — Exempt (disability / surviving spouse)</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Funding Fee Amount <span class="auto-tag">Auto</span></label>
+        <div id="vaFundingFee" class="auto-val">—</div>
+      </div>
+      <div class="mi-infobox va-info">
+        <strong>No monthly mortgage insurance.</strong> Funding fee is a one-time cost (typically financed). VA rates are often the lowest available.
+      </div>
+    </div>
+  </div>
+
+  <!-- RESULTS -->
+  <div class="section-title">Monthly Payment Breakdown</div>
+  <div class="card">
+    <table class="results-table">
+      <thead>
+        <tr>
+          <th>Item</th>
+          <th class="conv-col">Conventional</th>
+          <th class="fha-col">FHA</th>
+          <th class="va-col">VA</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="row-section"><td colspan="4">Loan Structure</td></tr>
+        <tr>
+          <td>Purchase Price</td>
+          <td id="r-conv-price" class="conv-col">—</td>
+          <td id="r-fha-price"  class="fha-col">—</td>
+          <td id="r-va-price"   class="va-col">—</td>
+        </tr>
+        <tr>
+          <td>Down Payment</td>
+          <td id="r-conv-down" class="conv-col">—</td>
+          <td id="r-fha-down"  class="fha-col">—</td>
+          <td id="r-va-down"   class="va-col">—</td>
+        </tr>
+        <tr>
+          <td>Base Loan Amount</td>
+          <td id="r-conv-base" class="conv-col">—</td>
+          <td id="r-fha-base"  class="fha-col">—</td>
+          <td id="r-va-base"   class="va-col">—</td>
+        </tr>
+        <tr>
+          <td>Upfront Fee (Financed)</td>
+          <td id="r-conv-uf" class="conv-col">None</td>
+          <td id="r-fha-uf"  class="fha-col">—</td>
+          <td id="r-va-uf"   class="va-col">—</td>
+        </tr>
+        <tr>
+          <td>Total Loan Amount</td>
+          <td id="r-conv-total-loan" class="conv-col">—</td>
+          <td id="r-fha-total-loan"  class="fha-col">—</td>
+          <td id="r-va-total-loan"   class="va-col">—</td>
+        </tr>
+        <tr>
+          <td>LTV at Closing</td>
+          <td id="r-conv-ltv" class="conv-col">—</td>
+          <td id="r-fha-ltv"  class="fha-col">—</td>
+          <td id="r-va-ltv"   class="va-col">—</td>
+        </tr>
+
+        <tr class="row-section"><td colspan="4">Monthly Payment</td></tr>
+        <tr>
+          <td>Principal &amp; Interest</td>
+          <td id="r-conv-pi" class="conv-col">—</td>
+          <td id="r-fha-pi"  class="fha-col">—</td>
+          <td id="r-va-pi"   class="va-col">—</td>
+        </tr>
+        <tr>
+          <td>Monthly MI / MIP</td>
+          <td id="r-conv-mi" class="conv-col">—</td>
+          <td id="r-fha-mi"  class="fha-col">—</td>
+          <td id="r-va-mi"   class="va-col">$0 — No MI</td>
+        </tr>
+        <tr>
+          <td>Monthly Taxes</td>
+          <td id="r-conv-tax" class="conv-col">—</td>
+          <td id="r-fha-tax"  class="fha-col">—</td>
+          <td id="r-va-tax"   class="va-col">—</td>
+        </tr>
+        <tr>
+          <td>Monthly HOI</td>
+          <td id="r-conv-hoi" class="conv-col">—</td>
+          <td id="r-fha-hoi"  class="fha-col">—</td>
+          <td id="r-va-hoi"   class="va-col">—</td>
+        </tr>
+        <tr class="row-total">
+          <td>Total Monthly PITI</td>
+          <td id="r-conv-piti" class="conv-col">—</td>
+          <td id="r-fha-piti"  class="fha-col">—</td>
+          <td id="r-va-piti"   class="va-col">—</td>
+        </tr>
+
+        <tr class="row-section"><td colspan="4">Cash to Close (Estimated)</td></tr>
+        <tr>
+          <td>Down Payment</td>
+          <td id="r-conv-ctc-dp" class="conv-col">—</td>
+          <td id="r-fha-ctc-dp"  class="fha-col">—</td>
+          <td id="r-va-ctc-dp"   class="va-col">—</td>
+        </tr>
+        <tr>
+          <td>UFMIP / Funding Fee (if not financed)</td>
+          <td>None</td>
+          <td class="fha-col">Financed</td>
+          <td class="va-col">Financed</td>
+        </tr>
+        <tr>
+          <td>Est. Closing Costs (~3%)</td>
+          <td id="r-conv-cc" class="conv-col">—</td>
+          <td id="r-fha-cc"  class="fha-col">—</td>
+          <td id="r-va-cc"   class="va-col">—</td>
+        </tr>
+        <tr class="row-total">
+          <td>Total Est. Cash to Close</td>
+          <td id="r-conv-ctc" class="conv-col">—</td>
+          <td id="r-fha-ctc"  class="fha-col">—</td>
+          <td id="r-va-ctc"   class="va-col">—</td>
+        </tr>
+
+        <tr class="row-section"><td colspan="4">Mortgage Insurance Details</td></tr>
+        <tr>
+          <td>MI Type</td>
+          <td id="r-conv-mi-type" class="conv-col">—</td>
+          <td id="r-fha-mi-type"  class="fha-col">FHA Annual MIP</td>
+          <td id="r-va-mi-type"   class="va-col">None</td>
+        </tr>
+        <tr>
+          <td>MI Rate (Annual)</td>
+          <td id="r-conv-mi-rate" class="conv-col">—</td>
+          <td id="r-fha-mi-rate"  class="fha-col">—</td>
+          <td id="r-va-mi-rate"   class="va-col">0.00%</td>
+        </tr>
+        <tr>
+          <td>MI Duration</td>
+          <td id="r-conv-mi-dur" class="conv-col">—</td>
+          <td id="r-fha-mi-dur"  class="fha-col">—</td>
+          <td id="r-va-mi-dur"   class="va-col">N/A</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- TOTAL COST OVER TIME -->
+  <div class="section-title">Total Cost Over Time</div>
+  <div class="card">
+    <div class="horizon-tabs no-print" id="horizonTabs">
+      <button class="horizon-tab" onclick="setHorizon(3)">3 Years</button>
+      <button class="horizon-tab" onclick="setHorizon(5)">5 Years</button>
+      <button class="horizon-tab active" onclick="setHorizon(7)">7 Years</button>
+      <button class="horizon-tab" onclick="setHorizon(10)">10 Years</button>
+      <button class="horizon-tab" onclick="setHorizon(30)">30 Years</button>
+    </div>
+    <table class="results-table" style="margin-bottom:20px">
+      <thead>
+        <tr>
+          <th>Over <span id="horizonLabel">7</span> Years</th>
+          <th class="conv-col">Conventional</th>
+          <th class="fha-col">FHA</th>
+          <th class="va-col">VA</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Total PITI Paid</td>
+          <td id="tc-conv-piti" class="conv-col">—</td>
+          <td id="tc-fha-piti"  class="fha-col">—</td>
+          <td id="tc-va-piti"   class="va-col">—</td>
+        </tr>
+        <tr>
+          <td>Total MI / MIP Paid</td>
+          <td id="tc-conv-mi" class="conv-col">—</td>
+          <td id="tc-fha-mi"  class="fha-col">—</td>
+          <td id="tc-va-mi"   class="va-col">$0</td>
+        </tr>
+        <tr>
+          <td>Total Interest Paid</td>
+          <td id="tc-conv-int" class="conv-col">—</td>
+          <td id="tc-fha-int"  class="fha-col">—</td>
+          <td id="tc-va-int"   class="va-col">—</td>
+        </tr>
+        <tr>
+          <td>Remaining Loan Balance</td>
+          <td id="tc-conv-bal" class="conv-col">—</td>
+          <td id="tc-fha-bal"  class="fha-col">—</td>
+          <td id="tc-va-bal"   class="va-col">—</td>
+        </tr>
+        <tr class="row-total">
+          <td>Total Out-of-Pocket Cost</td>
+          <td id="tc-conv-total" class="conv-col">—</td>
+          <td id="tc-fha-total"  class="fha-col">—</td>
+          <td id="tc-va-total"   class="va-col">—</td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="chart-wrap">
+      <canvas id="costChart"></canvas>
+    </div>
+  </div>
+
+  <!-- KEY CALLOUTS -->
+  <div class="section-title">Key Takeaways</div>
+  <div class="callout-grid">
+    <div class="callout-card conv-card">
+      <div class="callout-label">Conventional</div>
+      <div class="callout-key" id="ko-conv-piti">—</div>
+      <div class="callout-note" id="ko-conv-note">—</div>
+    </div>
+    <div class="callout-card fha-card">
+      <div class="callout-label">FHA</div>
+      <div class="callout-key" id="ko-fha-piti">—</div>
+      <div class="callout-note" id="ko-fha-note">—</div>
+    </div>
+    <div class="callout-card va-card">
+      <div class="callout-label">VA</div>
+      <div class="callout-key" id="ko-va-piti">—</div>
+      <div class="callout-note" id="ko-va-note">—</div>
+    </div>
+  </div>
+
+  <div class="disclaimer">
+    <strong>Disclosure:</strong> This communication is for informational and educational purposes only and does not constitute an offer to lend or a commitment to make a loan. All loans are subject to credit approval, underwriting guidelines, and property approval. Interest rates, payment examples, programs, and terms are illustrative, vary by borrower qualification, and are subject to change without notice. Not all applicants will qualify. Examples shown do not reflect all costs of a mortgage transaction. FHA MIP rates shown are based on current HUD guidelines and may vary by loan amount and term. VA funding fees are based on VA schedule and eligibility; veterans with service-connected disabilities may be exempt. Consult a licensed tax or legal advisor regarding your individual situation. HomeWealth Solutions LLC is licensed by the Florida Office of Financial Regulation, Mortgage Broker License #MBR8082. Verify our licensure at www.nmlsconsumeraccess.org. Equal Housing Opportunity.
+  </div>
+</div>
+
+<script>
+// ─── State ───────────────────────────────────────────────
+let currentHorizon = 7;
+let costChart = null;
+
+// ─── Helpers ─────────────────────────────────────────────
+function parseNum(id) {
+  const v = document.getElementById(id).value.replace(/,/g, '');
+  return parseFloat(v) || 0;
+}
+function fmtD(n) {
+  return '$' + Math.round(n).toLocaleString();
+}
+function fmtDec(n, d=2) {
+  return '$' + n.toFixed(d).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+}
+function pct(n, d=2) { return n.toFixed(d) + '%'; }
+
+function monthlyPI(principal, annualRate, termYears) {
+  const r = annualRate / 100 / 12;
+  const n = termYears * 12;
+  if (r === 0) return principal / n;
+  return principal * r * Math.pow(1+r,n) / (Math.pow(1+r,n)-1);
+}
+
+function amortize(principal, annualRate, termYears, horizonYears) {
+  const r = annualRate / 100 / 12;
+  const n = termYears * 12;
+  const maxMo = Math.min(horizonYears * 12, n);
+  let bal = principal;
+  let totalInt = 0;
+  for (let i = 0; i < maxMo; i++) {
+    const interest = bal * r;
+    const pmt = monthlyPI(principal, annualRate, termYears);
+    const princ = pmt - interest;
+    totalInt += interest;
+    bal -= princ;
+    if (bal < 0) bal = 0;
+  }
+  return { totalInt, endBal: Math.max(0, bal) };
+}
+
+// ─── PMI lookup ──────────────────────────────────────────
+// Returns estimated conventional PMI rate (annual %) given FICO and LTV
+function getPMIRate(fico, ltv) {
+  if (ltv <= 80) return 0;
+  // Simplified lookup (typical MGIC-range estimates for purchase, standard coverage)
+  const rows = [
+    // [ficoMin, LTV 80-85, 85-90, 90-95, 95+]
+    [780, 0.19, 0.26, 0.38, 0.44],
+    [760, 0.24, 0.35, 0.46, 0.53],
+    [740, 0.30, 0.41, 0.53, 0.62],
+    [720, 0.37, 0.50, 0.63, 0.74],
+    [700, 0.44, 0.59, 0.74, 0.87],
+    [680, 0.54, 0.71, 0.89, 1.04],
+    [660, 0.68, 0.88, 1.10, 1.27],
+    [640, 0.89, 1.15, 1.37, 1.57],
+  ];
+  const col = ltv <= 85 ? 1 : ltv <= 90 ? 2 : ltv <= 95 ? 3 : 4;
+  for (const row of rows) {
+    if (fico >= row[0]) return row[col];
+  }
+  return rows[rows.length-1][col];
+}
+
+// ─── FHA MIP lookup ──────────────────────────────────────
+// Returns {ufmipPct, annualMIPPct, lifeOfLoan}
+function getFHAMIP(ltv, termYears, loanAmount) {
+  const ufmipPct = 1.75;
+  let annualPct, lifeOfLoan;
+  // Post March 2023 reduced rates (standard loans ≤ $726,200)
+  if (termYears > 15) {
+    if (ltv > 95) {
+      annualPct = 0.55; lifeOfLoan = true;
+    } else if (ltv > 90) {
+      annualPct = 0.50; lifeOfLoan = true;
+    } else {
+      annualPct = 0.50; lifeOfLoan = false; // 11 years
+    }
+  } else {
+    if (ltv > 90) {
+      annualPct = 0.40; lifeOfLoan = true;
+    } else {
+      annualPct = 0.15; lifeOfLoan = false; // 11 years
+    }
+  }
+  return { ufmipPct, annualPct, lifeOfLoan };
+}
+
+// ─── VA Funding Fee ──────────────────────────────────────
+function getVAFeeRate() {
+  const v = document.getElementById('vaFeeType').value;
+  return parseFloat(v) || 0;
+}
+
+// ─── Conventional PMI cancellation month ─────────────────
+// Returns month (1-based) at which LTV reaches 80% via amortization
+function pmiCancelMonth(loanAmount, purchasePrice, annualRate, termYears) {
+  const r = annualRate / 100 / 12;
+  const target = purchasePrice * 0.80;
+  let bal = loanAmount;
+  for (let mo = 1; mo <= termYears * 12; mo++) {
+    const interest = bal * r;
+    const pmt = monthlyPI(loanAmount, annualRate, termYears);
+    bal -= (pmt - interest);
+    if (bal <= target) return mo;
+  }
+  return termYears * 12;
+}
+
+// ─── Total MI paid over horizon (conv, handles cancellation) ─
+function totalConvMI(loanAmount, purchasePrice, annualRate, termYears, pmiAnnual, horizonYears) {
+  if (pmiAnnual === 0) return 0;
+  const cancelMo = pmiCancelMonth(loanAmount, purchasePrice, annualRate, termYears);
+  const maxMo = horizonYears * 12;
+  const miMonths = Math.min(cancelMo, maxMo);
+  return (loanAmount * pmiAnnual / 100 / 12) * miMonths;
+  // Note: simplified — uses initial balance, actual MI decreases slightly each year
+}
+
+// ─── Total FHA MIP over horizon ──────────────────────────
+function totalFHAMIP(loanWithUFMIP, annualMIPPct, lifeOfLoan, termYears, horizonYears) {
+  const stopMo = lifeOfLoan ? termYears * 12 : 11 * 12;
+  const payMo = Math.min(stopMo, horizonYears * 12);
+  return (loanWithUFMIP * annualMIPPct / 100 / 12) * payMo;
+}
+
+// ─── Set horizon tab ─────────────────────────────────────
+function setHorizon(yr) {
+  currentHorizon = yr;
+  document.getElementById('horizonLabel').textContent = yr;
+  document.querySelectorAll('.horizon-tab').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.horizon-tab').forEach(b => {
+    if (b.textContent.includes(yr)) b.classList.add('active');
+  });
+  recalc();
+}
+
+// ─── Main calculation ─────────────────────────────────────
+function recalc() {
+  const price   = parseNum('purchasePrice');
+  const tax     = parseNum('annualTax');
+  const hoi     = parseNum('annualHOI');
+  const term    = parseInt(document.getElementById('term').value);
+  const fico    = parseInt(document.getElementById('fico').value);
+
+  const convRate = parseFloat(document.getElementById('convRate').value) || 0;
+  const fhaRate  = parseFloat(document.getElementById('fhaRate').value) || 0;
+  const vaRate   = parseFloat(document.getElementById('vaRate').value) || 0;
+
+  const convDownPct = parseFloat(document.getElementById('convDown').value) || 5;
+  const fhaDownPct  = parseFloat(document.getElementById('fhaDown').value) || 3.5;
+  const vaDownPct   = parseFloat(document.getElementById('vaDown').value) || 0;
+
+  if (!price || !convRate || !fhaRate || !vaRate) return;
+
+  // ── Down payments & base loans ──
+  const convDown   = price * convDownPct / 100;
+  const fhaDown    = price * fhaDownPct / 100;
+  const vaDown     = price * vaDownPct / 100;
+  const convBase   = price - convDown;
+  const fhaBase    = price - fhaDown;
+  const vaBase     = price - vaDown;
+
+  // ── LTV ──
+  const convLTV = convBase / price * 100;
+  const fhaLTV  = fhaBase / price * 100;
+  const vaLTV   = vaBase / price * 100;
+
+  // ── PMI (Conv) ──
+  const pmiAuto = getPMIRate(fico, convLTV);
+  const pmiOverrideEl = document.getElementById('convPMIOverride');
+  const pmiRate = pmiOverrideEl.value !== '' ? parseFloat(pmiOverrideEl.value) || 0 : pmiAuto;
+  document.getElementById('convPMIAuto').textContent = pct(pmiAuto) + '/yr';
+
+  // PMI cancel month
+  const cancelMo = convLTV <= 80 ? 0 : pmiCancelMonth(convBase, price, convRate, term);
+  const cancelYr  = Math.ceil(cancelMo / 12);
+  if (convLTV <= 80) {
+    document.getElementById('convPMIInfo').innerHTML = 'No PMI required — down payment ≥ 20%.';
+  } else {
+    document.getElementById('convPMIInfo').innerHTML =
+      `Conventional PMI cancels at <strong>80% LTV</strong> — estimated month <strong>${cancelMo}</strong> (year ${cancelYr}). Auto-cancel at 78% LTV.`;
+  }
+
+  // ── FHA MIP ──
+  const { ufmipPct, annualPct: fhaAnnualPct, lifeOfLoan } = getFHAMIP(fhaLTV, term, fhaBase);
+  const ufmipAmt   = fhaBase * ufmipPct / 100;
+  const fhaTotalLoan = fhaBase + ufmipAmt;
+  document.getElementById('fhaUFMIP').textContent = pct(ufmipPct) + ' = ' + fmtD(ufmipAmt);
+  document.getElementById('fhaAnnualMIP').textContent = pct(fhaAnnualPct) + '/yr';
+  const mipDurText = lifeOfLoan
+    ? `Life of loan (down payment < 10%)`
+    : `11 years (down payment ≥ 10%)`;
+  document.getElementById('fhaMIPDuration').textContent = mipDurText;
+
+  // ── VA Funding Fee ──
+  const vaFeeRate = getVAFeeRate();
+  const vaFeeAmt  = vaBase * vaFeeRate / 100;
+  const vaTotalLoan = vaBase + vaFeeAmt;
+  document.getElementById('vaFundingFee').textContent = fmtD(vaFeeAmt) + (vaFeeRate > 0 ? ` (${pct(vaFeeRate)} of base)` : ' — Exempt');
+
+  // ── Total loan amounts ──
+  const convTotalLoan = convBase; // no upfront fee
+
+  // ── Monthly P&I ──
+  const convPI = monthlyPI(convTotalLoan, convRate, term);
+  const fhaPI  = monthlyPI(fhaTotalLoan, fhaRate, term);
+  const vaPI   = monthlyPI(vaTotalLoan, vaRate, term);
+
+  // ── Monthly MI ──
+  const convMImo = convLTV <= 80 ? 0 : convTotalLoan * pmiRate / 100 / 12;
+  const fhaMImo  = fhaTotalLoan * fhaAnnualPct / 100 / 12;
+  const vaMImo   = 0;
+
+  // ── Monthly T&I ──
+  const taxMo = tax / 12;
+  const hoiMo = hoi / 12;
+
+  // ── Monthly PITI ──
+  const convPITI = convPI + convMImo + taxMo + hoiMo;
+  const fhaPITI  = fhaPI  + fhaMImo  + taxMo + hoiMo;
+  const vaPITI   = vaPI   + vaMImo   + taxMo + hoiMo;
+
+  // ── Cash to Close (~3% closing costs) ──
+  const closingPct = 0.03;
+  const convCC  = price * closingPct;
+  const fhaCC   = price * closingPct;
+  const vaCC    = price * closingPct;
+  const convCTC = convDown + convCC;
+  const fhaCTC  = fhaDown + fhaCC; // UFMIP financed
+  const vaCTC   = vaDown  + vaCC;  // funding fee financed
+
+  // ── Fill monthly table ──
+  const set = (id, val) => { const el = document.getElementById(id); if(el) el.textContent = val; };
+
+  set('r-conv-price', fmtD(price));
+  set('r-fha-price',  fmtD(price));
+  set('r-va-price',   fmtD(price));
+
+  set('r-conv-down', fmtD(convDown) + ` (${pct(convDownPct,1)})`);
+  set('r-fha-down',  fmtD(fhaDown)  + ` (${pct(fhaDownPct,1)})`);
+  set('r-va-down',   fmtD(vaDown)   + (vaDownPct === 0 ? ' (0%)' : ` (${pct(vaDownPct,1)})`));
+
+  set('r-conv-base', fmtD(convBase));
+  set('r-fha-base',  fmtD(fhaBase));
+  set('r-va-base',   fmtD(vaBase));
+
+  set('r-conv-uf',        'None');
+  set('r-fha-uf',         fmtD(ufmipAmt) + ' (UFMIP 1.75%)');
+  set('r-va-uf',          vaFeeRate > 0 ? fmtD(vaFeeAmt) + ` (${pct(vaFeeRate)} fee)` : 'Exempt');
+
+  set('r-conv-total-loan', fmtD(convTotalLoan));
+  set('r-fha-total-loan',  fmtD(fhaTotalLoan));
+  set('r-va-total-loan',   fmtD(vaTotalLoan));
+
+  set('r-conv-ltv', pct(convLTV,1));
+  set('r-fha-ltv',  pct(fhaLTV,1));
+  set('r-va-ltv',   pct(vaLTV,1));
+
+  set('r-conv-pi', fmtDec(convPI));
+  set('r-fha-pi',  fmtDec(fhaPI));
+  set('r-va-pi',   fmtDec(vaPI));
+
+  set('r-conv-mi', convLTV <= 80 ? 'None' : fmtDec(convMImo));
+  set('r-fha-mi',  fmtDec(fhaMImo));
+  set('r-va-mi',   '$0 — No MI');
+
+  set('r-conv-tax', fmtDec(taxMo));
+  set('r-fha-tax',  fmtDec(taxMo));
+  set('r-va-tax',   fmtDec(taxMo));
+
+  set('r-conv-hoi', fmtDec(hoiMo));
+  set('r-fha-hoi',  fmtDec(hoiMo));
+  set('r-va-hoi',   fmtDec(hoiMo));
+
+  set('r-conv-piti', fmtDec(convPITI));
+  set('r-fha-piti',  fmtDec(fhaPITI));
+  set('r-va-piti',   fmtDec(vaPITI));
+
+  set('r-conv-ctc-dp', fmtD(convDown));
+  set('r-fha-ctc-dp',  fmtD(fhaDown));
+  set('r-va-ctc-dp',   fmtD(vaDown));
+
+  set('r-conv-cc', fmtD(convCC));
+  set('r-fha-cc',  fmtD(fhaCC));
+  set('r-va-cc',   fmtD(vaCC));
+
+  set('r-conv-ctc', fmtD(convCTC));
+  set('r-fha-ctc',  fmtD(fhaCTC));
+  set('r-va-ctc',   fmtD(vaCTC));
+
+  set('r-conv-mi-type', convLTV <= 80 ? 'None — 20%+ down' : 'Conventional PMI');
+  set('r-fha-mi-type',  'FHA Annual MIP');
+  set('r-conv-mi-rate', convLTV <= 80 ? 'N/A' : pct(pmiRate) + '/yr');
+  set('r-fha-mi-rate',  pct(fhaAnnualPct) + '/yr');
+  set('r-conv-mi-dur',  convLTV <= 80 ? 'None' : `Cancels ~mo ${cancelMo} (yr ${cancelYr})`);
+  set('r-fha-mi-dur',   mipDurText);
+
+  // ── Total cost over horizon ──
+  calcHorizonCosts(currentHorizon, {
+    convTotalLoan, fhaTotalLoan, vaTotalLoan,
+    convRate, fhaRate, vaRate,
+    term, price,
+    pmiRate, fhaAnnualPct, lifeOfLoan,
+    convLTV,
+    taxMo, hoiMo,
+    convPITI, fhaPITI, vaPITI,
+    convMImo, fhaMImo,
+    convDown, fhaDown, vaDown,
+    convBase, fhaBase, vaBase
+  });
+
+  // ── Callouts ──
+  set('ko-conv-piti', fmtDec(convPITI) + '/mo');
+  set('ko-fha-piti',  fmtDec(fhaPITI) + '/mo');
+  set('ko-va-piti',   fmtDec(vaPITI) + '/mo');
+
+  const convNote = convLTV <= 80
+    ? `No PMI. ${pct(convDownPct,0)} down = ${fmtD(convDown)} at closing. Straightforward conventional terms.`
+    : `PMI of ${fmtDec(convMImo)}/mo cancels ~year ${cancelYr}. ${pct(convDownPct,0)} down = ${fmtD(convDown)} cash.`;
+  const fhaNoteText = `UFMIP ${fmtD(ufmipAmt)} financed. MIP ${fmtDec(fhaMImo)}/mo — ${lifeOfLoan ? 'life of loan' : '11 years'}. Lowest cash to close: ${fmtD(fhaCTC)}.`;
+  const vaNote = vaFeeRate > 0
+    ? `No monthly MI saves ${fmtDec(fhaMImo)}/mo vs. FHA. Funding fee ${fmtD(vaFeeAmt)} financed. ${vaDownPct === 0 ? 'Zero down.' : ''}`
+    : `No monthly MI, no funding fee (exempt). Lowest total cost option for eligible veterans.`;
+
+  set('ko-conv-note', convNote);
+  set('ko-fha-note',  fhaNoteText);
+  set('ko-va-note',   vaNote);
+}
+
+function calcHorizonCosts(horizon, d) {
+  const {
+    convTotalLoan, fhaTotalLoan, vaTotalLoan,
+    convRate, fhaRate, vaRate,
+    term, price,
+    pmiRate, fhaAnnualPct, lifeOfLoan,
+    convLTV,
+    taxMo, hoiMo,
+    convPITI, fhaPITI, vaPITI,
+    convMImo, fhaMImo,
+    convDown, fhaDown, vaDown,
+    convBase
+  } = d;
+
+  const months = Math.min(horizon * 12, term * 12);
+
+  // Total PITI paid (T&I included in PITI)
+  const convPITITotal = convPITI * months;
+  const fhaPITITotal  = fhaPITI  * months;
+  const vaPITITotal   = vaPITI   * months;
+
+  // Total MI paid
+  const convMITotal = convLTV <= 80 ? 0 : totalConvMI(convTotalLoan, price, convRate, term, pmiRate, horizon);
+  const fhaMITotal  = totalFHAMIP(fhaTotalLoan, fhaAnnualPct, lifeOfLoan, term, horizon);
+
+  // Interest paid
+  const convAmort = amortize(convTotalLoan, convRate, term, horizon);
+  const fhaAmort  = amortize(fhaTotalLoan, fhaRate, term, horizon);
+  const vaAmort   = amortize(vaTotalLoan, vaRate, term, horizon);
+
+  const set = (id, val) => { const el = document.getElementById(id); if(el) el.textContent = val; };
+
+  set('tc-conv-piti',  fmtD(convPITITotal));
+  set('tc-fha-piti',   fmtD(fhaPITITotal));
+  set('tc-va-piti',    fmtD(vaPITITotal));
+
+  set('tc-conv-mi', convLTV <= 80 ? '$0 — No PMI' : fmtD(convMITotal));
+  set('tc-fha-mi',  fmtD(fhaMITotal));
+
+  set('tc-conv-int', fmtD(convAmort.totalInt));
+  set('tc-fha-int',  fmtD(fhaAmort.totalInt));
+  set('tc-va-int',   fmtD(vaAmort.totalInt));
+
+  set('tc-conv-bal', fmtD(convAmort.endBal));
+  set('tc-fha-bal',  fmtD(fhaAmort.endBal));
+  set('tc-va-bal',   fmtD(vaAmort.endBal));
+
+  // Total out-of-pocket = down + total PITI paid
+  const convOOP = convDown + convPITITotal;
+  const fhaOOP  = fhaDown  + fhaPITITotal;
+  const vaOOP   = d.vaDown + vaPITITotal;
+
+  set('tc-conv-total', fmtD(convOOP));
+  set('tc-fha-total',  fmtD(fhaOOP));
+  set('tc-va-total',   fmtD(vaOOP));
+
+  // Chart
+  buildChart(d, horizon);
+}
+
+// ─── Cumulative PITI chart ──────────────────────────────
+function buildChart(d, horizon) {
+  const {
+    convPITI, fhaPITI, vaPITI,
+    convDown, fhaDown
+  } = d;
+
+  const years = [];
+  const convData = [], fhaData = [], vaData = [];
+  const maxYr = Math.min(horizon, d.term);
+
+  for (let yr = 1; yr <= maxYr; yr++) {
+    years.push(`Yr ${yr}`);
+    convData.push(Math.round(convDown + convPITI * yr * 12));
+    fhaData.push( Math.round(fhaDown  + fhaPITI * yr * 12));
+    vaData.push(  Math.round(d.vaDown + vaPITI  * yr * 12));
+  }
+
+  const ctx = document.getElementById('costChart').getContext('2d');
+  if (costChart) costChart.destroy();
+  costChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: years,
+      datasets: [
+        { label: 'Conventional', data: convData, borderColor: '#2491EB', backgroundColor: 'rgba(36,145,235,0.08)', tension: 0.3, borderWidth: 2.5, pointRadius: 2 },
+        { label: 'FHA',          data: fhaData,  borderColor: '#5a8a1c', backgroundColor: 'rgba(90,138,28,0.08)',  tension: 0.3, borderWidth: 2.5, pointRadius: 2 },
+        { label: 'VA',           data: vaData,   borderColor: '#7c3aed', backgroundColor: 'rgba(124,58,237,0.08)', tension: 0.3, borderWidth: 2.5, pointRadius: 2 },
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'top', labels: { font: { size: 12 }, padding: 16 } },
+        tooltip: {
+          callbacks: {
+            label: ctx => ` ${ctx.dataset.label}: $${ctx.parsed.y.toLocaleString()}`
+          }
+        }
+      },
+      scales: {
+        y: {
+          ticks: { callback: v => '$' + (v/1000).toFixed(0) + 'k', font: { size: 11 } },
+          grid: { color: '#eef0f4' }
+        },
+        x: { ticks: { font: { size: 11 } }, grid: { color: '#eef0f4' } }
+      }
+    }
+  });
+}
+
+// ─── Format price fields on blur ────────────────────────
+['purchasePrice','annualTax','annualHOI'].forEach(id => {
+  const el = document.getElementById(id);
+  el.addEventListener('blur', () => {
+    const n = parseFloat(el.value.replace(/,/g,''));
+    if (!isNaN(n)) el.value = n.toLocaleString();
+  });
+  el.addEventListener('focus', () => {
+    el.value = el.value.replace(/,/g,'');
+  });
+});
+
+// ─── Init ────────────────────────────────────────────────
+recalc();
+</script>
+</body>
+</html>
