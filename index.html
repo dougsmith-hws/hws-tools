@@ -288,6 +288,16 @@
           <div class="badge-new">NEW</div>
         </a>
 
+        <a class="card" data-deploy="2026-07-07" href="/buyer/fha-vs-conventional"
+           data-name="FHA conventional VA loan comparison mortgage insurance PMI MIP UFMIP funding fee down payment FICO loan type side by side">
+          <div class="card-icon blue">⚖️</div>
+          <div class="card-info">
+            <div class="card-name">Conv vs. FHA vs. VA</div>
+            <div class="card-desc">Side-by-side loan comparison — monthly payment, MI/MIP, cash to close, and total cost over time</div>
+          </div>
+          <div class="badge-new">NEW</div>
+        </a>
+
         <a class="card" data-deploy="2026-06-17" href="/buyer/loan-types"
            data-name="loan types conventional FHA VA USDA eligibility DTI down payment credit score MI flip rules">
           <div class="card-icon blue">📚</div>
@@ -295,17 +305,6 @@
             <div class="card-name">Loan Types Reference</div>
             <div class="card-desc">Conv, FHA, VA, USDA — eligibility, DTI, down payment, credit, and MI rules</div>
           </div>
-          <div class="badge-new">NEW</div>
-        </a>
-
-        <a class="card" data-deploy="2026-06-20" href="/property-tax.html"
-           data-name="property tax estimator florida homestead SOH portability year 1 year 2 exemption millage escrow">
-          <div class="card-icon amber">🏡</div>
-          <div class="card-info">
-            <div class="card-name">FL Property Tax Estimator</div>
-            <div class="card-desc">Y1 vs Y2+ taxes — homestead exemption, SOH portability, monthly escrow</div>
-          </div>
-          <div class="badge-new">NEW</div>
         </a>
 
       </div>
@@ -870,21 +869,9 @@ function logRun(name, phone4, url) {
   }).catch(() => {});
 }
 
-// ── Buyer card intercept ───────────────────────────────────────────────────
+// ── Buyer card intercept — session gate removed ────────────────────────────
 function interceptBuyerCards() {
-  document.querySelectorAll('#tab-buyer .card').forEach(card => {
-    card.addEventListener('click', function(e) {
-      e.preventDefault();
-      const url = this.getAttribute('href');
-      if (!url) return;
-      if (_session) {
-        logRun(_session.name, _session.phone4, url);
-        setTimeout(() => { window.location.href = url + '?client=' + encodeURIComponent(_session.name); }, 300);
-      } else {
-        showModal(url);
-      }
-    });
-  });
+  // Cards navigate directly — no session required
 }
 
 // ── Tab switching ──────────────────────────────────────────────────────────
