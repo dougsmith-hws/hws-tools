@@ -343,8 +343,9 @@
         </div>
 
         <div class="field">
-          <label>Assessed Value <span class="hint">(leave blank = purchase price)</span></label>
-          <input type="text" id="assessed-value" placeholder="Same as purchase price" oninput="fmtDollar(this)" onchange="calculate()">
+          <label>Assessed Value <span class="hint">(refi / existing homeowner only)</span></label>
+          <input type="text" id="assessed-value" placeholder="New purchase? Leave blank." oninput="fmtDollar(this)" onchange="calculate()">
+          <div class="field-note">New purchase: leave blank — tool uses purchase price. Refi or existing homeowner: enter the assessed value from the TRIM notice.</div>
         </div>
 
         <div class="field">
