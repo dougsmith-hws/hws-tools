@@ -348,6 +348,24 @@
         </div>
 
         <div class="field">
+          <label>County <span class="hint">(for millage rate lookup)</span></label>
+          <select id="county-select" onchange="updateCountyLink()" style="width:100%;padding:8px 10px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:14px;font-weight:600;color:#1e293b;outline:none;background:#f8fafc;cursor:pointer;">
+            <option value="hernando">Hernando</option>
+            <option value="pasco">Pasco</option>
+            <option value="hillsborough" selected>Hillsborough</option>
+            <option value="pinellas">Pinellas</option>
+            <option value="citrus">Citrus</option>
+            <option value="sumter">Sumter</option>
+            <option value="marion">Marion</option>
+            <option value="other">Other</option>
+          </select>
+          <div style="margin-top:6px;">
+            <a id="county-lookup-link" href="https://www.hcpafl.org" target="_blank" rel="noopener"
+               style="font-size:12px;color:#2491EB;font-weight:600;text-decoration:none;">Look up your millage rate →</a>
+          </div>
+        </div>
+
+        <div class="field">
           <label>Enter rate as:</label>
           <div class="rate-toggle">
             <button id="btn-mills" class="active" onclick="setRateMode('mills')">Mills (per $1,000)</button>
@@ -444,6 +462,22 @@ function fmtMoney(n) {
 }
 function fmtMoneyDec(n) {
   return '$' + n.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+}
+
+/* ─── County lookup links ─── */
+const COUNTY_URLS = {
+  hernando:    'https://www.hernandopa-fl.us',
+  pasco:       'https://www.pascopa.com',
+  hillsborough:'https://www.hcpafl.org',
+  pinellas:    'https://www.pcpao.gov',
+  citrus:      'https://www.citruspa.org',
+  sumter:      'https://www.sumterpa.com',
+  marion:      'https://www.pa.marion.fl.us',
+  other:       'https://floridarevenue.com/property/Pages/Taxpayers.aspx'
+};
+function updateCountyLink() {
+  const county = document.getElementById('county-select').value;
+  document.getElementById('county-lookup-link').href = COUNTY_URLS[county] || COUNTY_URLS.other;
 }
 
 /* ─── Rate mode ─── */
