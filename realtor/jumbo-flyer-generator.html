@@ -1138,7 +1138,7 @@ function logoHTML() {
 
 function render() {
   const price = rawNum('price');
-  const taxMo = Math.round(price * 0.011 / 12);   // ~1.1% annually — FL avg
+  const taxMo = Math.round(price * 0.0083 / 12);  // ~0.83% annually — FL statewide avg (matches market standard)
   const hoiMo = Math.round(price * 0.004 / 12);   // ~0.4% annually — competitive FL estimate
   const rate   = parseFloat(document.getElementById('rate').value)||6.75;
   const vaRate = parseFloat(document.getElementById('vaRate').value)||6.25;
@@ -1201,7 +1201,7 @@ function render() {
   const scenHTML = S.map((c,i)=>`
     <div class="f-scen">
       <div>
-        <div class="f-scen-amt">${$(c.pi)}</div>
+        <div class="f-scen-amt">${$(c.pi + c.pmi + taxMo)}</div>
         <div class="f-scen-mo">per month</div>
         <div class="f-scen-support-div"></div>
         <div class="f-scen-strategy">${STRATEGY_LABELS[i]}</div>
@@ -1210,7 +1210,7 @@ function render() {
         <div class="f-scen-down">${$(c.down)} down</div>
         <div class="f-scen-down-div"></div>
         <div class="f-scen-lbl">${c.lbl}</div>
-        <div class="f-scen-support-txt">P&amp;I only · taxes &amp; ins. not incl.</div>
+        <div class="f-scen-support-txt">${c.pmi > 0 ? 'Incl. est. taxes + MI' : 'Incl. est. taxes'}</div>
       </div>
     </div>`).join('');
 
