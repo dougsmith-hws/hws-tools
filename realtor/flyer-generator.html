@@ -449,7 +449,7 @@ select.scen-sel:focus { outline:none; border-color:#2491EB; }
             onfocus="stripCurrency('price')"
             onblur="fmtCurrency('price');render()"
             oninput="render()"></div>
-        <div class="snote" style="margin-top:-6px; padding-bottom:4px;">Taxes &amp; insurance estimated automatically</div>
+        <div class="snote" style="margin-top:-6px; padding-bottom:4px;">Taxes estimated automatically · HOI excluded</div>
       </div>
     </div>
 
@@ -1238,7 +1238,7 @@ function render() {
   const scenHTML = S.map((c,i)=>`
     <div class="f-scen">
       <div>
-        <div class="f-scen-amt">${$(c.tot)}</div>
+        <div class="f-scen-amt">${$(c.pi + c.pmi + taxMo)}</div>
         <div class="f-scen-mo">per month</div>
         <div class="f-scen-support-div"></div>
         <div class="f-scen-strategy">${STRATEGY_LABELS[i]}</div>
@@ -1247,7 +1247,7 @@ function render() {
         <div class="f-scen-down">${$(c.down)} down</div>
         <div class="f-scen-down-div"></div>
         <div class="f-scen-lbl">${c.lbl}</div>
-        <div class="f-scen-support-txt">Incl. taxes &amp; insurance</div>
+        <div class="f-scen-support-txt">${c.pmi > 0 ? 'Incl. est. taxes + MI' : 'Incl. est. taxes'}</div>
       </div>
     </div>`).join('');
 
