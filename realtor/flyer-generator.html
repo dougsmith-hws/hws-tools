@@ -229,30 +229,25 @@ input[type=range]::-moz-range-thumb {
 .f-price-eyebrow { font-size:13px; font-weight:600; color:rgba(255,255,255,.75); letter-spacing:2px; text-transform:uppercase; margin-bottom:5px; }
 .f-price-num { font-size:32px; font-weight:800; color:#fff; letter-spacing:-.5px; line-height:1; }
 
-/* Property details pill bar */
+/* Property details strip — sits between accent line and payment section */
 .f-prop-details {
-  position:absolute; bottom:56px; left:0; right:0;
-  display:flex; justify-content:center; gap:0;
-  pointer-events:none;
+  display:flex; justify-content:center; align-items:center;
+  padding:7px 0; background:#f0f5f9;
+  border-bottom:1px solid #dde8f0;
+  flex-shrink:0;
 }
 .f-prop-details-bar {
-  display:flex; align-items:center; gap:0;
-  background:rgba(5,12,22,.60); backdrop-filter:blur(4px);
-  border-radius:20px; padding:5px 14px;
-  font-size:13px; font-weight:700; color:#fff; letter-spacing:.5px;
+  display:flex; align-items:center;
+  font-size:13px; font-weight:700; color:#1a3a52; letter-spacing:1.5px; text-transform:uppercase;
 }
 .f-prop-details-sep {
-  margin:0 10px; opacity:.4; font-weight:300;
+  margin:0 12px; color:#9ab8cc; font-weight:300; font-size:16px;
 }
 
 /* Own-for badge — price tag shape */
 .f-own-badge-wrap {
   position:absolute; top:0; right:0;
   display:flex; flex-direction:column; align-items:center;
-}
-.f-own-badge-string {
-  width:1.5px; height:18px;
-  background:repeating-linear-gradient(to bottom, rgba(255,255,255,.55) 0px, rgba(255,255,255,.55) 3px, transparent 3px, transparent 6px);
 }
 .f-own-badge {
   background:var(--realtor-accent,#8EC73F);
@@ -1326,14 +1321,12 @@ function render() {
       ${heroImg}
       <div class="f-overlay" style="opacity:${overlayOpacity}"></div>
       <div class="f-own-badge-wrap">
-        <div class="f-own-badge-string"></div>
         <div class="f-own-badge">
           <div class="f-own-badge-eyebrow">Own for</div>
-          <div class="f-own-badge-amt">${Math.min(...S.map(c=>c.down))===0 ? '$0' : $(Math.min(...S.map(c=>c.down)))}</div>
+          <div class="f-own-badge-amt">${$(Math.min(...S.map(c=>c.down)))}</div>
           <div class="f-own-badge-sub">down</div>
         </div>
       </div>
-      ${propDetails}
       <div class="f-hero-bottom">
         <div class="f-addr">
           <div class="f-city-lbl">${city}</div>
@@ -1347,6 +1340,8 @@ function render() {
     </div>
 
     <div class="f-accent-line"></div>
+
+    ${propDetails}
 
     <div class="f-payment">
       <div class="f-payment-intro">
