@@ -416,7 +416,7 @@ select.scen-sel:focus { outline:none; border-color:#2491EB; }
 </style>
 </head>
 <body>
-<a href="https://tools.homewealthsolutions.com/" id="hws-hub-btn" style="position:fixed;top:14px;right:16px;z-index:9999;background:#1c2b3a;color:rgba(255,255,255,0.9);text-decoration:none;font-size:12px;font-weight:700;padding:6px 14px;border-radius:8px;font-family:-apple-system,BlinkMacSystemFont,sans-serif;letter-spacing:0.2px;box-shadow:0 2px 8px rgba(0,0,0,0.25);">← Hub</a>
+<a href="/" id="hws-hub-btn" style="position:fixed;top:14px;right:16px;z-index:9999;background:#1c2b3a;color:rgba(255,255,255,0.9);text-decoration:none;font-size:12px;font-weight:700;padding:6px 14px;border-radius:8px;font-family:-apple-system,BlinkMacSystemFont,sans-serif;letter-spacing:0.2px;box-shadow:0 2px 8px rgba(0,0,0,0.25);">← Hub</a>
 <div class="app">
 
   <!-- ══ TOOL PANEL ══ -->
@@ -1071,6 +1071,13 @@ async function savePDF() {
       windowWidth:  816,
       imageTimeout: 10000,
       onclone: (clonedDoc) => {
+        // ── FIX: remove or resize any 0×0 canvas elements in the clone ──
+        // Canvas pixel data is NOT copied during DOM cloning, so a QR/photo canvas
+        // can end up with 0×0 dimensions in the clone even if it was valid in the
+        // live DOM. html2canvas then hits a createPattern error on those elements.
+        clonedDoc.querySelectorAll('canvas').forEach(c => {
+          if (!c.width || !c.height) c.remove();
+        });
         // ── SAFETY NET: neutralize every remaining unsafe img src in the clone ──
         // This fires after html2canvas deep-clones the DOM but before it renders.
         // Any img src that isn't a data URL / blob URL / https gets replaced with
@@ -1206,7 +1213,7 @@ function render() {
   const scen2 = document.getElementById('scen2').value;
   const scen3 = document.getElementById('scen3').value;
   const vaFee = parseFloat(document.getElementById('vaFee').value) || 0.0215;
-  const S = [scen1, scen2, scen3].map(k => calcScenario(k, price, (PROGRAMS[k] && PROGRAMS[k].type==="fha") ? fhaRate : rate, vaRate, vaFee, taxMo, hoiMo));
+  const S = [scen1, scen2, scen3].map(k => calcScenario(k, price, rate, vaRate, vaFee, taxMo, hoiMo));
 
   const camSvgLg = `<svg width="52" height="44" viewBox="0 0 52 44" fill="none" xmlns="http://www.w3.org/2000/svg">
     <rect x="1.5" y="11" width="49" height="31" rx="4" stroke="white" stroke-width="2"/>
