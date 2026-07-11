@@ -253,7 +253,10 @@ input[type=range]::-moz-range-thumb {
   background:var(--realtor-primary,#2491EB);
   color:#fff;
   padding:10px 20px 10px 32px;
-  clip-path:polygon(22px 0%, 100% 0%, 100% 100%, 22px 100%, 0% 50%);
+  clip-path:polygon(18% 0%, 100% 0%, 100% 100%, 18% 100%, 0% 50%);
+  -webkit-clip-path:polygon(18% 0%, 100% 0%, 100% 100%, 18% 100%, 0% 50%);
+  print-color-adjust:exact;
+  -webkit-print-color-adjust:exact;
   text-align:center;
   line-height:1.15;
   box-shadow:-2px 3px 14px rgba(0,0,0,.40);
@@ -406,6 +409,7 @@ input[type=range]::-moz-range-thumb {
 .f-legal { background:#f6f8fa; border-top:1px solid #dce8f0; padding:5px 22px 5px; display:flex; align-items:center; gap:16px; font-size:10px; color:#8fa4b4; line-height:1.4; font-weight:400; word-spacing:0.15em; }
 .f-legal-text { flex:1; word-spacing:0.15em; letter-spacing:0.01em; }
 .f-legal-eho { display:flex; flex-direction:row; align-items:center; gap:6px; flex-shrink:0; }
+.f-photo-print-img { display:none; }
 .f-legal-eho span { font-size:6px; color:#8fa4b4; white-space:nowrap; letter-spacing:.6px; line-height:1.4; text-transform:uppercase; font-weight:600; }
 
 /* ══ PRINT ══ */
@@ -417,7 +421,9 @@ input[type=range]::-moz-range-thumb {
   .flyer-panel { padding:0; background:white; display:block; }
   .app { display:block; }
   .flyer { width:100%; min-height:unset; box-shadow:none; page-break-inside:avoid; }
-  .f-photo, .f-photo-ph { height:3.3in; }
+  .f-photo, .f-photo-ph { height:3.3in; background-image:none!important; }
+  .f-photo-print-img { display:block!important; position:absolute; top:0; left:0; width:100%; height:100%; object-fit:cover; }
+  .f-own-badge { clip-path:polygon(18% 0%, 100% 0%, 100% 100%, 18% 100%, 0% 50%)!important; -webkit-clip-path:polygon(18% 0%, 100% 0%, 100% 100%, 18% 100%, 0% 50%)!important; }
   .f-payment { padding:14px 24px 10px; }
   .f-payment-intro { margin-bottom:14px; }
   .f-scenarios { gap:8px; }
@@ -1270,7 +1276,7 @@ function render() {
   </svg>`;
 
   const heroImg = photos.houseData
-    ? `<div class="f-photo" style="background-image:url('${photos.houseData}');background-size:${heroZoom};background-position:center ${crop};"></div>`
+    ? `<div class="f-photo" style="background-image:url('${photos.houseData}');background-size:${heroZoom};background-position:center ${crop};position:relative;overflow:hidden;"><img src="${photos.houseData}" class="f-photo-print-img" alt=""></div>`
     : `<div class="f-photo-ph">${camSvgLg}<span>Exterior Photo</span></div>`;
 
 
