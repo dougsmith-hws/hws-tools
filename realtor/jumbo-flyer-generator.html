@@ -1218,7 +1218,8 @@ function render() {
   const scen3 = document.getElementById('scen3').value;
   const vaFee = parseFloat(document.getElementById('vaFee').value) || 0.0215;
   const S = [scen1, scen2, scen3].map(k => calcScenario(k, price, rate, vaRate, vaFee, taxMo, hoiMo));
-  const minDown = Math.min(...S.map(c => c.down));
+  const nonZeroDowns = S.map(c => c.down).filter(d => d > 0);
+  const minDown = nonZeroDowns.length > 0 ? Math.min(...nonZeroDowns) : 0;
 
   const camSvgLg = `<svg width="52" height="44" viewBox="0 0 52 44" fill="none" xmlns="http://www.w3.org/2000/svg">
     <rect x="1.5" y="11" width="49" height="31" rx="4" stroke="white" stroke-width="2"/>
