@@ -244,41 +244,16 @@ input[type=range]::-moz-range-thumb {
   margin:0 12px; color:#9ab8cc; font-weight:300; font-size:16px;
 }
 
-/* Own-for badge — price tag shape (border-triangle, no clip-path) */
-.f-own-badge-wrap {
+/* Own-for badge — inline SVG price tag */
+.f-own-badge-svg {
   position:absolute; top:0; right:0;
-  display:flex; flex-direction:row; align-items:center;
-  filter:drop-shadow(-2px 3px 10px rgba(0,0,0,.38));
-}
-.f-own-badge-arrow {
-  box-sizing:content-box!important;
-  width:0; height:0; flex-shrink:0;
-  border-style:solid;
-  border-width:42px 22px 42px 0;
-  border-color:transparent var(--realtor-primary,#2491EB) transparent transparent;
+  filter:drop-shadow(-2px 3px 8px rgba(0,0,0,.35));
   print-color-adjust:exact;
   -webkit-print-color-adjust:exact;
 }
-.f-own-badge {
-  background:var(--realtor-primary,#2491EB);
-  color:#fff;
-  padding:10px 20px;
-  print-color-adjust:exact;
-  -webkit-print-color-adjust:exact;
-  text-align:center;
-  line-height:1.15;
-  min-width:108px;
-}
-.f-own-badge-eyebrow {
-  font-size:9px; font-weight:700; letter-spacing:2px; text-transform:uppercase;
-  opacity:.88; margin-bottom:3px;
-}
-.f-own-badge-amt {
-  font-size:24px; font-weight:900; letter-spacing:-.5px;
-}
-.f-own-badge-sub {
-  font-size:9px; font-weight:600; letter-spacing:1.5px; text-transform:uppercase;
-  opacity:.88; margin-top:2px;
+/* legacy classes kept for safety */
+.f-own-badge-eyebrow, .f-own-badge-amt, .f-own-badge-sub {
+  display:none;
 }
 
 /* Brand accent line */
@@ -413,8 +388,8 @@ input[type=range]::-moz-range-thumb {
 .f-logofb span { color:#8EC73F; }
 
 /* ── COMPLIANCE ── */
-.f-legal { background:#f6f8fa; border-top:1px solid #dce8f0; padding:5px 22px 5px; display:flex; align-items:center; gap:16px; font-size:10px; color:#8fa4b4; line-height:1.4; font-weight:400; word-spacing:0.15em; }
-.f-legal-text { flex:1; word-spacing:0.15em; letter-spacing:0.01em; }
+.f-legal { background:#f6f8fa; border-top:1px solid #dce8f0; padding:6px 22px 6px; display:flex; align-items:center; gap:16px; font-size:10.5px; color:#8fa4b4; line-height:1.55; font-weight:400; letter-spacing:0.04em; }
+.f-legal-text { flex:1; letter-spacing:0.04em; }
 .f-legal-eho { display:flex; flex-direction:row; align-items:center; gap:6px; flex-shrink:0; }
 .f-photo-print-img { display:none; }
 .f-legal-eho span { font-size:6px; color:#8fa4b4; white-space:nowrap; letter-spacing:.6px; line-height:1.4; text-transform:uppercase; font-weight:600; }
@@ -430,8 +405,7 @@ input[type=range]::-moz-range-thumb {
   .flyer { width:100%; min-height:unset; box-shadow:none; page-break-inside:avoid; }
   .f-photo, .f-photo-ph { height:3.3in; background-image:none!important; }
   .f-photo-print-img { display:block!important; position:absolute; top:0; left:0; width:100%; height:100%; object-fit:cover; }
-  .f-own-badge-arrow { border-color:transparent var(--realtor-primary,#2491EB) transparent transparent!important; }
-  .f-own-badge-wrap { filter:none; }
+  .f-own-badge-svg { filter:none; }
   .f-payment { padding:14px 24px 10px; }
   .f-payment-intro { margin-bottom:14px; }
   .f-scenarios { gap:8px; }
@@ -449,9 +423,9 @@ input[type=range]::-moz-range-thumb {
   #partner-portrait .f-hs-wrap { height:101px; width:83px; }
   #doug-portrait   .f-hs-ph   { height:101px; width:83px; }
   #partner-portrait .f-hs-ph   { height:101px; width:83px; }
-  .f-legal { font-size:10pt; font-family:Arial,Helvetica,sans-serif!important; padding:4px 18px 5px; word-spacing:0.15em; letter-spacing:0.02em; line-height:1.4; }
-  .f-legal-text { font-family:Arial,Helvetica,sans-serif!important; word-spacing:0.15em; letter-spacing:0.02em; }
-  .f-legal-eho span { letter-spacing:0.02em; word-spacing:0.1em; }
+  .f-legal { font-size:11.5pt; font-family:Arial,Helvetica,sans-serif!important; padding:6px 20px 7px; letter-spacing:0.05em; line-height:1.65; }
+  .f-legal-text { font-family:Arial,Helvetica,sans-serif!important; letter-spacing:0.05em; line-height:1.65; }
+  .f-legal-eho span { letter-spacing:0.04em; }
 }
 select.scen-sel {
   width:100%; padding:10px 12px; background:#14202f; border:1px solid #243650;
@@ -1270,6 +1244,7 @@ function render() {
   const S = [scen1, scen2, scen3].map(k => calcScenario(k, price, rate, vaRate, vaFee, taxMo, hoiMo, fhaRate));
   const nonZeroDowns = S.map(c => c.down).filter(d => d > 0);
   const minDown = nonZeroDowns.length > 0 ? Math.min(...nonZeroDowns) : 0;
+  const badgeColor = getComputedStyle(document.documentElement).getPropertyValue('--realtor-primary').trim() || '#2491EB';
 
   const camSvgLg = `<svg width="52" height="44" viewBox="0 0 52 44" fill="none" xmlns="http://www.w3.org/2000/svg">
     <rect x="1.5" y="11" width="49" height="31" rx="4" stroke="white" stroke-width="2"/>
@@ -1310,14 +1285,12 @@ function render() {
     <div class="f-hero">
       ${heroImg}
       <div class="f-overlay" style="opacity:${overlayOpacity}"></div>
-      <div class="f-own-badge-wrap">
-        <div class="f-own-badge-arrow"></div>
-        <div class="f-own-badge">
-          <div class="f-own-badge-eyebrow">Own for</div>
-          <div class="f-own-badge-amt">${$(minDown)}</div>
-          <div class="f-own-badge-sub">down</div>
-        </div>
-      </div>
+      <svg class="f-own-badge-svg" width="152" height="84" viewBox="0 0 152 84" xmlns="http://www.w3.org/2000/svg">
+        <polygon points="22,0 152,0 152,84 22,84 0,42" fill="${badgeColor}"/>
+        <text x="87" y="20" text-anchor="middle" fill="white" font-family="Arial,Helvetica,sans-serif" font-size="9" font-weight="700" letter-spacing="2">OWN FOR</text>
+        <text x="87" y="51" text-anchor="middle" fill="white" font-family="Arial,Helvetica,sans-serif" font-size="22" font-weight="900">${$(minDown)}</text>
+        <text x="87" y="72" text-anchor="middle" fill="white" font-family="Arial,Helvetica,sans-serif" font-size="9" font-weight="600" letter-spacing="1.5">DOWN</text>
+      </svg>
       <div class="f-hero-bottom">
         <div class="f-addr">
           <div class="f-city-lbl">${city}</div>
