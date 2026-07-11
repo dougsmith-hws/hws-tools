@@ -435,7 +435,9 @@ input[type=range]::-moz-range-thumb {
   #partner-portrait .f-hs-wrap { height:101px; width:83px; }
   #doug-portrait   .f-hs-ph   { height:101px; width:83px; }
   #partner-portrait .f-hs-ph   { height:101px; width:83px; }
-  .f-legal { font-size:9pt; padding:4px 18px 5px; }
+  .f-legal { font-size:7.5pt; padding:4px 18px 5px; word-spacing:0.12em; letter-spacing:normal; line-height:1.35; }
+  .f-legal-text { word-spacing:0.12em; letter-spacing:normal; }
+  .f-legal-eho span { letter-spacing:0.02em; word-spacing:0.1em; }
 }
 select.scen-sel {
   width:100%; padding:10px 12px; background:#14202f; border:1px solid #243650;
@@ -1267,8 +1269,13 @@ function render() {
     <circle cx="14" cy="14.5" r="4.5" stroke="#5880a0" stroke-width="1.5"/>
   </svg>`;
 
+  const zoomScale = (parseFloat(heroZoom) / 100).toFixed(3);
   const heroImg = photos.houseData
-    ? `<div class="f-photo" style="background-image:url('${photos.houseData}');background-size:${heroZoom};background-position:center ${crop};"></div>`
+    ? `<div class="f-photo" style="position:relative;overflow:hidden;">
+         <div style="position:absolute;inset:0;transform:scale(${zoomScale});transform-origin:center ${crop};">
+           <img src="${photos.houseData}" style="width:100%;height:100%;object-fit:cover;object-position:center ${crop};display:block;">
+         </div>
+       </div>`
     : `<div class="f-photo-ph">${camSvgLg}<span>Exterior Photo</span></div>`;
 
 
