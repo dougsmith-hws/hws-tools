@@ -877,7 +877,7 @@ function closingCost(loan, rate, taxMo, hoiMo) {
 }
 const PROGRAMS = {
   va:     { lbl:'VA ELIGIBLE', pct:0,    type:'va'   },
-  fha35:  { lbl:'FHA 3.5%',   pct:.035, type:'fha',  mmip:.0085 },
+  fha35:  { lbl:'FHA 3.5%',   pct:.035, type:'fha',  mmip:.0055 },
   conv3:  { lbl:'CONV 3%',    pct:.03,  type:'conv', annPMI:.0100 },
   conv5:  { lbl:'CONV 5%',    pct:.05,  type:'conv', annPMI:.0082 },
   conv10: { lbl:'CONV 10%',   pct:.10,  type:'conv', annPMI:.0058 },
@@ -886,7 +886,8 @@ const PROGRAMS = {
   conv25: { lbl:'CONV 25%',   pct:.25,  type:'conv', annPMI:0 },
   usda:   { lbl:'USDA',       pct:0,    type:'usda', annFee:.0035 },
 };
-function calcScenario(progKey, price, convRate, vaRate, vaFee, taxMo, hoiMo) {
+function calcScenario(progKey, price, convRate, vaRate, vaFee, taxMo, hoiMo, fhaRate) {
+  fhaRate = fhaRate || convRate;
   const prog = PROGRAMS[progKey] || PROGRAMS[Object.keys(PROGRAMS)[0]];
   const down = price * prog.pct;
   const baseLoan = price - down;
@@ -899,7 +900,7 @@ function calcScenario(progKey, price, convRate, vaRate, vaFee, taxMo, hoiMo) {
   } else if (prog.type === 'fha') {
     const ufmip = baseLoan * 0.0175;
     totalLoan = baseLoan + ufmip;
-    pi = pmt(totalLoan, convRate);
+    pi = pmt(totalLoan, fhaRate);
     monthlyMI = baseLoan * prog.mmip / 12;
     feeNote = '+1.75% UFMIP financed · ' + (prog.mmip*100).toFixed(2) + '% MIP/yr';
   } else if (prog.type === 'usda') {
@@ -1248,7 +1249,7 @@ function render() {
   const scen2 = document.getElementById('scen2').value;
   const scen3 = document.getElementById('scen3').value;
   const vaFee = parseFloat(document.getElementById('vaFee').value) || 0.0215;
-  const S = [scen1, scen2, scen3].map(k => calcScenario(k, price, rate, vaRate, vaFee, taxMo, hoiMo));
+  const S = [scen1, scen2, scen3].map(k => calcScenario(k, price, rate, vaRate, vaFee, taxMo, hoiMo, fhaRate));
   const nonZeroDowns = S.map(c => c.down).filter(d => d > 0);
   const minDown = nonZeroDowns.length > 0 ? Math.min(...nonZeroDowns) : 0;
 
