@@ -238,7 +238,7 @@ input[type=range]::-moz-range-thumb {
 }
 .f-prop-details-bar {
   display:flex; align-items:center;
-  font-size:14px; font-weight:700; color:#1a3a52; letter-spacing:1.5px; text-transform:uppercase;
+  font-size:21px; font-weight:700; color:#1a3a52; letter-spacing:1.5px; text-transform:uppercase;
 }
 .f-prop-details-sep {
   margin:0 12px; color:#9ab8cc; font-weight:300; font-size:16px;
@@ -573,16 +573,7 @@ select.scen-sel:focus { outline:none; border-color:#2491EB; }
             <option value="conv25">Conv 25%</option>
             <option value="usda">USDA (0%)</option>
           </select>
-          <select class="scen-sel" id="strat1" onchange="onStratChange(1);render()" style="margin-top:6px;">
-            <option value="Lower Cash-to-Close"  selected>Lower Cash-to-Close</option>
-            <option value="Balanced Approach">Balanced Approach</option>
-            <option value="Lower Monthly Payment">Lower Monthly Payment</option>
-            <option value="VA Advantage">VA Advantage</option>
-            <option value="custom">Custom...</option>
-          </select>
-          <div id="strat1Custom" style="display:none;margin-top:6px;">
-            <textarea id="strat1Text" rows="2" oninput="render()" class="strat-textarea" placeholder="Enter label..."></textarea>
-          </div></div>
+          </div>
         <div class="field"><label>Card 2</label>
           <select class="scen-sel" id="scen2" onchange="onScenChange();render()">
             <option value="va">VA Eligible (0%)</option>
@@ -594,17 +585,7 @@ select.scen-sel:focus { outline:none; border-color:#2491EB; }
             <option value="conv20">Conv 20%</option>
             <option value="conv25">Conv 25%</option>
             <option value="usda">USDA (0%)</option>
-          </select>
-          <select class="scen-sel" id="strat2" onchange="onStratChange(2);render()" style="margin-top:6px;">
-            <option value="Lower Cash-to-Close">Lower Cash-to-Close</option>
-            <option value="Balanced Approach"  selected>Balanced Approach</option>
-            <option value="Lower Monthly Payment">Lower Monthly Payment</option>
-            <option value="VA Advantage">VA Advantage</option>
-            <option value="custom">Custom...</option>
-          </select>
-          <div id="strat2Custom" style="display:none;margin-top:6px;">
-            <textarea id="strat2Text" rows="2" oninput="render()" class="strat-textarea" placeholder="Enter label..."></textarea>
-          </div></div>
+          </select></div>
         <div class="field"><label>Card 3</label>
           <select class="scen-sel" id="scen3" onchange="onScenChange();render()">
             <option value="va">VA Eligible (0%)</option>
@@ -616,17 +597,7 @@ select.scen-sel:focus { outline:none; border-color:#2491EB; }
             <option value="conv20" selected>Conv 20%</option>
             <option value="conv25">Conv 25%</option>
             <option value="usda">USDA (0%)</option>
-          </select>
-          <select class="scen-sel" id="strat3" onchange="onStratChange(3);render()" style="margin-top:6px;">
-            <option value="Lower Cash-to-Close">Lower Cash-to-Close</option>
-            <option value="Balanced Approach">Balanced Approach</option>
-            <option value="Lower Monthly Payment"  selected>Lower Monthly Payment</option>
-            <option value="VA Advantage">VA Advantage</option>
-            <option value="custom">Custom...</option>
-          </select>
-          <div id="strat3Custom" style="display:none;margin-top:6px;">
-            <textarea id="strat3Text" rows="2" oninput="render()" class="strat-textarea" placeholder="Enter label..."></textarea>
-          </div></div>
+          </select></div>
         <div class="field" id="vaFeeRow">
           <label>VA Funding Fee</label>
           <select class="scen-sel" id="vaFee" onchange="render()">
@@ -1278,6 +1249,7 @@ function render() {
   const scen3 = document.getElementById('scen3').value;
   const vaFee = parseFloat(document.getElementById('vaFee').value) || 0.0215;
   const S = [scen1, scen2, scen3].map(k => calcScenario(k, price, rate, vaRate, vaFee, taxMo, hoiMo));
+  const minDown = Math.min(...S.map(c => c.down));
 
   const camSvgLg = `<svg width="52" height="44" viewBox="0 0 52 44" fill="none" xmlns="http://www.w3.org/2000/svg">
     <rect x="1.5" y="11" width="49" height="31" rx="4" stroke="white" stroke-width="2"/>
@@ -1321,7 +1293,7 @@ function render() {
       <div class="f-own-badge-wrap">
         <div class="f-own-badge">
           <div class="f-own-badge-eyebrow">Own for</div>
-          <div class="f-own-badge-amt">${$(Math.min(...S.map(c=>c.down)))}</div>
+          <div class="f-own-badge-amt">${$(minDown)}</div>
           <div class="f-own-badge-sub">down</div>
         </div>
       </div>
