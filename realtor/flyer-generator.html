@@ -229,6 +229,30 @@ input[type=range]::-moz-range-thumb {
 .f-price-eyebrow { font-size:13px; font-weight:600; color:rgba(255,255,255,.75); letter-spacing:2px; text-transform:uppercase; margin-bottom:5px; }
 .f-price-num { font-size:32px; font-weight:800; color:#fff; letter-spacing:-.5px; line-height:1; }
 
+/* Own-for badge */
+.f-own-badge {
+  position:absolute; top:18px; right:18px;
+  background:var(--realtor-accent,#8EC73F);
+  color:#fff;
+  border-radius:6px;
+  padding:10px 16px;
+  text-align:center;
+  line-height:1.15;
+  box-shadow:0 3px 12px rgba(0,0,0,.35);
+  min-width:110px;
+}
+.f-own-badge-eyebrow {
+  font-size:9px; font-weight:700; letter-spacing:2px; text-transform:uppercase;
+  opacity:.88; margin-bottom:3px;
+}
+.f-own-badge-amt {
+  font-size:24px; font-weight:900; letter-spacing:-.5px;
+}
+.f-own-badge-sub {
+  font-size:9px; font-weight:600; letter-spacing:1.5px; text-transform:uppercase;
+  opacity:.88; margin-top:2px;
+}
+
 /* Brand accent line */
 .f-accent-line {
   height:3px; flex-shrink:0;
@@ -1256,6 +1280,11 @@ function render() {
     <div class="f-hero">
       ${heroImg}
       <div class="f-overlay" style="opacity:${overlayOpacity}"></div>
+      <div class="f-own-badge">
+        <div class="f-own-badge-eyebrow">Own for</div>
+        <div class="f-own-badge-amt">${$(Math.min(...S.map(c=>c.ctc)))}</div>
+        <div class="f-own-badge-sub">down</div>
+      </div>
       <div class="f-hero-bottom">
         <div class="f-addr">
           <div class="f-city-lbl">${city}</div>
