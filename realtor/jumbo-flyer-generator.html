@@ -229,23 +229,40 @@ input[type=range]::-moz-range-thumb {
 .f-price-num { font-size:32px; font-weight:800; color:#fff; letter-spacing:-.5px; line-height:1; }
 
 /* Own-for badge — price tag shape */
+/* Property details pill bar */
+.f-prop-details {
+  position:absolute; bottom:56px; left:0; right:0;
+  display:flex; justify-content:center; gap:0;
+  pointer-events:none;
+}
+.f-prop-details-bar {
+  display:flex; align-items:center; gap:0;
+  background:rgba(5,12,22,.60); backdrop-filter:blur(4px);
+  border-radius:20px; padding:5px 14px;
+  font-size:13px; font-weight:700; color:#fff; letter-spacing:.5px;
+}
+.f-prop-details-sep {
+  margin:0 10px; opacity:.4; font-weight:300;
+}
+
+/* Own-for badge — price tag shape */
+.f-own-badge-wrap {
+  position:absolute; top:0; right:0;
+  display:flex; flex-direction:column; align-items:center;
+}
+.f-own-badge-string {
+  width:1.5px; height:18px;
+  background:repeating-linear-gradient(to bottom, rgba(255,255,255,.55) 0px, rgba(255,255,255,.55) 3px, transparent 3px, transparent 6px);
+}
 .f-own-badge {
-  position:absolute; top:20px; right:0;
   background:var(--realtor-accent,#8EC73F);
   color:#fff;
-  padding:12px 22px 12px 34px;
-  clip-path:polygon(24px 0%, 100% 0%, 100% 100%, 24px 100%, 0% 50%);
+  padding:10px 20px 10px 32px;
+  clip-path:polygon(22px 0%, 100% 0%, 100% 100%, 22px 100%, 0% 50%);
   text-align:center;
   line-height:1.15;
   box-shadow:-2px 3px 14px rgba(0,0,0,.40);
   min-width:130px;
-}
-.f-own-badge::before {
-  content:'';
-  position:absolute; left:22px; top:50%; transform:translateY(-50%);
-  width:9px; height:9px; border-radius:50%;
-  background:rgba(255,255,255,.55);
-  box-shadow:0 0 0 1.5px rgba(255,255,255,.3);
 }
 .f-own-badge-eyebrow {
   font-size:9px; font-weight:700; letter-spacing:2px; text-transform:uppercase;
@@ -470,7 +487,15 @@ select.scen-sel:focus { outline:none; border-color:#2491EB; }
             onfocus="stripCurrency('price')"
             onblur="fmtCurrency('price');render()"
             oninput="render()"></div>
-        <div class="snote" style="margin-top:-6px; padding-bottom:4px;">Taxes &amp; insurance estimated automatically</div>
+        <div class="snote" style="margin-top:-6px; padding-bottom:4px;">Taxes estimated automatically · HOI excluded</div>
+        <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-top:4px;">
+          <div class="field"><label>Beds</label>
+            <input type="text" id="beds" placeholder="4" oninput="render()" style="text-align:center;"></div>
+          <div class="field"><label>Baths</label>
+            <input type="text" id="baths" placeholder="2" oninput="render()" style="text-align:center;"></div>
+          <div class="field"><label>Sq Ft</label>
+            <input type="text" id="sqft" placeholder="2,100" oninput="render()" style="text-align:center;"></div>
+        </div>
       </div>
     </div>
 
@@ -1175,6 +1200,20 @@ function render() {
   const hwsCentered = document.getElementById('hwsCentered') ? document.getElementById('hwsCentered').checked : false;
   const today = new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
 
+  const beds  = document.getElementById('beds').value.trim();
+  const baths = document.getElementById('baths').value.trim();
+  const sqft  = document.getElementById('sqft').value.trim();
+  const propDetails = (beds||baths||sqft) ? `
+    <div class="f-prop-details">
+      <div class="f-prop-details-bar">
+        ${beds  ? `<span>${beds} BD</span>` : ''}
+        ${beds && baths ? `<span class="f-prop-details-sep">|</span>` : ''}
+        ${baths ? `<span>${baths} BA</span>` : ''}
+        ${(beds||baths) && sqft ? `<span class="f-prop-details-sep">|</span>` : ''}
+        ${sqft  ? `<span>${sqft} SF</span>` : ''}
+      </div>
+    </div>` : '';
+
   const parts  = addr.split(',');
   const street = parts[0].trim();
   const city   = parts.slice(1).join(',').trim();
@@ -1226,11 +1265,15 @@ function render() {
     <div class="f-hero">
       ${heroImg}
       <div class="f-overlay" style="opacity:${overlayOpacity}"></div>
-      <div class="f-own-badge">
-        <div class="f-own-badge-eyebrow">Own for</div>
-        <div class="f-own-badge-amt">${$(Math.min(...S.map(c=>c.ctc)))}</div>
-        <div class="f-own-badge-sub">down</div>
+      <div class="f-own-badge-wrap">
+        <div class="f-own-badge-string"></div>
+        <div class="f-own-badge">
+          <div class="f-own-badge-eyebrow">Own for</div>
+          <div class="f-own-badge-amt">${Math.min(...S.map(c=>c.down))===0 ? '$0' : $(Math.min(...S.map(c=>c.down)))}</div>
+          <div class="f-own-badge-sub">down</div>
+        </div>
       </div>
+      ${propDetails}
       <div class="f-hero-bottom">
         <div class="f-addr">
           <div class="f-city-lbl">${city}</div>
