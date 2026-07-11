@@ -1238,7 +1238,7 @@ function render() {
   const scenHTML = S.map((c,i)=>`
     <div class="f-scen">
       <div>
-        <div class="f-scen-amt">${$(c.pi + c.pmi + taxMo)}</div>
+        <div class="f-scen-amt">${$(c.pi)}</div>
         <div class="f-scen-mo">per month</div>
         <div class="f-scen-support-div"></div>
         <div class="f-scen-strategy">${STRATEGY_LABELS[i]}</div>
@@ -1247,7 +1247,7 @@ function render() {
         <div class="f-scen-down">${$(c.down)} down</div>
         <div class="f-scen-down-div"></div>
         <div class="f-scen-lbl">${c.lbl}</div>
-        <div class="f-scen-support-txt">${c.pmi > 0 ? 'Incl. est. taxes + MI' : 'Incl. est. taxes'}</div>
+        <div class="f-scen-support-txt">P&amp;I only · taxes &amp; ins. not incl.</div>
       </div>
     </div>`).join('');
 
