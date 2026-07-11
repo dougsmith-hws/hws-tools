@@ -1237,11 +1237,8 @@ function render() {
     <circle cx="14" cy="14.5" r="4.5" stroke="#5880a0" stroke-width="1.5"/>
   </svg>`;
 
-  const zoomScale = (parseFloat(heroZoom) / 100).toFixed(3);
   const heroImg = photos.houseData
-    ? `<div class="f-photo" style="position:relative;overflow:hidden;">
-         <img src="${photos.houseData}" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;object-position:center ${crop};transform:scale(${zoomScale});transform-origin:center ${crop};display:block;">
-       </div>`
+    ? `<div class="f-photo" style="background-image:url('${photos.houseData}');background-size:${heroZoom};background-position:center ${crop};"></div>`
     : `<div class="f-photo-ph">${camSvgLg}<span>Exterior Photo</span></div>`;
 
 
