@@ -72,8 +72,7 @@ body { font-family: Arial, Helvetica, sans-serif; background: #d8e4ef; }
 /* Collapsible body */
 .tsec-body {
   overflow: hidden;
-  max-height: 1400px;
-  padding-bottom: 12px;
+  max-height: 1200px;
   transition: max-height .28s ease, opacity .22s ease;
   opacity: 1;
 }
@@ -194,9 +193,9 @@ input[type=range]::-moz-range-thumb {
 
 /* ── HERO — photograph first ── */
 .f-hero { position:relative; width:100%; flex-shrink:0; }
-.f-photo     { width:100%; height:4.0in; display:block; overflow:hidden; }
+.f-photo     { width:100%; height:4.4in; display:block; overflow:hidden; }
 .f-photo-ph  {
-  width:100%; height:4.0in;
+  width:100%; height:4.4in;
   background:linear-gradient(160deg,#0c1c30 0%,#152b48 55%,#0e2038 100%);
   display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px;
 }
@@ -229,6 +228,30 @@ input[type=range]::-moz-range-thumb {
 .f-price-eyebrow { font-size:13px; font-weight:600; color:rgba(255,255,255,.75); letter-spacing:2px; text-transform:uppercase; margin-bottom:5px; }
 .f-price-num { font-size:32px; font-weight:800; color:#fff; letter-spacing:-.5px; line-height:1; }
 
+/* Own-for badge */
+.f-own-badge {
+  position:absolute; top:18px; right:18px;
+  background:var(--realtor-accent,#8EC73F);
+  color:#fff;
+  border-radius:6px;
+  padding:10px 16px;
+  text-align:center;
+  line-height:1.15;
+  box-shadow:0 3px 12px rgba(0,0,0,.35);
+  min-width:110px;
+}
+.f-own-badge-eyebrow {
+  font-size:9px; font-weight:700; letter-spacing:2px; text-transform:uppercase;
+  opacity:.88; margin-bottom:3px;
+}
+.f-own-badge-amt {
+  font-size:24px; font-weight:900; letter-spacing:-.5px;
+}
+.f-own-badge-sub {
+  font-size:9px; font-weight:600; letter-spacing:1.5px; text-transform:uppercase;
+  opacity:.88; margin-top:2px;
+}
+
 /* Brand accent line */
 .f-accent-line {
   height:3px; flex-shrink:0;
@@ -236,7 +259,7 @@ input[type=range]::-moz-range-thumb {
 }
 
 /* ── PAYMENT SECTION ── */
-.f-payment { padding:30px 30px 18px; background:#fff; }
+.f-payment { padding:30px 30px 26px; background:#fff; }
 
 .f-payment-intro {
   display:flex; align-items:center; gap:16px; margin-bottom:28px;
@@ -244,7 +267,7 @@ input[type=range]::-moz-range-thumb {
 .f-pi-line { flex:1; height:1px; background:linear-gradient(to right, transparent, #d8e6f0); }
 .f-pi-line:last-child { background:linear-gradient(to left, transparent, #d8e6f0); }
 .f-pi-text {
-  font-size:19px; font-weight:700; color:var(--realtor-primary,#2491EB);
+  font-size:21px; font-weight:700; color:var(--realtor-accent,#7ab535);
   letter-spacing:2px; text-transform:uppercase; white-space:nowrap;
 }
 
@@ -300,7 +323,7 @@ input[type=range]::-moz-range-thumb {
 
 /* Rate footnote */
 .f-rate-note {
-  text-align:center; margin-top:18px; margin-bottom:4px; margin-left:auto; margin-right:auto;
+  text-align:center; margin-top:12px; margin-left:auto; margin-right:auto;
   font-size:14px; color:#8aaabb; font-weight:700; letter-spacing:1.2px; line-height:1.5; text-transform:uppercase;
 }
 
@@ -320,12 +343,11 @@ input[type=range]::-moz-range-thumb {
 
 /* ── CONTACT BAR ── */
 .f-contact {
-  display:grid; grid-template-columns:1fr 1fr 1fr;
-  align-items:center;
-  padding:16px 28px;
+  display:grid; grid-template-columns:7fr 3fr;
+  gap:18px; align-items:center; align-content:center;
+  padding:8px 22px 8px;
   border-top:none;
   flex:1;
-  gap:16px;
 }
 .f-cside { display:flex; align-items:center; gap:12px; }
 .f-cside.right { justify-self:end; }
@@ -339,9 +361,9 @@ input[type=range]::-moz-range-thumb {
 /* Portrait cells */
 #doug-portrait, #partner-portrait { display:flex; align-items:flex-start; justify-content:center; flex-shrink:0; }
 #doug-portrait   .f-hs-wrap { height:115px; width:92px;  aspect-ratio:unset; border-radius:5px; }
-#partner-portrait .f-hs-wrap { height:165px; width:132px; aspect-ratio:unset; border-radius:8px; box-shadow:0 0 0 2px #dce8f0; }
+#partner-portrait .f-hs-wrap { height:165px; width:132px; aspect-ratio:unset; border-radius:6px; }
 #doug-portrait   .f-hs-ph   { height:115px; width:92px;  aspect-ratio:unset; border-radius:5px; }
-#partner-portrait .f-hs-ph   { height:165px; width:132px; aspect-ratio:unset; border-radius:8px; }
+#partner-portrait .f-hs-ph   { height:165px; width:132px; aspect-ratio:unset; border-radius:6px; }
 
 .f-icon  { font-size:10.5px; line-height:1; display:inline-block; width:12px; text-align:center; }
 .f-cname { font-size:14px; font-weight:700; color:#0f1e30; line-height:1.1; }
@@ -361,7 +383,7 @@ input[type=range]::-moz-range-thumb {
 .f-logofb span { color:#8EC73F; }
 
 /* ── COMPLIANCE ── */
-.f-legal { background:#f6f8fa; border-top:1px solid #dce8f0; padding:5px 22px 5px; display:flex; align-items:center; gap:16px; font-size:10px; color:#8fa4b4; line-height:1.15; font-weight:400; }
+.f-legal { background:#f6f8fa; border-top:1px solid #dce8f0; padding:5px 22px 5px; display:flex; align-items:center; gap:16px; font-size:10px; color:#8fa4b4; line-height:1.55; font-weight:400; }
 .f-legal-text { flex:1; }
 .f-legal-eho { display:flex; flex-direction:row; align-items:center; gap:6px; flex-shrink:0; }
 .f-legal-eho span { font-size:6px; color:#8fa4b4; white-space:nowrap; letter-spacing:.6px; line-height:1.4; text-transform:uppercase; font-weight:600; }
@@ -375,7 +397,7 @@ input[type=range]::-moz-range-thumb {
   .flyer-panel { padding:0; background:white; display:block; }
   .app { display:block; }
   .flyer { width:100%; min-height:unset; box-shadow:none; page-break-inside:avoid; }
-  .f-photo, .f-photo-ph { height:3.3in; }
+  .f-photo, .f-photo-ph { height:3.6in; }
   .f-payment { padding:14px 24px 10px; }
   .f-payment-intro { margin-bottom:14px; }
   .f-scenarios { gap:8px; }
@@ -406,17 +428,9 @@ select.scen-sel {
 select.scen-sel:focus { outline:none; border-color:#2491EB; }
 .f-scen-feenote { font-size:7.5px; color:#8aacbe; font-weight:600; text-transform:uppercase; letter-spacing:1px; text-align:center; margin-top:3px; line-height:1.4; }
 
-.strat-textarea {
-  width:100%; padding:10px 12px; background:#14202f; border:1px solid #243650;
-  border-radius:9px; color:#e4eef8; font-size:13px; line-height:1.4;
-  resize:none; outline:none; font-family:inherit; display:block;
-}
-.strat-textarea:focus { border-color:#2491EB; background:#192c42; }
-
 </style>
 </head>
 <body>
-<a href="https://tools.homewealthsolutions.com/" id="hws-hub-btn" style="position:fixed;top:14px;right:16px;z-index:9999;background:#1c2b3a;color:rgba(255,255,255,0.9);text-decoration:none;font-size:12px;font-weight:700;padding:6px 14px;border-radius:8px;font-family:-apple-system,BlinkMacSystemFont,sans-serif;letter-spacing:0.2px;box-shadow:0 2px 8px rgba(0,0,0,0.25);">← Hub</a>
 <div class="app">
 
   <!-- ══ TOOL PANEL ══ -->
@@ -498,19 +512,6 @@ select.scen-sel:focus { outline:none; border-color:#2491EB; }
           </div>
           <div class="snote">Update alongside conventional rate</div>
         </div>
-        <div class="field"><label>Conv 30-yr Fixed (Conforming) (%)</label>
-          <div class="rrow">
-            <input type="number" id="convConfRate" value="6.44" step="0.01" oninput="render()">
-            <span class="rpct">%</span>
-          </div>
-          <div class="snote">Used when Conv 20% drops below conforming limit</div>
-        </div>
-        <div class="field"><label>Conforming Limit ($)</label>
-          <div class="rrow">
-            <input type="number" id="confLimit" value="806500" step="100" oninput="render()">
-          </div>
-          <div class="snote">2025 baseline: $806,500 — update annually</div>
-        </div>
       </div>
     </div>
 
@@ -525,18 +526,7 @@ select.scen-sel:focus { outline:none; border-color:#2491EB; }
             <option value="jumbo20">20% Down</option>
             <option value="jumbo25">25% Down</option>
             <option value="jumbo30">30% Down</option>
-            <option value="conv20conf">Conv 20% (Conforming↓)</option>
-          </select>
-          <select class="scen-sel" id="strat1" onchange="onStratChange(1);render()" style="margin-top:6px;">
-            <option value="Lower Cash-to-Close"  selected>Lower Cash-to-Close</option>
-            <option value="Balanced Approach">Balanced Approach</option>
-            <option value="Lower Monthly Payment">Lower Monthly Payment</option>
-            <option value="VA Advantage">VA Advantage</option>
-            <option value="custom">Custom...</option>
-          </select>
-          <div id="strat1Custom" style="display:none;margin-top:6px;">
-            <textarea id="strat1Text" rows="2" oninput="render()" class="strat-textarea" placeholder="Enter label..."></textarea>
-          </div></div>
+          </select></div>
         <div class="field"><label>Card 2</label>
           <select class="scen-sel" id="scen2" onchange="onScenChange();render()">
             <option value="vajumbo">VA Jumbo (0%)</option>
@@ -545,18 +535,7 @@ select.scen-sel:focus { outline:none; border-color:#2491EB; }
             <option value="jumbo20">20% Down</option>
             <option value="jumbo25">25% Down</option>
             <option value="jumbo30">30% Down</option>
-            <option value="conv20conf">Conv 20% (Conforming↓)</option>
-          </select>
-          <select class="scen-sel" id="strat2" onchange="onStratChange(2);render()" style="margin-top:6px;">
-            <option value="Lower Cash-to-Close">Lower Cash-to-Close</option>
-            <option value="Balanced Approach"  selected>Balanced Approach</option>
-            <option value="Lower Monthly Payment">Lower Monthly Payment</option>
-            <option value="VA Advantage">VA Advantage</option>
-            <option value="custom">Custom...</option>
-          </select>
-          <div id="strat2Custom" style="display:none;margin-top:6px;">
-            <textarea id="strat2Text" rows="2" oninput="render()" class="strat-textarea" placeholder="Enter label..."></textarea>
-          </div></div>
+          </select></div>
         <div class="field"><label>Card 3</label>
           <select class="scen-sel" id="scen3" onchange="onScenChange();render()">
             <option value="vajumbo">VA Jumbo (0%)</option>
@@ -565,18 +544,7 @@ select.scen-sel:focus { outline:none; border-color:#2491EB; }
             <option value="jumbo20" selected>20% Down</option>
             <option value="jumbo25">25% Down</option>
             <option value="jumbo30">30% Down</option>
-            <option value="conv20conf">Conv 20% (Conforming↓)</option>
-          </select>
-          <select class="scen-sel" id="strat3" onchange="onStratChange(3);render()" style="margin-top:6px;">
-            <option value="Lower Cash-to-Close">Lower Cash-to-Close</option>
-            <option value="Balanced Approach">Balanced Approach</option>
-            <option value="Lower Monthly Payment"  selected>Lower Monthly Payment</option>
-            <option value="VA Advantage">VA Advantage</option>
-            <option value="custom">Custom...</option>
-          </select>
-          <div id="strat3Custom" style="display:none;margin-top:6px;">
-            <textarea id="strat3Text" rows="2" oninput="render()" class="strat-textarea" placeholder="Enter label..."></textarea>
-          </div></div>
+          </select></div>
         <div class="field" id="vaFeeRow">
           <label>VA Funding Fee</label>
           <select class="scen-sel" id="vaFee" onchange="render()">
@@ -591,19 +559,6 @@ select.scen-sel:focus { outline:none; border-color:#2491EB; }
     <div class="tsec" data-sec>
       <h3 onclick="toggleSec(this)">Partner <span class="sec-chevron">▾</span></h3>
       <div class="tsec-body">
-        <div class="field" style="margin-bottom:18px;">
-          <label style="color:#8EC73F;">Brokerage Colors</label>
-          <div class="profile-row" style="margin-bottom:8px;">
-            <select id="brokerProfSel" class="profile-sel"></select>
-            <button class="profile-btn" onclick="loadBrokerageProf()" title="Load">↓</button>
-            <button class="profile-btn del" onclick="deleteBrokerageProf()" title="Delete">✕</button>
-          </div>
-          <div class="profile-row">
-            <input type="text" id="brokerProfName" placeholder="e.g. Coldwell Banker">
-            <button class="profile-btn" onclick="saveBrokerageProf()">Save</button>
-          </div>
-          <div class="snote" style="margin-top:6px;">Saves current brand colors as a reusable brokerage preset</div>
-        </div>
         <div class="field"><label>Name</label>
           <input type="text" id="pName" value="" placeholder="Partner Name" oninput="render()"></div>
         <div class="field"><label>Title / Brokerage</label>
@@ -628,7 +583,7 @@ select.scen-sel:focus { outline:none; border-color:#2491EB; }
           <label class="flabel" for="partnerLogoFile" data-key="partnerLogoData">🏢 &nbsp;Upload brokerage logo</label>
           <input type="file" id="partnerLogoFile" accept="image/*" onchange="loadImg('partnerLogoFile','partnerLogoData')"></div>
         <div class="field"><label>Logo Size — <span id="pLogoSzVal">48</span>px</label>
-          <input type="range" id="pLogoSz" min="24" max="140" value="48" step="2" style="width:100%;accent-color:#2491EB;"
+          <input type="range" id="pLogoSz" min="24" max="90" value="48" step="2" style="width:100%;accent-color:#2491EB;"
             oninput="document.getElementById('pLogoSzVal').textContent=this.value;render()"></div>
         <div class="field"><label>Logo Horizontal — <span id="pLogoXVal">0</span>px</label>
           <input type="range" id="pLogoX" min="-50" max="50" value="0" step="1" style="width:100%;accent-color:#2491EB;"
@@ -658,6 +613,15 @@ select.scen-sel:focus { outline:none; border-color:#2491EB; }
           <label class="flabel" for="dougFile" data-key="dougData" id="dougLabel">🖼 &nbsp;Replace photo</label>
           <input type="file" id="dougFile" accept="image/*" onchange="loadImg('dougFile','dougData')">
         </div>
+        <div class="field"><label>Logo Size — <span id="dLogoSzVal">36</span>px</label>
+          <input type="range" id="dLogoSz" min="24" max="90" value="36" step="2" style="width:100%;accent-color:#2491EB;"
+            oninput="document.getElementById('dLogoSzVal').textContent=this.value;render()"></div>
+        <div class="field"><label>Logo Horizontal — <span id="dLogoXVal">0</span>px</label>
+          <input type="range" id="dLogoX" min="-50" max="50" value="0" step="1" style="width:100%;accent-color:#2491EB;"
+            oninput="document.getElementById('dLogoXVal').textContent=this.value;render()"></div>
+        <div class="field"><label>Logo Vertical — <span id="dLogoYVal">0</span>px</label>
+          <input type="range" id="dLogoY" min="-24" max="24" value="0" step="1" style="width:100%;accent-color:#2491EB;"
+            oninput="document.getElementById('dLogoYVal').textContent=this.value;render()"></div>
         <div class="field"><label>Zoom — <span id="dZoomVal">100</span>%</label>
           <input type="range" id="dZoom" min="80" max="250" value="100" step="5" style="width:100%;accent-color:#2491EB;"
             oninput="document.getElementById('dZoomVal').textContent=this.value;render()"></div>
@@ -667,9 +631,23 @@ select.scen-sel:focus { outline:none; border-color:#2491EB; }
         <div class="field"><label>Vertical — <span id="dYVal">25</span>%</label>
           <input type="range" id="dY" min="0" max="100" value="25" step="1" style="width:100%;accent-color:#2491EB;"
             oninput="document.getElementById('dYVal').textContent=this.value;render()"></div>
+        <div class="field" style="margin-top:14px;">
+          <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:14px;">
+            <input type="checkbox" id="hwsCentered" onchange="render()" style="width:16px;height:16px;accent-color:#2491EB;flex-shrink:0;">
+            Center HWS credit block
+          </label>
+          <div class="snote">Toggle to compare left vs. centered alignment</div>
+        </div>
       </div>
     </div>
 
+    <div class="tsec" data-sec>
+      <h3 onclick="toggleSec(this)">Pre-App QR <span class="sec-chevron">▾</span></h3>
+      <div class="tsec-body">
+        <div class="field"><label>URL</label>
+          <input type="url" id="qrUrl" value="https://homewealthsolutions.com/#quote" oninput="render()"></div>
+      </div>
+    </div>
 
     <div class="tsec" data-sec>
       <h3 onclick="toggleSec(this)">Saved Partners <span class="sec-chevron">▾</span></h3>
@@ -723,13 +701,8 @@ select.scen-sel:focus { outline:none; border-color:#2491EB; }
         <div class="field">
           <label>Import profiles from backup</label>
           <label class="flabel" for="importFile" style="font-size:13px;">📂 &nbsp;Choose backup file</label>
-          <input type="file" id="importFile" accept=".json,application/json,text/plain" onchange="importProfiles(this)">
+          <input type="file" id="importFile" accept=".json" onchange="importProfiles(this)">
           <div class="snote" style="margin-top:6px;">Merges with existing — won't overwrite entries with the same name</div>
-        </div>
-        <div class="field" style="margin-top:8px;">
-          <label style="color:#e06060;">Reset saved data</label>
-          <button class="profile-btn del" style="width:100%;justify-content:center;" onclick="resetAllData()">🗑 &nbsp;Clear all saved profiles</button>
-          <div class="snote" style="margin-top:6px;">Permanently deletes all saved partners and properties. Export a backup first.</div>
         </div>
       </div>
     </div>
@@ -873,20 +846,18 @@ function closingCost(loan, rate, taxMo, hoiMo) {
     +hoiMo*12+loan*(rate/100)/365*15+hoiMo*3+taxMo*3;
 }
 const PROGRAMS = {
-  vajumbo:    { lbl:'VA JUMBO',  pct:0,    type:'va'        },
-  jumbo10:    { lbl:'10% DOWN',  pct:.10,  type:'conv',      annPMI:0 },
-  jumbo15:    { lbl:'15% DOWN',  pct:.15,  type:'conv',      annPMI:0 },
-  jumbo20:    { lbl:'20% DOWN',  pct:.20,  type:'conv',      annPMI:0 },
-  jumbo25:    { lbl:'25% DOWN',  pct:.25,  type:'conv',      annPMI:0 },
-  jumbo30:    { lbl:'30% DOWN',  pct:.30,  type:'conv',      annPMI:0 },
-  conv20conf: { lbl:'CONV 20%',  pct:.20,  type:'conv_conf', annPMI:0 },
+  vajumbo: { lbl:'VA JUMBO',  pct:0,    type:'va'   },
+  jumbo10: { lbl:'10% DOWN',  pct:.10,  type:'conv', annPMI:0 },
+  jumbo15: { lbl:'15% DOWN',  pct:.15,  type:'conv', annPMI:0 },
+  jumbo20: { lbl:'20% DOWN',  pct:.20,  type:'conv', annPMI:0 },
+  jumbo25: { lbl:'25% DOWN',  pct:.25,  type:'conv', annPMI:0 },
+  jumbo30: { lbl:'30% DOWN',  pct:.30,  type:'conv', annPMI:0 },
 };
 function calcScenario(progKey, price, convRate, vaRate, vaFee, taxMo, hoiMo) {
   const prog = PROGRAMS[progKey] || PROGRAMS[Object.keys(PROGRAMS)[0]];
   const down = price * prog.pct;
   const baseLoan = price - down;
   let totalLoan, pi, monthlyMI, feeNote;
-  let resolvedLbl = prog.lbl;
   if (prog.type === 'va') {
     totalLoan = baseLoan + baseLoan * vaFee;
     pi = pmt(totalLoan, vaRate);
@@ -898,16 +869,6 @@ function calcScenario(progKey, price, convRate, vaRate, vaFee, taxMo, hoiMo) {
     pi = pmt(totalLoan, convRate);
     monthlyMI = baseLoan * prog.mmip / 12;
     feeNote = '+1.75% UFMIP financed · ' + (prog.mmip*100).toFixed(2) + '% MIP/yr';
-  } else if (prog.type === 'conv_conf') {
-    const confLimit  = parseFloat(document.getElementById('confLimit')?.value) || 806500;
-    const confRate   = parseFloat(document.getElementById('convConfRate')?.value) || 6.44;
-    const isConf     = baseLoan <= confLimit;
-    const effectiveR = isConf ? confRate : convRate;
-    totalLoan  = baseLoan;
-    pi         = pmt(totalLoan, effectiveR);
-    monthlyMI  = 0;
-    feeNote    = isConf ? 'Drops to conforming conventional' : 'Still above conforming limit';
-    resolvedLbl = isConf ? 'CONV 20%' : 'JUMBO 20%';
   } else {
     totalLoan = baseLoan;
     pi = pmt(totalLoan, convRate);
@@ -915,7 +876,7 @@ function calcScenario(progKey, price, convRate, vaRate, vaFee, taxMo, hoiMo) {
     feeNote = prog.annPMI > 0 ? (prog.annPMI*100).toFixed(2) + '% PMI/yr' : '';
   }
   return {
-    lbl: resolvedLbl,
+    lbl: prog.lbl,
     down,
     baseLoan,
     totalLoan,
@@ -927,17 +888,6 @@ function calcScenario(progKey, price, convRate, vaRate, vaFee, taxMo, hoiMo) {
   };
 }
 
-function getStratLabel(n) {
-  const sel = document.getElementById('strat' + n);
-  if (!sel) return ['Lower Cash-to-Close','Balanced Approach','Lower Monthly Payment'][n-1];
-  if (sel.value === 'custom') return (document.getElementById('strat' + n + 'Text') || {}).value || '';
-  return sel.value;
-}
-function onStratChange(n) {
-  const sel = document.getElementById('strat' + n);
-  const box = document.getElementById('strat' + n + 'Custom');
-  if (sel && box) box.style.display = sel.value === 'custom' ? '' : 'none';
-}
 function onScenChange() {
   const vals = ['scen1','scen2','scen3'].map(id => document.getElementById(id).value);
   const hasVA = vals.some(v => PROGRAMS[v] && PROGRAMS[v].type === 'va');
@@ -989,17 +939,11 @@ document.addEventListener('DOMContentLoaded', () => {
   // Persist on every change
   rEl .addEventListener('input', () => localStorage.setItem('hws_rate',   rEl.value));
   vaEl.addEventListener('input', () => localStorage.setItem('hws_vaRate', vaEl.value));
-  const confRateEl = document.getElementById('convConfRate');
-  const savedConf  = localStorage.getItem('hws_confRate');
-  if (savedConf && confRateEl) confRateEl.value = savedConf;
-  confRateEl?.addEventListener('input', () => localStorage.setItem('hws_confRate', confRateEl.value));
 
   // Populate saved profile dropdowns
   fillSel('partnerProfSel',  profLoad(PROF_P), '— choose partner —');
   fillSel('propertyProfSel', profLoad(PROF_L), '— choose property —');
-  fillSel('brokerProfSel',   profLoad(PROF_B), '— choose brokerage —');
   onScenChange();
-  onStratChange(1); onStratChange(2); onStratChange(3);
 });
 
 // 1×1 transparent PNG — safe canvas-neutral placeholder for any img we can't trust
@@ -1054,7 +998,7 @@ async function savePDF() {
   // Build filename
   const rawAddr  = document.getElementById('address').value || 'Property';
   const slug     = rawAddr.split(',')[0].trim().replace(/[^a-zA-Z0-9\s]/g,'').trim().replace(/\s+/g,'-');
-  const filename = `${slug}.pdf`;
+  const filename = `PaymentScenarioFlyer-${slug}.pdf`;
   log('Starting PDF:', filename);
 
   // Lock buttons
@@ -1064,9 +1008,6 @@ async function savePDF() {
 
   // Wait for QR render and any pending async ops
   await new Promise(r => setTimeout(r, 250));
-
-  // Remove any 0×0 canvas elements — these cause html2canvas createPattern to fail
-  document.querySelectorAll('canvas').forEach(c => { if (!c.width || !c.height) c.remove(); });
 
   // ── PRE-FLIGHT: audit live DOM images ────────────────────────────────────
   log('=== PRE-FLIGHT IMAGE AUDIT (live DOM) ===');
@@ -1180,9 +1121,11 @@ function hs(key, zId, xId, yId) {
 }
 
 function logoHTML() {
-  const sz = 36;
-  const x  = 0;
-  const y  = 0;
+  // Never fall back to a raw file path — that taints the PDF canvas.
+  // If assets aren't embedded (shouldn't happen), render text fallback only.
+  const sz = document.getElementById('dLogoSz')?.value || 36;
+  const x  = document.getElementById('dLogoX')?.value  || 0;
+  const y  = document.getElementById('dLogoY')?.value  || 0;
   const tr = `transform:translate(${x}px,${y}px);`;
   if (staticAssets.logo) {
     return `<img class="f-logo" src="${staticAssets.logo}" style="height:${sz}px;${tr}"
@@ -1205,11 +1148,15 @@ function render() {
   const pLogoSz = document.getElementById('pLogoSz').value;
   const pLogoX  = document.getElementById('pLogoX').value;
   const pLogoY  = document.getElementById('pLogoY').value;
+  const dLogoSz = document.getElementById('dLogoSz').value;
+  const dLogoX  = document.getElementById('dLogoX').value;
+  const dLogoY  = document.getElementById('dLogoY').value;
   const addr  = document.getElementById('address').value||'Property Address';
   const pname = document.getElementById('pName').value||'Partner Name';
   const ptitle= document.getElementById('pTitle').value||'Realtor®';
   const pphone= document.getElementById('pPhone').value;
   const pemail= document.getElementById('pEmail').value;
+  const qr    = document.getElementById('qrUrl').value||'https://homewealthsolutions.com/#quote';
   const realtorPrimary = document.getElementById('realtorPrimary').value || '#2491EB';
   const realtorAccent  = document.getElementById('realtorAccent').value  || '#8EC73F';
   const realtorText    = document.getElementById('realtorText').value    || '#0a1520';
@@ -1218,6 +1165,7 @@ function render() {
   flyerEl.style.setProperty('--realtor-accent',  realtorAccent);
   flyerEl.style.setProperty('--realtor-text',    realtorText);
   flyerEl.style.setProperty('--realtor-primary-light', realtorPrimary + '33');
+  const hwsCentered = document.getElementById('hwsCentered') ? document.getElementById('hwsCentered').checked : false;
   const today = new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
 
   const parts  = addr.split(',');
@@ -1227,10 +1175,7 @@ function render() {
   const scen1 = document.getElementById('scen1').value;
   const scen2 = document.getElementById('scen2').value;
   const scen3 = document.getElementById('scen3').value;
-  const vaFee        = parseFloat(document.getElementById('vaFee').value) || 0.0215;
-  const convConfRate  = parseFloat(document.getElementById('convConfRate')?.value) || 6.44;
-  const confLimit     = parseFloat(document.getElementById('confLimit')?.value) || 806500;
-  const hasConvConf   = [scen1,scen2,scen3].some(s => s === 'conv20conf');
+  const vaFee = parseFloat(document.getElementById('vaFee').value) || 0.0215;
   const S = [scen1, scen2, scen3].map(k => calcScenario(k, price, rate, vaRate, vaFee, taxMo, hoiMo));
 
   const camSvgLg = `<svg width="52" height="44" viewBox="0 0 52 44" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -1252,11 +1197,11 @@ function render() {
     : `<div class="f-photo-ph">${camSvgLg}<span>Exterior Photo</span></div>`;
 
 
-  const STRATEGY_LABELS = [getStratLabel(1), getStratLabel(2), getStratLabel(3)];
+  const STRATEGY_LABELS = ['Lower Cash-to-Close','Balanced Payment Strategy','Lower Monthly Payment'];
   const scenHTML = S.map((c,i)=>`
     <div class="f-scen">
       <div>
-        <div class="f-scen-amt">${$(c.tot)}</div>
+        <div class="f-scen-amt">${$(c.pi)}</div>
         <div class="f-scen-mo">per month</div>
         <div class="f-scen-support-div"></div>
         <div class="f-scen-strategy">${STRATEGY_LABELS[i]}</div>
@@ -1265,7 +1210,7 @@ function render() {
         <div class="f-scen-down">${$(c.down)} down</div>
         <div class="f-scen-down-div"></div>
         <div class="f-scen-lbl">${c.lbl}</div>
-        <div class="f-scen-support-txt">Incl. taxes &amp; insurance</div>
+        <div class="f-scen-support-txt">P&amp;I only · taxes &amp; ins. not incl.</div>
       </div>
     </div>`).join('');
 
@@ -1274,6 +1219,11 @@ function render() {
     <div class="f-hero">
       ${heroImg}
       <div class="f-overlay" style="opacity:${overlayOpacity}"></div>
+      <div class="f-own-badge">
+        <div class="f-own-badge-eyebrow">Own for</div>
+        <div class="f-own-badge-amt">${$(Math.min(...S.map(c=>c.ctc)))}</div>
+        <div class="f-own-badge-sub">down</div>
+      </div>
       <div class="f-hero-bottom">
         <div class="f-addr">
           <div class="f-city-lbl">${city}</div>
@@ -1291,45 +1241,43 @@ function render() {
     <div class="f-payment">
       <div class="f-payment-intro">
         <div class="f-pi-line"></div>
-        <div class="f-pi-text">Payment Scenarios</div>
+        <div class="f-pi-text">Payments as Low As</div>
         <div class="f-pi-line"></div>
       </div>
       <div class="f-scenarios">${scenHTML}</div>
-      <div class="f-rate-note">
-        <div>National Average Rates</div>
-        <div style="font-size:12px;font-weight:600;letter-spacing:1px;margin-top:3px;">${hasConvConf
-          ? `VA Jumbo ${pct(vaRate)} &nbsp;&bull;&nbsp; Jumbo ${pct(rate)} &nbsp;&bull;&nbsp; Conv ${pct(convConfRate)} &nbsp;&bull;&nbsp; As of ${today}`
-          : `VA Jumbo ${pct(vaRate)} &nbsp;&bull;&nbsp; Jumbo ${pct(rate)} &nbsp;&bull;&nbsp; As of ${today}`
-        }</div>
-      </div>
+      <div class="f-rate-note">Jumbo Rates &nbsp;&bull;&nbsp; VA Jumbo ${pct(vaRate)} &nbsp;&bull;&nbsp; Jumbo ${pct(rate)} &nbsp;&bull;&nbsp; As of ${today}</div>
     </div>
 
     <div class="f-contact">
-
-      <div style="display:flex; justify-content:center; align-items:center;">
-        <div id="partner-portrait">
+      <div style="display:flex; flex-direction:row; align-items:center; align-self:stretch; justify-content:center; gap:30px;">
+        <div id="partner-portrait" style="flex-shrink:0;">
           ${hs('partnerData','pZoom','pX','pY')}
+        </div>
+        <div style="display:flex; flex-direction:column; align-items:flex-start; gap:3px; padding-top:2px;">
+          <div style="height:56px; display:flex; align-items:flex-start; overflow:visible;">
+            ${photos.partnerLogoData
+              ? `<img src="${photos.partnerLogoData}" style="height:${pLogoSz}px; width:auto; max-width:240px; object-fit:contain; display:block; transform:translate(${pLogoX}px,${pLogoY}px);">`
+              : ``}
+          </div>
+          ${pname  ? `<div class="f-cname" style="font-size:21px; line-height:1.02;">${pname}</div>` : ''}
+          ${ptitle ? `<div class="f-crole" style="font-size:11px;">${ptitle}</div>`            : ''}
+          ${pphone ? `<div class="f-crole" style="font-size:16px; line-height:1.15;">${pphone}</div>` : ''}
+          ${pemail ? `<div class="f-cline" style="font-size:13px; line-height:1.15;">${pemail}</div>` : ''}
         </div>
       </div>
 
-      <div style="display:flex; flex-direction:column; align-items:center; text-align:center; gap:4px;">
-        ${pname  ? `<div class="f-cname" style="font-size:24px; line-height:1.02;">${pname}</div>` : ''}
-        ${ptitle ? `<div class="f-crole" style="font-size:15px; color:var(--realtor-primary,#2491EB);">${ptitle}</div>` : ''}
-        ${pphone ? `<div class="f-crole" style="font-size:20px; line-height:1.15; color:var(--realtor-primary,#2491EB);">${pphone}</div>` : ''}
-        ${pemail ? `<div class="f-cline" style="font-size:16px; line-height:1.15;">${pemail}</div>` : ''}
+      <div style="display:flex; flex-direction:column; align-self:end; align-items:center; padding-left:14px; padding-right:14px; border-left:1px solid #dce5ec;">
+        <div style="font-size:7px; letter-spacing:1.4px; text-transform:uppercase; color:#8a9ab0; font-weight:700; line-height:1; margin-bottom:14px; text-align:center; width:100%;">Financing provided by</div>
+        <div style="width:100%; display:flex; justify-content:center; overflow:visible; margin-bottom:12px;">${logoHTML()}</div>
+        <div class="f-cname" style="font-size:12px; line-height:1.1; margin-bottom:3px; text-align:center; width:100%;">Doug Smith, Owner</div>
+        <div style="font-size:8px; font-weight:600; color:#8EC73F; letter-spacing:.3px; line-height:1.1; margin-bottom:8px; text-align:center; width:100%;">Certified Mortgage Advisor&reg;</div>
+        <div style="font-size:7px; color:#aabbc8; line-height:1.3; text-align:center; width:100%;">NMLS #2609118 &nbsp;|&nbsp; Co. NMLS #2742458</div>
       </div>
-
-      <div style="display:flex; justify-content:center; align-items:center;">
-        ${photos.partnerLogoData
-          ? `<img src="${photos.partnerLogoData}" style="height:${pLogoSz}px; width:auto; max-width:260px; object-fit:contain; display:block; transform:translate(${pLogoX}px,${pLogoY}px);">`
-          : ``}
-      </div>
-
     </div>
 
     <div class="f-legal">
       <div class="f-legal-text">
-        This communication is for informational and educational purposes only and does not constitute an offer to lend or a commitment to make a loan. All loans are subject to credit approval, underwriting guidelines, and property approval. Interest rates, payment examples, programs, and terms are illustrative, vary by borrower qualification, and are subject to change without notice. Not all applicants will qualify. Examples shown do not reflect all costs of a mortgage transaction. Consult a licensed tax or legal advisor regarding your individual situation. Financing estimates prepared by HomeWealth Solutions LLC, NMLS #2742458. Flyer printed on ${today}. Equal Housing Opportunity.
+        Flyer printed on ${today}. Rates and terms subject to change and underwriting approval. Payments include principal, interest, taxes, insurance, and mortgage insurance (if applicable). Payment scenarios are estimates only. Actual rate, payment, and terms may vary.
       </div>
       <div class="f-legal-eho">
         ${staticAssets.eho
@@ -1343,42 +1291,6 @@ function render() {
 }
 
 // ══ PROFILE MANAGER ═══════════════════════════════════════════════════
-
-const PROF_B = 'hws_brokerages';
-
-function snapBrokerage() {
-  return {
-    primary: document.getElementById('realtorPrimary').value,
-    accent:  document.getElementById('realtorAccent').value,
-    text:    document.getElementById('realtorText').value,
-  };
-}
-function restoreBrokerage(d) {
-  if (d.primary) document.getElementById('realtorPrimary').value = d.primary;
-  if (d.accent)  document.getElementById('realtorAccent').value  = d.accent;
-  if (d.text)    document.getElementById('realtorText').value    = d.text;
-  render();
-}
-function saveBrokerageProf() {
-  const nm = document.getElementById('brokerProfName').value.trim(); if (!nm) return;
-  const b = profLoad(PROF_B);
-  b[nm] = snapBrokerage();
-  profSave(PROF_B, b);
-  fillSel('brokerProfSel', b, '— choose brokerage —');
-  document.getElementById('brokerProfSel').value = nm;
-  document.getElementById('brokerProfName').value = '';
-}
-function loadBrokerageProf() {
-  const nm = document.getElementById('brokerProfSel').value; if (!nm) return;
-  const d = profLoad(PROF_B)[nm]; if (d) restoreBrokerage(d);
-}
-function deleteBrokerageProf() {
-  const nm = document.getElementById('brokerProfSel').value; if (!nm) return;
-  if (!confirm(`Delete brokerage "${nm}"?`)) return;
-  const b = profLoad(PROF_B); delete b[nm];
-  profSave(PROF_B, b);
-  fillSel('brokerProfSel', b, '— choose brokerage —');
-}
 
 const PROF_P = 'hws_partners';    // localStorage key for partner profiles
 const PROF_L = 'hws_listings';    // localStorage key for property/listing profiles
@@ -1413,11 +1325,12 @@ function snapPartner() {
     pLogoSz:        document.getElementById('pLogoSz').value,
     pLogoX:         document.getElementById('pLogoX').value,
     pLogoY:         document.getElementById('pLogoY').value,
-    // partnerData + partnerLogoData intentionally excluded — photos are
-    // re-uploaded per session; excluding them keeps profiles small.
+    partnerData:    photos.partnerData     || null,
+    partnerLogoData:photos.partnerLogoData || null,
     realtorPrimary: document.getElementById('realtorPrimary').value,
     realtorAccent:  document.getElementById('realtorAccent').value,
     realtorText:    document.getElementById('realtorText').value,
+    hwsCentered:    document.getElementById('hwsCentered') ? document.getElementById('hwsCentered').checked : false,
   };
 }
 function restorePartner(d) {
@@ -1433,9 +1346,12 @@ function restorePartner(d) {
   document.getElementById('pLogoSz').value=lsz; document.getElementById('pLogoSzVal').textContent=lsz;
   document.getElementById('pLogoX').value=lx;   document.getElementById('pLogoXVal').textContent=lx;
   document.getElementById('pLogoY').value=ly;   document.getElementById('pLogoYVal').textContent=ly;
+  if (d.partnerData)      photos.partnerData      = d.partnerData;
+  if (d.partnerLogoData)  photos.partnerLogoData  = d.partnerLogoData;
   if (d.realtorPrimary) document.getElementById('realtorPrimary').value = d.realtorPrimary;
   if (d.realtorAccent)  document.getElementById('realtorAccent').value  = d.realtorAccent;
   if (d.realtorText)    document.getElementById('realtorText').value    = d.realtorText;
+  if (d.hwsCentered !== undefined && document.getElementById('hwsCentered')) document.getElementById('hwsCentered').checked = d.hwsCentered;
   render();
 }
 
@@ -1451,18 +1367,10 @@ function snapProperty() {
     overlayOpacity: document.getElementById('overlayOpacity').value,
     rate:           document.getElementById('rate').value,
     vaRate:         document.getElementById('vaRate').value,
-    convConfRate:   document.getElementById('convConfRate')?.value || '6.44',
-    confLimit:      document.getElementById('confLimit')?.value    || '806500',
     scen1:          document.getElementById('scen1').value,
     scen2:          document.getElementById('scen2').value,
     scen3:          document.getElementById('scen3').value,
     vaFee:          document.getElementById('vaFee').value,
-    strat1:     document.getElementById('strat1').value,
-    strat2:     document.getElementById('strat2').value,
-    strat3:     document.getElementById('strat3').value,
-    strat1Text: document.getElementById('strat1Text').value,
-    strat2Text: document.getElementById('strat2Text').value,
-    strat3Text: document.getElementById('strat3Text').value,
   };
 }
 function restoreProperty(d) {
@@ -1474,19 +1382,11 @@ function restoreProperty(d) {
   document.getElementById('overlayOpacity').value=ov; document.getElementById('overlayVal').textContent=ov;
   if (d.rate)   { document.getElementById('rate').value=d.rate;     localStorage.setItem('hws_rate',d.rate); }
   if (d.vaRate) { document.getElementById('vaRate').value=d.vaRate; localStorage.setItem('hws_vaRate',d.vaRate); }
-  if (d.convConfRate && document.getElementById('convConfRate')) { document.getElementById('convConfRate').value=d.convConfRate; localStorage.setItem('hws_confRate',d.convConfRate); }
-  if (d.confLimit    && document.getElementById('confLimit'))    document.getElementById('confLimit').value=d.confLimit;
   if (d.houseData) photos.houseData = d.houseData;
   if (d.scen1) document.getElementById('scen1').value = d.scen1;
   if (d.scen2) document.getElementById('scen2').value = d.scen2;
   if (d.scen3) document.getElementById('scen3').value = d.scen3;
   if (d.vaFee) document.getElementById('vaFee').value = d.vaFee;
-  if (d.strat1) { document.getElementById('strat1').value = d.strat1; onStratChange(1); }
-  if (d.strat2) { document.getElementById('strat2').value = d.strat2; onStratChange(2); }
-  if (d.strat3) { document.getElementById('strat3').value = d.strat3; onStratChange(3); }
-  if (d.strat1Text) document.getElementById('strat1Text').value = d.strat1Text;
-  if (d.strat2Text) document.getElementById('strat2Text').value = d.strat2Text;
-  if (d.strat3Text) document.getElementById('strat3Text').value = d.strat3Text;
   onScenChange();
   render();
 }
@@ -1542,7 +1442,6 @@ async function exportProfiles() {
   const data = {
     partners:   profLoad(PROF_P),
     properties: profLoad(PROF_L),
-    brokerages: profLoad(PROF_B),
     exported:   new Date().toISOString()
   };
   const json = JSON.stringify(data, null, 2);
@@ -1570,13 +1469,8 @@ function importProfiles(input) {
     try {
       const data = JSON.parse(e.target.result);
       if (data.partners) {
-        const cleaned = {};
-        Object.entries(data.partners).forEach(([name, p]) => {
-          const { partnerData, partnerLogoData, ...rest } = p;
-          cleaned[name] = rest;
-        });
         const existing = profLoad(PROF_P);
-        const merged = Object.assign({}, cleaned, existing);
+        const merged = Object.assign({}, data.partners, existing);
         profSave(PROF_P, merged);
         fillSel('partnerProfSel', merged, '— choose partner —');
       }
@@ -1585,12 +1479,6 @@ function importProfiles(input) {
         const merged = Object.assign({}, data.properties, existing);
         profSave(PROF_L, merged);
         fillSel('propertyProfSel', merged, '— choose property —');
-      }
-      if (data.brokerages) {
-        const existing = profLoad(PROF_B);
-        const merged = Object.assign({}, data.brokerages, existing); // existing wins on conflict
-        profSave(PROF_B, merged);
-        fillSel('brokerProfSel', merged, '— choose brokerage —');
       }
       alert('Profiles imported successfully.');
     } catch(err) {
@@ -1602,23 +1490,13 @@ function importProfiles(input) {
 }
 
 // ── Clear all fields ─────────────────────────────────────────────────
-function resetAllData() {
-  if (!confirm('Delete ALL saved profiles? This cannot be undone. Export a backup first.')) return;
-  localStorage.removeItem(PROF_P);
-  localStorage.removeItem(PROF_L);
-  localStorage.removeItem(PROF_B);
-  fillSel('partnerProfSel',  {}, '— choose partner —');
-  fillSel('propertyProfSel', {}, '— choose property —');
-  fillSel('brokerProfSel',   {}, '— choose brokerage —');
-  alert('All saved profiles cleared. You can now re-import a backup.');
-}
-
 function clearAll() {
   if (!confirm('Clear all partner and property fields? This does not delete saved profiles.')) return;
   // Text fields
   ['pName','pTitle','pPhone','pEmail','address','price'].forEach(id => {
     const el = document.getElementById(id); if (el) el.value = '';
   });
+  document.getElementById('qrUrl').value = 'https://homewealthsolutions.com/#quote';
   // Clear photos (keep Doug's)
   photos.partnerData     = null;
   photos.partnerLogoData = null;
@@ -1656,17 +1534,11 @@ function clearAll() {
   document.getElementById('overlayVal').textContent = 85;
   // Reset scenario dropdowns to defaults
   if (document.getElementById('scen1')) onScenChange();
-  // Reset strategy labels
-  [['strat1','lcc'],['strat2','bal'],['strat3','lmp']].forEach(([id,def],i) => {
-    const el = document.getElementById(id); if (!el) return;
-    el.value = ['Lower Cash-to-Close','Balanced Approach','Lower Monthly Payment'][i];
-    onStratChange(i+1);
-  });
-  ['strat1Text','strat2Text','strat3Text'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
   // Reset brand colors to defaults
   document.getElementById('realtorPrimary').value = '#2491EB';
   document.getElementById('realtorAccent').value  = '#8EC73F';
   document.getElementById('realtorText').value    = '#0a1520';
+  if (document.getElementById('hwsCentered')) document.getElementById('hwsCentered').checked = false;
   render();
 }
 
