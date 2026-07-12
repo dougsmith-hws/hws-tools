@@ -1080,6 +1080,19 @@ async function savePDF() {
     } catch(e) {}
   });
 
+  // ── CREATEPATTERN SAFETY PATCH ───────────────────────────────────────────
+  // html2canvas 1.4.1 crashes when it passes a 0×0 canvas to createPattern.
+  // Intercept the native call and substitute a 1×1 transparent canvas so the
+  // renderer skips the bad element silently instead of throwing.
+  const _origCP = CanvasRenderingContext2D.prototype.createPattern;
+  CanvasRenderingContext2D.prototype.createPattern = function(image, rep) {
+    if (image instanceof HTMLCanvasElement && (!image.width || !image.height)) {
+      const safe = document.createElement('canvas'); safe.width = 1; safe.height = 1;
+      return _origCP.call(this, safe, rep);
+    }
+    return _origCP.call(this, image, rep);
+  };
+
   // ── PRE-FLIGHT: audit live DOM images ────────────────────────────────────
   log('=== PRE-FLIGHT IMAGE AUDIT (live DOM) ===');
   log('staticAssets.logo loaded:', !!staticAssets.logo);
