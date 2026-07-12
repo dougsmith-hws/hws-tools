@@ -1029,6 +1029,29 @@ async function savePDF() {
   // Wait for QR render and any pending async ops
   await new Promise(r => setTimeout(r, 250));
 
+  // Remove any 0×0 canvas elements — these cause html2canvas createPattern to fail
+  document.querySelectorAll('canvas').forEach(c => { if (!c.width || !c.height) c.remove(); });
+
+  // Convert any remaining canvas elements inside the flyer to <img> tags.
+  // html2canvas clones the DOM before rendering — canvas pixel data is NOT copied
+  // during cloning, so even a valid QR canvas becomes an empty canvas in the clone,
+  // which then causes createPattern to throw. Capturing the data URL now (from the
+  // live canvas) and swapping in an <img> completely avoids the issue.
+  document.querySelectorAll('#flyer canvas').forEach(c => {
+    try {
+      if (c.width > 0 && c.height > 0) {
+        const img = document.createElement('img');
+        img.src = c.toDataURL();
+        img.style.width  = c.offsetWidth  + 'px';
+        img.style.height = c.offsetHeight + 'px';
+        img.style.display = 'block';
+        c.parentNode.replaceChild(img, c);
+      } else {
+        c.remove();
+      }
+    } catch(e) { c.remove(); } // tainted canvas — just remove it
+  });
+
   // ── PRE-FLIGHT: audit live DOM images ────────────────────────────────────
   log('=== PRE-FLIGHT IMAGE AUDIT (live DOM) ===');
   log('staticAssets.logo loaded:', !!staticAssets.logo);
