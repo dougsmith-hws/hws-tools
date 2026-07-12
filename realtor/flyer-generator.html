@@ -283,7 +283,7 @@ input[type=range]::-moz-range-thumb {
 
 /* Column header */
 .f-scen-strategy { font-size:12px; font-weight:700; color:var(--realtor-primary,#3BB1ED); text-transform:uppercase; letter-spacing:1.2px; line-height:1.25; margin-top:10px; margin-bottom:3px; }
-.f-scen-lbl  { font-size:18.5px; font-weight:700; color:var(--realtor-accent,#8EC73F); text-transform:uppercase; letter-spacing:.5px; line-height:1; margin-top:3px; }
+.f-scen-lbl  { font-size:23.5px; font-weight:700; color:var(--realtor-primary,#3BB1ED); text-transform:uppercase; letter-spacing:.5px; line-height:1; margin-top:3px; }
 .f-scen-down { font-size:23.5px; font-weight:400; color:#5a7080; margin-top:5px; margin-bottom:0; letter-spacing:0; }
 
 /* Monthly payment — most dominant element */
@@ -317,7 +317,7 @@ input[type=range]::-moz-range-thumb {
 /* Rate footnote */
 .f-rate-note {
   text-align:center; margin-top:18px; margin-bottom:4px; margin-left:auto; margin-right:auto;
-  font-size:14px; color:#8aaabb; font-weight:700; letter-spacing:1.2px; line-height:1.5; text-transform:uppercase;
+  font-size:17px; color:#8aaabb; font-weight:700; letter-spacing:1.2px; line-height:1.5; text-transform:uppercase;
 }
 
 /* ── PHOTO STRIP ── */
@@ -1220,7 +1220,7 @@ function render() {
         ${beds && baths ? `<span class="f-prop-details-sep">|</span>` : ''}
         ${baths ? `<span>${baths} Baths</span>` : ''}
         ${(beds||baths) && sqft ? `<span class="f-prop-details-sep">|</span>` : ''}
-        ${sqft  ? `<span>${sqft} Sq Ft</span>` : ''}
+        ${sqft  ? `<span>${Number(sqft.replace(/,/g,'')).toLocaleString()} Sq Ft</span>` : ''}
       </div>
     </div>` : '';
 
@@ -1303,7 +1303,7 @@ function render() {
       <div class="f-scenarios">${scenHTML}</div>
       <div class="f-rate-note">
         <div>National Average Rates</div>
-        <div style="font-size:12px;font-weight:600;letter-spacing:1px;margin-top:3px;">VA ${pct(vaRate)} &nbsp;&bull;&nbsp; FHA ${pct(fhaRate)} &nbsp;&bull;&nbsp; Conv ${pct(rate)} &nbsp;&bull;&nbsp; As of ${today}</div>
+        <div style="font-size:15px;font-weight:600;letter-spacing:1px;margin-top:3px;white-space:nowrap;">${[scen1,scen2,scen3].map(k=>{const p=PROGRAMS[k];const r=p.type==='va'?pct(vaRate):p.type==='fha'?pct(fhaRate):pct(rate);return `${p.lbl} ${r}`;}).join(' &nbsp;&bull;&nbsp; ')} &nbsp;&bull;&nbsp; As of ${today}</div>
       </div>
     </div>
 
