@@ -226,8 +226,8 @@ input[type=range]::-moz-range-thumb {
 }
 
 .f-price-group { text-align:right; flex-shrink:0; }
-.f-price-eyebrow { font-size:17.5px; font-weight:600; color:rgba(255,255,255,.85); letter-spacing:2px; text-transform:uppercase; margin-bottom:5px; }
-.f-price-num { font-size:44.5px; font-weight:800; color:#fff; letter-spacing:-.5px; line-height:1; }
+.f-price-eyebrow { font-size:14.5px; font-weight:600; color:rgba(255,255,255,.75); letter-spacing:2px; text-transform:uppercase; margin-bottom:5px; }
+.f-price-num { font-size:33.5px; font-weight:800; color:#fff; letter-spacing:-.5px; line-height:1; }
 
 /* Property details strip — sits between accent line and payment section */
 .f-prop-details {
@@ -244,7 +244,29 @@ input[type=range]::-moz-range-thumb {
   margin:0 12px; color:#9ab8cc; font-weight:300; font-size:16px;
 }
 
-/* Own-for badge removed */
+/* Own-for badge — CSS clip-path arrow (html2canvas-safe) */
+.f-own-badge {
+  position:absolute; top:0; right:0;
+  width:152px; height:84px;
+  clip-path:polygon(14.5% 0%, 100% 0%, 100% 100%, 14.5% 100%, 0% 50%);
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  padding-left:22px;
+  -webkit-print-color-adjust:exact; print-color-adjust:exact;
+  font-family:Arial,Helvetica,sans-serif;
+}
+.f-own-badge-eyebrow {
+  display:block; font-size:9px; font-weight:700; color:#fff;
+  letter-spacing:2px; text-transform:uppercase; line-height:1.5;
+}
+.f-own-badge-amt {
+  display:block; font-size:22px; font-weight:900; color:#fff; line-height:1.15;
+}
+.f-own-badge-sub {
+  display:block; font-size:9px; font-weight:600; color:#fff;
+  letter-spacing:1.5px; text-transform:uppercase; line-height:1.5;
+}
+/* hide the old SVG element if it somehow survives */
+.f-own-badge-svg { display:none!important; }
 
 /* Brand accent line */
 .f-accent-line {
@@ -284,8 +306,8 @@ input[type=range]::-moz-range-thumb {
 
 /* Column header */
 .f-scen-strategy { font-size:12px; font-weight:700; color:var(--realtor-primary,#3BB1ED); text-transform:uppercase; letter-spacing:1.2px; line-height:1.25; margin-top:10px; margin-bottom:3px; }
-.f-scen-lbl  { font-size:23.5px; font-weight:700; color:var(--realtor-primary,#3BB1ED); text-transform:uppercase; letter-spacing:.5px; line-height:1; margin-top:3px; }
-.f-scen-down { font-size:23.5px; font-weight:400; color:#5a7080; margin-top:5px; margin-bottom:0; letter-spacing:0; }
+.f-scen-lbl  { font-size:15px; font-weight:700; color:var(--realtor-accent,#8EC73F); text-transform:uppercase; letter-spacing:.5px; line-height:1; margin-top:3px; }
+.f-scen-down { font-size:22px; font-weight:400; color:#5a7080; margin-top:5px; margin-bottom:0; letter-spacing:0; }
 
 /* Monthly payment — most dominant element */
 .f-scen-amt  { font-size:52.5px; font-weight:900; color:#0a1520; letter-spacing:-2px; line-height:1; margin-top:6px; }
@@ -395,14 +417,15 @@ input[type=range]::-moz-range-thumb {
   .flyer { width:100%; min-height:unset; box-shadow:none; page-break-inside:avoid; }
   .f-photo, .f-photo-ph { height:3.3in; background-image:none!important; }
   .f-photo-print-img { display:block!important; position:absolute; top:0; left:0; width:100%; height:100%; object-fit:cover; }
+  .f-own-badge-svg { filter:none; }
   .f-payment { padding:14px 24px 10px; }
   .f-payment-intro { margin-bottom:14px; }
   .f-scenarios { gap:8px; }
   .f-scen { padding:14px 12px 24px; }
   .f-scen-amt { font-size:36px; letter-spacing:-1px; }
   .f-scen-ctc { font-size:32px; letter-spacing:-.6px; }
-  .f-scen-down { font-size:20px; margin-top:4px; }
-  .f-scen-lbl { font-size:18px; }
+  .f-scen-down { font-size:16px; margin-top:4px; }
+  .f-scen-lbl { font-size:13px; }
   .f-scen-div { margin:12px 0; }
   .f-scen-ctc-l { font-size:9px; margin-bottom:5px; }
   .f-rate-note { margin-top:12px; font-size:11px; letter-spacing:1px; }
@@ -1047,6 +1070,18 @@ async function savePDF() {
   // Remove any 0×0 canvas elements — these cause html2canvas createPattern to fail
   document.querySelectorAll('canvas').forEach(c => { if (!c.width || !c.height) c.remove(); });
 
+  // ── CREATEPATTERN BACKSTOP ───────────────────────────────────────────────
+  // When served over HTTPS, gradient/overlay elements can briefly be 0×0,
+  // causing html2canvas to crash. Intercept only that case; restore after.
+  const _origCP = CanvasRenderingContext2D.prototype.createPattern;
+  CanvasRenderingContext2D.prototype.createPattern = function(image, rep) {
+    if (image instanceof HTMLCanvasElement && (!image.width || !image.height)) {
+      const safe = document.createElement('canvas'); safe.width = 1; safe.height = 1;
+      return _origCP.call(this, safe, rep);
+    }
+    return _origCP.call(this, image, rep);
+  };
+
   // ── PRE-FLIGHT: audit live DOM images ────────────────────────────────────
   log('=== PRE-FLIGHT IMAGE AUDIT (live DOM) ===');
   log('staticAssets.logo loaded:', !!staticAssets.logo);
@@ -1058,19 +1093,6 @@ async function savePDF() {
     log(`${unsafeLive} unsafe source(s) detected in live DOM — onclone will neutralize them.`);
   }
   setS('⏳ Rendering flyer…');
-
-  // ── CREATEPATTERN BACKSTOP ───────────────────────────────────────────────
-  // html2canvas can hit a 0×0 canvas on gradient/overlay elements when served
-  // over HTTPS (image loading is async, element may not have dimensions yet).
-  // This patch intercepts only the broken case and substitutes a 1×1 blank.
-  const _origCP = CanvasRenderingContext2D.prototype.createPattern;
-  CanvasRenderingContext2D.prototype.createPattern = function(image, rep) {
-    if (image instanceof HTMLCanvasElement && (!image.width || !image.height)) {
-      const safe = document.createElement('canvas'); safe.width = 1; safe.height = 1;
-      return _origCP.call(this, safe, rep);
-    }
-    return _origCP.call(this, image, rep);
-  };
 
   // ── STEP 1: html2canvas ───────────────────────────────────────────────────
   let canvas;
@@ -1119,9 +1141,6 @@ async function savePDF() {
     setS(`❌ Render failed: ${e.message} — check browser console.`, '#c05020');
     btns.forEach(b => { b.disabled = false; b.innerHTML = '⬇ &nbsp;Save as PDF'; });
     return;
-  } finally {
-    // Restore original createPattern regardless of success/failure
-    CanvasRenderingContext2D.prototype.createPattern = _origCP;
   }
 
   // ── STEP 2: canvas → data URL ─────────────────────────────────────────────
@@ -1177,9 +1196,10 @@ function hs(key, zId, xId, yId) {
   if (!photos[key]) return `<div class="f-hs-ph">👤</div>`;
   const sc=(parseFloat(document.getElementById(zId).value)/100).toFixed(2);
   const x=document.getElementById(xId).value+'%', y=document.getElementById(yId).value+'%';
-  // Use <img> with object-fit instead of background-image — html2canvas renders img tags
-  // more reliably than background-image+transform combinations
-  return `<div class="f-hs-wrap" style="overflow:hidden;"><img class="f-hs-img" src="${photos[key]}" alt="" style="width:100%;height:100%;object-fit:cover;object-position:${x} ${y};transform:scale(${sc});transform-origin:${x} ${y};display:block;"></div>`;
+  // background-size:cover on a data URL is supported by html2canvas 1.4.1;
+  // object-fit:cover on <img> is NOT — html2canvas ignores it and stretches the photo.
+  // Inner div carries the bg; outer f-hs-wrap clips via overflow:hidden.
+  return `<div class="f-hs-wrap" style="overflow:hidden;"><div style="width:100%;height:100%;background-image:url('${photos[key]}');background-size:cover;background-position:${x} ${y};transform:scale(${sc});transform-origin:${x} ${y};"></div></div>`;
 }
 
 function logoHTML() {
@@ -1292,7 +1312,11 @@ function render() {
     <div class="f-hero">
       ${heroImg}
       <div class="f-overlay" style="opacity:${overlayOpacity}"></div>
-
+      <div class="f-own-badge" style="background-color:${badgeColor}">
+        <span class="f-own-badge-eyebrow">OWN FOR</span>
+        <span class="f-own-badge-amt">${$(minDown)}</span>
+        <span class="f-own-badge-sub">DOWN</span>
+      </div>
       <div class="f-hero-bottom">
         <div class="f-addr">
           <div class="f-city-lbl">${city}</div>
