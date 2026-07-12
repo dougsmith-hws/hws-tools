@@ -1059,6 +1059,19 @@ async function savePDF() {
   }
   setS('⏳ Rendering flyer…');
 
+  // ── CREATEPATTERN BACKSTOP ───────────────────────────────────────────────
+  // html2canvas can hit a 0×0 canvas on gradient/overlay elements when served
+  // over HTTPS (image loading is async, element may not have dimensions yet).
+  // This patch intercepts only the broken case and substitutes a 1×1 blank.
+  const _origCP = CanvasRenderingContext2D.prototype.createPattern;
+  CanvasRenderingContext2D.prototype.createPattern = function(image, rep) {
+    if (image instanceof HTMLCanvasElement && (!image.width || !image.height)) {
+      const safe = document.createElement('canvas'); safe.width = 1; safe.height = 1;
+      return _origCP.call(this, safe, rep);
+    }
+    return _origCP.call(this, image, rep);
+  };
+
   // ── STEP 1: html2canvas ───────────────────────────────────────────────────
   let canvas;
   try {
@@ -1106,6 +1119,9 @@ async function savePDF() {
     setS(`❌ Render failed: ${e.message} — check browser console.`, '#c05020');
     btns.forEach(b => { b.disabled = false; b.innerHTML = '⬇ &nbsp;Save as PDF'; });
     return;
+  } finally {
+    // Restore original createPattern regardless of success/failure
+    CanvasRenderingContext2D.prototype.createPattern = _origCP;
   }
 
   // ── STEP 2: canvas → data URL ─────────────────────────────────────────────
