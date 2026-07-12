@@ -1252,8 +1252,9 @@ function render() {
     <circle cx="14" cy="14.5" r="4.5" stroke="#5880a0" stroke-width="1.5"/>
   </svg>`;
 
+  const _hzScale = (parseFloat(document.getElementById('heroZoom').value) / 100).toFixed(2);
   const heroImg = photos.houseData
-    ? `<div class="f-photo" style="background-image:url('${photos.houseData}');background-size:${heroZoom};background-position:center ${crop};position:relative;overflow:hidden;"><img src="${photos.houseData}" class="f-photo-print-img" alt=""></div>`
+    ? `<div class="f-photo" style="position:relative;overflow:hidden;"><img src="${photos.houseData}" loading="eager" alt="" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;object-position:center ${crop};transform:scale(${_hzScale});transform-origin:center;display:block;"></div>`
     : `<div class="f-photo-ph">${camSvgLg}<span>Exterior Photo</span></div>`;
 
 
