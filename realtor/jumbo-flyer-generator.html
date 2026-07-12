@@ -1049,7 +1049,19 @@ async function savePDF() {
       } else {
         c.remove();
       }
-    } catch(e) { c.remove(); } // tainted canvas — just remove it
+    } catch(e) { c.remove(); }
+  });
+
+  // ── GRADIENT SAFETY FIX ──────────────────────────────────────────────────
+  // html2canvas 1.4.1 crashes with createPattern when it encounters a
+  // linear-gradient background on an element with 0 computed width or height.
+  el.querySelectorAll('*').forEach(elem => {
+    try {
+      if (elem.offsetWidth === 0 || elem.offsetHeight === 0) {
+        const bg = window.getComputedStyle(elem).backgroundImage;
+        if (bg && bg !== 'none') elem.style.backgroundImage = 'none';
+      }
+    } catch(e) {}
   });
 
   // ── PRE-FLIGHT: audit live DOM images ────────────────────────────────────

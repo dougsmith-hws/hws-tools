@@ -1047,11 +1047,9 @@ async function savePDF() {
   // Remove any 0×0 canvas elements — these cause html2canvas createPattern to fail
   document.querySelectorAll('canvas').forEach(c => { if (!c.width || !c.height) c.remove(); });
 
-  // Convert any remaining canvas elements inside the flyer to <img> tags.
+  // Convert any canvas elements inside the flyer to <img> tags.
   // html2canvas clones the DOM before rendering — canvas pixel data is NOT copied
-  // during cloning, so even a valid QR canvas becomes an empty canvas in the clone,
-  // which then causes createPattern to throw. Capturing the data URL now (from the
-  // live canvas) and swapping in an <img> completely avoids the issue.
+  // during cloning, so a valid canvas becomes empty in the clone and createPattern throws.
   document.querySelectorAll('#flyer canvas').forEach(c => {
     try {
       if (c.width > 0 && c.height > 0) {
@@ -1064,7 +1062,22 @@ async function savePDF() {
       } else {
         c.remove();
       }
-    } catch(e) { c.remove(); } // tainted canvas — just remove it
+    } catch(e) { c.remove(); }
+  });
+
+  // ── GRADIENT SAFETY FIX ──────────────────────────────────────────────────
+  // html2canvas 1.4.1 crashes with createPattern when it encounters a
+  // linear-gradient background on an element with 0 computed width or height
+  // (e.g. 1px-tall flex dividers that haven't settled layout yet).
+  // Strip the background-image from any zero-dimension element so html2canvas
+  // never tries to createPattern on a 0×0 canvas.
+  el.querySelectorAll('*').forEach(elem => {
+    try {
+      if (elem.offsetWidth === 0 || elem.offsetHeight === 0) {
+        const bg = window.getComputedStyle(elem).backgroundImage;
+        if (bg && bg !== 'none') elem.style.backgroundImage = 'none';
+      }
+    } catch(e) {}
   });
 
   // ── PRE-FLIGHT: audit live DOM images ────────────────────────────────────
