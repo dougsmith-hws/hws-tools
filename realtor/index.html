@@ -25,7 +25,7 @@ body { font-family: Arial, Helvetica, sans-serif; background: #d8e4ef; }
   text-align: center;
 }
 .tool-logo {
-  font-size: 26px; font-weight: 800; color: #2491EB;
+  font-size: 26px; font-weight: 800; color: #3BB1ED;
   letter-spacing: -.5px; line-height: 1.15;
 }
 .tool-sub {
@@ -98,7 +98,7 @@ body { font-family: Arial, Helvetica, sans-serif; background: #d8e4ef; }
   color: #e4eef8; font-size: 15px; line-height: 1;
   transition: border-color .15s, background .15s;
 }
-.field input:focus { outline: none; border-color: #2491EB; background: #192c42; }
+.field input:focus { outline: none; border-color: #3BB1ED; background: #192c42; }
 
 /* Rate row */
 .rrow { display: flex; gap: 8px; align-items: center; }
@@ -120,9 +120,9 @@ body { font-family: Arial, Helvetica, sans-serif; background: #d8e4ef; }
   transition: border-color .18s, color .18s, background .18s;
   user-select: none;
 }
-.flabel:hover    { border-color: #2491EB; color: #c8d8ea; background: #192c42; }
+.flabel:hover    { border-color: #3BB1ED; color: #c8d8ea; background: #192c42; }
 .flabel.drag-over {
-  border-color: #2491EB; border-style: solid;
+  border-color: #3BB1ED; border-style: solid;
   background: #1a2f48; color: #c8d8ea;
   transform: scale(1.01);
 }
@@ -154,7 +154,7 @@ select.profile-sel {
   background-repeat:no-repeat; background-position:right 12px center;
   padding-right:32px;
 }
-select.profile-sel:focus { outline:none; border-color:#2491EB; }
+select.profile-sel:focus { outline:none; border-color:#3BB1ED; }
 
 /* Sliders */
 input[type=range] {
@@ -165,21 +165,21 @@ input[type=range] {
 input[type=range]::-webkit-slider-thumb {
   -webkit-appearance: none; appearance: none;
   width: 24px; height: 24px; border-radius: 50%;
-  background: #2491EB; cursor: pointer; border: 3px solid #0e1826;
+  background: #3BB1ED; cursor: pointer; border: 3px solid #0e1826;
   box-shadow: 0 2px 8px rgba(0,0,0,.5);
   transition: background .15s, transform .1s;
 }
 input[type=range]::-webkit-slider-thumb:hover { background: #3aa8ff; transform: scale(1.1); }
 input[type=range]::-moz-range-thumb {
   width: 24px; height: 24px; border-radius: 50%;
-  background: #2491EB; cursor: pointer; border: 3px solid #0e1826;
+  background: #3BB1ED; cursor: pointer; border: 3px solid #0e1826;
   box-shadow: 0 2px 8px rgba(0,0,0,.5);
 }
 
 /* ══ FLYER PANEL ══ */
 .flyer-panel { flex:1; padding:28px; display:flex; flex-direction:column; align-items:center; overflow-x:auto; }
 .btn-bar { width:8.5in; display:flex; justify-content:flex-end; margin-bottom:14px; }
-.save-btn { padding:12px 28px; background:#2491EB; color:#fff; border:none; border-radius:6px; cursor:pointer; font-size:15px; font-weight:700; box-shadow:0 4px 14px rgba(36,145,235,.35); }
+.save-btn { padding:12px 28px; background:#3BB1ED; color:#fff; border:none; border-radius:6px; cursor:pointer; font-size:15px; font-weight:700; box-shadow:0 4px 14px rgba(36,145,235,.35); }
 .save-btn:hover { background:#1a7acc; }
 
 /* ══════════════════════════════════════
@@ -219,15 +219,15 @@ input[type=range]::-moz-range-thumb {
   padding:20px 24px;
 }
 .f-addr { flex:0 1 auto; max-width:58%; min-width:0; }
-.f-city-lbl { font-size:13px; font-weight:600; color:rgba(255,255,255,.80); letter-spacing:2px; text-transform:uppercase; margin-bottom:4px; }
+.f-city-lbl { font-size:15px; font-weight:600; color:rgba(255,255,255,.80); letter-spacing:2px; text-transform:uppercase; margin-bottom:4px; }
 .f-street   {
   font-size:30px; font-weight:700; color:#fff; letter-spacing:-.3px; line-height:1.15;
   display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;
 }
 
 .f-price-group { text-align:right; flex-shrink:0; }
-.f-price-eyebrow { font-size:14.5px; font-weight:600; color:rgba(255,255,255,.75); letter-spacing:2px; text-transform:uppercase; margin-bottom:5px; }
-.f-price-num { font-size:33.5px; font-weight:800; color:#fff; letter-spacing:-.5px; line-height:1; }
+.f-price-eyebrow { font-size:17.5px; font-weight:600; color:rgba(255,255,255,.75); letter-spacing:2px; text-transform:uppercase; margin-bottom:5px; }
+.f-price-num { font-size:44.5px;font-weight:800; color:#fff; letter-spacing:-.5px; line-height:1; }
 
 /* Property details strip — sits between accent line and payment section */
 .f-prop-details {
@@ -244,22 +244,11 @@ input[type=range]::-moz-range-thumb {
   margin:0 12px; color:#9ab8cc; font-weight:300; font-size:16px;
 }
 
-/* Own-for badge — inline SVG price tag */
-.f-own-badge-svg {
-  position:absolute; top:0; right:0;
-  filter:drop-shadow(-2px 3px 8px rgba(0,0,0,.35));
-  print-color-adjust:exact;
-  -webkit-print-color-adjust:exact;
-}
-/* legacy classes kept for safety */
-.f-own-badge-eyebrow, .f-own-badge-amt, .f-own-badge-sub {
-  display:none;
-}
 
 /* Brand accent line */
 .f-accent-line {
   height:3px; flex-shrink:0;
-  background:linear-gradient(to right, #1a7acc 0%, #2491EB 40%, #4ab0ff 100%);
+  background:linear-gradient(to right, #1a8bcc 0%, #3BB1ED 40%, #5ac0ff 100%);
 }
 
 /* ── PAYMENT SECTION ── */
@@ -271,7 +260,7 @@ input[type=range]::-moz-range-thumb {
 .f-pi-line { flex:1; height:1px; background:linear-gradient(to right, transparent, #d8e6f0); }
 .f-pi-line:last-child { background:linear-gradient(to left, transparent, #d8e6f0); }
 .f-pi-text {
-  font-size:21px; font-weight:700; color:var(--realtor-primary,#2491EB);
+  font-size:22px; font-weight:700; color:var(--realtor-primary,#3BB1ED);
   letter-spacing:2px; text-transform:uppercase; white-space:nowrap;
 }
 
@@ -293,14 +282,14 @@ input[type=range]::-moz-range-thumb {
 }
 
 /* Column header */
-.f-scen-strategy { font-size:12px; font-weight:700; color:var(--realtor-primary,#2491EB); text-transform:uppercase; letter-spacing:1.2px; line-height:1.25; margin-top:10px; margin-bottom:3px; }
-.f-scen-lbl  { font-size:15px; font-weight:700; color:var(--realtor-accent,#8EC73F); text-transform:uppercase; letter-spacing:.5px; line-height:1; margin-top:3px; }
-.f-scen-down { font-size:22px; font-weight:400; color:#5a7080; margin-top:5px; margin-bottom:0; letter-spacing:0; }
+.f-scen-strategy { font-size:12px; font-weight:700; color:var(--realtor-primary,#3BB1ED); text-transform:uppercase; letter-spacing:1.2px; line-height:1.25; margin-top:10px; margin-bottom:3px; }
+.f-scen-lbl  { font-size:18.5px; font-weight:700; color:var(--realtor-accent,#8EC73F); text-transform:uppercase; letter-spacing:.5px; line-height:1; margin-top:3px; }
+.f-scen-down { font-size:23.5px; font-weight:400; color:#5a7080; margin-top:5px; margin-bottom:0; letter-spacing:0; }
 
 /* Monthly payment — most dominant element */
 .f-scen-amt  { font-size:52.5px; font-weight:900; color:#0a1520; letter-spacing:-2px; line-height:1; margin-top:6px; }
 .f-scen-mo   {
-  font-size:12px; font-weight:700; color:#8aacbe; margin-top:7px;
+  font-size:13.5px; font-weight:700; color:#8aacbe; margin-top:7px;
   text-transform:uppercase; letter-spacing:2px;
 }
 
@@ -321,7 +310,7 @@ input[type=range]::-moz-range-thumb {
   background:linear-gradient(to right, transparent, #b8ccd8 35%, #b8ccd8 65%, transparent);
 }
 .f-scen-support-txt {
-  font-size:8.5px; color:#8aacbe; font-weight:600;
+  font-size:12px; color:#8aacbe; font-weight:600;
   text-transform:uppercase; letter-spacing:1.4px; text-align:center;
 }
 
@@ -384,12 +373,12 @@ input[type=range]::-moz-range-thumb {
 .f-qr-lbl { font-size:13px; color:#8a9ab0; text-align:center; font-weight:700; text-transform:uppercase; letter-spacing:.8px; max-width:112px; line-height:1.5; }
 
 .f-logo   { height:48px; object-fit:contain; margin-bottom:3px; display:block; margin-left:auto; margin-right:auto; }
-.f-logofb { font-size:13px; font-weight:700; color:#2491EB; margin-bottom:4px; display:block; }
+.f-logofb { font-size:13px; font-weight:700; color:#3BB1ED; margin-bottom:4px; display:block; }
 .f-logofb span { color:#8EC73F; }
 
 /* ── COMPLIANCE ── */
-.f-legal { background:#f6f8fa; border-top:1px solid #dce8f0; padding:6px 22px 6px; display:flex; align-items:center; gap:16px; font-size:10.5px; color:#8fa4b4; line-height:1.55; font-weight:400; letter-spacing:0.04em; }
-.f-legal-text { flex:1; letter-spacing:0.04em; }
+.f-legal { background:#f6f8fa; border-top:1px solid #dce8f0; padding:6px 22px 6px; display:flex; align-items:center; gap:16px; font-size:10.5px; color:#8fa4b4; line-height:1.3; font-weight:400; letter-spacing:0.01em; word-spacing:1.2px; }
+.f-legal-text { flex:1; letter-spacing:0.01em; word-spacing:1.2px; word-break:normal; overflow-wrap:break-word; }
 .f-legal-eho { display:flex; flex-direction:row; align-items:center; gap:6px; flex-shrink:0; }
 .f-photo-print-img { display:none; }
 .f-legal-eho span { font-size:6px; color:#8fa4b4; white-space:nowrap; letter-spacing:.6px; line-height:1.4; text-transform:uppercase; font-weight:600; }
@@ -405,7 +394,6 @@ input[type=range]::-moz-range-thumb {
   .flyer { width:100%; min-height:unset; box-shadow:none; page-break-inside:avoid; }
   .f-photo, .f-photo-ph { height:3.3in; background-image:none!important; }
   .f-photo-print-img { display:block!important; position:absolute; top:0; left:0; width:100%; height:100%; object-fit:cover; }
-  .f-own-badge-svg { filter:none; }
   .f-payment { padding:14px 24px 10px; }
   .f-payment-intro { margin-bottom:14px; }
   .f-scenarios { gap:8px; }
@@ -423,9 +411,10 @@ input[type=range]::-moz-range-thumb {
   #partner-portrait .f-hs-wrap { height:101px; width:83px; }
   #doug-portrait   .f-hs-ph   { height:101px; width:83px; }
   #partner-portrait .f-hs-ph   { height:101px; width:83px; }
-  .f-legal { font-size:11.5pt; font-family:Arial,Helvetica,sans-serif!important; padding:6px 20px 7px; letter-spacing:0.05em; line-height:1.65; }
-  .f-legal-text { font-family:Arial,Helvetica,sans-serif!important; letter-spacing:0.05em; line-height:1.65; }
+  .f-legal { font-size:6.5pt; line-height:1.3; word-spacing:0.8px; word-break:normal; overflow-wrap:break-word; white-space:normal; overflow:visible; height:auto; font-family:Arial,Helvetica,sans-serif!important; padding:6px 20px 7px; }
+  .f-legal-text { font-size:6.5pt; line-height:1.3; font-family:Arial,Helvetica,sans-serif!important; }
   .f-legal-eho span { letter-spacing:0.04em; }
+  .f-hs-img { image-rendering:-webkit-optimize-contrast; image-rendering:crisp-edges; }
 }
 select.scen-sel {
   width:100%; padding:10px 12px; background:#14202f; border:1px solid #243650;
@@ -435,7 +424,7 @@ select.scen-sel {
   background-repeat:no-repeat; background-position:right 12px center;
   padding-right:32px;
 }
-select.scen-sel:focus { outline:none; border-color:#2491EB; }
+select.scen-sel:focus { outline:none; border-color:#3BB1ED; }
 .f-scen-feenote { font-size:7.5px; color:#8aacbe; font-weight:600; text-transform:uppercase; letter-spacing:1px; text-align:center; margin-top:3px; line-height:1.4; }
 
 .strat-textarea {
@@ -443,7 +432,7 @@ select.scen-sel:focus { outline:none; border-color:#2491EB; }
   border-radius:9px; color:#e4eef8; font-size:13px; line-height:1.4;
   resize:none; outline:none; font-family:inherit; display:block;
 }
-.strat-textarea:focus { border-color:#2491EB; background:#192c42; }
+.strat-textarea:focus { border-color:#3BB1ED; background:#192c42; }
 
 </style>
 </head>
@@ -501,19 +490,19 @@ select.scen-sel:focus { outline:none; border-color:#2491EB; }
           <input type="file" id="houseFile" accept="image/*" onchange="loadImg('houseFile','houseData')"></div>
         <div class="field"><label>Zoom — <span id="heroZoomVal">120</span>%</label>
           <input type="range" id="heroZoom" min="80" max="250" value="120" step="5"
-            style="width:100%;accent-color:#2491EB;"
+            style="width:100%;accent-color:#3BB1ED;"
             oninput="document.getElementById('heroZoomVal').textContent=this.value;render()">
           <div class="snote">higher = zoom in &nbsp;·&nbsp; lower = zoom out</div>
         </div>
         <div class="field"><label>Crop — <span id="cropVal">62</span>%</label>
           <input type="range" id="photoCrop" min="0" max="100" value="62" step="1"
-            style="width:100%;accent-color:#2491EB;"
+            style="width:100%;accent-color:#3BB1ED;"
             oninput="document.getElementById('cropVal').textContent=this.value;render()">
           <div class="snote">lower = more sky &nbsp;·&nbsp; ~60–70% favors structure</div>
         </div>
         <div class="field"><label>Overlay Darkness — <span id="overlayVal">85</span>%</label>
           <input type="range" id="overlayOpacity" min="0" max="100" value="85" step="5"
-            style="width:100%;accent-color:#2491EB;"
+            style="width:100%;accent-color:#3BB1ED;"
             oninput="document.getElementById('overlayVal').textContent=this.value;render()">
           <div class="snote">lower = brighter photo &nbsp;·&nbsp; raise if text is hard to read</div>
         </div>
@@ -626,7 +615,7 @@ select.scen-sel:focus { outline:none; border-color:#2491EB; }
         <div class="field"><label>Brand Colors</label>
           <div style="display:flex;gap:12px;align-items:flex-end;margin-top:2px;">
             <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
-              <input type="color" id="realtorPrimary" value="#2491EB" oninput="render()" title="Primary" style="width:44px;height:36px;border:1.5px solid #243650;border-radius:6px;cursor:pointer;padding:2px;background:#14202f;">
+              <input type="color" id="realtorPrimary" value="#3BB1ED" oninput="render()" title="Primary" style="width:44px;height:36px;border:1.5px solid #243650;border-radius:6px;cursor:pointer;padding:2px;background:#14202f;">
               <span style="font-size:10px;color:#7a9ab8;font-weight:600;">Primary</span></div>
             <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
               <input type="color" id="realtorAccent" value="#8EC73F" oninput="render()" title="Accent" style="width:44px;height:36px;border:1.5px solid #243650;border-radius:6px;cursor:pointer;padding:2px;background:#14202f;">
@@ -639,25 +628,25 @@ select.scen-sel:focus { outline:none; border-color:#2491EB; }
           <label class="flabel" for="partnerLogoFile" data-key="partnerLogoData">🏢 &nbsp;Upload brokerage logo</label>
           <input type="file" id="partnerLogoFile" accept="image/*" onchange="loadImg('partnerLogoFile','partnerLogoData')"></div>
         <div class="field"><label>Logo Size — <span id="pLogoSzVal">48</span>px</label>
-          <input type="range" id="pLogoSz" min="24" max="160" value="56" step="2" style="width:100%;accent-color:#2491EB;"
+          <input type="range" id="pLogoSz" min="24" max="160" value="56" step="2" style="width:100%;accent-color:#3BB1ED;"
             oninput="document.getElementById('pLogoSzVal').textContent=this.value;render()"></div>
         <div class="field"><label>Logo Horizontal — <span id="pLogoXVal">0</span>px</label>
-          <input type="range" id="pLogoX" min="-50" max="50" value="0" step="1" style="width:100%;accent-color:#2491EB;"
+          <input type="range" id="pLogoX" min="-50" max="50" value="0" step="1" style="width:100%;accent-color:#3BB1ED;"
             oninput="document.getElementById('pLogoXVal').textContent=this.value;render()"></div>
         <div class="field"><label>Logo Vertical — <span id="pLogoYVal">0</span>px</label>
-          <input type="range" id="pLogoY" min="-24" max="24" value="0" step="1" style="width:100%;accent-color:#2491EB;"
+          <input type="range" id="pLogoY" min="-24" max="24" value="0" step="1" style="width:100%;accent-color:#3BB1ED;"
             oninput="document.getElementById('pLogoYVal').textContent=this.value;render()"></div>
         <div class="field"><label>Headshot Photo</label>
           <label class="flabel" for="partnerFile" data-key="partnerData">👤 &nbsp;Upload or drop photo</label>
           <input type="file" id="partnerFile" accept="image/*" onchange="loadImg('partnerFile','partnerData')"></div>
         <div class="field"><label>Zoom — <span id="pZoomVal">120</span>%</label>
-          <input type="range" id="pZoom" min="80" max="250" value="120" step="5" style="width:100%;accent-color:#2491EB;"
+          <input type="range" id="pZoom" min="80" max="250" value="120" step="5" style="width:100%;accent-color:#3BB1ED;"
             oninput="document.getElementById('pZoomVal').textContent=this.value;render()"></div>
         <div class="field"><label>Horizontal — <span id="pXVal">50</span>%</label>
-          <input type="range" id="pX" min="0" max="100" value="50" step="1" style="width:100%;accent-color:#2491EB;"
+          <input type="range" id="pX" min="0" max="100" value="50" step="1" style="width:100%;accent-color:#3BB1ED;"
             oninput="document.getElementById('pXVal').textContent=this.value;render()"></div>
         <div class="field"><label>Vertical — <span id="pYVal">30</span>%</label>
-          <input type="range" id="pY" min="0" max="100" value="30" step="1" style="width:100%;accent-color:#2491EB;"
+          <input type="range" id="pY" min="0" max="100" value="30" step="1" style="width:100%;accent-color:#3BB1ED;"
             oninput="document.getElementById('pYVal').textContent=this.value;render()"></div>
       </div>
     </div>
@@ -804,7 +793,7 @@ function compressImg(dataUrl, key, cb) {
     c.getContext('2d').drawImage(img, 0, 0, w, h);
     let out;
     try {
-      out = isLogo ? c.toDataURL('image/png') : c.toDataURL('image/jpeg', 0.72);
+      out = isLogo ? c.toDataURL('image/png') : c.toDataURL('image/jpeg', 0.88);
       if (isLogo && out.length > 120000) out = c.toDataURL('image/jpeg', 0.85); // logo was really a photo
     } catch (err) { out = dataUrl; }
     cb(out);
@@ -1172,7 +1161,9 @@ function hs(key, zId, xId, yId) {
   if (!photos[key]) return `<div class="f-hs-ph">👤</div>`;
   const sc=(parseFloat(document.getElementById(zId).value)/100).toFixed(2);
   const x=document.getElementById(xId).value+'%', y=document.getElementById(yId).value+'%';
-  return `<div class="f-hs-wrap"><div style="width:100%;height:100%;background-image:url('${photos[key]}');background-size:cover;background-position:${x} ${y};transform:scale(${sc});transform-origin:${x} ${y};"></div></div>`;
+  // Use <img> with object-fit instead of background-image — html2canvas renders img tags
+  // more reliably than background-image+transform combinations
+  return `<div class="f-hs-wrap" style="overflow:hidden;"><img class="f-hs-img" src="${photos[key]}" alt="" loading="eager" style="width:100%;height:100%;object-fit:cover;object-position:${x} ${y};transform:scale(${sc});transform-origin:${x} ${y};display:block;"></div>`;
 }
 
 function logoHTML() {
@@ -1207,7 +1198,7 @@ function render() {
   const ptitle= document.getElementById('pTitle').value||'Realtor®';
   const pphone= document.getElementById('pPhone').value;
   const pemail= document.getElementById('pEmail').value;
-  const realtorPrimary = document.getElementById('realtorPrimary').value || '#2491EB';
+  const realtorPrimary = document.getElementById('realtorPrimary').value || '#3BB1ED';
   const realtorAccent  = document.getElementById('realtorAccent').value  || '#8EC73F';
   const realtorText    = document.getElementById('realtorText').value    || '#0a1520';
   const flyerEl = document.getElementById('flyer');
@@ -1244,7 +1235,8 @@ function render() {
   const S = [scen1, scen2, scen3].map(k => calcScenario(k, price, rate, vaRate, vaFee, taxMo, hoiMo, fhaRate));
   const nonZeroDowns = S.map(c => c.down).filter(d => d > 0);
   const minDown = nonZeroDowns.length > 0 ? Math.min(...nonZeroDowns) : 0;
-  const badgeColor = getComputedStyle(document.documentElement).getPropertyValue('--realtor-primary').trim() || '#2491EB';
+  const badgeColor = getComputedStyle(document.documentElement).getPropertyValue('--realtor-primary').trim() || '#3BB1ED';
+
 
   const camSvgLg = `<svg width="52" height="44" viewBox="0 0 52 44" fill="none" xmlns="http://www.w3.org/2000/svg">
     <rect x="1.5" y="11" width="49" height="31" rx="4" stroke="white" stroke-width="2"/>
@@ -1285,12 +1277,6 @@ function render() {
     <div class="f-hero">
       ${heroImg}
       <div class="f-overlay" style="opacity:${overlayOpacity}"></div>
-      <svg class="f-own-badge-svg" width="152" height="84" viewBox="0 0 152 84" xmlns="http://www.w3.org/2000/svg">
-        <polygon points="22,0 152,0 152,84 22,84 0,42" fill="${badgeColor}"/>
-        <text x="87" y="20" text-anchor="middle" fill="white" font-family="Arial,Helvetica,sans-serif" font-size="9" font-weight="700" letter-spacing="2">OWN FOR</text>
-        <text x="87" y="51" text-anchor="middle" fill="white" font-family="Arial,Helvetica,sans-serif" font-size="22" font-weight="900">${$(minDown)}</text>
-        <text x="87" y="72" text-anchor="middle" fill="white" font-family="Arial,Helvetica,sans-serif" font-size="9" font-weight="600" letter-spacing="1.5">DOWN</text>
-      </svg>
       <div class="f-hero-bottom">
         <div class="f-addr">
           <div class="f-city-lbl">${city}</div>
@@ -1329,10 +1315,10 @@ function render() {
       </div>
 
       <div style="display:flex; flex-direction:column; align-items:center; text-align:center; gap:4px;">
-        ${pname  ? `<div class="f-cname" style="font-size:24px; line-height:1.02;">${pname}</div>` : ''}
-        ${ptitle ? `<div class="f-crole" style="font-size:15px; color:var(--realtor-primary,#2491EB);">${ptitle}</div>` : ''}
-        ${pphone ? `<div class="f-crole" style="font-size:20px; line-height:1.15; color:var(--realtor-primary,#2491EB);">${pphone}</div>` : ''}
-        ${pemail ? `<div class="f-cline" style="font-size:16px; line-height:1.15;">${pemail}</div>` : ''}
+        ${pname  ? `<div class="f-cname" style="font-size:26px; line-height:1.02;">${pname}</div>` : ''}
+        ${ptitle ? `<div class="f-crole" style="font-size:17px; color:var(--realtor-primary,#3BB1ED);">${ptitle}</div>` : ''}
+        ${pphone ? `<div class="f-crole" style="font-size:22px; line-height:1.15; color:var(--realtor-primary,#3BB1ED);">${pphone}</div>` : ''}
+        ${pemail ? `<div class="f-cline" style="font-size:18px; line-height:1.15;">${pemail}</div>` : ''}
       </div>
 
       <div style="display:flex; justify-content:center; align-items:center;">
@@ -1677,7 +1663,7 @@ function clearAll() {
   });
   ['strat1Text','strat2Text','strat3Text'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
   // Reset brand colors to defaults
-  document.getElementById('realtorPrimary').value = '#2491EB';
+  document.getElementById('realtorPrimary').value = '#3BB1ED';
   document.getElementById('realtorAccent').value  = '#8EC73F';
   document.getElementById('realtorText').value    = '#0a1520';
   render();
