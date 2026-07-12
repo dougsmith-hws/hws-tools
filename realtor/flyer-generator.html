@@ -1065,33 +1065,34 @@ async function savePDF() {
     } catch(e) { c.remove(); }
   });
 
-  // ── GRADIENT SAFETY FIX ──────────────────────────────────────────────────
-  // html2canvas 1.4.1 crashes with createPattern when it encounters a
-  // linear-gradient background on an element with 0 computed width or height
-  // (e.g. 1px-tall flex dividers that haven't settled layout yet).
-  // Strip the background-image from any zero-dimension element so html2canvas
-  // never tries to createPattern on a 0×0 canvas.
+  // ── GRADIENT / FLEX-GRID DIMENSION FIX ──────────────────────────────────
+  // html2canvas 1.4.1 has limited flex and grid layout support. Elements with
+  // flex:1 or percentage widths inside grid cells can appear 0-wide to its
+  // layout engine, causing it to create a 0×0 canvas for their gradient
+  // background and then crash in createPattern.
+  //
+  // Fix: snapshot each gradient element's REAL browser-computed dimensions
+  // and lock them as explicit inline px values before html2canvas runs.
+  // For any element that is genuinely 0×0 (nothing to render), strip its
+  // gradient so it never triggers a createPattern call.
   el.querySelectorAll('*').forEach(elem => {
     try {
-      if (elem.offsetWidth === 0 || elem.offsetHeight === 0) {
-        const bg = window.getComputedStyle(elem).backgroundImage;
-        if (bg && bg !== 'none') elem.style.backgroundImage = 'none';
+      const bg = window.getComputedStyle(elem).backgroundImage;
+      if (!bg || !bg.includes('gradient')) return;
+      const w = elem.offsetWidth, h = elem.offsetHeight;
+      if (w > 0 && h > 0) {
+        // Lock real dimensions — html2canvas will use these instead of
+        // trying to re-resolve flex/grid layout.
+        elem.style.width  = w + 'px';
+        elem.style.height = h + 'px';
+        elem.style.flex   = 'none';        // prevent flex override
+        elem.style.flexShrink = '0';
+      } else {
+        // Truly 0×0 — nothing to render; strip gradient to avoid crash.
+        elem.style.backgroundImage = 'none';
       }
     } catch(e) {}
   });
-
-  // ── CREATEPATTERN SAFETY PATCH ───────────────────────────────────────────
-  // html2canvas 1.4.1 crashes when it passes a 0×0 canvas to createPattern.
-  // Intercept the native call and substitute a 1×1 transparent canvas so the
-  // renderer skips the bad element silently instead of throwing.
-  const _origCP = CanvasRenderingContext2D.prototype.createPattern;
-  CanvasRenderingContext2D.prototype.createPattern = function(image, rep) {
-    if (image instanceof HTMLCanvasElement && (!image.width || !image.height)) {
-      const safe = document.createElement('canvas'); safe.width = 1; safe.height = 1;
-      return _origCP.call(this, safe, rep);
-    }
-    return _origCP.call(this, image, rep);
-  };
 
   // ── PRE-FLIGHT: audit live DOM images ────────────────────────────────────
   log('=== PRE-FLIGHT IMAGE AUDIT (live DOM) ===');
