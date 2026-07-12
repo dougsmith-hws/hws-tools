@@ -976,7 +976,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Populate saved profile dropdowns
   fillSel('partnerProfSel',  profLoad(PROF_P), '— choose partner —');
   fillSel('propertyProfSel', profLoad(PROF_L), '— choose property —');
-  fillSel('brokerProfSel',   profLoad(PROF_B), '— choose brokerage —');
+  fillSel('brokerProfSel',   brokerMerged(), '— choose brokerage —');
   onScenChange();
   onStratChange(1); onStratChange(2); onStratChange(3);
 });
@@ -1346,6 +1346,23 @@ function render() {
 
 const PROF_B = 'hws_brokerages';
 
+const DEFAULT_BROKERAGES = {
+  'Berkshire Hathaway HS': { primary:'#004B87', accent:'#BE0000', text:'#0a1520' },
+  'Century 21':            { primary:'#84754E', accent:'#000000', text:'#0a1520' },
+  'Coldwell Banker':       { primary:'#004B8D', accent:'#C41230', text:'#0a1520' },
+  'Compass':               { primary:'#1A1A1A', accent:'#767676', text:'#ffffff' },
+  'Engel & Völkers':       { primary:'#C4122F', accent:'#1A1A1A', text:'#0a1520' },
+  'eXp Realty':            { primary:'#1A1A1A', accent:'#FFCD00', text:'#ffffff' },
+  'Keller Williams':       { primary:'#B40101', accent:'#5C5C5C', text:'#0a1520' },
+  'RE/MAX':                { primary:'#E31837', accent:'#003DA5', text:'#0a1520' },
+  "Sotheby's Intl":        { primary:'#002349', accent:'#C9A96E', text:'#0a1520' },
+  'Smith & Associates':    { primary:'#005DAA', accent:'#7DC242', text:'#0a1520' },
+};
+
+function brokerMerged() {
+  return Object.assign({}, DEFAULT_BROKERAGES, profLoad(PROF_B));
+}
+
 function snapBrokerage() {
   return {
     primary: document.getElementById('realtorPrimary').value,
@@ -1364,7 +1381,7 @@ function saveBrokerageProf() {
   const b = profLoad(PROF_B);
   b[nm] = snapBrokerage();
   profSave(PROF_B, b);
-  fillSel('brokerProfSel', b, '— choose brokerage —');
+  fillSel('brokerProfSel', brokerMerged(), '— choose brokerage —');
   document.getElementById('brokerProfSel').value = nm;
   document.getElementById('brokerProfName').value = '';
 }
@@ -1377,7 +1394,7 @@ function deleteBrokerageProf() {
   if (!confirm(`Delete brokerage "${nm}"?`)) return;
   const b = profLoad(PROF_B); delete b[nm];
   profSave(PROF_B, b);
-  fillSel('brokerProfSel', b, '— choose brokerage —');
+  fillSel('brokerProfSel', brokerMerged(), '— choose brokerage —');
 }
 
 const PROF_P = 'hws_partners';    // localStorage key for partner profiles
@@ -1608,7 +1625,7 @@ function resetAllData() {
   localStorage.removeItem(PROF_B);
   fillSel('partnerProfSel',  {}, '— choose partner —');
   fillSel('propertyProfSel', {}, '— choose property —');
-  fillSel('brokerProfSel',   {}, '— choose brokerage —');
+  fillSel('brokerProfSel',   brokerMerged(), '— choose brokerage —');
   alert('All saved profiles cleared. You can now re-import a backup.');
 }
 
