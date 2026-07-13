@@ -1,0 +1,979 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Buyer Strategy Engine — Internal</title>
+<style>
+  :root{
+    --blue:#3BB1ED; --green:#8EC73F;
+    --ink:#12202b; --sub:#5a6b78; --line:#dce4ea; --bg:#f4f7f9;
+    --card:#ffffff; --red:#e0483a; --redbg:#fdecea; --amber:#d98a00; --amberbg:#fff5e0;
+    --goodbg:#eef7e2; --headbg:#0f2836;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;padding:0}
+  body{font:14px/1.35 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink)}
+  h1,h2,h3{margin:0;font-weight:700}
+  .wrap{max-width:1400px;margin:0 auto;padding:10px}
+  .topbar{display:flex;align-items:center;gap:10px;padding:4px 2px 10px}
+  .topbar .brand{font-size:15px;font-weight:800;letter-spacing:.2px}
+  .topbar .brand b{color:var(--blue)}
+  .topbar .tag{font-size:11px;color:var(--sub);background:#e9eef2;padding:2px 8px;border-radius:20px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:10px;box-shadow:0 1px 2px rgba(16,40,54,.04)}
+
+  /* INPUT BAR */
+  .inputs{padding:8px 8px 4px;margin-bottom:10px}
+  .igrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(122px,1fr));gap:7px}
+  .fld{display:flex;flex-direction:column;gap:2px;min-width:0}
+  .fld label{font-size:10px;font-weight:600;color:var(--sub);text-transform:uppercase;letter-spacing:.3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .fld input[type=text],.fld input[type=number],.fld select{
+    width:100%;padding:6px 7px;border:1px solid var(--line);border-radius:7px;font-size:14px;font-weight:600;color:var(--ink);background:#fff}
+  .fld input:focus,.fld select:focus{outline:2px solid var(--blue);outline-offset:-1px;border-color:var(--blue)}
+  .raterow input{border-color:#bfe3f8;background:#f5fbfe}
+  .toggles{display:flex;flex-wrap:wrap;gap:6px 14px;padding:8px 4px 2px;align-items:center;border-top:1px dashed var(--line);margin-top:8px}
+  .tg{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--ink)}
+  .tg input{width:16px;height:16px;accent-color:var(--blue)}
+  .tg.dim{color:#9aa8b2}
+  .subopt{display:inline-flex;gap:6px;align-items:center;font-size:12px;color:var(--sub)}
+  .subopt select{padding:3px 5px;border:1px solid var(--line);border-radius:6px;font-size:12px}
+
+  /* SELLER-CONCESSION SPLIT */
+  .split{margin-top:8px;border-top:1px dashed var(--line);padding-top:8px}
+  .split.off{opacity:.4;pointer-events:none}
+  .split-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:7px}
+  .split-title{font-size:11px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;color:var(--sub)}
+  .split-total{font-size:12px;font-weight:700;color:var(--ink)}
+  .split-opt{font-size:11.5px;font-weight:700;color:#fff;background:var(--green);border:none;border-radius:6px;padding:4px 10px;cursor:pointer}
+  .split-opt:active{transform:translateY(1px)}
+  .split-limit{font-size:11px;font-weight:700}
+  .split-limit.over{color:var(--red)} .split-limit.ok{color:#3a8a1f}
+  .split-body{display:grid;grid-template-columns:1fr minmax(120px,220px) 1fr;gap:12px;align-items:center}
+  .split-fld{display:flex;flex-direction:column;gap:2px}
+  .split-fld label{font-size:10px;font-weight:600;color:var(--sub);text-transform:uppercase;letter-spacing:.3px}
+  .split-fld input{padding:6px 7px;border:1px solid var(--line);border-radius:7px;font-size:14px;font-weight:700}
+  .split-fld:first-of-type input{border-color:#bfe3f8;background:#f5fbfe}
+  .split-fld:nth-of-type(2) input{border-color:#cfe8a8;background:#f7fcef}
+  .split-slider{width:100%;accent-color:var(--green);height:22px}
+  .split-impact{grid-column:1/-1;font-size:12px;color:var(--sub);min-height:16px}
+  .split-impact b{color:var(--ink)}
+  @media(max-width:640px){.split-body{grid-template-columns:1fr 1fr;gap:8px}.split-slider{grid-column:1/-1;order:3}}
+
+  /* STRATEGY SUMMARY */
+  .section-h{font-size:11px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;color:var(--sub);margin:14px 2px 6px}
+  .strategy{padding:12px 14px}
+  .strat-top{display:flex;flex-wrap:wrap;gap:14px;align-items:baseline;margin-bottom:4px}
+  .strat-top .big{font-size:22px;font-weight:800}
+  .strat-top .lbl{font-size:11px;color:var(--sub);text-transform:uppercase;letter-spacing:.4px;font-weight:700;display:block}
+  .gap-pos{color:var(--red)} .gap-ok{color:#3a8a1f}
+  .ladder{margin-top:10px;display:flex;flex-direction:column;gap:7px}
+  .rung{display:flex;gap:10px;align-items:flex-start;padding:9px 11px;border:1px solid var(--line);border-left:3px solid var(--blue);border-radius:8px;background:#fbfdff}
+  .rung .n{flex:0 0 20px;height:20px;border-radius:50%;background:var(--blue);color:#fff;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;margin-top:1px}
+  .rung .body{flex:1;min-width:0}
+  .rung .move{font-weight:700}
+  .rung .res{font-size:12.5px;color:var(--sub);margin-top:2px}
+  .rung .res b{color:#3a8a1f}
+  .rung.easiest{border-left-color:var(--green);background:var(--goodbg)}
+  .rung.easiest .n{background:var(--green)}
+  .allgood{padding:12px 14px;font-weight:600;color:#3a8a1f;background:var(--goodbg);border-radius:8px}
+
+  /* GRID */
+  .gridwrap{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:10px}
+  table.grid{border-collapse:collapse;width:100%;min-width:640px;font-size:13px}
+  table.grid th,table.grid td{border:1px solid var(--line);padding:6px 9px;text-align:right;white-space:nowrap}
+  table.grid th.rowlbl,table.grid td.rowlbl{text-align:left;position:sticky;left:0;background:#f8fafb;font-weight:600;color:var(--sub);z-index:2;font-size:11.5px;text-transform:uppercase;letter-spacing:.2px}
+  table.grid thead th{background:var(--headbg);color:#fff;cursor:pointer;text-align:center;vertical-align:top;padding:8px}
+  table.grid thead th.rowlbl{background:var(--headbg);color:#cfe0ea;cursor:default}
+  table.grid thead th .colname{font-size:13px;font-weight:800;display:block}
+  table.grid thead th .coldp{font-size:11px;opacity:.8;font-weight:600}
+  table.grid thead th.sel{outline:3px solid var(--green);outline-offset:-3px}
+  table.grid thead th .flagline{font-size:9.5px;font-weight:700;color:#ffd27a;margin-top:3px;white-space:normal;line-height:1.15;max-width:150px}
+  table.grid td.money{font-variant-numeric:tabular-nums;font-weight:600}
+  table.grid tr.total td{background:#eef6fb;font-weight:800;font-size:14px}
+  td.flag-red{background:var(--redbg);color:var(--red);font-weight:800}
+  td.flag-amber{background:var(--amberbg);color:var(--amber);font-weight:800}
+  td.col-dim{background:repeating-linear-gradient(45deg,#f3f5f7,#f3f5f7 6px,#eef1f3 6px,#eef1f3 12px);color:#9aa8b2}
+  th.col-dim{background:#3a4b57 !important;color:#9fb2bd !important}
+  .dimreason{font-size:9.5px;font-weight:600;color:#ffb4ab;white-space:normal;line-height:1.15;max-width:150px;margin-top:3px}
+  .neg{color:var(--red)} .pos{color:#3a8a1f}
+
+  /* PITI */
+  .piti{padding:12px 14px;margin-top:10px}
+  .piti .hd{font-size:12px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;color:var(--blue);margin-bottom:8px}
+  .piti .rows{display:grid;grid-template-columns:1fr auto;gap:3px 14px;max-width:360px}
+  .piti .rows .k{color:var(--sub)} .piti .rows .v{text-align:right;font-weight:700;font-variant-numeric:tabular-nums}
+  .piti .rows .tot{border-top:2px solid var(--ink);padding-top:5px;margin-top:3px;font-size:16px}
+  .piti .hint{color:var(--sub);font-style:italic}
+
+  /* WARNINGS + ASSUMPTIONS */
+  .warns{padding:10px 14px;margin-top:14px}
+  .warns ul{margin:6px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:6px}
+  .warns li{padding:7px 10px;border-radius:7px;font-size:12.5px;font-weight:600;display:flex;gap:8px;align-items:flex-start}
+  .w-red{background:var(--redbg);color:#b3271a;border-left:3px solid var(--red)}
+  .w-amber{background:var(--amberbg);color:#8a5a00;border-left:3px solid var(--amber)}
+  .w-info{background:#eaf5fc;color:#175d82;border-left:3px solid var(--blue)}
+  .noflags{color:#3a8a1f;font-weight:600}
+  details.assume{margin-top:12px}
+  details.assume>summary{cursor:pointer;font-size:11px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;color:var(--sub);padding:8px 0;list-style:none}
+  details.assume>summary::-webkit-details-marker{display:none}
+  details.assume>summary::before{content:"▸ ";color:var(--blue)}
+  details.assume[open]>summary::before{content:"▾ "}
+  .agrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;padding:6px 0 4px}
+  .agrid .fld label{text-transform:none;font-size:11px}
+  .pmi-edit{margin-top:10px}
+  .pmi-edit table{border-collapse:collapse;font-size:11.5px}
+  .pmi-edit th,.pmi-edit td{border:1px solid var(--line);padding:2px 4px;text-align:center}
+  .pmi-edit th{background:#f0f3f5;font-weight:700}
+  .pmi-edit input{width:52px;border:1px solid var(--line);border-radius:4px;padding:2px 3px;text-align:right;font-size:11.5px}
+  .note{font-size:11px;color:var(--sub);margin-top:6px}
+  .foot{font-size:10.5px;color:#9aa8b2;text-align:center;padding:16px 0 8px}
+  .foot b{color:var(--sub)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <div class="brand"><b>HW</b> Buyer Strategy Engine</div>
+    <span class="tag">Internal · not client-facing</span>
+  </div>
+
+  <!-- ================= INPUT BAR ================= -->
+  <div class="card inputs">
+    <div class="igrid">
+      <div class="fld"><label>Purchase price</label><input id="price" type="text" inputmode="numeric" value="425,000"></div>
+      <div class="fld"><label>Credit score</label><input id="score" type="number" value="742"></div>
+      <div class="fld"><label>Available funds</label><input id="funds" type="text" inputmode="numeric" value="40,000"></div>
+      <div class="fld"><label>Gross income /mo</label><input id="income" type="text" inputmode="numeric" value="9,500"></div>
+      <div class="fld"><label>Monthly debts</label><input id="debts" type="text" inputmode="numeric" value="650"></div>
+      <div class="fld"><label>Target pmt (P&I+MI)</label><input id="target" type="text" inputmode="numeric" value="2,600"></div>
+      <div class="fld"><label>Planned stay (yrs)</label><input id="stay" type="number" value="7"></div>
+      <div class="fld"><label>Est. closing costs</label><input id="cc" type="text" inputmode="numeric" value="9,500"></div>
+      <div class="fld raterow"><label>Conv rate %</label><input id="rateConv" type="number" step="0.001" value="6.750"></div>
+      <div class="fld raterow"><label>FHA rate %</label><input id="rateFha" type="number" step="0.001" value="6.250"></div>
+      <div class="fld raterow"><label>VA rate %</label><input id="rateVa" type="number" step="0.001" value="6.125"></div>
+      <div class="fld"><label>Seller concession $</label><input id="concession" type="text" inputmode="numeric" value="8,000"></div>
+    </div>
+    <div class="toggles">
+      <label class="tg"><input type="checkbox" id="tgConcession" checked> Seller concession available</label>
+      <label class="tg"><input type="checkbox" id="tgFthb" checked> First-time homebuyer <span style="font-weight:500;color:var(--sub)">(gates Conv 3%)</span></label>
+      <label class="tg"><input type="checkbox" id="tgVa"> VA eligible</label>
+      <span class="subopt" id="vaOpts" style="display:none">
+        Use:
+        <select id="vaUse"><option value="first">First use</option><option value="sub">Subsequent use</option></select>
+        <label class="tg" style="font-weight:500"><input type="checkbox" id="vaExempt"> Funding-fee exempt (10%+ SC disability)</label>
+      </span>
+    </div>
+
+    <!-- ===== Seller-concession split control ===== -->
+    <div class="split" id="splitPanel">
+      <div class="split-head">
+        <span class="split-title">Concession split</span>
+        <span class="split-total" id="splitTotal">Total $0</span>
+        <button type="button" class="split-opt" id="btnOptimal">Show optimal split</button>
+        <span class="split-limit" id="splitLimit"></span>
+      </div>
+      <div class="split-body">
+        <div class="split-fld">
+          <label>Applied to closing costs</label>
+          <input id="splitCosts" type="text" inputmode="numeric" value="0">
+        </div>
+        <input id="splitSlider" class="split-slider" type="range" min="0" max="100" step="1" value="50">
+        <div class="split-fld">
+          <label>Applied to rate buydown</label>
+          <input id="splitBuydown" type="text" inputmode="numeric" value="0">
+        </div>
+        <div class="split-impact" id="splitImpact"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= STRATEGY SUMMARY ================= -->
+  <div class="section-h">1 · Strategy Summary <span style="font-weight:600;text-transform:none;letter-spacing:0">— the answer before the evidence</span></div>
+  <div class="card strategy" id="strategy"></div>
+
+  <!-- ================= COMPARISON GRID ================= -->
+  <div class="section-h">2 · Comparison Grid <span style="font-weight:600;text-transform:none;letter-spacing:0">— tap a column to load PITI</span></div>
+  <div class="card gridwrap"><table class="grid" id="grid"></table></div>
+
+  <div class="card piti" id="piti"></div>
+
+  <!-- ================= WARNINGS + ASSUMPTIONS ================= -->
+  <div class="section-h">3 · Warning Flags &amp; Assumptions</div>
+  <div class="card warns" id="warns">
+    <div id="warnlist"></div>
+    <details class="assume" id="assumeBox">
+      <summary>Assumptions Panel — edit when guidelines change</summary>
+      <div class="agrid">
+        <div class="fld"><label>FHA MIP annual %</label><input id="a_mip" type="number" step="0.01" value="0.55"></div>
+        <div class="fld"><label>FHA UFMIP %</label><input id="a_ufmip" type="number" step="0.01" value="1.75"></div>
+        <div class="fld"><label>VA funding fee — first use %</label><input id="a_vaFirst" type="number" step="0.01" value="2.15"></div>
+        <div class="fld"><label>VA funding fee — subsequent %</label><input id="a_vaSub" type="number" step="0.01" value="3.30"></div>
+        <div class="fld"><label>FHA loan limit (Hillsborough)</label><input id="a_fhaLimit" type="text" inputmode="numeric" value="498,257"></div>
+        <div class="fld"><label>Conforming loan limit</label><input id="a_confLimit" type="text" inputmode="numeric" value="766,550"></div>
+        <div class="fld"><label>Est. monthly taxes+ins+HOA</label><input id="a_tiHoa" type="text" inputmode="numeric" value="675"></div>
+      </div>
+      <div class="pmi-edit">
+        <div class="section-h" style="margin:8px 2px 4px">PMI rate table (annual %, MGIC-approx)</div>
+        <table id="pmiTable"></table>
+        <div class="note">Points-to-rate conversion is fixed at 0.25% per point (1 point = 1% of loan). Not editable.</div>
+      </div>
+    </details>
+  </div>
+
+  <div class="foot">
+    HomeWealth Solutions · Internal decision tool · Figures illustrative for structuring only — verify all pricing, LLPAs &amp; guidelines with lender before quoting.
+  </div>
+</div>
+
+<script>
+/* =====================================================================
+   CALCULATION ENGINE  (pure logic, UI-independent)
+   Modular by design: add USDA / Jumbo / DPA / HECM as new PROGRAM modules
+   without touching the UI or the core math.
+   ===================================================================== */
+const Engine = (function(){
+
+  /* ---------- core amortization math ---------- */
+  function pmt(annualPct, nMonths, pv){
+    const i = annualPct/100/12;
+    if(i===0) return pv/nMonths;
+    return pv * i / (1 - Math.pow(1+i, -nMonths));
+  }
+  function balanceAfter(pv, annualPct, nMonths, monthsPaid){
+    const i = annualPct/100/12;
+    if(i===0) return pv - (pv/nMonths)*monthsPaid;
+    const p = pmt(annualPct,nMonths,pv);
+    return pv*Math.pow(1+i,monthsPaid) - p*(Math.pow(1+i,monthsPaid)-1)/i;
+  }
+  // first month where scheduled balance <= targetBalance (amortizing loan)
+  function monthToBalance(pv, annualPct, nMonths, targetBalance){
+    for(let m=1;m<=nMonths;m++){
+      if(balanceAfter(pv,annualPct,nMonths,m) <= targetBalance) return m;
+    }
+    return null;
+  }
+  // solve for the annual rate that yields a given payment on a given principal
+  function rateForPayment(targetPmt, pv, nMonths){
+    let lo=0.01, hi=25;
+    for(let k=0;k<80;k++){
+      const mid=(lo+hi)/2;
+      const p=pmt(mid,nMonths,pv);
+      if(p>targetPmt) hi=mid; else lo=mid;
+    }
+    return (lo+hi)/2;
+  }
+
+  /* ---------- lookup helpers ---------- */
+  function scoreBucket(s){
+    if(s>=760) return '760+';
+    if(s>=740) return '740';
+    if(s>=720) return '720';
+    if(s>=700) return '700';
+    if(s>=680) return '680';
+    if(s>=660) return '660';
+    if(s>=640) return '640';
+    return '<640';
+  }
+  function ltvBand(ltv){ // ltv in percent
+    if(ltv>=95) return '95';
+    if(ltv>=90) return '90';
+    if(ltv>=85) return '85';
+    if(ltv>80.0001) return '80'; // 80.01–84.99 band; 80% LTV or below = no PMI
+    return null; // <=80 => no PMI
+  }
+  function pmiRate(A, score, ltv){
+    const band=ltvBand(ltv);
+    if(!band) return 0;
+    return (A.pmi[scoreBucket(score)][band]||0);
+  }
+
+  /* ---------- PROGRAM MODULES ----------
+     Each program implements:
+       id,label,minScore,ratios{front,back}
+       scenarios(inp)      -> array of {dpPct,name,requiresFthb?}
+       eligibility(inp,A)  -> {eligible, reasons[]}
+       rate(inp)           -> annual %
+       build(inp,A,sc)     -> computed scenario object
+     Adding a new program = add an entry here. Nothing else changes.        */
+  const N=360;
+
+  function baseCompute(inp,A,cfg){
+    // cfg: {id,label,dpPct,name,loanAmount,rate,monthlyMI,miMode,miDropMonth,color,ratios,concessionLimit}
+    const price=inp.price, dp=price*cfg.dpPct/100;
+
+    // ----- Seller-concession split (user-controlled allocation) -----
+    // Total concession is split between closing-cost credit and rate buydown.
+    // Each dollar to buydown buys points = $ / (1% of loan); 1 point = 0.25% rate.
+    const concOn = inp.concessionOn;
+    const toCosts   = concOn ? Math.max(0, inp.concToCosts||0)   : 0;
+    const toBuydown = concOn ? Math.max(0, inp.concToBuydown||0) : 0;
+    const buydownPoints = toBuydown>0 ? toBuydown/(cfg.loanAmount*0.01) : 0;
+    const rateReduction = buydownPoints*0.25;
+    const effRate = Math.max(0, cfg.rate - rateReduction);   // rate actually paid
+
+    const pi = pmt(effRate, N, cfg.loanAmount);
+    const totalPM = pi + cfg.monthlyMI;
+
+    // PMI / MIP cancellation (amortize at the effective rate actually paid)
+    let cancelMonth=null, postCancelPI=pi;
+    if(cfg.miMode==='conv' && cfg.monthlyMI>0){
+      cancelMonth = monthToBalance(cfg.loanAmount, effRate, N, price*0.80);
+      postCancelPI = pi; // P&I unchanged; MI simply drops
+    } else if(cfg.miMode==='fha'){
+      cancelMonth = (cfg.miDropMonth||null); // null = life of loan at 3.5%
+    }
+
+    // MI paid over planned stay
+    const horizonM = Math.round(inp.stayYears*12);
+    let miMonthsPaid;
+    if(cfg.monthlyMI<=0){ miMonthsPaid=0; }
+    else if(cfg.miMode==='conv'){ miMonthsPaid = Math.min(horizonM, cancelMonth||horizonM); }
+    else if(cfg.miMode==='fha'){ miMonthsPaid = cfg.miDropMonth ? Math.min(horizonM,cfg.miDropMonth) : horizonM; }
+    else miMonthsPaid=0;
+    const miCostHorizon = cfg.monthlyMI * miMonthsPaid;
+
+    // cash to close — only the closing-cost portion of the concession reduces cash;
+    // it cannot drive net closing below zero (any excess over actual costs is wasted here).
+    const netClosing = Math.max(0, inp.closingCosts - toCosts);
+    const cashToClose = dp + netClosing;
+    const cashGap = cashToClose - inp.funds;
+    const concToCostsWasted = Math.max(0, toCosts - inp.closingCosts);
+
+    // DTI
+    const housing = totalPM + inp.tiHoa;
+    const frontRatio = housing / inp.income * 100;
+    const backRatio  = (housing + inp.debts) / inp.income * 100;
+
+    // total cost at horizon (all P&I + MI through stay)
+    const totalCostHorizon = pi*Math.min(horizonM,N) + miCostHorizon;
+
+    return {
+      id:cfg.id,label:cfg.label,name:cfg.name,dpPct:cfg.dpPct,color:cfg.color,
+      downPayment:dp, loanAmount:cfg.loanAmount,
+      baseRate:cfg.rate, rate:effRate,          // baseRate = note rate; rate = after buydown
+      buydownPoints, rateReduction, buydownAmt:toBuydown, concToCosts:toCosts, concToCostsWasted,
+      pi, monthlyMI:cfg.monthlyMI, totalPM,
+      paymentGap: totalPM - inp.target,
+      cashToClose, cashGap, availFunds:inp.funds,
+      cancelMonth, postCancelPI, miMode:cfg.miMode,
+      miCostHorizon, totalCostHorizon,
+      frontRatio, backRatio, ratios:cfg.ratios,
+      concessionLimitPct:cfg.concessionLimitPct, concessionLimit:cfg.concessionLimit,
+      ltv: cfg.baseLoan/price*100,
+      baseLoan: cfg.baseLoan,
+      eligible:true, dimReasons:[]
+    };
+  }
+
+  const PROGRAMS = {
+    conventional:{
+      id:'conv',label:'Conventional',minScore:620,ratios:{front:28,back:45},
+      scenarios(inp){
+        const arr=[];
+        if(inp.fthb) arr.push({dpPct:3,name:'Conv 3%',fthb:true});
+        arr.push({dpPct:5,name:'Conv 5%'});
+        arr.push({dpPct:10,name:'Conv 10%'});
+        arr.push({dpPct:20,name:'Conv 20%'});
+        return arr;
+      },
+      concession(ltv){ if(ltv>90) return 3; if(ltv>=75) return 6; return 9; },
+      build(inp,A,sc){
+        const price=inp.price, dp=price*sc.dpPct/100;
+        const baseLoan=price-dp;
+        const ltv=baseLoan/price*100;
+        const rate=inp.rates.conv;
+        const pRate=pmiRate(A,inp.score,ltv);
+        const monthlyMI = baseLoan*pRate/100/12;
+        const concLimitPct=this.concession(ltv);
+        const o=baseCompute(inp,A,{
+          id:'conv',label:'Conventional',dpPct:sc.dpPct,name:sc.name,
+          loanAmount:baseLoan, baseLoan, rate, monthlyMI, miMode:'conv',
+          color:'#3BB1ED', ratios:this.ratios,
+          concessionLimitPct:concLimitPct, concessionLimit:price*concLimitPct/100
+        });
+        o.pmiRateUsed=pRate;
+        return o;
+      },
+      eligibility(inp,A,sc){
+        const reasons=[];
+        const baseLoan=inp.price*(1-sc.dpPct/100);
+        if(inp.score<this.minScore) reasons.push('Score '+inp.score+' < 620 min');
+        if(baseLoan>A.confLimit) reasons.push('Loan $'+fmt0(baseLoan)+' > conforming $'+fmt0(A.confLimit)+' → Jumbo (not modeled)');
+        if(sc.fthb && !inp.fthb) reasons.push('Conv 3% requires FTHB');
+        return {eligible:reasons.length===0,reasons};
+      }
+    },
+
+    fha:{
+      id:'fha',label:'FHA',minScore:580,ratios:{front:31,back:43},
+      scenarios(inp){ return [{dpPct:3.5,name:'FHA 3.5%'}]; },
+      concession(){ return 6; },
+      build(inp,A,sc){
+        const price=inp.price, dp=price*sc.dpPct/100;
+        const baseLoan=price-dp;
+        const loanAmount=baseLoan*(1+A.ufmip/100); // UFMIP financed
+        const rate=inp.rates.fha;
+        const monthlyMI=loanAmount*A.mip/100/12;
+        // life of loan at 3.5% down; would drop at m132 if dp>10%
+        const dropMonth = (sc.dpPct>10)?132:null;
+        const o=baseCompute(inp,A,{
+          id:'fha',label:'FHA',dpPct:sc.dpPct,name:sc.name,
+          loanAmount, baseLoan, rate, monthlyMI, miMode:'fha', miDropMonth:dropMonth,
+          color:'#8EC73F', ratios:this.ratios,
+          concessionLimitPct:6, concessionLimit:price*0.06
+        });
+        o.mipLife = (dropMonth===null);
+        // FHA effective conventional-rate equivalent
+        const convLoan=price-dp;
+        const equivRate=rateForPayment(o.totalPM, convLoan, N);
+        o.effRate=equivRate;
+        return o;
+      },
+      eligibility(inp,A,sc){
+        const reasons=[];
+        const baseLoan=inp.price*(1-sc.dpPct/100);
+        if(inp.score<this.minScore) reasons.push('Score '+inp.score+' < 580 min');
+        if(baseLoan>A.fhaLimit) reasons.push('Base $'+fmt0(baseLoan)+' > FHA limit $'+fmt0(A.fhaLimit));
+        return {eligible:reasons.length===0,reasons};
+      }
+    },
+
+    va:{
+      id:'va',label:'VA',minScore:0,ratios:{front:41,back:41},
+      scenarios(inp){ return [{dpPct:0,name:'VA 0%'}]; },
+      concession(){ return 4; }, // 4% bucket for buydowns/prepaids; closing costs uncapped
+      build(inp,A,sc){
+        const price=inp.price, dp=0;
+        const baseLoan=price-dp;
+        const ffPct = inp.vaExempt?0:(inp.vaUse==='sub'?A.vaSub:A.vaFirst);
+        const loanAmount=baseLoan*(1+ffPct/100);
+        const rate=inp.rates.va;
+        const o=baseCompute(inp,A,{
+          id:'va',label:'VA',dpPct:0,name:sc.name,
+          loanAmount, baseLoan, rate, monthlyMI:0, miMode:'va',
+          color:'#12202b', ratios:this.ratios,
+          concessionLimitPct:4, concessionLimit:price*0.04
+        });
+        o.fundingFeePct=ffPct;
+        o.fundingFee=baseLoan*ffPct/100;
+        o.vaExempt=inp.vaExempt;
+        return o;
+      },
+      eligibility(inp,A,sc){
+        return {eligible:true,reasons:[]};
+      }
+    }
+  };
+
+  /* ---------- run all programs ---------- */
+  function run(inp,A){
+    const scenarios=[];
+    const dims=[]; // ineligible/greyed
+    // Conventional
+    PROGRAMS.conventional.scenarios(inp).forEach(sc=>{
+      const el=PROGRAMS.conventional.eligibility(inp,A,sc);
+      if(!el.eligible){ dims.push({name:sc.name,label:'Conventional',reasons:el.reasons,color:'#3BB1ED'}); return; }
+      scenarios.push(PROGRAMS.conventional.build(inp,A,sc));
+    });
+    // FHA
+    PROGRAMS.fha.scenarios(inp).forEach(sc=>{
+      const el=PROGRAMS.fha.eligibility(inp,A,sc);
+      if(!el.eligible){ dims.push({name:sc.name,label:'FHA',reasons:el.reasons,color:'#8EC73F'}); return; }
+      scenarios.push(PROGRAMS.fha.build(inp,A,sc));
+    });
+    // VA (only if toggled)
+    if(inp.vaOn){
+      PROGRAMS.va.scenarios(inp).forEach(sc=>{
+        scenarios.push(PROGRAMS.va.build(inp,A,sc));
+      });
+    } else {
+      dims.push({name:'VA 0%',label:'VA',reasons:['VA eligibility toggle off'],color:'#12202b'});
+    }
+
+    // viability = eligible AND cash sufficient
+    scenarios.forEach(s=>{ s.viable = s.cashGap<=0.5; if(!s.viable) s.dimReasons=['Short $'+fmt0(s.cashGap)+' cash to close']; });
+
+    return {scenarios,dims};
+  }
+
+  function fmt0(n){ return Math.round(n).toLocaleString('en-US'); }
+
+  /* ---------- optimal concession split ----------
+     Objective: close both gaps most efficiently. Cover the reference scenario's
+     cash shortfall with the closing-cost credit FIRST (dollar-for-dollar, capped
+     at actual closing costs), then throw every remaining dollar at the rate
+     buydown to shrink the payment gap. Returns { toCosts, toBuydown, ref }.      */
+  function optimalSplit(inp,A){
+    const C = inp.concessionOn ? inp.concession : 0;
+    if(C<=0) return {toCosts:0,toBuydown:0,ref:null};
+    // Reference = the CHEAPEST AFFORDABLE scenario. Probe with the full concession
+    // thrown at closing costs (maximum cash help) so affordability is judged fairly,
+    // then pick the lowest P&I+MI among the scenarios that clear cash.
+    const probe = run(Object.assign({},inp,{concToCosts:C,concToBuydown:0}),A);
+    const sorted = probe.scenarios.slice().sort((a,b)=>a.totalPM-b.totalPM);
+    const ref = sorted.find(s=>s.viable) || sorted[0];
+    if(!ref) return {toCosts:Math.min(C,inp.closingCosts),toBuydown:Math.max(0,C-inp.closingCosts),ref:null};
+    // Cover that scenario's cash shortfall first (dollar-for-dollar, capped at actual
+    // closing costs), then send every remaining dollar to the rate buydown.
+    const cashNeed = Math.max(0, ref.downPayment + inp.closingCosts - inp.funds);
+    const toCosts = Math.min(C, inp.closingCosts, cashNeed);
+    return {toCosts, toBuydown: C - toCosts, ref};
+  }
+
+  return {run, optimalSplit, pmt, balanceAfter, monthToBalance, rateForPayment,
+          scoreBucket, ltvBand, pmiRate, PROGRAMS, fmt0};
+})();
+
+/* =====================================================================
+   UI LAYER
+   ===================================================================== */
+const $=id=>document.getElementById(id);
+const money=n=>'$'+Math.round(n).toLocaleString('en-US');
+const money1=n=>'$'+n.toLocaleString('en-US',{maximumFractionDigits:0});
+const num=el=>{const v=(typeof el==='string'?$(el):el).value.replace(/[^0-9.\-]/g,'');return parseFloat(v)||0;};
+const pct=n=>n.toFixed(2)+'%';
+
+// default PMI table
+const PMI_DEFAULT={
+  '760+':{'95':0.30,'90':0.19,'85':0.17,'80':0.12},
+  '740':{'95':0.41,'90':0.26,'85':0.22,'80':0.15},
+  '720':{'95':0.54,'90':0.35,'85':0.28,'80':0.19},
+  '700':{'95':0.71,'90':0.48,'85':0.37,'80':0.26},
+  '680':{'95':0.91,'90':0.63,'85':0.49,'80':0.33},
+  '660':{'95':1.15,'90':0.81,'85':0.63,'80':0.42},
+  '640':{'95':1.45,'90':1.04,'85':0.80,'80':0.54},
+  '<640':{'95':1.80,'90':1.35,'85':1.05,'80':0.72}
+};
+const BUCKETS=['760+','740','720','700','680','660','640','<640'];
+const BANDS=[['95','95–97'],['90','90–94.99'],['85','85–89.99'],['80','80–84.99']];
+const BUCKET_LABEL={'760+':'760+','740':'740–759','720':'720–739','700':'700–719','680':'680–699','660':'660–679','640':'640–659','<640':'<640'};
+
+let selectedIdx=0;
+
+function buildPmiEditor(){
+  const t=$('pmiTable');
+  let h='<tr><th>Score</th>'+BANDS.map(b=>'<th>'+b[1]+'</th>').join('')+'</tr>';
+  BUCKETS.forEach(bk=>{
+    h+='<tr><th>'+BUCKET_LABEL[bk]+'</th>';
+    BANDS.forEach(b=>{ h+='<td><input data-bk="'+bk+'" data-band="'+b[0]+'" type="number" step="0.01" value="'+PMI_DEFAULT[bk][b[0]]+'"></td>'; });
+    h+='</tr>';
+  });
+  t.innerHTML=h;
+  t.querySelectorAll('input').forEach(i=>i.addEventListener('input',recalc));
+}
+
+function gatherAssumptions(){
+  const pmi={};
+  BUCKETS.forEach(bk=>{pmi[bk]={};});
+  document.querySelectorAll('#pmiTable input').forEach(i=>{ pmi[i.dataset.bk][i.dataset.band]=parseFloat(i.value)||0; });
+  return {
+    mip:num('a_mip'), ufmip:num('a_ufmip'),
+    vaFirst:num('a_vaFirst'), vaSub:num('a_vaSub'),
+    fhaLimit:num('a_fhaLimit'), confLimit:num('a_confLimit'),
+    tiHoa:num('a_tiHoa'), pmi
+  };
+}
+function gatherInputs(){
+  return {
+    price:num('price'), score:Math.round(num('score')), funds:num('funds'),
+    income:num('income'), debts:num('debts'), target:num('target'),
+    stayYears:num('stay'), closingCosts:num('cc'),
+    rates:{conv:num('rateConv'), fha:num('rateFha'), va:num('rateVa')},
+    concessionOn:$('tgConcession').checked, concession:num('concession'),
+    fthb:$('tgFthb').checked,
+    vaOn:$('tgVa').checked, vaUse:$('vaUse').value, vaExempt:$('vaExempt').checked,
+    tiHoa:num('a_tiHoa')
+  };
+}
+
+/* ---- ratio flag helper ---- */
+function ratioClass(val,limit){
+  if(val>limit) return 'flag-red';
+  if(val>limit-2) return 'flag-amber';
+  return '';
+}
+
+/* ---- STRATEGY LADDER ---- */
+function buildStrategy(inp,A,res){
+  const box=$('strategy');
+  const viable=res.scenarios.filter(s=>s.viable);
+  if(viable.length===0){
+    box.innerHTML='<div class="allgood" style="background:var(--redbg);color:#b3271a">No viable scenario — every option is short on cash to close or ineligible. See grid for gaps.</div>';
+    return;
+  }
+  viable.sort((a,b)=>a.totalPM-b.totalPM);
+  const best=viable[0];
+  const payGap=best.totalPM-inp.target;
+  const anyCashGap=viable.some(s=>s.cashGap>0);
+
+  // Header line
+  let html='<div class="strat-top">';
+  html+='<div><span class="lbl">Best available</span><span class="big">'+money(best.totalPM)+'/mo</span> <span style="color:var(--sub);font-size:13px">'+best.name+'</span></div>';
+  html+='<div><span class="lbl">Target</span><span class="big">'+money(inp.target)+'/mo</span></div>';
+  html+='<div><span class="lbl">Gap</span><span class="big '+(payGap>0?'gap-pos':'gap-ok')+'">'+(payGap>0?'+':'')+money(payGap)+'/mo</span></div>';
+  html+='</div>';
+
+  if(payGap<=0){
+    html+='<div class="allgood">Current position meets the payment target. '+
+          (anyCashGap?'Note: some down-payment scenarios exceed available cash — see grid. ':'')+
+          'See grid for full scenario comparison.</div>';
+    box.innerHTML=html;
+    return;
+  }
+
+  // Build gap-closing paths, each with the change magnitude required
+  const paths=[];
+  const price=inp.price;
+
+  // 1. Shift concession toward buydown: if cash is already covered with $0 credit,
+  //    the entire concession can fund the buydown. Only offered when mathematically
+  //    possible (no cash gap created) and it actually beats the current allocation.
+  if(inp.concessionOn && inp.concession>0){
+    const cashIfAllBuydown = best.downPayment + inp.closingCosts - inp.funds; // toCosts = 0
+    if(cashIfAllBuydown <= 0.5){
+      const pts=inp.concession/(best.loanAmount*0.01);
+      const newRate=Math.max(0,best.baseRate-pts*0.25);
+      const newTotal=Engine.pmt(newRate,360,best.loanAmount)+best.monthlyMI;
+      if(newTotal < best.totalPM-1){
+        paths.push({
+          change:inp.concession,
+          move:'Put the full '+money(inp.concession)+' concession into buydown ('+pts.toFixed(2)+' pts → '+best.baseRate.toFixed(3)+'%→'+newRate.toFixed(3)+'%) on '+best.name+' — cash already covered',
+          result:newTotal, achieves:newTotal<=inp.target
+        });
+      }
+    }
+  }
+
+  // 2. Increase down payment on the best program to hit target payment
+  //    Solve loan amount that yields target (P&I + MI held approx at current MI band)
+  (function(){
+    // target P&I = inp.target - monthlyMI(best). If MI would change with LTV we approximate at current rate.
+    // Iterate down payment upward.
+    let found=null;
+    for(let addPct=0.5; addPct<=(20-best.dpPct)+0.001; addPct+=0.5){
+      const dpPct=best.dpPct+addPct;
+      const dp=price*dpPct/100;
+      const baseLoan=price-dp;
+      let loan=baseLoan, mi=0, rate=best.rate;
+      if(best.id==='conv'){ const ltv=baseLoan/price*100; mi=baseLoan*(Engine.pmiRate(A,inp.score,ltv))/100/12; }
+      else if(best.id==='fha'){ loan=baseLoan*(1+A.ufmip/100); mi=loan*A.mip/100/12; }
+      const pi=Engine.pmt(rate,360,loan);
+      if(pi+mi<=inp.target){ found={dpPct,dp,total:pi+mi,addDollars:dp-best.downPayment}; break; }
+    }
+    if(found){
+      paths.push({
+        change:found.addDollars,
+        move:'Increase down payment by '+money(found.addDollars)+' (to '+found.dpPct.toFixed(1)+'% down) on '+best.name,
+        result:found.total, achieves:true, needsCash:found.dp+inp.closingCosts
+      });
+    }
+  })();
+
+  // 3. Reduce purchase price to hit target (hold best program & down %)
+  (function(){
+    // binary search price
+    let lo=price*0.5, hi=price;
+    for(let k=0;k<40;k++){
+      const mid=(lo+hi)/2;
+      const dp=mid*best.dpPct/100;
+      const baseLoan=mid-dp;
+      let loan=baseLoan, mi=0;
+      if(best.id==='conv'){ const ltv=baseLoan/mid*100; mi=baseLoan*Engine.pmiRate(A,inp.score,ltv)/100/12; }
+      else if(best.id==='fha'){ loan=baseLoan*(1+A.ufmip/100); mi=loan*A.mip/100/12; }
+      else if(best.id==='va'){ loan=baseLoan*(1+(best.fundingFeePct||0)/100); }
+      const t=Engine.pmt(best.rate,360,loan)+mi;
+      if(t>inp.target) hi=mid; else lo=mid;
+    }
+    const newPrice=(lo+hi)/2;
+    const reduction=price-newPrice;
+    if(reduction>500){
+      paths.push({
+        change:reduction,
+        move:'Reduce purchase price by '+money(reduction)+' (to '+money(newPrice)+') on '+best.name,
+        result:inp.target, achieves:true
+      });
+    }
+  })();
+
+  // 4. Loan-type switch to any viable option that beats target or is lower
+  viable.forEach(s=>{
+    if(s.id===best.id) return;
+    if(s.totalPM<best.totalPM){
+      paths.push({
+        change: Math.abs(s.totalPM-best.totalPM)*0 + (best.totalPM-s.totalPM), // rank by savings
+        rankSwitch:true,
+        move:'Switch '+best.name+' → '+s.name,
+        result:s.totalPM, achieves:s.totalPM<=inp.target
+      });
+    }
+  });
+
+  // Rank: prefer paths that ACHIEVE target, then by smallest change (normalized)
+  paths.sort((a,b)=>{
+    if(a.achieves!==b.achieves) return a.achieves?-1:1;
+    return a.change-b.change;
+  });
+
+  html+='<div style="font-size:12px;font-weight:700;color:var(--sub);margin-top:12px;text-transform:uppercase;letter-spacing:.4px">Ways to close the gap — smallest change first</div>';
+  html+='<div class="ladder">';
+  if(paths.length===0){
+    html+='<div class="allgood" style="background:var(--redbg);color:#b3271a">No single-lever path closes this gap within normal limits. Combine levers or requalify the target.</div>';
+  } else {
+    paths.slice(0,5).forEach((p,i)=>{
+      html+='<div class="rung'+(i===0?' easiest':'')+'"><div class="n">'+(i+1)+'</div><div class="body">'+
+            '<div class="move">'+p.move+'</div>'+
+            '<div class="res">→ payment '+(p.achieves?'meets target at ':'moves to ')+'<b>'+money(p.result)+'/mo</b>'+
+            (p.achieves?'':' <span class="neg">(still '+money(p.result-inp.target)+' over)</span>')+
+            (p.needsCash?' · needs '+money(p.needsCash)+' cash to close':'')+
+            '</div></div></div>';
+    });
+  }
+  html+='</div>';
+  box.innerHTML=html;
+}
+
+/* ---- COMPARISON GRID ---- */
+function buildGrid(inp,A,res){
+  const viable=res.scenarios.filter(s=>s.viable).sort((a,b)=>a.totalPM-b.totalPM);
+  const nonviable=res.scenarios.filter(s=>!s.viable).sort((a,b)=>a.totalPM-b.totalPM);
+  const cols=[...viable,...nonviable];
+  if(selectedIdx>=viable.length) selectedIdx=0;
+
+  const rows=[
+    ['Loan amount', s=>money(s.loanAmount)],
+    ['Rate', s=>s.buydownPoints>0.001
+        ? '<span class=pos>'+s.rate.toFixed(3)+'%</span><span style="font-size:10px;color:var(--sub);font-weight:600"> ('+s.baseRate.toFixed(3)+' −'+s.buydownPoints.toFixed(2)+'pt)</span>'
+        : s.rate.toFixed(3)+'%'],
+    ['P&I', s=>money(s.pi)],
+    ['Monthly MI', s=>s.monthlyMI>0?money(s.monthlyMI):'—'],
+    ['Total P&I + MI', s=>money(s.totalPM), 'total'],
+    ['Payment gap', s=>{const g=s.totalPM-inp.target;return (g>0?'<span class=neg>+':'<span class=pos>')+money(g)+'</span>';}],
+    ['Cash to close', s=>money(s.cashToClose)],
+    ['Cash gap', s=>{const g=s.cashGap;return (g>0?'<span class=neg>short '+money(g):'<span class=pos>'+money(-g)+' cushion')+'</span>';}],
+    ['Housing ratio', s=>{const c=ratioClass(s.frontRatio,s.ratios.front);return {v:s.frontRatio.toFixed(1)+'%',cls:c,tip:' / '+s.ratios.front+'%'};}],
+    ['Back-end DTI', s=>{const c=ratioClass(s.backRatio,s.ratios.back);return {v:s.backRatio.toFixed(1)+'%',cls:c,tip:' / '+s.ratios.back+'%'};}],
+    ['Max seller concession', s=>money(s.concessionLimit)+' ('+s.concessionLimitPct+'%'+(s.id==='va'?' buydown bucket':'')+')'],
+    ['MI cost over stay', s=>s.miCostHorizon>0?money(s.miCostHorizon):'—'],
+    ['PMI/MIP cancel', s=>{
+        if(s.miMode==='va') return '—';
+        if(s.miMode==='fha') return s.mipLife?'<span class=neg>Life of loan</span>':'mo '+132;
+        if(!s.cancelMonth) return '—';
+        return 'mo '+s.cancelMonth+' → '+money(s.postCancelPI)+'/mo';
+    }],
+    ['FHA effective rate', s=>s.id==='fha'?('acts like <b>'+s.effRate.toFixed(2)+'%</b> conv / '+inp.stayYears+'yr'):'—'],
+    ['Total cost @ '+inp.stayYears+'yr', s=>money(s.totalCostHorizon)]
+  ];
+
+  let h='<thead><tr><th class="rowlbl">Scenario</th>';
+  cols.forEach((s,i)=>{
+    const isSel = (i===selectedIdx && s.viable);
+    let flag='';
+    if(s.id==='fha') flag='<div class="flagline">⚠ MIP for LIFE of loan @ 3.5% down</div>';
+    let cls='';
+    if(!s.viable){ cls='col-dim'; }
+    h+='<th data-idx="'+i+'" class="'+cls+(isSel?' sel':'')+'">'+
+       '<span class="colname">'+s.label+'</span><span class="coldp">'+s.dpPct+'% down</span>'+flag+
+       (!s.viable?'<div class="dimreason">'+(s.dimReasons.join('; '))+'</div>':'')+'</th>';
+  });
+  // greyed ineligible programs
+  res.dims.forEach(d=>{
+    h+='<th class="col-dim"><span class="colname">'+d.label+'</span><span class="coldp">'+d.name.replace(d.label,'').trim()+'</span>'+
+       '<div class="dimreason">'+d.reasons.join('; ')+'</div></th>';
+  });
+  h+='</tr></thead><tbody>';
+
+  rows.forEach(r=>{
+    const rowCls=r[2]==='total'?' class="total"':'';
+    h+='<tr'+rowCls+'><td class="rowlbl">'+r[0]+'</td>';
+    cols.forEach(s=>{
+      const out=r[1](s);
+      if(typeof out==='object'){
+        h+='<td class="money '+(s.viable?'':'col-dim')+' '+(out.cls||'')+'">'+out.v+'<span style="font-size:10px;color:var(--sub);font-weight:600">'+(out.tip||'')+'</span></td>';
+      } else {
+        h+='<td class="money '+(s.viable?'':'col-dim')+'">'+out+'</td>';
+      }
+    });
+    res.dims.forEach(()=>{ h+='<td class="col-dim">—</td>'; });
+    h+='</tr>';
+  });
+  h+='</tbody>';
+  $('grid').innerHTML=h;
+
+  // header click → select
+  $('grid').querySelectorAll('thead th[data-idx]').forEach(th=>{
+    th.addEventListener('click',()=>{
+      const i=parseInt(th.dataset.idx);
+      if(cols[i].viable){ selectedIdx=i; buildGrid(inp,A,res); buildPiti(inp,A,cols[i]); }
+    });
+  });
+
+  // PITI for current selection
+  const sel = cols[selectedIdx] && cols[selectedIdx].viable ? cols[selectedIdx] : viable[0];
+  buildPiti(inp,A,sel);
+}
+
+/* ---- PITI CALCULATOR ---- */
+function buildPiti(inp,A,s){
+  const box=$('piti');
+  if(!s){ box.innerHTML='<div class="hd">Full PITI</div><div class="hint">No viable scenario selected.</div>'; return; }
+  const taxesIns=inp.tiHoa;
+  const piti=s.pi+s.monthlyMI+taxesIns;
+  box.innerHTML='<div class="hd">Full PITI — '+s.name+'</div>'+
+    '<div class="rows">'+
+      '<div class="k">Principal &amp; Interest</div><div class="v">'+money(s.pi)+'</div>'+
+      '<div class="k">Mortgage insurance</div><div class="v">'+(s.monthlyMI>0?money(s.monthlyMI):'—')+'</div>'+
+      '<div class="k">Taxes + Insurance + HOA</div><div class="v">'+money(taxesIns)+'</div>'+
+      '<div class="k tot">Full monthly obligation</div><div class="v tot">'+money(piti)+'</div>'+
+    '</div>'+
+    '<div class="note">Back-end DTI at this PITI: <b>'+s.backRatio.toFixed(1)+'%</b> (limit '+s.ratios.back+'%) · Housing ratio <b>'+s.frontRatio.toFixed(1)+'%</b> (limit '+s.ratios.front+'%). '+
+    (s.cancelMonth&&s.miMode==='conv'?'PMI drops at month '+s.cancelMonth+' → PITI falls to '+money(piti-s.monthlyMI)+'.':'')+'</div>';
+}
+
+/* ---- WARNINGS ---- */
+function buildWarnings(inp,A,res){
+  const W=[];
+  const add=(t,type)=>W.push({t,type});
+  // LLPA
+  res.scenarios.forEach(s=>{
+    if(s.id==='conv' && inp.score<700 && s.ltv>90 && s.viable){
+      add('LLPA: score '+inp.score+' with '+s.ltv.toFixed(0)+'% LTV on '+s.name+' — pricing adjustments may make the stated conv rate unrepresentative. Verify pricing.','w-red');
+    }
+  });
+  // FHA lifetime MIP
+  if(res.scenarios.some(s=>s.id==='fha'&&s.viable)){
+    add('FHA MIP runs for the LIFE of the loan at 3.5% down — it never cancels. Factor lifetime MI into the effective-rate comparison.','w-amber');
+  }
+  // Conv 3% AMI note
+  if(inp.fthb && res.scenarios.some(s=>s.id==='conv'&&s.dpPct===3&&s.viable)){
+    add('Conv 3%: income eligibility (≤80% AMI, or approved product) must be confirmed — not auto-verified by this tool.','w-info');
+  }
+  // DTI hits
+  res.scenarios.filter(s=>s.viable).forEach(s=>{
+    if(s.frontRatio>s.ratios.front) add(s.name+': housing ratio '+s.frontRatio.toFixed(1)+'% exceeds '+s.ratios.front+'% guideline.','w-red');
+    if(s.backRatio>s.ratios.back) add(s.name+': back-end DTI '+s.backRatio.toFixed(1)+'% exceeds '+s.ratios.back+'% guideline.','w-red');
+  });
+  // loan limit triggers already surface as greyed cols
+  res.dims.forEach(d=>{ d.reasons.forEach(r=>{ if(/limit|Jumbo/i.test(r)) add(d.label+' '+d.name+': '+r,'w-amber'); }); });
+  // funding fee exemption status
+  if(inp.vaOn){
+    const va=res.scenarios.find(s=>s.id==='va');
+    if(va){
+      if(va.vaExempt) add('VA funding fee EXEMPT (10%+ service-connected disability) — $0 funding fee applied.','w-info');
+      else add('VA funding fee '+va.fundingFeePct.toFixed(2)+'% ('+(inp.vaUse==='sub'?'subsequent':'first')+' use) = '+money(va.fundingFee)+' financed. Confirm exemption status.','w-info');
+    }
+  }
+  // concession overages
+  if(inp.concessionOn){
+    res.scenarios.filter(s=>s.viable).forEach(s=>{
+      if(inp.concession>s.concessionLimit+0.5){
+        add(s.name+': entered concession '+money(inp.concession)+' exceeds allowable '+money(s.concessionLimit)+' ('+s.concessionLimitPct+'%'+(s.id==='va'?' buydown bucket; closing costs uncapped':'')+') — verify with lender.','w-red');
+      }
+    });
+  }
+
+  const list=$('warnlist');
+  if(W.length===0){ list.innerHTML='<div class="noflags">✓ No warning flags on the current inputs.</div>'; return; }
+  // order red, amber, info
+  const order={'w-red':0,'w-amber':1,'w-info':2};
+  W.sort((a,b)=>order[a.type]-order[b.type]);
+  list.innerHTML='<ul>'+W.map(w=>'<li class="'+w.type+'"><span>'+(w.type==='w-red'?'⛔':w.type==='w-amber'?'⚠️':'ℹ️')+'</span><span>'+w.t+'</span></li>').join('')+'</ul>';
+}
+
+/* ---- SELLER-CONCESSION SPLIT STATE ---- */
+// splitState.costs = $ of the concession allocated to closing costs (rest = buydown).
+// userSet=false means "auto" → recompute the optimal split every recalc until Doug
+// takes manual control (edits a field, drags the slider, or clicks Show optimal split).
+const splitState={costs:0, userSet:false};
+function curConcession(){ return $('tgConcession').checked ? num('concession') : 0; }
+
+function syncSplitUI(inp,A,res,C){
+  const panel=$('splitPanel');
+  panel.classList.toggle('off', !inp.concessionOn || C<=0);
+  const costs=Math.max(0,Math.min(C,splitState.costs));
+  const buydown=Math.max(0,C-costs);
+  // fields + slider (don't clobber a field the user is mid-typing? recalc fires on input,
+  // but we re-render normalized values — acceptable for these compact numeric fields)
+  if(document.activeElement!==$('splitCosts'))   $('splitCosts').value   = Math.round(costs).toLocaleString('en-US');
+  if(document.activeElement!==$('splitBuydown')) $('splitBuydown').value = Math.round(buydown).toLocaleString('en-US');
+  $('splitSlider').value = C>0 ? (costs/C*100) : 0;
+  $('splitTotal').textContent = 'Total '+money(C);
+
+  const viable=res.scenarios.filter(s=>s.viable).sort((a,b)=>a.totalPM-b.totalPM);
+  const ref = viable[0] || res.scenarios[0];
+  const lim=$('splitLimit'), imp=$('splitImpact');
+  if(ref && C>0){
+    const over = C > ref.concessionLimit+0.5;
+    lim.className='split-limit '+(over?'over':'ok');
+    lim.textContent=(over?'⛔ exceeds ':'✓ within ')+'max '+money(ref.concessionLimit)+' ('+ref.concessionLimitPct+'%'+(ref.id==='va'?' buydown bucket':'')+', vs '+ref.name+')';
+    const pts=buydown>0?buydown/(ref.loanAmount*0.01):0;
+    const newRate=Math.max(0,ref.baseRate-pts*0.25);
+    let msg='Buydown '+money(buydown)+' ≈ <b>'+pts.toFixed(2)+' pts</b> → '+ref.baseRate.toFixed(3)+'%→<b>'+newRate.toFixed(3)+'%</b> on '+ref.name+
+            ' · closing credit <b>'+money(Math.min(costs,inp.closingCosts))+'</b> of '+money(inp.closingCosts)+' costs';
+    if(costs>inp.closingCosts+0.5) msg+=' · <b style="color:var(--red)">'+money(costs-inp.closingCosts)+' over actual costs (wasted — move to buydown)</b>';
+    imp.innerHTML=msg;
+  } else { lim.textContent=''; imp.textContent=''; }
+}
+
+/* ---- MAIN RECALC ---- */
+function recalc(){
+  // VA sub-options visibility
+  $('vaOpts').style.display = $('tgVa').checked ? 'inline-flex':'none';
+  const inp=gatherInputs();
+  const A=gatherAssumptions();
+  const C = inp.concessionOn ? inp.concession : 0;
+
+  // resolve the split: optimal while in auto mode, else Doug's manual allocation
+  if(!splitState.userSet){ splitState.costs = Engine.optimalSplit(inp,A).toCosts; }
+  splitState.costs = Math.max(0, Math.min(C, splitState.costs));
+  inp.concToCosts   = splitState.costs;
+  inp.concToBuydown = C - splitState.costs;
+
+  const res=Engine.run(inp,A);
+  buildStrategy(inp,A,res);
+  buildGrid(inp,A,res);
+  buildWarnings(inp,A,res);
+  syncSplitUI(inp,A,res,C);
+}
+
+/* ---- input formatting: thousands separators on blur for $ fields ---- */
+function attachFormatting(){
+  ['price','funds','income','debts','target','cc','concession','a_fhaLimit','a_confLimit','a_tiHoa'].forEach(id=>{
+    const el=$(id);
+    el.addEventListener('blur',()=>{ const v=num(el); if(v) el.value=v.toLocaleString('en-US'); recalc(); });
+  });
+}
+
+/* ---- split control handlers (manual override) ---- */
+function attachSplitHandlers(){
+  $('splitSlider').addEventListener('input',()=>{
+    const C=curConcession(); splitState.costs=C*(parseFloat($('splitSlider').value)/100); splitState.userSet=true; recalc();
+  });
+  $('splitCosts').addEventListener('input',()=>{
+    const C=curConcession(); let v=Math.max(0,Math.min(C,num('splitCosts'))); splitState.costs=v; splitState.userSet=true; recalc();
+  });
+  $('splitBuydown').addEventListener('input',()=>{
+    const C=curConcession(); let v=Math.max(0,Math.min(C,num('splitBuydown'))); splitState.costs=C-v; splitState.userSet=true; recalc();
+  });
+  $('btnOptimal').addEventListener('click',()=>{
+    const inp=gatherInputs(), A=gatherAssumptions();
+    splitState.costs=Engine.optimalSplit(inp,A).toCosts; splitState.userSet=true; recalc();
+  });
+}
+
+/* ---- wire everything ---- */
+function init(){
+  buildPmiEditor();
+  attachFormatting();
+  const SKIP={splitSlider:1,splitCosts:1,splitBuydown:1}; // split fields get dedicated handlers
+  document.querySelectorAll('input,select').forEach(el=>{
+    if(SKIP[el.id]) return;
+    el.addEventListener('input',recalc);
+    el.addEventListener('change',recalc);
+  });
+  attachSplitHandlers();
+  recalc();
+}
+init();
+</script>
+</body>
+</html>
