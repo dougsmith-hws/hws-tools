@@ -3,130 +3,278 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Buyer Strategy Engine — Internal</title>
+<title>Buyer Strategy Engine v2 — Internal</title>
 <style>
   :root{
     --blue:#3BB1ED; --green:#8EC73F;
-    --ink:#12202b; --sub:#5a6b78; --line:#dce4ea; --bg:#f4f7f9;
+    --ink:#12202b; --sub:#5a6b78; --line:#dce4ea; --bg:#eef2f5;
     --card:#ffffff; --red:#e0483a; --redbg:#fdecea; --amber:#d98a00; --amberbg:#fff5e0;
-    --goodbg:#eef7e2; --headbg:#0f2836;
+    --goodbg:#eef7e2; --good:#3a8a1f; --headbg:#0f2836; --dim:#9aa8b2;
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
   html,body{margin:0;padding:0}
-  body{font:14px/1.35 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink)}
+  body{font:13.5px/1.35 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink)}
   h1,h2,h3{margin:0;font-weight:700}
-  .wrap{max-width:1400px;margin:0 auto;padding:10px}
-  .topbar{display:flex;align-items:center;gap:10px;padding:4px 2px 10px}
+  .wrap{max-width:1500px;margin:0 auto;padding:10px}
+  .topbar{display:flex;align-items:center;gap:10px;padding:4px 2px 8px;flex-wrap:wrap}
   .topbar .brand{font-size:15px;font-weight:800;letter-spacing:.2px}
   .topbar .brand b{color:var(--blue)}
-  .topbar .tag{font-size:11px;color:var(--sub);background:#e9eef2;padding:2px 8px;border-radius:20px}
+  .topbar .tag{font-size:11px;color:var(--sub);background:#e2e8ed;padding:2px 8px;border-radius:20px}
+  .topbar .mode{font-size:11px;font-weight:800;padding:3px 10px;border-radius:20px;letter-spacing:.3px}
+  .mode.shop{background:#e7f5fd;color:#15709e;border:1px solid #bfe3f8}
+  .mode.spec{background:#eef7e2;color:#4d7a1d;border:1px solid #cfe8a8}
   .card{background:var(--card);border:1px solid var(--line);border-radius:10px;box-shadow:0 1px 2px rgba(16,40,54,.04)}
 
-  /* INPUT BAR */
-  .inputs{padding:8px 8px 4px;margin-bottom:10px}
-  .igrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(122px,1fr));gap:7px}
+  /* ---------- INPUT BAR ---------- */
+  .inputs{padding:10px 10px 6px;margin-bottom:8px}
+  .igroup{margin-bottom:4px}
+  .igroup-h{font-size:10px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;color:var(--sub);margin:6px 2px 5px;display:flex;align-items:center;gap:8px}
+  .igroup-h .hint{font-weight:600;text-transform:none;letter-spacing:0;color:var(--dim);font-size:10.5px}
+  .igrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:7px}
   .fld{display:flex;flex-direction:column;gap:2px;min-width:0}
   .fld label{font-size:10px;font-weight:600;color:var(--sub);text-transform:uppercase;letter-spacing:.3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .fld input[type=text],.fld input[type=number],.fld select{
     width:100%;padding:6px 7px;border:1px solid var(--line);border-radius:7px;font-size:14px;font-weight:600;color:var(--ink);background:#fff}
   .fld input:focus,.fld select:focus{outline:2px solid var(--blue);outline-offset:-1px;border-color:var(--blue)}
+  .fld.derived input{background:#f4f7f9;color:var(--sub);font-weight:700}
+  /* $ / % affixes */
+  .ia{position:relative;display:flex;align-items:center;width:100%}
+  .ia input{width:100%}
+  .ia::before,.ia::after{position:absolute;color:var(--sub);font-size:12px;font-weight:700;pointer-events:none}
+  .ia.dollar input{padding-left:16px}
+  .ia.dollar::before{content:"$";left:7px}
+  .ia.pct input{padding-right:17px}
+  .ia.pct::after{content:"%";right:7px}
+  .ia.both input{padding-left:16px}
+  .ia.both::before{content:"$/%";left:6px;font-size:9px;letter-spacing:-.5px}
+  .fld .sub{font-size:9.5px;color:var(--amber);font-weight:700;height:11px;line-height:11px}
+  .fld .sub.info{color:var(--blue)}
   .raterow input{border-color:#bfe3f8;background:#f5fbfe}
-  .toggles{display:flex;flex-wrap:wrap;gap:6px 14px;padding:8px 4px 2px;align-items:center;border-top:1px dashed var(--line);margin-top:8px}
+  .pitirow input{border-color:#cfe8a8;background:#f8fcef}
+  .pitirow input:disabled{opacity:.55;background:#eef2f0;border-color:var(--line)}
+  label .na{display:inline-flex;align-items:center;gap:2px;font-size:9px;font-weight:700;color:var(--sub);text-transform:none;letter-spacing:0;cursor:pointer;float:right}
+  label .na input{width:11px;height:11px;accent-color:var(--green);margin:0}
+  /* $ / % unit selector — a segmented control attached to the right of the input */
+  .urow{display:flex;align-items:stretch;width:100%}
+  .urow .ia{flex:1;min-width:0}
+  .urow input{width:100%;border-top-right-radius:0!important;border-bottom-right-radius:0!important;border-right:none!important}
+  .urow .unit-tg{display:flex;flex:0 0 auto}
+  .urow .unit-tg button{border:1px solid var(--line);border-left:none;background:#eef2f5;color:var(--sub);font-size:13px;font-weight:800;line-height:1;padding:0 9px;cursor:pointer;transition:background .1s}
+  .urow .unit-tg button:last-child{border-radius:0 7px 7px 0}
+  .urow .unit-tg button.active{background:var(--blue);color:#fff;border-color:var(--blue)}
+  .urow .unit-tg button:not(.active):hover{background:#e2e8ed}
+  .ccpair{display:flex;gap:4px}
+  .ccpair .ia{flex:1;min-width:0}
+  .ccpair input{width:100%}
+  .toggles{display:flex;flex-wrap:wrap;gap:6px 16px;padding:9px 4px 3px;align-items:center;border-top:1px dashed var(--line);margin-top:9px}
   .tg{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--ink)}
   .tg input{width:16px;height:16px;accent-color:var(--blue)}
-  .tg.dim{color:#9aa8b2}
-  .subopt{display:inline-flex;gap:6px;align-items:center;font-size:12px;color:var(--sub)}
+  .subopt{display:inline-flex;gap:8px;align-items:center;font-size:12px;color:var(--sub)}
   .subopt select{padding:3px 5px;border:1px solid var(--line);border-radius:6px;font-size:12px}
+  .concwrap{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;margin-top:8px;padding-top:8px;border-top:1px dashed var(--line)}
+  .concwrap.off .negmodes,.concwrap.off .concsplit{opacity:.35;pointer-events:none}
+  .concwrap.off .concsplit{display:none}
+  .neg-head{display:flex;gap:6px 16px;align-items:flex-start;flex-wrap:wrap}
+  .neg-head>.igroup-h{width:100%;margin:0 2px 3px}
+  .negfield{max-width:190px}
+  .negmodes{width:100%;margin-top:3px;display:flex;flex-flow:row wrap;gap:4px 16px;align-items:center}
+  .negmode-lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.3px;color:var(--sub);width:100%;margin-bottom:1px}
+  .negmode{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;color:var(--ink);cursor:pointer}
+  .negmode input{width:15px;height:15px;accent-color:var(--blue)}
+  .concsplit{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;padding-left:12px;margin-left:2px;border-left:2px solid var(--line)}
+  .cs-fld{display:flex;flex-direction:column;gap:2px;max-width:170px}
+  .cs-fld label{font-size:10px;font-weight:600;color:var(--sub);text-transform:uppercase;letter-spacing:.3px}
+  .cs-fld input{padding:6px 7px;border:1px solid var(--line);border-radius:7px;font-size:14px;font-weight:700}
+  .cs-fld.buy input{border-color:#cfe8a8;background:#f8fcef}
+  .cs-fld.cost input{border-color:#bfe3f8;background:#f5fbfe}
+  .cs-opt{font-size:11.5px;font-weight:700;color:#fff;background:var(--green);border:none;border-radius:7px;padding:8px 12px;cursor:pointer;height:33px}
+  .cs-opt:active{transform:translateY(1px)}
+  .cs-sum{font-size:11px;font-weight:700;color:var(--sub);align-self:center}
+  .cs-sum.over{color:var(--red)}
+  /* auto-split rationale line + manual-override toggle */
+  .autosplit{flex-basis:100%;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-top:2px}
+  .autosplit .as-label{font-size:10px;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:.3px;white-space:nowrap}
+  .autosplit .as-reason{font-size:12.5px;font-weight:600;color:var(--ink);flex:1;min-width:180px}
+  .autosplit .as-link{font-size:11px;font-weight:700;color:var(--blue);background:none;border:none;cursor:pointer;padding:0;text-decoration:underline;white-space:nowrap}
+  .concsplit.hide{display:none}
+  .concwrap.off .autosplit{display:none}
+  .cs-back{font-size:11px;font-weight:700;color:var(--blue);background:none;border:none;cursor:pointer;padding:0;text-decoration:underline;align-self:center}
+  .concfield{max-width:180px}
+  .note-illus{font-size:10.5px;color:var(--sub);font-style:italic;margin-top:5px}
 
-  /* SELLER-CONCESSION SPLIT */
-  .split{margin-top:8px;border-top:1px dashed var(--line);padding-top:8px}
-  .split.off{opacity:.4;pointer-events:none}
-  .split-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:7px}
-  .split-title{font-size:11px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;color:var(--sub)}
-  .split-total{font-size:12px;font-weight:700;color:var(--ink)}
-  .split-opt{font-size:11.5px;font-weight:700;color:#fff;background:var(--green);border:none;border-radius:6px;padding:4px 10px;cursor:pointer}
-  .split-opt:active{transform:translateY(1px)}
-  .split-limit{font-size:11px;font-weight:700}
-  .split-limit.over{color:var(--red)} .split-limit.ok{color:#3a8a1f}
-  .split-body{display:grid;grid-template-columns:1fr minmax(120px,220px) 1fr;gap:12px;align-items:center}
-  .split-fld{display:flex;flex-direction:column;gap:2px}
-  .split-fld label{font-size:10px;font-weight:600;color:var(--sub);text-transform:uppercase;letter-spacing:.3px}
-  .split-fld input{padding:6px 7px;border:1px solid var(--line);border-radius:7px;font-size:14px;font-weight:700}
-  .split-fld:first-of-type input{border-color:#bfe3f8;background:#f5fbfe}
-  .split-fld:nth-of-type(2) input{border-color:#cfe8a8;background:#f7fcef}
-  .split-slider{width:100%;accent-color:var(--green);height:22px}
-  .split-impact{grid-column:1/-1;font-size:12px;color:var(--sub);min-height:16px}
-  .split-impact b{color:var(--ink)}
-  @media(max-width:640px){.split-body{grid-template-columns:1fr 1fr;gap:8px}.split-slider{grid-column:1/-1;order:3}}
+  /* ---------- ASSUMPTIONS CHANGED BANNER ---------- */
+  details.changelog{margin:0 0 8px}
+  details.changelog>summary{cursor:pointer;list-style:none;padding:6px 12px;background:#e8eef2;border:1px solid var(--line);border-radius:8px;
+    font-size:11px;font-weight:700;color:var(--sub);display:flex;align-items:center;gap:8px}
+  details.changelog>summary::-webkit-details-marker{display:none}
+  details.changelog>summary::before{content:"▸";color:var(--blue);font-weight:800}
+  details.changelog[open]>summary::before{content:"▾"}
+  details.changelog .cl-latest{font-weight:600;color:var(--ink);font-size:11px}
+  .cl-body{padding:8px 12px;background:#fff;border:1px solid var(--line);border-top:none;border-radius:0 0 8px 8px}
+  .cl-body ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:4px}
+  .cl-body li{font-size:12px;color:var(--ink);display:flex;gap:8px;align-items:baseline}
+  .cl-body li .t{color:var(--dim);font-size:10px;font-variant-numeric:tabular-nums;min-width:52px}
+  .cl-empty{font-size:12px;color:var(--dim);font-style:italic}
 
-  /* STRATEGY SUMMARY */
-  .section-h{font-size:11px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;color:var(--sub);margin:14px 2px 6px}
-  .strategy{padding:12px 14px}
-  .strat-top{display:flex;flex-wrap:wrap;gap:14px;align-items:baseline;margin-bottom:4px}
-  .strat-top .big{font-size:22px;font-weight:800}
-  .strat-top .lbl{font-size:11px;color:var(--sub);text-transform:uppercase;letter-spacing:.4px;font-weight:700;display:block}
-  .gap-pos{color:var(--red)} .gap-ok{color:#3a8a1f}
-  .ladder{margin-top:10px;display:flex;flex-direction:column;gap:7px}
-  .rung{display:flex;gap:10px;align-items:flex-start;padding:9px 11px;border:1px solid var(--line);border-left:3px solid var(--blue);border-radius:8px;background:#fbfdff}
-  .rung .n{flex:0 0 20px;height:20px;border-radius:50%;background:var(--blue);color:#fff;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;margin-top:1px}
-  .rung .body{flex:1;min-width:0}
-  .rung .move{font-weight:700}
-  .rung .res{font-size:12.5px;color:var(--sub);margin-top:2px}
-  .rung .res b{color:#3a8a1f}
-  .rung.easiest{border-left-color:var(--green);background:var(--goodbg)}
-  .rung.easiest .n{background:var(--green)}
-  .allgood{padding:12px 14px;font-weight:600;color:#3a8a1f;background:var(--goodbg);border-radius:8px}
+  /* ---------- COLLAPSIBLE SECTIONS ---------- */
+  .section{margin-bottom:8px;border:1px solid var(--line);border-radius:10px;background:var(--card);overflow:hidden;box-shadow:0 1px 2px rgba(16,40,54,.04)}
+  .section>.sec-head{display:flex;align-items:center;gap:10px;padding:10px 14px;cursor:pointer;background:var(--headbg);color:#fff;user-select:none}
+  .section>.sec-head .num{width:22px;height:22px;border-radius:6px;background:rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800}
+  .section>.sec-head .title{font-size:14px;font-weight:800;letter-spacing:.2px}
+  .section>.sec-head .q{font-size:11px;color:#9fc7dd;font-weight:600;margin-left:2px}
+  .section>.sec-head .chev{margin-left:auto;font-size:13px;transition:transform .15s}
+  .section.collapsed>.sec-head .chev{transform:rotate(-90deg)}
+  .section>.sec-body{padding:12px 14px}
+  .section.collapsed>.sec-body{display:none}
 
-  /* GRID */
-  .gridwrap{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:10px}
-  table.grid{border-collapse:collapse;width:100%;min-width:640px;font-size:13px}
-  table.grid th,table.grid td{border:1px solid var(--line);padding:6px 9px;text-align:right;white-space:nowrap}
-  table.grid th.rowlbl,table.grid td.rowlbl{text-align:left;position:sticky;left:0;background:#f8fafb;font-weight:600;color:var(--sub);z-index:2;font-size:11.5px;text-transform:uppercase;letter-spacing:.2px}
-  table.grid thead th{background:var(--headbg);color:#fff;cursor:pointer;text-align:center;vertical-align:top;padding:8px}
-  table.grid thead th.rowlbl{background:var(--headbg);color:#cfe0ea;cursor:default}
-  table.grid thead th .colname{font-size:13px;font-weight:800;display:block}
-  table.grid thead th .coldp{font-size:11px;opacity:.8;font-weight:600}
-  table.grid thead th.sel{outline:3px solid var(--green);outline-offset:-3px}
-  table.grid thead th .flagline{font-size:9.5px;font-weight:700;color:#ffd27a;margin-top:3px;white-space:normal;line-height:1.15;max-width:150px}
-  table.grid td.money{font-variant-numeric:tabular-nums;font-weight:600}
-  table.grid tr.total td{background:#eef6fb;font-weight:800;font-size:14px}
-  td.flag-red{background:var(--redbg);color:var(--red);font-weight:800}
-  td.flag-amber{background:var(--amberbg);color:var(--amber);font-weight:800}
-  td.col-dim{background:repeating-linear-gradient(45deg,#f3f5f7,#f3f5f7 6px,#eef1f3 6px,#eef1f3 12px);color:#9aa8b2}
-  th.col-dim{background:#3a4b57 !important;color:#9fb2bd !important}
-  .dimreason{font-size:9.5px;font-weight:600;color:#ffb4ab;white-space:normal;line-height:1.15;max-width:150px;margin-top:3px}
-  .neg{color:var(--red)} .pos{color:#3a8a1f}
+  /* ---------- SECTION 4: OFFER COMPARISON ---------- */
+  .offergrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  @media(max-width:760px){.offergrid{grid-template-columns:1fr}}
+  .offer-panel{border:1px solid var(--line);border-radius:10px;background:#fff;padding:11px 12px;border-top:3px solid var(--line)}
+  .offer-panel.a{border-top-color:var(--blue)}
+  .offer-panel.b{border-top-color:var(--green)}
+  .offer-panel.winner{box-shadow:0 0 0 2px var(--goodbg),0 3px 10px rgba(58,138,31,.15);background:#fcfefb}
+  .op-title{font-size:14px;font-weight:800;margin-bottom:8px}
+  .offer-panel.a .op-title{color:#1c86bf}
+  .offer-panel.b .op-title{color:#4d7a1d}
+  .op-title .winbadge{font-size:9.5px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;background:var(--green);color:#fff;padding:2px 7px;border-radius:10px;margin-left:6px}
+  .op-inputs{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+  .op-inputs .fld:first-child{grid-column:1/-1}
+  .op-split{display:grid;grid-template-columns:1fr 1fr auto;gap:6px;align-items:end;margin-top:7px}
+  .op-split .cs-opt{height:33px}
+  .op-results{margin-top:9px;border-top:1px solid var(--line);padding-top:8px}
+  .op-rows{display:grid;grid-template-columns:1fr auto;gap:2px 10px;font-size:12.5px}
+  .op-rows .k{color:var(--sub)}
+  .op-rows .v{text-align:right;font-weight:700;font-variant-numeric:tabular-nums}
+  .op-rows .v.big{font-size:15px}
+  .op-rows .sec{grid-column:1/-1;border-top:1px dashed var(--line);margin:4px 0 2px}
+  .op-empty{font-size:12.5px;color:var(--dim);font-style:italic;padding:6px 0}
+  .op-flag{font-size:11px;font-weight:700;color:#b3271a;background:var(--redbg);border-radius:6px;padding:4px 8px;margin-top:6px}
+  .offer-compare{margin-top:12px}
+  .offer-compare .cmp-rec{margin-top:0}
 
-  /* PITI */
-  .piti{padding:12px 14px;margin-top:10px}
-  .piti .hd{font-size:12px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;color:var(--blue);margin-bottom:8px}
-  .piti .rows{display:grid;grid-template-columns:1fr auto;gap:3px 14px;max-width:360px}
-  .piti .rows .k{color:var(--sub)} .piti .rows .v{text-align:right;font-weight:700;font-variant-numeric:tabular-nums}
-  .piti .rows .tot{border-top:2px solid var(--ink);padding-top:5px;margin-top:3px;font-size:16px}
-  .piti .hint{color:var(--sub);font-style:italic}
+  /* ---------- SECTION 1: SNAPSHOT ---------- */
+  .snap-top{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-bottom:10px}
+  .snap-power{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:10px}
+  @media(max-width:640px){.snap-power{grid-template-columns:1fr}}
+  .snap-stat.pw-green{border-top:3px solid var(--green)}
+  .snap-stat.pw-blue{border-top:3px solid var(--blue)}
+  .snap-stat.pw-amber{border-top:3px solid var(--amber)}
+  .pw-sub{font-size:10px;color:var(--sub);margin-top:3px}
+  .pw-delta{font-size:11px;font-weight:800;margin-top:3px;font-variant-numeric:tabular-nums}
+  .pw-delta.up{color:var(--blue)} .pw-delta.down{color:var(--amber)} .pw-delta.same{color:var(--dim);font-weight:600}
+  /* Strategy Opportunity card */
+  .strat-card{margin-bottom:10px;border:1px solid var(--line);border-top:3px solid var(--line);border-radius:10px;padding:11px 14px;background:#fff}
+  .strat-card.gap{border-top-color:var(--red);background:#fffbfa}
+  .strat-card.ok{border-top-color:var(--green);background:#fbfefa}
+  .strat-h{font-size:15px;font-weight:800;color:var(--ink)}
+  .strat-sub{font-size:12px;color:var(--sub);margin-top:2px}
+  .strat-badge-row{display:flex;align-items:center;gap:8px;margin:8px 0 6px}
+  .strat-badge-lbl{font-size:9.5px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;color:var(--sub)}
+  .strat-badge{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:800;color:#fff;padding:3px 10px;border-radius:12px}
+  .strat-badge.cash{background:var(--amber)} .strat-badge.dti{background:var(--blue)} .strat-badge.limit{background:var(--red)} .strat-badge.comfort{background:#5f8a24}
+  .strat-script{font-size:12px;font-style:italic;color:#1b3a4b;background:#eef4f8;border-radius:7px;padding:7px 9px;margin:6px 0}
+  .strat-actions{margin:6px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:5px}
+  .strat-actions li{font-size:12.5px;display:flex;gap:8px;align-items:flex-start;line-height:1.35}
+  .strat-actions li .n{flex:0 0 18px;height:18px;border-radius:50%;background:var(--headbg);color:#fff;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;margin-top:1px}
+  .strat-actions li b{color:var(--ink)}
+  .strat-ok{font-size:13px;font-weight:700;color:var(--good)}
+  /* Negotiation Strategy panel */
+  .neg-panel{margin:2px 0 10px;border:1px solid var(--line);border-radius:10px;background:#fff;overflow:hidden}
+  .neg-headline{padding:11px 14px;font-size:14px;font-weight:800;line-height:1.35;border-bottom:1px solid var(--line)}
+  .neg-headline.unlock{background:var(--goodbg);color:#2f6b1e;border-left:4px solid var(--green)}
+  .neg-headline.flip{background:var(--amberbg);color:#8a5a00;border-left:4px solid var(--amber)}
+  .neg-headline.allfit{background:#eef4f8;color:#175d82;border-left:4px solid var(--blue)}
+  .neg-headline .sub{display:block;font-size:12px;font-weight:600;margin-top:4px;color:inherit;opacity:.9}
+  .neg-tbl{width:100%;border-collapse:collapse;font-size:12.5px}
+  .neg-tbl th,.neg-tbl td{border:1px solid var(--line);padding:6px 9px;text-align:right;white-space:nowrap}
+  .neg-tbl th:first-child,.neg-tbl td:first-child{text-align:left;color:var(--sub);font-weight:600;font-size:11.5px;text-transform:uppercase;letter-spacing:.2px}
+  .neg-tbl thead th{background:var(--headbg);color:#fff;text-align:center;font-size:12px}
+  .neg-tbl thead th.win{background:#2f6b1e}
+  .neg-tbl td.win{background:var(--goodbg);font-weight:800}
+  .neg-tbl tr.unused td{font-weight:800}
+  .neg-tbl tr.unused td.zero{color:var(--good)} .neg-tbl tr.unused td.pos{color:var(--red)}
+  .neg-rec{padding:9px 14px;background:var(--goodbg);font-size:12.5px;font-weight:700;color:#2f6b1e;border-top:1px solid var(--line)}
+  .snap-stat{border:1px solid var(--line);border-radius:9px;padding:10px 12px;background:#fbfdff}
+  .snap-stat .k{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--sub)}
+  .snap-stat .v{font-size:20px;font-weight:800;margin-top:3px;font-variant-numeric:tabular-nums}
+  .snap-stat .v small{font-size:12px;font-weight:600;color:var(--sub)}
+  .snap-stat.bind{background:#fff6e9;border-color:#f2d9a8}
+  .snap-stat.bind .v{font-size:16px;color:#9a6300}
+  .snap-stat.conf .v{font-size:16px}
+  .conf-High{color:var(--good)} .conf-Medium{color:var(--amber)} .conf-Low{color:var(--red)}
+  .flagbox{border-radius:8px;padding:8px 11px;font-size:12.5px;font-weight:600;margin-top:8px;display:flex;gap:8px;align-items:flex-start}
+  .fb-amber{background:var(--amberbg);color:#8a5a00;border-left:3px solid var(--amber)}
+  .fb-info{background:#eaf5fc;color:#175d82;border-left:3px solid var(--blue)}
+  .fb-good{background:var(--goodbg);color:var(--good);border-left:3px solid var(--green)}
+  .elim{margin-top:10px}
+  .elim-h{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.4px;color:var(--sub);margin-bottom:5px}
+  .elim ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:4px}
+  .elim li{font-size:12.5px;color:#b3271a;background:var(--redbg);border-radius:6px;padding:5px 9px}
+  .elim li b{color:#7d1a10}
 
-  /* WARNINGS + ASSUMPTIONS */
-  .warns{padding:10px 14px;margin-top:14px}
-  .warns ul{margin:6px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:6px}
-  .warns li{padding:7px 10px;border-radius:7px;font-size:12.5px;font-weight:600;display:flex;gap:8px;align-items:flex-start}
-  .w-red{background:var(--redbg);color:#b3271a;border-left:3px solid var(--red)}
-  .w-amber{background:var(--amberbg);color:#8a5a00;border-left:3px solid var(--amber)}
-  .w-info{background:#eaf5fc;color:#175d82;border-left:3px solid var(--blue)}
-  .noflags{color:#3a8a1f;font-weight:600}
-  details.assume{margin-top:12px}
-  details.assume>summary{cursor:pointer;font-size:11px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;color:var(--sub);padding:8px 0;list-style:none}
-  details.assume>summary::-webkit-details-marker{display:none}
-  details.assume>summary::before{content:"▸ ";color:var(--blue)}
-  details.assume[open]>summary::before{content:"▾ "}
-  .agrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;padding:6px 0 4px}
-  .agrid .fld label{text-transform:none;font-size:11px}
-  .pmi-edit{margin-top:10px}
-  .pmi-edit table{border-collapse:collapse;font-size:11.5px}
-  .pmi-edit th,.pmi-edit td{border:1px solid var(--line);padding:2px 4px;text-align:center}
-  .pmi-edit th{background:#f0f3f5;font-weight:700}
-  .pmi-edit input{width:52px;border:1px solid var(--line);border-radius:4px;padding:2px 3px;text-align:right;font-size:11.5px}
-  .note{font-size:11px;color:var(--sub);margin-top:6px}
-  .foot{font-size:10.5px;color:#9aa8b2;text-align:center;padding:16px 0 8px}
+  /* ---------- SECTION 2: CARDS ---------- */
+  .cards{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+  @media(max-width:1100px){.cards{grid-template-columns:repeat(2,1fr)}}
+  @media(max-width:560px){.cards{grid-template-columns:1fr}}
+  .scard{border:1px solid var(--line);border-radius:10px;padding:11px 12px;background:#fff;display:flex;flex-direction:column;gap:2px;position:relative}
+  .scard.primary{border:2px solid var(--green);box-shadow:0 3px 10px rgba(142,199,63,.18)}
+  .scard .badge{position:absolute;top:-9px;left:11px;background:var(--green);color:#fff;font-size:9.5px;font-weight:800;letter-spacing:.4px;padding:2px 8px;border-radius:10px;text-transform:uppercase}
+  .scard .arch{font-size:13.5px;font-weight:800;letter-spacing:.1px}
+  .scard .prog{font-size:11px;font-weight:700;color:var(--sub);margin-bottom:5px}
+  .scard .price{font-size:11px;color:var(--sub)}
+  .scard .price b{color:var(--ink);font-size:13px}
+  .scard .piti{font-size:22px;font-weight:800;font-variant-numeric:tabular-nums;margin:3px 0 1px}
+  .scard .gaprow{font-size:11.5px;font-weight:700}
+  .gap-ok{color:var(--good)} .gap-amber{color:var(--amber)} .gap-red{color:var(--red)}
+  .scard .metrics{margin-top:7px;border-top:1px solid var(--line);padding-top:7px;display:grid;grid-template-columns:1fr auto;gap:2px 8px;font-size:12px}
+  .scard .metrics .k{color:var(--sub)}
+  .scard .metrics .v{text-align:right;font-weight:700;font-variant-numeric:tabular-nums}
+  .scard .guide{margin-top:8px;font-size:11.5px;line-height:1.35;background:#f4f9fd;border-radius:7px;padding:7px 8px;color:#1b3a4b}
+  .scard .guide .lb{font-weight:800;color:var(--blue);text-transform:uppercase;font-size:9px;letter-spacing:.4px;display:block;margin-bottom:2px}
+  .scard .trade{margin-top:5px;font-size:11px;color:var(--sub);line-height:1.3}
+  .scard .trade .lb{font-weight:800;color:var(--sub);text-transform:uppercase;font-size:9px;letter-spacing:.4px;display:block}
+  .scard.dim{opacity:.6;background:repeating-linear-gradient(45deg,#fafbfc,#fafbfc 8px,#f1f4f6 8px,#f1f4f6 16px)}
+  .scard.dim .arch{color:var(--sub)}
+  .dpnote{margin-top:8px;font-size:10.5px;font-weight:700;color:#8a5a00;background:var(--amberbg);border-radius:6px;padding:5px 8px;line-height:1.3}
+  .reservewarn{font-size:10.5px;font-weight:700;color:#8a5a00;background:var(--amberbg);border-radius:6px;padding:4px 8px;margin-top:6px}
+  .concnote{font-size:11px;color:#4d7a1d;background:var(--goodbg);border-radius:6px;padding:4px 8px;margin-top:6px;font-weight:600}
+  .concnote.over{color:#b3271a;background:var(--redbg)}
+  .scard .cnote{font-size:10.5px;font-weight:700;color:#8a5a00;background:var(--amberbg);border-radius:6px;padding:4px 8px;margin:1px 0 4px}
+  .scard .offerpath{margin-top:6px;font-size:11.5px;line-height:1.35;background:var(--goodbg);border-radius:7px;padding:7px 8px;color:#2f6b1e}
+  .scard .offerpath .lb{font-weight:800;color:var(--good);text-transform:uppercase;font-size:9px;letter-spacing:.4px;display:block;margin-bottom:2px}
+  .scard .offerpath b{color:#1f4a14}
+  .noviable{padding:14px;background:var(--redbg);color:#b3271a;border-radius:8px;font-weight:700}
+
+  /* ---------- SECTION 3: GAP SOLVER ---------- */
+  .gs-q{font-size:13px;font-weight:800;margin-bottom:8px}
+  .gs-btns{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+  .gs-btn{border:1px solid var(--line);background:#fff;border-radius:9px;padding:9px 14px;font-size:12.5px;font-weight:700;cursor:pointer;color:var(--ink);display:flex;flex-direction:column;gap:2px;min-width:150px}
+  .gs-btn .st{font-size:10px;font-weight:600;color:var(--sub)}
+  .gs-btn:hover{border-color:var(--blue)}
+  .gs-btn.active{background:var(--headbg);color:#fff;border-color:var(--headbg)}
+  .gs-btn.active .st{color:#9fc7dd}
+  .gs-btn.flagged{border-color:var(--red)}
+  .gs-btn .dot{position:absolute}
+  .gs-panel{border:1px solid var(--line);border-radius:9px;padding:12px 14px;background:#fbfdff}
+  .gs-panel h4{font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.4px;color:var(--sub);margin:0 0 8px}
+  .sol{display:flex;gap:9px;align-items:flex-start;padding:8px 10px;border:1px solid var(--line);border-left:3px solid var(--blue);border-radius:7px;background:#fff;margin-bottom:7px}
+  .sol .ic{flex:0 0 auto;font-weight:800;color:var(--blue)}
+  .sol .txt{font-size:12.5px;line-height:1.4}
+  .sol .txt b{color:var(--ink)}
+  .sol.best{border-left-color:var(--green);background:var(--goodbg)}
+  .sol .num{color:var(--good);font-weight:800}
+  .cmp{width:100%;border-collapse:collapse;margin-top:8px;font-size:12.5px}
+  .cmp th,.cmp td{border:1px solid var(--line);padding:7px 9px;text-align:right}
+  .cmp th:first-child,.cmp td:first-child{text-align:left;color:var(--sub);font-weight:600;font-size:11.5px;text-transform:uppercase;letter-spacing:.2px}
+  .cmp thead th{background:var(--headbg);color:#fff;text-align:center;font-size:12px}
+  .cmp thead th.win{background:#2f6b1e}
+  .cmp td.win{background:var(--goodbg);font-weight:800}
+  .cmp .star{color:var(--green);font-size:15px}
+  .cmp-rec{margin-top:9px;padding:9px 11px;background:var(--goodbg);border-radius:8px;font-size:12.5px;font-weight:700;color:#2f6b1e;border-left:3px solid var(--green)}
+  .gs-none{font-size:12.5px;color:var(--good);font-weight:600;background:var(--goodbg);padding:9px 11px;border-radius:8px}
+
+  .foot{font-size:10.5px;color:var(--dim);text-align:center;padding:14px 0 8px}
   .foot b{color:var(--sub)}
 </style>
 </head>
@@ -134,90 +282,188 @@
 <div class="wrap">
   <div class="topbar">
     <div class="brand"><b>HW</b> Buyer Strategy Engine</div>
-    <span class="tag">Internal · not client-facing</span>
+    <span class="tag">v2 · Internal · not client-facing</span>
+    <span class="mode shop" id="modeBadge">Shopping Range Mode</span>
   </div>
 
-  <!-- ================= INPUT BAR ================= -->
+  <!-- ================= INPUTS ================= -->
   <div class="card inputs">
-    <div class="igrid">
-      <div class="fld"><label>Purchase price</label><input id="price" type="text" inputmode="numeric" value="425,000"></div>
-      <div class="fld"><label>Credit score</label><input id="score" type="number" value="742"></div>
-      <div class="fld"><label>Available funds</label><input id="funds" type="text" inputmode="numeric" value="40,000"></div>
-      <div class="fld"><label>Gross income /mo</label><input id="income" type="text" inputmode="numeric" value="9,500"></div>
-      <div class="fld"><label>Monthly debts</label><input id="debts" type="text" inputmode="numeric" value="650"></div>
-      <div class="fld"><label>Target pmt (P&I+MI)</label><input id="target" type="text" inputmode="numeric" value="2,600"></div>
-      <div class="fld"><label>Planned stay (yrs)</label><input id="stay" type="number" value="7"></div>
-      <div class="fld"><label>Est. closing costs</label><input id="cc" type="text" inputmode="numeric" value="9,500"></div>
-      <div class="fld raterow"><label>Conv rate %</label><input id="rateConv" type="number" step="0.001" value="6.750"></div>
-      <div class="fld raterow"><label>FHA rate %</label><input id="rateFha" type="number" step="0.001" value="6.250"></div>
-      <div class="fld raterow"><label>VA rate %</label><input id="rateVa" type="number" step="0.001" value="6.125"></div>
-      <div class="fld"><label>Seller concession $</label><input id="concession" type="text" inputmode="numeric" value="8,000"></div>
-    </div>
-    <div class="toggles">
-      <label class="tg"><input type="checkbox" id="tgConcession" checked> Seller concession available</label>
-      <label class="tg"><input type="checkbox" id="tgFthb" checked> First-time homebuyer <span style="font-weight:500;color:var(--sub)">(gates Conv 3%)</span></label>
-      <label class="tg"><input type="checkbox" id="tgVa"> VA eligible</label>
-      <span class="subopt" id="vaOpts" style="display:none">
-        Use:
-        <select id="vaUse"><option value="first">First use</option><option value="sub">Subsequent use</option></select>
-        <label class="tg" style="font-weight:500"><input type="checkbox" id="vaExempt"> Funding-fee exempt (10%+ SC disability)</label>
-      </span>
+    <div class="igroup">
+      <div class="igroup-h">Buyer Profile <span class="hint">— leave list price blank to run Shopping Range Mode</span></div>
+      <div class="igrid">
+        <div class="fld"><label>List price</label><div class="ia dollar"><input id="price" type="text" inputmode="numeric" placeholder="blank = shopping"></div><div class="sub" id="priceSub"></div></div>
+        <div class="fld"><label>Credit score</label><input id="score" type="number" min="300" max="850" value="740"><div class="sub" id="scoreSub"></div></div>
+        <div class="fld"><label>Buyer's own funds</label><div class="ia dollar"><input id="ownFunds" type="text" inputmode="numeric" value="40,000"></div><div class="sub"></div></div>
+        <div class="fld"><label>Gift amount</label><div class="ia dollar"><input id="gift" type="text" inputmode="numeric" value="0"></div><div class="sub" id="giftSub"></div></div>
+        <div class="fld derived"><label>Total available funds</label><div class="ia dollar"><input id="totalFunds" type="text" readonly value="40,000"></div><div class="sub"></div></div>
+        <div class="fld"><label>Down payment (opt.)</label>
+          <div class="urow"><span class="ia pct" id="dpIa"><input id="dpTarget" type="text" inputmode="numeric" placeholder="amount"></span><span class="unit-tg" id="dpUnitTg"><button type="button" data-u="pct">%</button><button type="button" data-u="dollar">$</button></span></div>
+          <div class="sub info" id="dpTargetSub"></div></div>
+        <div class="fld"><label>Target PITI comfort</label><div class="ia dollar"><input id="target" type="text" inputmode="numeric" value="3,200"></div><div class="sub"></div></div>
+        <div class="fld"><label>Qualifying income /mo</label><div class="ia dollar"><input id="income" type="text" inputmode="numeric" value="9,500"></div><div class="sub"></div></div>
+        <div class="fld"><label>Monthly debts (excl. housing)</label><div class="ia dollar"><input id="debts" type="text" inputmode="numeric" value="650"></div><div class="sub"></div></div>
+        <div class="fld"><label>Planned stay</label>
+          <select id="stay">
+            <option value="2">2 years</option><option value="3">3 years</option>
+            <option value="5">5 years</option><option value="7" selected>7 years</option>
+            <option value="10">10 years</option><option value="15">15 years</option>
+            <option value="20">20 years</option><option value="30">30 years</option>
+          </select><div class="sub"></div></div>
+        <div class="fld"><label>Buyer priority</label>
+          <select id="priority">
+            <option value="balanced" selected>Balanced</option>
+            <option value="payment">Lowest Monthly Payment</option>
+            <option value="cash">Lowest Cash to Close</option>
+            <option value="power">Maximum Buying Power</option>
+          </select><div class="sub"></div></div>
+      </div>
+      <div class="toggles">
+        <label class="tg"><input type="checkbox" id="tgFthb" checked> First-time homebuyer <span style="font-weight:500;color:var(--sub)">(gates Conv 3%)</span></label>
+        <label class="tg"><input type="checkbox" id="tgVa"> VA eligible</label>
+        <span class="subopt" id="vaOpts" style="display:none">
+          Use:
+          <select id="vaUse"><option value="first">First use</option><option value="sub">Subsequent use</option></select>
+          <label class="tg" style="font-weight:500"><input type="checkbox" id="vaExempt"> Disability exemption (waives funding fee)</label>
+        </span>
+      </div>
     </div>
 
-    <!-- ===== Seller-concession split control ===== -->
-    <div class="split" id="splitPanel">
-      <div class="split-head">
-        <span class="split-title">Concession split</span>
-        <span class="split-total" id="splitTotal">Total $0</span>
-        <button type="button" class="split-opt" id="btnOptimal">Show optimal split</button>
-        <span class="split-limit" id="splitLimit"></span>
+    <div class="igroup">
+      <div class="igroup-h">Rate Assumptions</div>
+      <div class="igrid">
+        <div class="fld raterow"><label>Conventional rate</label><div class="ia pct"><input id="rateConv" type="number" step="0.001" value="6.750"></div></div>
+        <div class="fld raterow"><label>FHA rate</label><div class="ia pct"><input id="rateFha" type="number" step="0.001" value="6.250"></div></div>
+        <div class="fld raterow"><label>VA rate</label><div class="ia pct"><input id="rateVa" type="number" step="0.001" value="6.125"></div></div>
+        <div class="fld"><label>Closing costs % / $ override</label>
+          <div class="ccpair">
+            <div class="ia pct"><input id="ccPct" type="number" step="0.1" value="3" title="% of loan amount — conservative default; verify against the CD"></div>
+            <div class="ia dollar"><input id="ccOverride" type="text" inputmode="numeric" placeholder="override" title="$ override — takes precedence"></div>
+          </div><div class="sub info" id="ccSub"></div></div>
       </div>
-      <div class="split-body">
-        <div class="split-fld">
-          <label>Applied to closing costs</label>
-          <input id="splitCosts" type="text" inputmode="numeric" value="0">
+      <div class="note-illus">PMI rates are illustrative — actual lender quotes vary.</div>
+    </div>
+
+    <div class="igroup">
+      <div class="igroup-h">PITI Assumptions</div>
+      <div class="igrid">
+        <div class="fld pitirow"><label>Property tax /yr</label>
+          <div class="urow"><span class="ia pct" id="taxIa"><input id="taxRate" type="text" inputmode="decimal" value="1.20" placeholder="amount"></span><span class="unit-tg" id="taxUnitTg"><button type="button" data-u="pct">%</button><button type="button" data-u="dollar">$</button></span></div>
+          <div class="sub info" id="taxSub"></div></div>
+        <div class="fld pitirow"><label>Home ins. $/mo</label><div class="ia dollar"><input id="hoi" type="text" inputmode="numeric" value="150"></div></div>
+        <div class="fld pitirow"><label>HOA /mo <label class="na"><input type="checkbox" id="hoaNA" checked>N/A</label></label><div class="ia dollar"><input id="hoa" type="text" inputmode="numeric" value="0"></div><div class="sub" id="hoaSub"></div></div>
+        <div class="fld pitirow"><label>CDD /mo <label class="na"><input type="checkbox" id="cddNA" checked>N/A</label></label><div class="ia dollar"><input id="cdd" type="text" inputmode="numeric" value="0"></div><div class="sub" id="cddSub"></div></div>
+        <div class="fld pitirow"><label>Flood ins. /mo <label class="na"><input type="checkbox" id="floodNA" checked>N/A</label></label><div class="ia dollar"><input id="flood" type="text" inputmode="numeric" value="0"></div><div class="sub" id="floodSub"></div></div>
+      </div>
+    </div>
+
+    <div class="concwrap off" id="concWrap">
+      <div class="neg-head">
+        <div class="igroup-h">Offer strategy</div>
+        <div class="fld negfield"><label>Offer amount</label><div class="ia dollar"><input id="offerPrice" type="text" inputmode="numeric" placeholder="buyer's offer"></div></div>
+        <div class="fld negfield"><label>Requested adjustment</label><div class="ia dollar"><input id="reqAdj" type="text" readonly value="0"></div><div class="sub info" id="reqAdjSub"></div></div>
+        <div class="negmodes">
+          <span class="negmode-lbl">How should we structure the requested adjustment?</span>
+          <label class="negmode"><input type="radio" name="negMode" value="compare" checked> Compare all three</label>
+          <label class="negmode"><input type="radio" name="negMode" value="reduction"> Price reduction only</label>
+          <label class="negmode"><input type="radio" name="negMode" value="concession"> Seller concession only</label>
+          <label class="negmode"><input type="radio" name="negMode" value="split"> Split evenly</label>
         </div>
-        <input id="splitSlider" class="split-slider" type="range" min="0" max="100" step="1" value="50">
-        <div class="split-fld">
-          <label>Applied to rate buydown</label>
-          <input id="splitBuydown" type="text" inputmode="numeric" value="0">
-        </div>
-        <div class="split-impact" id="splitImpact"></div>
+      </div>
+      <div class="autosplit" id="autoSplitLine">
+        <span class="as-label">Auto split</span>
+        <span class="as-reason" id="autoSplitReason"></span>
+        <button type="button" class="as-link" id="btnManualSplit">Adjust split manually</button>
+      </div>
+      <div class="concsplit hide" id="concSplitBox">
+        <div class="cs-fld buy"><label>Concession → rate buydown</label><div class="ia dollar"><input id="concBuydown" type="text" inputmode="numeric" value="0"></div></div>
+        <div class="cs-fld cost"><label>Concession → closing costs</label><div class="ia dollar"><input id="concCosts" type="text" inputmode="numeric" value="0"></div></div>
+        <button type="button" class="cs-opt" id="btnOptimal">Optimal split</button>
+        <button type="button" class="cs-back" id="btnBackAuto">Back to auto</button>
+        <span class="cs-sum" id="concSumNote"></span>
       </div>
     </div>
   </div>
 
-  <!-- ================= STRATEGY SUMMARY ================= -->
-  <div class="section-h">1 · Strategy Summary <span style="font-weight:600;text-transform:none;letter-spacing:0">— the answer before the evidence</span></div>
-  <div class="card strategy" id="strategy"></div>
+  <!-- ================= ASSUMPTIONS CHANGED BANNER ================= -->
+  <details class="changelog" id="changelog">
+    <summary><span>Assumptions changed</span><span class="cl-latest" id="clLatest">— no changes yet this session</span></summary>
+    <div class="cl-body" id="clBody"><div class="cl-empty">No input changes logged yet.</div></div>
+  </details>
 
-  <!-- ================= COMPARISON GRID ================= -->
-  <div class="section-h">2 · Comparison Grid <span style="font-weight:600;text-transform:none;letter-spacing:0">— tap a column to load PITI</span></div>
-  <div class="card gridwrap"><table class="grid" id="grid"></table></div>
+  <!-- ================= SECTION 1 ================= -->
+  <div class="section" id="sec1">
+    <div class="sec-head" data-sec="sec1"><span class="num">1</span><span class="title">Qualification Snapshot</span><span class="q">Where does the buyer stand?</span><span class="chev">▾</span></div>
+    <div class="sec-body" id="snapBody"></div>
+  </div>
 
-  <div class="card piti" id="piti"></div>
+  <!-- ================= SECTION 2 ================= -->
+  <div class="section" id="sec2">
+    <div class="sec-head" data-sec="sec2"><span class="num">2</span><span class="title">Recommendation Engine</span><span class="q">What do I recommend?</span><span class="chev">▾</span></div>
+    <div class="sec-body"><div class="cards" id="cardsBody"></div></div>
+  </div>
 
-  <!-- ================= WARNINGS + ASSUMPTIONS ================= -->
-  <div class="section-h">3 · Warning Flags &amp; Assumptions</div>
-  <div class="card warns" id="warns">
-    <div id="warnlist"></div>
-    <details class="assume" id="assumeBox">
-      <summary>Assumptions Panel — edit when guidelines change</summary>
-      <div class="agrid">
-        <div class="fld"><label>FHA MIP annual %</label><input id="a_mip" type="number" step="0.01" value="0.55"></div>
-        <div class="fld"><label>FHA UFMIP %</label><input id="a_ufmip" type="number" step="0.01" value="1.75"></div>
-        <div class="fld"><label>VA funding fee — first use %</label><input id="a_vaFirst" type="number" step="0.01" value="2.15"></div>
-        <div class="fld"><label>VA funding fee — subsequent %</label><input id="a_vaSub" type="number" step="0.01" value="3.30"></div>
-        <div class="fld"><label>FHA loan limit (Hillsborough)</label><input id="a_fhaLimit" type="text" inputmode="numeric" value="498,257"></div>
-        <div class="fld"><label>Conforming loan limit</label><input id="a_confLimit" type="text" inputmode="numeric" value="766,550"></div>
-        <div class="fld"><label>Est. monthly taxes+ins+HOA</label><input id="a_tiHoa" type="text" inputmode="numeric" value="675"></div>
+  <!-- ================= SECTION 3 ================= -->
+  <div class="section" id="sec3">
+    <div class="sec-head" data-sec="sec3"><span class="num">3</span><span class="title">Gap Solver</span><span class="q">What fixes the problem?</span><span class="chev">▾</span></div>
+    <div class="sec-body">
+      <div class="gs-q">What problem are we solving?</div>
+      <div class="gs-btns" id="gsBtns">
+        <button class="gs-btn" data-gs="pay">Payment is too high<span class="st" id="stPay"></span></button>
+        <button class="gs-btn" data-gs="cash">Cash is short<span class="st" id="stCash"></span></button>
+        <button class="gs-btn" data-gs="dti">DTI is limiting<span class="st" id="stDti"></span></button>
       </div>
-      <div class="pmi-edit">
-        <div class="section-h" style="margin:8px 2px 4px">PMI rate table (annual %, MGIC-approx)</div>
-        <table id="pmiTable"></table>
-        <div class="note">Points-to-rate conversion is fixed at 0.25% per point (1 point = 1% of loan). Not editable.</div>
+      <div class="gs-panel" id="gsPanel"></div>
+    </div>
+  </div>
+
+  <!-- ================= SECTION 4 — OFFER COMPARISON ================= -->
+  <div class="section collapsed" id="sec4">
+    <div class="sec-head" data-sec="sec4"><span class="num">4</span><span class="title">Offer Comparison</span><span class="q">Which deal is better for this buyer?</span><span class="chev">▾</span></div>
+    <div class="sec-body" id="offerBody">
+      <div class="offergrid">
+        <div class="offer-panel a">
+          <div class="op-title">Offer A</div>
+          <div class="op-inputs">
+            <div class="fld"><label>Offer price</label><div class="ia dollar"><input id="oaPrice" type="text" inputmode="numeric" placeholder="price"></div></div>
+            <div class="fld"><label>Loan type</label>
+              <select id="oaLoan">
+                <option value="auto">Auto — best eligible</option>
+                <option value="conv3">Conv 3%</option><option value="conv5">Conv 5%</option>
+                <option value="conv10">Conv 10%</option><option value="conv20">Conv 20%</option>
+                <option value="fha3.5">FHA 3.5%</option><option value="va0">VA 0%</option>
+              </select><div class="sub info" id="oaDp"></div></div>
+            <div class="fld"><label>Concession from requested adjustment</label><div class="ia dollar"><input id="oaConc" type="text" inputmode="numeric" value="0"></div></div>
+          </div>
+          <div class="op-split">
+            <div class="cs-fld buy"><label>To rate buydown</label><div class="ia dollar"><input id="oaBuydown" type="text" inputmode="numeric" value="0"></div></div>
+            <div class="cs-fld cost"><label>To closing costs</label><div class="ia dollar"><input id="oaCosts" type="text" inputmode="numeric" value="0"></div></div>
+            <button type="button" class="cs-opt" id="oaOptimal">Optimal split</button>
+          </div>
+          <div class="op-results" id="oaResults"></div>
+        </div>
+        <div class="offer-panel b">
+          <div class="op-title">Offer B</div>
+          <div class="op-inputs">
+            <div class="fld"><label>Offer price</label><div class="ia dollar"><input id="obPrice" type="text" inputmode="numeric" placeholder="price"></div></div>
+            <div class="fld"><label>Loan type</label>
+              <select id="obLoan">
+                <option value="auto">Auto — best eligible</option>
+                <option value="conv3">Conv 3%</option><option value="conv5">Conv 5%</option>
+                <option value="conv10">Conv 10%</option><option value="conv20">Conv 20%</option>
+                <option value="fha3.5">FHA 3.5%</option><option value="va0">VA 0%</option>
+              </select><div class="sub info" id="obDp"></div></div>
+            <div class="fld"><label>Concession from requested adjustment</label><div class="ia dollar"><input id="obConc" type="text" inputmode="numeric" value="0"></div></div>
+          </div>
+          <div class="op-split">
+            <div class="cs-fld buy"><label>To rate buydown</label><div class="ia dollar"><input id="obBuydown" type="text" inputmode="numeric" value="0"></div></div>
+            <div class="cs-fld cost"><label>To closing costs</label><div class="ia dollar"><input id="obCosts" type="text" inputmode="numeric" value="0"></div></div>
+            <button type="button" class="cs-opt" id="obOptimal">Optimal split</button>
+          </div>
+          <div class="op-results" id="obResults"></div>
+        </div>
       </div>
-    </details>
+      <div id="offerCompare"></div>
+    </div>
   </div>
 
   <div class="foot">
@@ -227,13 +473,14 @@
 
 <script>
 /* =====================================================================
-   CALCULATION ENGINE  (pure logic, UI-independent)
-   Modular by design: add USDA / Jumbo / DPA / HECM as new PROGRAM modules
-   without touching the UI or the core math.
+   BUYER STRATEGY ENGINE v2
+   Modular calculation engine (UI-independent). Add USDA / Jumbo / DPA /
+   HECM as new PROGRAM modules without touching the UI or core math.
    ===================================================================== */
 const Engine = (function(){
+  const N = 360;
 
-  /* ---------- core amortization math ---------- */
+  /* ---------- amortization math ---------- */
   function pmt(annualPct, nMonths, pv){
     const i = annualPct/100/12;
     if(i===0) return pv/nMonths;
@@ -245,25 +492,13 @@ const Engine = (function(){
     const p = pmt(annualPct,nMonths,pv);
     return pv*Math.pow(1+i,monthsPaid) - p*(Math.pow(1+i,monthsPaid)-1)/i;
   }
-  // first month where scheduled balance <= targetBalance (amortizing loan)
   function monthToBalance(pv, annualPct, nMonths, targetBalance){
-    for(let m=1;m<=nMonths;m++){
-      if(balanceAfter(pv,annualPct,nMonths,m) <= targetBalance) return m;
-    }
+    for(let m=1;m<=nMonths;m++){ if(balanceAfter(pv,annualPct,nMonths,m) <= targetBalance) return m; }
     return null;
   }
-  // solve for the annual rate that yields a given payment on a given principal
-  function rateForPayment(targetPmt, pv, nMonths){
-    let lo=0.01, hi=25;
-    for(let k=0;k<80;k++){
-      const mid=(lo+hi)/2;
-      const p=pmt(mid,nMonths,pv);
-      if(p>targetPmt) hi=mid; else lo=mid;
-    }
-    return (lo+hi)/2;
-  }
+  function round125(x){ return Math.round(x/0.125)*0.125; }
 
-  /* ---------- lookup helpers ---------- */
+  /* ---------- credit / LTV lookups ---------- */
   function scoreBucket(s){
     if(s>=760) return '760+';
     if(s>=740) return '740';
@@ -274,703 +509,1917 @@ const Engine = (function(){
     if(s>=640) return '640';
     return '<640';
   }
-  function ltvBand(ltv){ // ltv in percent
-    if(ltv>=95) return '95';
-    if(ltv>=90) return '90';
-    if(ltv>=85) return '85';
-    if(ltv>80.0001) return '80'; // 80.01–84.99 band; 80% LTV or below = no PMI
-    return null; // <=80 => no PMI
+  // Conventional PMI bands (annual %), by credit tier and LTV
+  const PMI = {
+    '760+':{a:0.35,b:0.30,c:0.22,d:0.15},
+    '740' :{a:0.45,b:0.38,c:0.28,d:0.18},
+    '720' :{a:0.57,b:0.48,c:0.35,d:0.22},
+    '700' :{a:0.70,b:0.58,c:0.43,d:0.27},
+    '680' :{a:0.85,b:0.70,c:0.52,d:0.32},
+    '660' :{a:1.05,b:0.88,c:0.65,d:0.40},
+    '640' :{a:1.35,b:1.10,c:0.82,d:0.52},
+    '<640':{a:1.60,b:1.32,c:1.00,d:0.65}
+  };
+  function pmiBand(ltv){ // a:95-97  b:90-95  c:85-90  d:80-85  else 0
+    if(ltv>95) return 'a';
+    if(ltv>90) return 'b';
+    if(ltv>85) return 'c';
+    if(ltv>80.0001) return 'd';
+    return null;
   }
   function pmiRate(A, score, ltv){
-    const band=ltvBand(ltv);
+    const band=pmiBand(ltv);
     if(!band) return 0;
-    return (A.pmi[scoreBucket(score)][band]||0);
+    const tbl = A.pmi || PMI;
+    return (tbl[scoreBucket(score)][band]||0);
+  }
+  function fhaMipRate(A, ltv){ // annual %  (spec: >95->0.55, else 0.50)
+    return ltv>95 ? A.fhaMipHigh : A.fhaMipLow;
   }
 
-  /* ---------- PROGRAM MODULES ----------
-     Each program implements:
-       id,label,minScore,ratios{front,back}
-       scenarios(inp)      -> array of {dpPct,name,requiresFthb?}
-       eligibility(inp,A)  -> {eligible, reasons[]}
-       rate(inp)           -> annual %
-       build(inp,A,sc)     -> computed scenario object
-     Adding a new program = add an entry here. Nothing else changes.        */
-  const N=360;
-
-  function baseCompute(inp,A,cfg){
-    // cfg: {id,label,dpPct,name,loanAmount,rate,monthlyMI,miMode,miDropMonth,color,ratios,concessionLimit}
-    const price=inp.price, dp=price*cfg.dpPct/100;
-
-    // ----- Seller-concession split (user-controlled allocation) -----
-    // Total concession is split between closing-cost credit and rate buydown.
-    // Each dollar to buydown buys points = $ / (1% of loan); 1 point = 0.25% rate.
-    const concOn = inp.concessionOn;
-    const toCosts   = concOn ? Math.max(0, inp.concToCosts||0)   : 0;
-    const toBuydown = concOn ? Math.max(0, inp.concToBuydown||0) : 0;
-    const buydownPoints = toBuydown>0 ? toBuydown/(cfg.loanAmount*0.01) : 0;
-    const rateReduction = buydownPoints*0.25;
-    const effRate = Math.max(0, cfg.rate - rateReduction);   // rate actually paid
-
-    const pi = pmt(effRate, N, cfg.loanAmount);
-    const totalPM = pi + cfg.monthlyMI;
-
-    // PMI / MIP cancellation (amortize at the effective rate actually paid)
-    let cancelMonth=null, postCancelPI=pi;
-    if(cfg.miMode==='conv' && cfg.monthlyMI>0){
-      cancelMonth = monthToBalance(cfg.loanAmount, effRate, N, price*0.80);
-      postCancelPI = pi; // P&I unchanged; MI simply drops
-    } else if(cfg.miMode==='fha'){
-      cancelMonth = (cfg.miDropMonth||null); // null = life of loan at 3.5%
-    }
-
-    // MI paid over planned stay
-    const horizonM = Math.round(inp.stayYears*12);
-    let miMonthsPaid;
-    if(cfg.monthlyMI<=0){ miMonthsPaid=0; }
-    else if(cfg.miMode==='conv'){ miMonthsPaid = Math.min(horizonM, cancelMonth||horizonM); }
-    else if(cfg.miMode==='fha'){ miMonthsPaid = cfg.miDropMonth ? Math.min(horizonM,cfg.miDropMonth) : horizonM; }
-    else miMonthsPaid=0;
-    const miCostHorizon = cfg.monthlyMI * miMonthsPaid;
-
-    // cash to close — only the closing-cost portion of the concession reduces cash;
-    // it cannot drive net closing below zero (any excess over actual costs is wasted here).
-    const netClosing = Math.max(0, inp.closingCosts - toCosts);
-    const cashToClose = dp + netClosing;
-    const cashGap = cashToClose - inp.funds;
-    const concToCostsWasted = Math.max(0, toCosts - inp.closingCosts);
-
-    // DTI
-    const housing = totalPM + inp.tiHoa;
-    const frontRatio = housing / inp.income * 100;
-    const backRatio  = (housing + inp.debts) / inp.income * 100;
-
-    // total cost at horizon (all P&I + MI through stay)
-    const totalCostHorizon = pi*Math.min(horizonM,N) + miCostHorizon;
-
-    return {
-      id:cfg.id,label:cfg.label,name:cfg.name,dpPct:cfg.dpPct,color:cfg.color,
-      downPayment:dp, loanAmount:cfg.loanAmount,
-      baseRate:cfg.rate, rate:effRate,          // baseRate = note rate; rate = after buydown
-      buydownPoints, rateReduction, buydownAmt:toBuydown, concToCosts:toCosts, concToCostsWasted,
-      pi, monthlyMI:cfg.monthlyMI, totalPM,
-      paymentGap: totalPM - inp.target,
-      cashToClose, cashGap, availFunds:inp.funds,
-      cancelMonth, postCancelPI, miMode:cfg.miMode,
-      miCostHorizon, totalCostHorizon,
-      frontRatio, backRatio, ratios:cfg.ratios,
-      concessionLimitPct:cfg.concessionLimitPct, concessionLimit:cfg.concessionLimit,
-      ltv: cfg.baseLoan/price*100,
-      baseLoan: cfg.baseLoan,
-      eligible:true, dimReasons:[]
-    };
+  /* ---------- closing costs ---------- */
+  function closingCost(baseLoan, inp, forceePct){
+    if(!forceePct && !inp.shopping && inp.ccOverride>0) return inp.ccOverride;
+    return baseLoan * inp.ccPct/100;
   }
 
+  /* ---------- concession limit ---------- */
+  function concessionLimitPct(id, ltv){
+    if(id==='fha') return 6;
+    if(id==='va')  return 4; // buydown/prepaid bucket; closing costs uncapped
+    // conventional
+    if(ltv>90) return 3;
+    if(ltv>=75) return 6;
+    return 9;
+  }
+
+  /* ---------- PROGRAM MODULES ---------- */
   const PROGRAMS = {
-    conventional:{
-      id:'conv',label:'Conventional',minScore:620,ratios:{front:28,back:45},
-      scenarios(inp){
-        const arr=[];
-        if(inp.fthb) arr.push({dpPct:3,name:'Conv 3%',fthb:true});
-        arr.push({dpPct:5,name:'Conv 5%'});
-        arr.push({dpPct:10,name:'Conv 10%'});
-        arr.push({dpPct:20,name:'Conv 20%'});
-        return arr;
-      },
-      concession(ltv){ if(ltv>90) return 3; if(ltv>=75) return 6; return 9; },
-      build(inp,A,sc){
-        const price=inp.price, dp=price*sc.dpPct/100;
-        const baseLoan=price-dp;
-        const ltv=baseLoan/price*100;
-        const rate=inp.rates.conv;
-        const pRate=pmiRate(A,inp.score,ltv);
-        const monthlyMI = baseLoan*pRate/100/12;
-        const concLimitPct=this.concession(ltv);
-        const o=baseCompute(inp,A,{
-          id:'conv',label:'Conventional',dpPct:sc.dpPct,name:sc.name,
-          loanAmount:baseLoan, baseLoan, rate, monthlyMI, miMode:'conv',
-          color:'#3BB1ED', ratios:this.ratios,
-          concessionLimitPct:concLimitPct, concessionLimit:price*concLimitPct/100
-        });
-        o.pmiRateUsed=pRate;
-        return o;
-      },
-      eligibility(inp,A,sc){
-        const reasons=[];
-        const baseLoan=inp.price*(1-sc.dpPct/100);
-        if(inp.score<this.minScore) reasons.push('Score '+inp.score+' < 620 min');
-        if(baseLoan>A.confLimit) reasons.push('Loan $'+fmt0(baseLoan)+' > conforming $'+fmt0(A.confLimit)+' → Jumbo (not modeled)');
-        if(sc.fthb && !inp.fthb) reasons.push('Conv 3% requires FTHB');
-        return {eligible:reasons.length===0,reasons};
+    conv:{ id:'conv', label:'Conventional', minScore:620, ratios:{front:28,back:45}, color:'#3BB1ED',
+      rate:i=>i.rates.conv,
+      scenarios:i=>{
+        const a=[];
+        if(i.fthb) a.push({dp:3,name:'Conv 3%',fthb:true});
+        a.push({dp:5,name:'Conv 5%'},{dp:10,name:'Conv 10%'},{dp:20,name:'Conv 20%'});
+        // Down payment above 20% -> conventional only, any %, no MI (PMI is 0 below 80% LTV).
+        if(i.dpTarget){
+          const customPct = i.dpTarget.isPct ? i.dpTarget.pct
+            : (i.price>0 ? i.dpTarget.dollar/i.price*100 : null);
+          if(customPct && customPct > 20.5){
+            const pctLabel = Number.isInteger(customPct) ? customPct : customPct.toFixed(1);
+            a.push({dp: customPct, name: 'Conv '+pctLabel+'%', custom:true});
+          }
+        }
+        return a;
       }
     },
-
-    fha:{
-      id:'fha',label:'FHA',minScore:580,ratios:{front:31,back:43},
-      scenarios(inp){ return [{dpPct:3.5,name:'FHA 3.5%'}]; },
-      concession(){ return 6; },
-      build(inp,A,sc){
-        const price=inp.price, dp=price*sc.dpPct/100;
-        const baseLoan=price-dp;
-        const loanAmount=baseLoan*(1+A.ufmip/100); // UFMIP financed
-        const rate=inp.rates.fha;
-        const monthlyMI=loanAmount*A.mip/100/12;
-        // life of loan at 3.5% down; would drop at m132 if dp>10%
-        const dropMonth = (sc.dpPct>10)?132:null;
-        const o=baseCompute(inp,A,{
-          id:'fha',label:'FHA',dpPct:sc.dpPct,name:sc.name,
-          loanAmount, baseLoan, rate, monthlyMI, miMode:'fha', miDropMonth:dropMonth,
-          color:'#8EC73F', ratios:this.ratios,
-          concessionLimitPct:6, concessionLimit:price*0.06
-        });
-        o.mipLife = (dropMonth===null);
-        // FHA effective conventional-rate equivalent
-        const convLoan=price-dp;
-        const equivRate=rateForPayment(o.totalPM, convLoan, N);
-        o.effRate=equivRate;
-        return o;
-      },
-      eligibility(inp,A,sc){
-        const reasons=[];
-        const baseLoan=inp.price*(1-sc.dpPct/100);
-        if(inp.score<this.minScore) reasons.push('Score '+inp.score+' < 580 min');
-        if(baseLoan>A.fhaLimit) reasons.push('Base $'+fmt0(baseLoan)+' > FHA limit $'+fmt0(A.fhaLimit));
-        return {eligible:reasons.length===0,reasons};
-      }
+    fha:{ id:'fha', label:'FHA', minScore:500, ratios:{front:31,back:43}, color:'#8EC73F',
+      rate:i=>i.rates.fha,
+      scenarios:i=>{ if(i.score>=580) return [{dp:3.5,name:'FHA 3.5%'}]; if(i.score>=500) return [{dp:10,name:'FHA 10%',lowScore:true}]; return []; }
     },
-
-    va:{
-      id:'va',label:'VA',minScore:0,ratios:{front:41,back:41},
-      scenarios(inp){ return [{dpPct:0,name:'VA 0%'}]; },
-      concession(){ return 4; }, // 4% bucket for buydowns/prepaids; closing costs uncapped
-      build(inp,A,sc){
-        const price=inp.price, dp=0;
-        const baseLoan=price-dp;
-        const ffPct = inp.vaExempt?0:(inp.vaUse==='sub'?A.vaSub:A.vaFirst);
-        const loanAmount=baseLoan*(1+ffPct/100);
-        const rate=inp.rates.va;
-        const o=baseCompute(inp,A,{
-          id:'va',label:'VA',dpPct:0,name:sc.name,
-          loanAmount, baseLoan, rate, monthlyMI:0, miMode:'va',
-          color:'#12202b', ratios:this.ratios,
-          concessionLimitPct:4, concessionLimit:price*0.04
-        });
-        o.fundingFeePct=ffPct;
-        o.fundingFee=baseLoan*ffPct/100;
-        o.vaExempt=inp.vaExempt;
-        return o;
-      },
-      eligibility(inp,A,sc){
-        return {eligible:true,reasons:[]};
-      }
+    va:{ id:'va', label:'VA', minScore:0, ratios:{front:41,back:41}, color:'#12202b',
+      rate:i=>i.rates.va,
+      scenarios:i=>[{dp:0,name:'VA 0%'}]
     }
   };
 
-  /* ---------- run all programs ---------- */
-  function run(inp,A){
-    const scenarios=[];
-    const dims=[]; // ineligible/greyed
-    // Conventional
-    PROGRAMS.conventional.scenarios(inp).forEach(sc=>{
-      const el=PROGRAMS.conventional.eligibility(inp,A,sc);
-      if(!el.eligible){ dims.push({name:sc.name,label:'Conventional',reasons:el.reasons,color:'#3BB1ED'}); return; }
-      scenarios.push(PROGRAMS.conventional.build(inp,A,sc));
-    });
-    // FHA
-    PROGRAMS.fha.scenarios(inp).forEach(sc=>{
-      const el=PROGRAMS.fha.eligibility(inp,A,sc);
-      if(!el.eligible){ dims.push({name:sc.name,label:'FHA',reasons:el.reasons,color:'#8EC73F'}); return; }
-      scenarios.push(PROGRAMS.fha.build(inp,A,sc));
-    });
-    // VA (only if toggled)
-    if(inp.vaOn){
-      PROGRAMS.va.scenarios(inp).forEach(sc=>{
-        scenarios.push(PROGRAMS.va.build(inp,A,sc));
-      });
-    } else {
-      dims.push({name:'VA 0%',label:'VA',reasons:['VA eligibility toggle off'],color:'#12202b'});
+  /* ---------- per-price scenario compute ---------- */
+  function computeScenario(inp, A, prog, sc, price){
+    const dpFrac = sc.dp/100;
+    const down = price*dpFrac;
+    const baseLoan = price - down;
+    const ltv = price>0 ? baseLoan/price*100 : 0;
+    const rate = prog.rate(inp);
+    let loanAmount=baseLoan, financedFee=0, feePct=0, feeLabel='', miRate=0, miMode='none',
+        mipLife=false, mipDropMonth=null;
+
+    if(prog.id==='conv'){
+      miRate = pmiRate(A, inp.score, ltv); miMode='conv';
+    } else if(prog.id==='fha'){
+      feePct = A.ufmip; feeLabel='UFMIP'; financedFee = baseLoan*feePct/100;
+      loanAmount = baseLoan + financedFee;
+      miRate = fhaMipRate(A, ltv); miMode='fha';
+      if(sc.dp>=10){ mipDropMonth=132; mipLife=false; } else { mipLife=true; }
+    } else if(prog.id==='va'){
+      feePct = inp.vaExempt?0:(inp.vaUse==='sub'?A.vaSub:A.vaFirst);
+      feeLabel='VA funding fee'; financedFee = baseLoan*feePct/100;
+      loanAmount = baseLoan + financedFee; miMode='va';
     }
 
-    // viability = eligible AND cash sufficient
-    scenarios.forEach(s=>{ s.viable = s.cashGap<=0.5; if(!s.viable) s.dimReasons=['Short $'+fmt0(s.cashGap)+' cash to close']; });
+    const pi = pmt(rate, N, loanAmount);
+    let monthlyMI = 0;
+    if(miMode==='conv') monthlyMI = baseLoan*miRate/100/12;
+    else if(miMode==='fha') monthlyMI = loanAmount*miRate/100/12;
 
-    return {scenarios,dims};
+    // Property tax: a confirmed annual-dollar entry on a specific deal is a fixed
+    // monthly amount; otherwise it scales with price as a rate (always so in
+    // Shopping Range Mode, where there is no price to divide a dollar against).
+    const taxes = (inp.taxFixed && inp.taxMonthly!=null) ? inp.taxMonthly : price*inp.taxRate/100/12;
+    const fixedEsc = inp.hoi + inp.hoa + inp.cdd + inp.flood;
+    const escrow = taxes + fixedEsc;
+    const piti = pi + monthlyMI + escrow;
+
+    const closing = closingCost(baseLoan, inp);
+    const cashToClose = down + closing;      // financed fees not in cash
+    const cashRemaining = inp.funds - cashToClose;
+
+    const front = inp.income>0 ? piti/inp.income*100 : 0;
+    const back  = inp.income>0 ? (piti+inp.debts)/inp.income*100 : 0;
+
+    // MI cancellation
+    let cancelMonth=null, postCancelPITI=piti;
+    if(miMode==='conv' && monthlyMI>0){
+      cancelMonth = monthToBalance(loanAmount, rate, N, price*0.80);
+      postCancelPITI = piti - monthlyMI;
+    } else if(miMode==='fha'){
+      cancelMonth = mipDropMonth;             // null = life of loan
+      if(mipDropMonth) postCancelPITI = piti - monthlyMI;
+    }
+
+    // MI cost over planned stay
+    const horizon = Math.round(inp.stayYears*12);
+    let miMonths=0;
+    if(monthlyMI>0){
+      if(miMode==='conv') miMonths = Math.min(horizon, cancelMonth||horizon);
+      else if(miMode==='fha') miMonths = mipDropMonth ? Math.min(horizon,mipDropMonth) : horizon;
+    }
+    const miCostHorizon = monthlyMI*miMonths;
+    // True financing cost over the planned stay: interest paid + MI paid + financed
+    // upfront fee (UFMIP / VA funding fee). Principal is equity kept, NOT a cost.
+    const paymentsOverHorizon = pi * Math.min(horizon, N);
+    const balanceAtHorizon = horizon >= N ? 0 : balanceAfter(loanAmount, rate, N, horizon);
+    const principalPaidOverHorizon = loanAmount - balanceAtHorizon;
+    const interestPaidOverHorizon = paymentsOverHorizon - principalPaidOverHorizon;
+    const totalCostHorizon = interestPaidOverHorizon + miCostHorizon + financedFee;
+
+    const climit = concessionLimitPct(prog.id, ltv);
+
+    return {
+      id:prog.id, label:prog.label, name:sc.name, color:prog.color, dp:sc.dp, ratios:prog.ratios,
+      lowScore:!!sc.lowScore, price, down, baseLoan, loanAmount, ltv, rate, baseRate:rate,
+      financedFee, feePct, feeLabel, miRate, monthlyMI, miMode, mipLife, mipDropMonth,
+      pi, escrow, taxes, fixedEsc, piti, closing, cashToClose, cashRemaining,
+      front, back, cancelMonth, postCancelPITI, miCostHorizon, totalCostHorizon,
+      concLimitPct:climit, concLimit:price*climit/100,
+      // concession-applied fields (populated later if concession on)
+      conc:null
+    };
+  }
+
+  /* ---------- max purchase price for a scenario (closed-form) ---------- */
+  function maxPriceForScenario(inp, A, prog, sc){
+    const dpFrac = sc.dp/100;
+    const rate = prog.rate(inp);
+    const pf = pmt(rate, N, 1);                 // P&I per $1 of loan
+    const feeFrac = (prog.id==='fha') ? A.ufmip/100
+                  : (prog.id==='va') ? (inp.vaExempt?0:(inp.vaUse==='sub'?A.vaSub:A.vaFirst))/100
+                  : 0;
+    const L1 = (1-dpFrac)*(1+feeFrac);          // loanAmount per $1 price
+    // MI per $1 price
+    let miPer = 0;
+    if(prog.id==='conv'){ const ltv=(1-dpFrac)*100; miPer=(1-dpFrac)*pmiRate(A,inp.score,ltv)/100/12; }
+    else if(prog.id==='fha'){ const ltv=(1-dpFrac)*100; miPer=L1*fhaMipRate(A,ltv)/100/12; }
+    // Fixed-dollar taxes (specific deal) sit in the constant term b; a rate scales in k.
+    const taxFixedHere = inp.taxFixed && inp.taxMonthly!=null;
+    const taxPer = taxFixedHere ? 0 : inp.taxRate/100/12;
+    const k = pf*L1 + miPer + taxPer;           // PITI per $1 price
+    const b = inp.hoi + inp.hoa + inp.cdd + inp.flood + (taxFixedHere ? inp.taxMonthly : 0); // fixed monthly
+    const priceForPITI = P => k>0 ? (P - b)/k : Infinity;
+
+    const ceilings = [];
+    ceilings.push({p:priceForPITI(inp.target), why:'Comfort Payment'});
+    if(inp.income>0){
+      ceilings.push({p:priceForPITI((prog.ratios.back/100*inp.income) - inp.debts), why:'Back-end DTI'});
+    }
+    // Housing (front-end) ratio is advisory, not a qualifying ceiling — loans
+    // qualify on back-end DTI. We surface front-end as a flag, not a price cap.
+    // cash ceiling (shopping mode: % closing)
+    const cashDenom = dpFrac + (1-dpFrac)*inp.ccPct/100;
+    ceilings.push({p: cashDenom>0 ? inp.funds/cashDenom : Infinity, why:'Cash to Close'});
+    // loan limit
+    if(prog.id==='conv') ceilings.push({p: A.confLimit/(1-dpFrac), why:'Conforming Loan Limit'});
+    else if(prog.id==='fha') ceilings.push({p: A.fhaLimit/(1-dpFrac), why:'FHA Loan Limit'});
+
+    let best={p:Infinity,why:'—'};
+    ceilings.forEach(c=>{ if(c.p < best.p){ best=c; } });
+
+    // Display-only ceilings (do not affect maxPrice or any existing logic):
+    // comfort = price where PITI hits the comfort payment; qual = price where
+    // back-end DTI hits the program limit.
+    const comfortPrice = Math.max(0, priceForPITI(inp.target));
+    const qualPrice = inp.income > 0
+      ? Math.max(0, priceForPITI((prog.ratios.back/100*inp.income) - inp.debts))
+      : comfortPrice;
+
+    return { maxPrice: Math.max(0, best.p), binding: best.why, comfortPrice, qualPrice, k, b };
+  }
+
+  /* ---------- eligibility (price-independent program gating) ---------- */
+  function programEliminations(inp, A){
+    const elim=[];
+    if(inp.score < 620){
+      (inp.fthb?['Conv 3%','Conv 5%','Conv 10%','Conv 20%']:['Conv 5%','Conv 10%','Conv 20%'])
+        .forEach(n=>elim.push({name:n, reason:'Credit '+inp.score+' below 620 conventional minimum'}));
+    } else if(!inp.fthb){
+      elim.push({name:'Conv 3%', reason:'First-time homebuyer required'});
+    }
+    if(inp.score < 500) elim.push({name:'FHA 3.5%', reason:'Credit '+inp.score+' below 500 FHA minimum'});
+    if(!inp.vaOn) elim.push({name:'VA 0%', reason:'VA eligibility not indicated'});
+    return elim;
+  }
+
+  /* ---------- down-payment target matcher ----------
+     Match is on dollars, with a tolerance of ±1% of the purchase price for the
+     scenario (the entered price in specific mode, the scenario's max price in
+     shopping mode). A percent target and a dollar target both reduce to the same
+     dollar comparison. Returns {match, reason} with a human-readable reason. */
+  function dpMatches(inp, s, price){
+    const t = inp.dpTarget;
+    if(!t) return {match:true};
+    if(!price || price<=0) return {match:true};          // can't evaluate without a price
+    const tol = 0.01*price;
+    const scenarioDollar = s.dp/100*price;
+    const targetDollar = t.isPct ? (t.pct/100*price) : t.dollar;
+    const match = Math.abs(scenarioDollar - targetDollar) <= tol;
+    // representative target label: percent when known, else dollars
+    let targetLabel;
+    if(t.isPct) targetLabel = (Number.isInteger(t.pct)?t.pct:t.pct.toFixed(1))+'%';
+    else if(!inp.shopping) targetLabel = (t.dollar/price*100).toFixed(1)+'% ($'+fmt0(t.dollar)+')';
+    else targetLabel = '$'+fmt0(t.dollar);
+    const reqPct = Number.isInteger(s.dp)?s.dp:s.dp.toFixed(1);
+    return {match, reason:'Down payment set to '+targetLabel+' — scenario requires '+reqPct+'%'};
+  }
+
+  /* ---------- run all programs ---------- */
+  function run(inp, A){
+    const scenarios=[], eliminated=[], dpDimmed=[];
+    const progList=[PROGRAMS.conv, PROGRAMS.fha, PROGRAMS.va];
+    if(!inp.vaOn) eliminated.push({name:'VA 0%', reason:'VA eligibility not indicated'});
+
+    progList.forEach(prog=>{
+      if(prog.id==='va' && !inp.vaOn) return;                 // VA gated by toggle
+      prog.scenarios(inp).forEach(sc=>{
+        // program gating
+        if(prog.id==='conv' && inp.score<prog.minScore){
+          eliminated.push({name:sc.name, reason:'Credit '+inp.score+' below 620 conventional minimum'}); return; }
+        if(prog.id==='conv' && sc.fthb && !inp.fthb){
+          eliminated.push({name:sc.name, reason:'First-time homebuyer required'}); return; }
+        if(prog.id==='fha' && inp.score<500){
+          eliminated.push({name:sc.name, reason:'Credit '+inp.score+' below 500 FHA minimum'}); return; }
+
+        const mp = maxPriceForScenario(inp, A, prog, sc);
+        const price = inp.shopping ? mp.maxPrice : inp.price;
+        if(price<=0){ eliminated.push({name:sc.name, reason:'No affordable price at these inputs'}); return; }
+        const s = computeScenario(inp, A, prog, sc, price);
+        s.maxPrice = mp.maxPrice; s.binding = mp.binding;
+        s.comfortPrice = mp.comfortPrice; s.qualPrice = mp.qualPrice;   // display-only ceilings
+
+        // specific-mode qualification (true eliminations)
+        if(!inp.shopping){
+          const limit = prog.id==='fha'?A.fhaLimit : (prog.id==='conv'?A.confLimit:Infinity);
+          if(s.baseLoan > limit+0.5){
+            eliminated.push({name:sc.name, reason:(prog.id==='fha'?'Exceeds FHA county loan limit ($'+fmt0(A.fhaLimit)+')':'Exceeds conforming loan limit ($'+fmt0(A.confLimit)+')')}); return;
+          }
+          if(s.cashToClose > inp.funds+0.5){
+            const short=s.cashToClose-inp.funds;
+            const reqGift = (inp.funds>=s.cashToClose) ? false : true;
+            eliminated.push({name:sc.name, reason:'Cash to close short by $'+fmt0(short)}); return;
+          }
+          if(s.back > prog.ratios.back+0.05){
+            eliminated.push({name:sc.name, reason:'Back-end DTI exceeds '+prog.ratios.back+'% (actual: '+s.back.toFixed(1)+'%)'}); return;
+          }
+        }
+        // Front-end (housing) ratio is advisory — flag, do not eliminate.
+        s.frontFlag = s.front > prog.ratios.front + 0.05;
+        // gift dependency flag
+        s.requiresGift = (inp.gift>0) && (s.cashToClose > inp.ownFunds+0.5) && (s.cashToClose <= inp.funds+0.5);
+
+        // Optional down-payment filter — an eligible scenario whose down payment
+        // doesn't match the buyer's target is DIMMED (kept visible), not eliminated.
+        if(inp.dpTarget){
+          const dpm = dpMatches(inp, s, price);
+          if(!dpm.match){ s.dpDimmed=true; s.dpNote=dpm.reason; dpDimmed.push(s); return; }
+        }
+        scenarios.push(s);
+      });
+    });
+
+    return {scenarios, eliminated, dpDimmed};
+  }
+
+  /* ---------- decision hierarchy: pick Best Overall ---------- */
+  function pickBestOverall(viable, inp){
+    if(!viable.length) return null;
+    // Cash-reserve floor: a scenario that leaves under $500 after closing (often a
+    // high-down-payment option whose price was forced down by limited funds) is not
+    // something an advisor would lead with. Drop those, but only if a viable option
+    // with real reserves exists — otherwise keep the full set.
+    const withReserve = viable.filter(s=>s.cashRemaining>=500);
+    const base = withReserve.length ? withReserve : viable;
+    // Rule 2: prefer scenarios meeting comfort
+    let pool = base.filter(s=>s.piti <= inp.target+0.5);
+    let gapMode=false;
+    if(!pool.length){ pool = base.slice(); gapMode=true; }
+
+    const stay = inp.stayYears;
+    const progRank = id => id==='va'?0 : id==='conv'?1 : 2; // Rule 4 simplicity: VA<Conv<FHA
+
+    // "Significant long-term cost difference" — Rule 3's override and Rule 5's
+    // penalty on life-of-loan FHA MIP. True when total ownership cost over the
+    // stay diverges materially, or one option carries never-cancelling FHA MIP.
+    function sigCostGap(a,b){
+      if(stay<=3) return false;                       // short hold: cost gap doesn't dominate
+      const gap = Math.abs(a.totalCostHorizon-b.totalCostHorizon);
+      const oneFhaLife = (a.id==='fha'&&a.mipLife)!==(b.id==='fha'&&b.mipLife);
+      return gap>3000 || (oneFhaLife && gap>1500);
+    }
+    const scored = pool.slice().sort((a,b)=>{
+      // Primary metric by stay length (Rule 5)
+      let pa, pb;
+      if(stay<=3){ pa=-a.cashRemaining; pb=-b.cashRemaining; }          // preserve cash
+      else if(stay<=7){ pa=a.piti; pb=b.piti; }                          // balanced -> payment
+      else { pa=a.totalCostHorizon; pb=b.totalCostHorizon; }             // long-term cost
+      const near = (stay<=3) ? Math.abs(a.cashRemaining-b.cashRemaining)<250
+                 : (stay<=7) ? Math.abs(a.piti-b.piti)<=50
+                 : Math.abs(a.totalCostHorizon-b.totalCostHorizon) < 2500;
+      if(!near) return pa-pb;
+      // Rule 3 exception: significant long-term cost gap overrides cash preference
+      if(sigCostGap(a,b)) return a.totalCostHorizon-b.totalCostHorizon;
+      // Rule 3: near-tie on payment -> preserve cash
+      if(stay>3 && stay<=7 && Math.abs(a.cashRemaining-b.cashRemaining)>250) return b.cashRemaining-a.cashRemaining;
+      // Rule 4: simplicity (VA<Conv<FHA); FHA life-of-loan MIP penalized
+      const ra=progRank(a.id), rb=progRank(b.id);
+      if(ra!==rb) return ra-rb;
+      return pa-pb;
+    });
+
+    const best = scored[0];
+    best._gapMode = gapMode;
+    best._reason = reasonFor(best, pool, inp, gapMode);
+    return best;
+  }
+
+  function reasonFor(best, pool, inp, gapMode){
+    const stay=inp.stayYears;
+    const bits=[];
+    if(best.id==='va') bits.push('VA is available and needs no down payment or monthly MI — the simplest, lowest-cost structure here');
+    if(stay>=8){ bits.push('over a '+stay+'-year hold this carries the lowest total financing cost'); if(best.id==='conv' && pool.some(s=>s.id==='fha')) bits.push('and avoids FHA life-of-loan MIP'); }
+    else if(stay<=3) bits.push('for a short '+stay+'-year stay it preserves the most cash and keeps options open');
+    else bits.push('it balances a manageable payment against cash preserved for a '+stay+'-year hold');
+    if(!gapMode) bits.push('and lands at or under the comfort payment');
+    let out = bits.join(', ').replace(/^,\s*/,'');
+    if(gapMode) out += '. Note: no option clears the comfort payment, so this is the smallest gap — see the Gap Solver';
+    return out;
   }
 
   function fmt0(n){ return Math.round(n).toLocaleString('en-US'); }
 
-  /* ---------- optimal concession split ----------
-     Objective: close both gaps most efficiently. Cover the reference scenario's
-     cash shortfall with the closing-cost credit FIRST (dollar-for-dollar, capped
-     at actual closing costs), then throw every remaining dollar at the rate
-     buydown to shrink the payment gap. Returns { toCosts, toBuydown, ref }.      */
-  function optimalSplit(inp,A){
-    const C = inp.concessionOn ? inp.concession : 0;
-    if(C<=0) return {toCosts:0,toBuydown:0,ref:null};
-    // Reference = the CHEAPEST AFFORDABLE scenario. Probe with the full concession
-    // thrown at closing costs (maximum cash help) so affordability is judged fairly,
-    // then pick the lowest P&I+MI among the scenarios that clear cash.
-    const probe = run(Object.assign({},inp,{concToCosts:C,concToBuydown:0}),A);
-    const sorted = probe.scenarios.slice().sort((a,b)=>a.totalPM-b.totalPM);
-    const ref = sorted.find(s=>s.viable) || sorted[0];
-    if(!ref) return {toCosts:Math.min(C,inp.closingCosts),toBuydown:Math.max(0,C-inp.closingCosts),ref:null};
-    // Cover that scenario's cash shortfall first (dollar-for-dollar, capped at actual
-    // closing costs), then send every remaining dollar to the rate buydown.
-    const cashNeed = Math.max(0, ref.downPayment + inp.closingCosts - inp.funds);
-    const toCosts = Math.min(C, inp.closingCosts, cashNeed);
-    return {toCosts, toBuydown: C - toCosts, ref};
+  /* ---------- concession application to a scenario ----------
+     The engine does NOT decide the split. It receives an explicit dollar
+     allocation (buydown $, costs $) chosen by the user and only calculates the
+     consequences: new rate, PITI, cash to close, break-even. The two amounts
+     are expected to sum to the total concession; the engine does not re-balance
+     or re-suggest them. */
+  function applyConcession(s, inp, A, buydown, costs){
+    buydown = Math.max(0, buydown||0);
+    costs   = Math.max(0, costs||0);
+    // a closing-cost credit can only reduce cash down to the actual closing costs
+    const costsAlloc = Math.min(costs, s.closing);
+    const points = s.loanAmount>0 ? buydown/(s.loanAmount*0.01) : 0;
+    const rr = round125(points*0.25);
+    const newRate = Math.max(0, s.baseRate - rr);
+    const newPI = pmt(newRate, N, s.loanAmount);
+    const newPITI = s.piti - s.pi + newPI;
+    const newCash = s.cashToClose - costsAlloc;
+    const total = buydown + costs;
+    const over = total > s.concLimit + 0.5;
+    const monthlySaving = s.piti - newPITI;
+    const breakeven = (buydown>0 && monthlySaving>0) ? Math.ceil(buydown/monthlySaving) : null;
+    return { total, buydown, costs, costsAlloc, points, rateReduction:rr, newRate, newPI, newPITI,
+             newCash, newCashRemaining:inp.funds-newCash, over, monthlySaving, breakeven };
   }
 
-  return {run, optimalSplit, pmt, balanceAfter, monthToBalance, rateForPayment,
-          scoreBucket, ltvBand, pmiRate, PROGRAMS, fmt0};
+  /* ---------- optimal split (only computed on explicit request) ----------
+     Cover the reference scenario's cash shortfall first (capped at its actual
+     closing costs and the total available), then send every remaining dollar to
+     the rate buydown to minimize the payment gap. Reference = Best Overall. */
+  function optimalSplit(refScenario, inp, total){
+    if(!refScenario || total<=0) return {buydown:0, costs:0};
+    const cashShort = Math.max(0, refScenario.cashToClose - inp.funds);
+    const costs = cashShort>0 ? Math.min(total, refScenario.closing, cashShort) : 0;
+    return { buydown: total - costs, costs };
+  }
+
+  /* ---------- priority-aware pick (which scenario the Buyer Priority points at) ----------
+     Balanced defers to the full Best Overall hierarchy; the other priorities are a
+     single dominant metric. Used to decide which program family is recommended. */
+  function priorityPick(viable, inp){
+    if(!viable.length) return null;
+    switch(inp.priority){
+      case 'payment': return viable.slice().sort((a,b)=>a.piti-b.piti)[0];
+      case 'cash':    return viable.slice().sort((a,b)=>a.cashToClose-b.cashToClose)[0];
+      case 'power':   return viable.slice().sort((a,b)=>b.maxPrice-a.maxPrice)[0];
+      default:        return pickBestOverall(viable, inp);
+    }
+  }
+
+  /* ---------- program-family cards (Section 2) ----------
+     One card per eligible program family (FHA, Conventional, VA), max four.
+       • FHA  → best eligible FHA scenario (only one tier is generated per score
+                bucket: 3.5% at 580+, 10% at 500–579).
+       • Conv → a SINGLE card showing the lowest-down eligible tier by preference
+                order (FTHB starts at Conv 3%, otherwise Conv 5%; steps up to 5/10/20
+                when a lower tier is eliminated). A note explains any skipped tier.
+       • VA   → VA 0%, only when vaOn.
+     The recommended family (priorityPick across all viable — honors the Buyer
+     Priority dropdown, defaulting to Best Overall) is ordered first and flagged. */
+  function programCards(viable, eliminated, inp){
+    eliminated = eliminated || [];
+    const cards=[];
+    // FHA — best eligible FHA scenario
+    const fha = viable.filter(s=>s.id==='fha');
+    if(fha.length) cards.push({familyId:'fha', s:pickBestOverall(fha, inp), note:null});
+    // Conventional — one card, lowest eligible tier by ascending-down preference
+    const conv = viable.filter(s=>s.id==='conv');
+    if(conv.length){
+      const order = inp.fthb ? ['Conv 3%','Conv 5%','Conv 10%','Conv 20%'] : ['Conv 5%','Conv 10%','Conv 20%'];
+      let chosen=null; const skipped=[];
+      for(let i=0;i<order.length;i++){
+        const hit = conv.find(s=>s.name===order[i]);
+        if(hit){ chosen=hit; break; }
+        const el = eliminated.find(e=>e.name===order[i]);
+        if(el) skipped.push(el);
+      }
+      if(!chosen) chosen = conv.slice().sort((a,b)=>a.dp-b.dp)[0];   // custom >20% tier fallback
+      let note=null;
+      if(chosen && skipped.length){
+        const first = skipped[0], r = first.reason||'';
+        const m = r.match(/short by \$([0-9,]+)/i);
+        let why;
+        if(m) why = 'requires $'+m[1]+' more cash';
+        else if(/DTI|ratio/i.test(r)) why = 'exceeds DTI limits';
+        else if(/loan limit|conforming/i.test(r)) why = 'exceeds the conforming loan limit';
+        else why = 'is not eligible';
+        note = first.name+' '+why+' — showing '+chosen.name+'.';
+      }
+      cards.push({familyId:'conv', s:chosen, note});
+    }
+    // VA — VA 0% when eligibility is indicated
+    if(inp.vaOn){
+      const va = viable.filter(s=>s.id==='va');
+      if(va.length) cards.push({familyId:'va', s:va[0], note:null});
+    }
+    // recommended family via the priority-aware pick
+    const rec = priorityPick(viable, inp);
+    const recId = rec ? rec.id : null;
+    const fam={fha:1, conv:2, va:3};
+    cards.forEach(c=>{ c.recommended = recId!=null && c.familyId===recId; });
+    cards.sort((a,b)=> (a.recommended!==b.recommended) ? (a.recommended?-1:1) : fam[a.familyId]-fam[b.familyId]);
+    return cards.slice(0,4);
+  }
+
+  return { N, pmt, balanceAfter, monthToBalance, round125, scoreBucket, pmiRate, pmiBand,
+           fhaMipRate, closingCost, concessionLimitPct, computeScenario, maxPriceForScenario,
+           priorityPick, programCards,
+           run, pickBestOverall, applyConcession, optimalSplit, dpMatches, programEliminations, PROGRAMS, PMI, fmt0 };
 })();
 
 /* =====================================================================
    UI LAYER
    ===================================================================== */
-const $=id=>document.getElementById(id);
-const money=n=>'$'+Math.round(n).toLocaleString('en-US');
-const money1=n=>'$'+n.toLocaleString('en-US',{maximumFractionDigits:0});
-const num=el=>{const v=(typeof el==='string'?$(el):el).value.replace(/[^0-9.\-]/g,'');return parseFloat(v)||0;};
-const pct=n=>n.toFixed(2)+'%';
+const $ = id => document.getElementById(id);
+const money = n => (n<0?'-$':'$')+Math.abs(Math.round(n)).toLocaleString('en-US');
+const num = el => { const v=(typeof el==='string'?$(el):el).value.replace(/[^0-9.\-]/g,''); return parseFloat(v)||0; };
+const rawBlank = el => (typeof el==='string'?$(el):el).value.replace(/[^0-9.\-]/g,'')==='';
 
-// default PMI table
-const PMI_DEFAULT={
-  '760+':{'95':0.30,'90':0.19,'85':0.17,'80':0.12},
-  '740':{'95':0.41,'90':0.26,'85':0.22,'80':0.15},
-  '720':{'95':0.54,'90':0.35,'85':0.28,'80':0.19},
-  '700':{'95':0.71,'90':0.48,'85':0.37,'80':0.26},
-  '680':{'95':0.91,'90':0.63,'85':0.49,'80':0.33},
-  '660':{'95':1.15,'90':0.81,'85':0.63,'80':0.42},
-  '640':{'95':1.45,'90':1.04,'85':0.80,'80':0.54},
-  '<640':{'95':1.80,'90':1.35,'85':1.05,'80':0.72}
+let gapSel = 'pay';
+
+// Explicit unit choice for the dual-input fields ($ or %). The toggle is
+// authoritative — the value is interpreted per the selected unit, not guessed
+// from whether it is under 100.
+const unitState = { dp:'pct', tax:'pct' };
+
+/* ---------- concession split state ----------
+   buydown + costs always sum to the total concession. By default the tool
+   decides the split automatically (`auto:true`) via smartSplit() — covering any
+   cash shortfall first, then applying a break-even-vs-planned-stay test. Doug can
+   click "Adjust split manually" to override; editing either field sets
+   `auto:false`. `anchor` records which field he edited last so re-normalizing to
+   a changed total preserves his intent. `reason` holds the current auto-split
+   rationale string for display. */
+const concSplit = { buydown:0, costs:0, anchor:'buydown', auto:true, reason:'' };
+// The concession being deployed (set each recalc from the applied negotiation path).
+let appliedConcTotal = 0;
+function readConcTotal(){ return appliedConcTotal; }
+function normalizeSplit(total){
+  if(total<=0){ concSplit.buydown=0; concSplit.costs=0; return; }
+  if(concSplit.anchor==='costs'){
+    concSplit.costs   = Math.max(0, Math.min(total, concSplit.costs));
+    concSplit.buydown = total - concSplit.costs;
+  } else {
+    concSplit.buydown = Math.max(0, Math.min(total, concSplit.buydown));
+    concSplit.costs   = total - concSplit.buydown;
+  }
+}
+function renderSplitFields(skipActive){
+  const bEl=$('concBuydown'), cEl=$('concCosts');
+  if(!(skipActive && document.activeElement===bEl)) bEl.value = Math.round(concSplit.buydown).toLocaleString('en-US');
+  if(!(skipActive && document.activeElement===cEl)) cEl.value = Math.round(concSplit.costs).toLocaleString('en-US');
+  const total = concSplit.buydown + concSplit.costs;
+  const note=$('concSumNote');
+  note.textContent = total>0 ? 'Sum: '+money(total) : '';
+  note.className='cs-sum';
+  // auto vs manual: show the rationale line only in auto mode, the fields only in manual mode
+  const box=$('concSplitBox'), line=$('autoSplitLine');
+  if(box && line){
+    box.classList.toggle('hide', concSplit.auto);
+    line.style.display = concSplit.auto ? '' : 'none';
+    const r=$('autoSplitReason'); if(r) r.textContent = concSplit.reason || '';
+  }
+}
+
+/* ---------- assumptions constants (editable via ASSUMPTIONS not exposed; fixed here) ---------- */
+const A_CONST = {
+  ufmip:1.75, fhaMipHigh:0.55, fhaMipLow:0.50,
+  vaFirst:2.15, vaSub:3.30,
+  fhaLimit:498257, confLimit:766550,
+  pmi:Engine.PMI
 };
-const BUCKETS=['760+','740','720','700','680','660','640','<640'];
-const BANDS=[['95','95–97'],['90','90–94.99'],['85','85–89.99'],['80','80–84.99']];
-const BUCKET_LABEL={'760+':'760+','740':'740–759','720':'720–739','700':'700–719','680':'680–699','660':'660–679','640':'640–659','<640':'<640'};
 
-let selectedIdx=0;
-
-function buildPmiEditor(){
-  const t=$('pmiTable');
-  let h='<tr><th>Score</th>'+BANDS.map(b=>'<th>'+b[1]+'</th>').join('')+'</tr>';
-  BUCKETS.forEach(bk=>{
-    h+='<tr><th>'+BUCKET_LABEL[bk]+'</th>';
-    BANDS.forEach(b=>{ h+='<td><input data-bk="'+bk+'" data-band="'+b[0]+'" type="number" step="0.01" value="'+PMI_DEFAULT[bk][b[0]]+'"></td>'; });
-    h+='</tr>';
-  });
-  t.innerHTML=h;
-  t.querySelectorAll('input').forEach(i=>i.addEventListener('input',recalc));
-}
-
-function gatherAssumptions(){
-  const pmi={};
-  BUCKETS.forEach(bk=>{pmi[bk]={};});
-  document.querySelectorAll('#pmiTable input').forEach(i=>{ pmi[i.dataset.bk][i.dataset.band]=parseFloat(i.value)||0; });
-  return {
-    mip:num('a_mip'), ufmip:num('a_ufmip'),
-    vaFirst:num('a_vaFirst'), vaSub:num('a_vaSub'),
-    fhaLimit:num('a_fhaLimit'), confLimit:num('a_confLimit'),
-    tiHoa:num('a_tiHoa'), pmi
-  };
-}
+/* ---------- gather inputs ---------- */
 function gatherInputs(){
+  const own = num('ownFunds'), gift = num('gift');
+  const shopping = rawBlank('price');
+  // Optional down-payment target. Unit is set explicitly by the $/% toggle.
+  let dpTarget = null;
+  if(!rawBlank('dpTarget')){
+    const v = num('dpTarget');
+    if(v>0) dpTarget = (unitState.dp==='pct') ? {isPct:true, pct:v, dollar:null} : {isPct:false, pct:null, dollar:v};
+  }
+  // Property tax: dual input, unit set explicitly by the $/% toggle.
+  //  • $  -> a fixed monthly escrow amount (taxRaw/12) that works in BOTH modes;
+  //         it does not scale with price, so Shopping Range Mode handles it fine.
+  //  • %  -> an annual rate that scales with the purchase price.
+  const taxRaw = num('taxRate');
+  const taxIsDollar = unitState.tax==='dollar';
+  const priceNow = shopping ? 0 : num('price');
+  let taxRate, taxMonthly = null, taxFixed = false;
+  if(taxIsDollar){
+    taxMonthly = taxRaw/12; taxFixed = true;
+    taxRate = priceNow>0 ? taxRaw/priceNow*100 : 0;   // derived, display only
+  } else {
+    taxRate = taxRaw;                                 // annual % entered
+  }
+  // Requested adjustment = list price − offer amount (0 unless a valid discount).
+  const listP = shopping ? 0 : num('price');
+  const offerP = rawBlank('offerPrice') ? 0 : num('offerPrice');
+  const negReq = (listP>0 && offerP>0 && offerP<listP) ? (listP - offerP) : 0;
   return {
-    price:num('price'), score:Math.round(num('score')), funds:num('funds'),
-    income:num('income'), debts:num('debts'), target:num('target'),
-    stayYears:num('stay'), closingCosts:num('cc'),
-    rates:{conv:num('rateConv'), fha:num('rateFha'), va:num('rateVa')},
-    concessionOn:$('tgConcession').checked, concession:num('concession'),
-    fthb:$('tgFthb').checked,
-    vaOn:$('tgVa').checked, vaUse:$('vaUse').value, vaExempt:$('vaExempt').checked,
-    tiHoa:num('a_tiHoa')
+    shopping, dpTarget, taxRate, taxMonthly, taxFixed, taxIsDollar, taxRaw,
+    price: shopping ? 0 : num('price'),
+    score: Math.max(300,Math.min(850,Math.round(num('score')))),
+    ownFunds: own, gift, funds: own+gift,
+    target: num('target'), income: num('income'), debts: num('debts'),
+    stayYears: parseInt($('stay').value)||7,
+    rates:{ conv:num('rateConv'), fha:num('rateFha'), va:num('rateVa') },
+    ccPct: num('ccPct'), ccOverride: rawBlank('ccOverride')?0:num('ccOverride'),
+    hoi:num('hoi'), hoa:num('hoa'), cdd:num('cdd'), flood:num('flood'),
+    // N/A confirmation toggles: a checked box means "confirmed zero", not "unknown"
+    hoaNA: $('hoaNA').checked, cddNA: $('cddNA').checked, floodNA: $('floodNA').checked,
+    fthb: $('tgFthb').checked, vaOn: $('tgVa').checked,
+    vaUse: $('vaUse').value, vaExempt: $('vaExempt').checked,
+    priority: $('priority').value,
+    // Offer strategy. The requested adjustment (list − offer) is the amount to
+    // structure; internally it drives negotiatingRoom so the engine is unchanged.
+    // concessionOn/concession are finalized in recalc() once the path is known.
+    offerPrice: rawBlank('offerPrice')?0:num('offerPrice'),
+    negotiatingRoom: negReq,
+    negotiationMode: (document.querySelector('input[name="negMode"]:checked')||{}).value || 'compare',
+    concessionOn:false, concession:0, appliedPath:null, appliedReduction:0, appliedConcession:0
   };
 }
 
-/* ---- ratio flag helper ---- */
-function ratioClass(val,limit){
-  if(val>limit) return 'flag-red';
-  if(val>limit-2) return 'flag-amber';
+/* ---------- inline input hints ---------- */
+function updateInlineHints(inp){
+  $('totalFunds').value = Math.round(inp.funds).toLocaleString('en-US');
+  $('giftSub').textContent = inp.gift>0 ? 'Gift letter required' : '';
+  $('scoreSub').textContent = inp.score>=580&&inp.score<620 ? 'FHA/VA only' : (inp.score<580&&inp.score>=500?'FHA 10% only':(inp.score<500?'Below program mins':''));
+  $('priceSub').textContent = inp.shopping ? 'Shopping Range Mode' : '';
+  $('priceSub').className = 'sub info';
+  $('ccSub').textContent = (!inp.shopping && inp.ccOverride>0) ? '$ override in use' : (inp.shopping?'% used (shopping)':'% of loan');
+  // Property tax dual-input sub-label — show %, annual $, and monthly together when a price is present
+  const taxSub=$('taxSub');
+  const havePrice = !inp.shopping && inp.price>0;
+  taxSub.className='sub info';
+  if(inp.taxIsDollar){
+    // Dollar amount is a fixed monthly escrow — works in both modes
+    if(havePrice){
+      const pct=(inp.taxRaw/inp.price*100);
+      taxSub.textContent = money(inp.taxRaw)+'/yr = '+money(inp.taxMonthly)+'/mo ('+pct.toFixed(1)+'%)';
+    } else {
+      taxSub.textContent = money(inp.taxRaw)+'/yr = '+money(inp.taxMonthly)+'/mo (fixed escrow)';
+    }
+  } else if(inp.taxRate>15){
+    // Implausible as a rate — almost certainly a dollar amount entered on the % setting
+    taxSub.className='sub';   // amber
+    taxSub.textContent = '⚠ '+inp.taxRate+'% is not a valid tax rate — did you mean '+money(inp.taxRaw)+'/yr? Switch the toggle to $.';
+  } else if(havePrice){
+    const annual=inp.price*inp.taxRate/100;
+    taxSub.textContent = inp.taxRate+'% = '+money(annual)+'/yr = '+money(annual/12)+'/mo';
+  } else {
+    taxSub.textContent = inp.taxRate+'% of price — enter a list price for $/yr (Shopping Mode)';
+  }
+  // Down-payment target: show both $ and % when derivable
+  const dpSub=$('dpTargetSub');
+  if(inp.dpTarget){
+    const price = inp.shopping ? 0 : inp.price;
+    if(inp.dpTarget.isPct){
+      dpSub.textContent = price>0 ? inp.dpTarget.pct+'% = '+money(inp.dpTarget.pct/100*price) : inp.dpTarget.pct+'% (enter price for $)';
+    } else {
+      dpSub.textContent = price>0 ? money(inp.dpTarget.dollar)+' = '+(inp.dpTarget.dollar/price*100).toFixed(1)+'%' : money(inp.dpTarget.dollar)+' (enter price for %)';
+    }
+  } else dpSub.textContent='';
+  // N/A confirmation: when checked, hold the field at zero, disable it, and drop the Unknown label
+  [['hoa','hoaNA','hoaSub'],['cdd','cddNA','cddSub'],['flood','floodNA','floodSub']].forEach(([f,na,sub])=>{
+    const on=$(na).checked;
+    $(f).disabled=on;
+    if(on) $(f).value='0';
+    $(sub).textContent = (num(f)===0 && !on) ? 'Unknown' : (on?'Confirmed N/A':'');
+    $(sub).className = 'sub'+(on?' info':'');
+  });
+  $('vaOpts').style.display = inp.vaOn?'inline-flex':'none';
+  // Offer Strategy panel: hidden entirely in Shopping Range Mode (no list price);
+  // inactive until a valid requested adjustment exists; split shown only when a
+  // concession is actually being deployed by the applied path.
+  $('concWrap').style.display = inp.shopping ? 'none' : '';
+  $('concWrap').classList.toggle('off', !(inp.negotiatingRoom>0));
+  $('reqAdj').value = money(inp.negotiatingRoom).replace('$','');
+  $('reqAdjSub').textContent = (inp.negotiatingRoom>0)
+    ? 'List '+money(inp.price)+' − offer '+money(inp.offerPrice)
+    : (!inp.shopping && inp.offerPrice>0 && inp.offerPrice>=inp.price ? 'Offer ≥ list — no adjustment' : 'enter an offer below list');
+  // Show the split cluster only when a concession is actually deployed. When shown,
+  // renderSplitFields() decides auto (rationale line) vs manual (fields) visibility,
+  // so clear any inline display here and let it govern.
+  const hasConc = inp.negotiatingRoom>0 && (inp.appliedConcession||0)>0;
+  if(hasConc){
+    $('concSplitBox').style.display='';
+    $('autoSplitLine').style.display='';
+  } else {
+    $('concSplitBox').style.display='none';
+    $('autoSplitLine').style.display='none';
+  }
+  $('modeBadge').textContent = inp.shopping?'Shopping Range Mode':'Specific Scenario';
+  $('modeBadge').className = 'mode '+(inp.shopping?'shop':'spec');
+}
+
+/* =====================================================================
+   SECTION 1 — QUALIFICATION SNAPSHOT
+   ===================================================================== */
+// Flag: down payment above 20% requires conventional, which needs a 620 score.
+function dpCreditFlag(inp){
+  if(!inp.dpTarget) return '';
+  const pct = inp.dpTarget.isPct ? inp.dpTarget.pct : (inp.price>0 ? inp.dpTarget.dollar/inp.price*100 : null);
+  if(pct && pct>20.5 && inp.score<620){
+    return '<div class="flagbox fb-amber"><span>⚠️</span><span>Down payment above 20% requires conventional — credit score '+inp.score+' is below the 620 minimum. FHA remains the only eligible program regardless of down payment amount.</span></div>';
+  }
   return '';
 }
 
-/* ---- STRATEGY LADDER ---- */
-function buildStrategy(inp,A,res){
-  const box=$('strategy');
-  const viable=res.scenarios.filter(s=>s.viable);
-  if(viable.length===0){
-    box.innerHTML='<div class="allgood" style="background:var(--redbg);color:#b3271a">No viable scenario — every option is short on cash to close or ineligible. See grid for gaps.</div>';
-    return;
+// Four-card buying-power panel: Comfort, Maximum (DTI), Cash, and a coaching
+// Strategy Opportunity card. All display-only — no engine logic changes.
+function cashAtPrice(price, dp, inp){ const f=dp/100; return price*(f + (1-f)*inp.ccPct/100); }
+function powerLabel(why){ return why==='DTI' ? 'DTI' : why; }
+function powerBadge(why){
+  let cls='cash', ic='🟠';
+  if(why==='DTI'){ cls='dti'; ic='🔵'; }
+  else if(/Loan Limit/.test(why)){ cls='limit'; ic='🔴'; }
+  else if(why==='Comfort Payment'){ cls='comfort'; ic='🟢'; }
+  return '<div class="strat-badge-row"><span class="strat-badge-lbl">Limiting factor</span><span class="strat-badge '+cls+'">'+ic+' '+powerLabel(why)+'</span></div>';
+}
+function strategyOkCard(msg){ return '<div class="strat-card ok"><div class="strat-ok">✓ '+msg+'</div></div>'; }
+function strategyActionsList(arr){
+  if(!arr.length) return '';
+  return '<ol class="strat-actions">'+arr.map((a,i)=>'<li><span class="n">'+(i+1)+'</span><span>'+a+'</span></li>').join('')+'</ol>';
+}
+// Ordered, profile-filtered actions for a given limitation.
+function strategyActionsFor(why, ctx){
+  const {inp, viable, best, lowDp, qualTop, cashPrice, secondary} = ctx;
+  const acts=[];
+  if(why==='Cash to Close'){
+    if(best) acts.push('Seller concession — up to <b>'+money(best.concLimit)+'</b> ('+best.concLimitPct+'%) on '+best.name+' toward closing costs.');
+    if(inp.vaOn && best && best.id!=='va' && viable.some(s=>s.id==='va')) acts.push('Use <b>VA 0% down</b> — removes the down payment, preserving cash.');
+    if(inp.fthb && inp.score>=640) acts.push('Down-payment assistance (<b>Hometown Heroes</b> / DPA) — FTHB at '+inp.score+' credit may qualify; verify separately.');
+    const giftNeeded = cashAtPrice(secondary, lowDp.dp, inp) - inp.funds;
+    if(giftNeeded>0) acts.push('Gift funds — about <b>'+money(giftNeeded)+'</b> more reaches '+money(secondary)+'.');
+    const lowerOpt = viable.filter(s=>s.dp < lowDp.dp).sort((a,b)=>a.dp-b.dp)[0];
+    if(lowerOpt) acts.push('Lower down payment — <b>'+lowerOpt.name+'</b> needs less cash up front.');
+    if(!inp.shopping && inp.price>cashPrice+1) acts.push('Lower list price by <b>'+money(inp.price-cashPrice)+'</b> to fit available cash.');
+  } else if(why==='DTI'){
+    const mp = Engine.maxPriceForScenario(inp, A_CONST, Engine.PROGRAMS[qualTop.id], {dp:qualTop.dp,name:qualTop.name});
+    const inc = Math.max(0, secondary - qualTop.qualPrice);
+    const debtCut = mp.k * inc;
+    if(debtCut>0 && debtCut<=inp.debts+0.5) acts.push('Eliminate <b>'+money(debtCut)+'/mo</b> in monthly debt — raises qualifying to '+money(secondary)+'.');
+    else if(debtCut>0 && inp.debts>0) acts.push('Reduce monthly debt (all '+money(inp.debts)+') — debt alone won’t fully close it; pair with income.');
+    const incomeAdd = mp.k * inc * 100 / qualTop.ratios.back;
+    if(incomeAdd>0) acts.push('Add a co-borrower with <b>'+money(incomeAdd)+'/mo</b> gross income.');
+    if(qualTop.id==='fha') acts.push('Switch to <b>Conventional</b> — 45% back-end vs FHA’s 43%.');
+    else if(inp.vaOn && qualTop.id!=='va') acts.push('Use <b>VA</b> — residual-income based, no hard DTI cap.');
+    if(!inp.shopping && inp.price>qualTop.qualPrice+1) acts.push('Lower list price by <b>'+money(inp.price-qualTop.qualPrice)+'</b> to fit the DTI ceiling.');
+  } else if(why==='Comfort Payment'){
+    if(best) acts.push('Seller concession → <b>rate buydown</b> to bring the payment toward the '+money(inp.target)+' comfort target (up to '+money(best.concLimit)+' allowable).');
+    acts.push('Alternative loan structure with a lower payment — see the Recommendation Engine.');
+    const comfort = ctx.highestComfort;
+    if(!inp.shopping && inp.price>comfort+1) acts.push('Lower list price by <b>'+money(inp.price-comfort)+'</b> to land at the comfort payment.');
+  } else if(/Loan Limit/.test(why)){
+    if(why.indexOf('FHA')>=0) acts.push('Switch to <b>Conventional</b> — the conforming limit ($'+Engine.fmt0(A_CONST.confLimit)+') is higher than the FHA county limit.');
+    else acts.push('Above the conforming limit ($'+Engine.fmt0(A_CONST.confLimit)+') — a <b>Jumbo</b> product clears it (not modeled here).');
   }
-  viable.sort((a,b)=>a.totalPM-b.totalPM);
-  const best=viable[0];
-  const payGap=best.totalPM-inp.target;
-  const anyCashGap=viable.some(s=>s.cashGap>0);
-
-  // Header line
-  let html='<div class="strat-top">';
-  html+='<div><span class="lbl">Best available</span><span class="big">'+money(best.totalPM)+'/mo</span> <span style="color:var(--sub);font-size:13px">'+best.name+'</span></div>';
-  html+='<div><span class="lbl">Target</span><span class="big">'+money(inp.target)+'/mo</span></div>';
-  html+='<div><span class="lbl">Gap</span><span class="big '+(payGap>0?'gap-pos':'gap-ok')+'">'+(payGap>0?'+':'')+money(payGap)+'/mo</span></div>';
-  html+='</div>';
-
-  if(payGap<=0){
-    html+='<div class="allgood">Current position meets the payment target. '+
-          (anyCashGap?'Note: some down-payment scenarios exceed available cash — see grid. ':'')+
-          'See grid for full scenario comparison.</div>';
-    box.innerHTML=html;
-    return;
-  }
-
-  // Build gap-closing paths, each with the change magnitude required
-  const paths=[];
-  const price=inp.price;
-
-  // 1. Shift concession toward buydown: if cash is already covered with $0 credit,
-  //    the entire concession can fund the buydown. Only offered when mathematically
-  //    possible (no cash gap created) and it actually beats the current allocation.
-  if(inp.concessionOn && inp.concession>0){
-    const cashIfAllBuydown = best.downPayment + inp.closingCosts - inp.funds; // toCosts = 0
-    if(cashIfAllBuydown <= 0.5){
-      const pts=inp.concession/(best.loanAmount*0.01);
-      const newRate=Math.max(0,best.baseRate-pts*0.25);
-      const newTotal=Engine.pmt(newRate,360,best.loanAmount)+best.monthlyMI;
-      if(newTotal < best.totalPM-1){
-        paths.push({
-          change:inp.concession,
-          move:'Put the full '+money(inp.concession)+' concession into buydown ('+pts.toFixed(2)+' pts → '+best.baseRate.toFixed(3)+'%→'+newRate.toFixed(3)+'%) on '+best.name+' — cash already covered',
-          result:newTotal, achieves:newTotal<=inp.target
-        });
-      }
-    }
-  }
-
-  // 2. Increase down payment on the best program to hit target payment
-  //    Solve loan amount that yields target (P&I + MI held approx at current MI band)
-  (function(){
-    // target P&I = inp.target - monthlyMI(best). If MI would change with LTV we approximate at current rate.
-    // Iterate down payment upward.
-    let found=null;
-    for(let addPct=0.5; addPct<=(20-best.dpPct)+0.001; addPct+=0.5){
-      const dpPct=best.dpPct+addPct;
-      const dp=price*dpPct/100;
-      const baseLoan=price-dp;
-      let loan=baseLoan, mi=0, rate=best.rate;
-      if(best.id==='conv'){ const ltv=baseLoan/price*100; mi=baseLoan*(Engine.pmiRate(A,inp.score,ltv))/100/12; }
-      else if(best.id==='fha'){ loan=baseLoan*(1+A.ufmip/100); mi=loan*A.mip/100/12; }
-      const pi=Engine.pmt(rate,360,loan);
-      if(pi+mi<=inp.target){ found={dpPct,dp,total:pi+mi,addDollars:dp-best.downPayment}; break; }
-    }
-    if(found){
-      paths.push({
-        change:found.addDollars,
-        move:'Increase down payment by '+money(found.addDollars)+' (to '+found.dpPct.toFixed(1)+'% down) on '+best.name,
-        result:found.total, achieves:true, needsCash:found.dp+inp.closingCosts
-      });
-    }
-  })();
-
-  // 3. Reduce purchase price to hit target (hold best program & down %)
-  (function(){
-    // binary search price
-    let lo=price*0.5, hi=price;
-    for(let k=0;k<40;k++){
-      const mid=(lo+hi)/2;
-      const dp=mid*best.dpPct/100;
-      const baseLoan=mid-dp;
-      let loan=baseLoan, mi=0;
-      if(best.id==='conv'){ const ltv=baseLoan/mid*100; mi=baseLoan*Engine.pmiRate(A,inp.score,ltv)/100/12; }
-      else if(best.id==='fha'){ loan=baseLoan*(1+A.ufmip/100); mi=loan*A.mip/100/12; }
-      else if(best.id==='va'){ loan=baseLoan*(1+(best.fundingFeePct||0)/100); }
-      const t=Engine.pmt(best.rate,360,loan)+mi;
-      if(t>inp.target) hi=mid; else lo=mid;
-    }
-    const newPrice=(lo+hi)/2;
-    const reduction=price-newPrice;
-    if(reduction>500){
-      paths.push({
-        change:reduction,
-        move:'Reduce purchase price by '+money(reduction)+' (to '+money(newPrice)+') on '+best.name,
-        result:inp.target, achieves:true
-      });
-    }
-  })();
-
-  // 4. Loan-type switch to any viable option that beats target or is lower
-  viable.forEach(s=>{
-    if(s.id===best.id) return;
-    if(s.totalPM<best.totalPM){
-      paths.push({
-        change: Math.abs(s.totalPM-best.totalPM)*0 + (best.totalPM-s.totalPM), // rank by savings
-        rankSwitch:true,
-        move:'Switch '+best.name+' → '+s.name,
-        result:s.totalPM, achieves:s.totalPM<=inp.target
-      });
-    }
-  });
-
-  // Rank: prefer paths that ACHIEVE target, then by smallest change (normalized)
-  paths.sort((a,b)=>{
-    if(a.achieves!==b.achieves) return a.achieves?-1:1;
-    return a.change-b.change;
-  });
-
-  html+='<div style="font-size:12px;font-weight:700;color:var(--sub);margin-top:12px;text-transform:uppercase;letter-spacing:.4px">Ways to close the gap — smallest change first</div>';
-  html+='<div class="ladder">';
-  if(paths.length===0){
-    html+='<div class="allgood" style="background:var(--redbg);color:#b3271a">No single-lever path closes this gap within normal limits. Combine levers or requalify the target.</div>';
-  } else {
-    paths.slice(0,5).forEach((p,i)=>{
-      html+='<div class="rung'+(i===0?' easiest':'')+'"><div class="n">'+(i+1)+'</div><div class="body">'+
-            '<div class="move">'+p.move+'</div>'+
-            '<div class="res">→ payment '+(p.achieves?'meets target at ':'moves to ')+'<b>'+money(p.result)+'/mo</b>'+
-            (p.achieves?'':' <span class="neg">(still '+money(p.result-inp.target)+' over)</span>')+
-            (p.needsCash?' · needs '+money(p.needsCash)+' cash to close':'')+
-            '</div></div></div>';
-    });
-  }
-  html+='</div>';
-  box.innerHTML=html;
+  return acts;
 }
 
-/* ---- COMPARISON GRID ---- */
-function buildGrid(inp,A,res){
-  const viable=res.scenarios.filter(s=>s.viable).sort((a,b)=>a.totalPM-b.totalPM);
-  const nonviable=res.scenarios.filter(s=>!s.viable).sort((a,b)=>a.totalPM-b.totalPM);
-  const cols=[...viable,...nonviable];
-  if(selectedIdx>=viable.length) selectedIdx=0;
+function buyingPowerHTML(inp, viable){
+  const highestComfort = viable.reduce((m,s)=>Math.max(m, s.comfortPrice||0), 0);
+  let qualTop=viable[0]; viable.forEach(s=>{ if((s.qualPrice||0) > (qualTop.qualPrice||0)) qualTop=s; });
+  const highestQual = qualTop.qualPrice||0;
+  let lowDp=viable[0]; viable.forEach(s=>{ if(s.dp < lowDp.dp) lowDp=s; });
+  const dpf=lowDp.dp/100;
+  const cashDenom = dpf + (1-dpf)*inp.ccPct/100;
+  const cashPrice = cashDenom>0 ? inp.funds/cashDenom : Infinity;
+  const limitFor = id => id==='fha'?A_CONST.fhaLimit : (id==='conv'?A_CONST.confLimit:Infinity);
+  const loanLimitCeil = (1-dpf)>0 ? limitFor(lowDp.id)/(1-dpf) : Infinity;
 
-  const rows=[
-    ['Loan amount', s=>money(s.loanAmount)],
-    ['Rate', s=>s.buydownPoints>0.001
-        ? '<span class=pos>'+s.rate.toFixed(3)+'%</span><span style="font-size:10px;color:var(--sub);font-weight:600"> ('+s.baseRate.toFixed(3)+' −'+s.buydownPoints.toFixed(2)+'pt)</span>'
-        : s.rate.toFixed(3)+'%'],
-    ['P&I', s=>money(s.pi)],
-    ['Monthly MI', s=>s.monthlyMI>0?money(s.monthlyMI):'—'],
-    ['Total P&I + MI', s=>money(s.totalPM), 'total'],
-    ['Payment gap', s=>{const g=s.totalPM-inp.target;return (g>0?'<span class=neg>+':'<span class=pos>')+money(g)+'</span>';}],
-    ['Cash to close', s=>money(s.cashToClose)],
-    ['Cash gap', s=>{const g=s.cashGap;return (g>0?'<span class=neg>short '+money(g):'<span class=pos>'+money(-g)+' cushion')+'</span>';}],
-    ['Housing ratio', s=>{const c=ratioClass(s.frontRatio,s.ratios.front);return {v:s.frontRatio.toFixed(1)+'%',cls:c,tip:' / '+s.ratios.front+'%'};}],
-    ['Back-end DTI', s=>{const c=ratioClass(s.backRatio,s.ratios.back);return {v:s.backRatio.toFixed(1)+'%',cls:c,tip:' / '+s.ratios.back+'%'};}],
-    ['Max seller concession', s=>money(s.concessionLimit)+' ('+s.concessionLimitPct+'%'+(s.id==='va'?' buydown bucket':'')+')'],
-    ['MI cost over stay', s=>s.miCostHorizon>0?money(s.miCostHorizon):'—'],
-    ['PMI/MIP cancel', s=>{
-        if(s.miMode==='va') return '—';
-        if(s.miMode==='fha') return s.mipLife?'<span class=neg>Life of loan</span>':'mo '+132;
-        if(!s.cancelMonth) return '—';
-        return 'mo '+s.cancelMonth+' → '+money(s.postCancelPI)+'/mo';
-    }],
-    ['FHA effective rate', s=>s.id==='fha'?('acts like <b>'+s.effRate.toFixed(2)+'%</b> conv / '+inp.stayYears+'yr'):'—'],
-    ['Total cost @ '+inp.stayYears+'yr', s=>money(s.totalCostHorizon)]
-  ];
+  // ---- three ceiling cards ----
+  let h='<div class="snap-power">';
+  h+='<div class="snap-stat pw-green"><div class="k">Comfort Buying Power</div><div class="v">'+money(highestComfort)+'</div><div class="pw-sub">Based on '+money(inp.target)+'/mo comfort target</div></div>';
+  const qd=highestQual-highestComfort, qdPct=highestComfort>0?Math.round(Math.abs(qd)/highestComfort*100):0;
+  const qDelta = qd>1 ? '<div class="pw-delta up">+'+money(qd)+' ('+qdPct+'%)</div>' : '<div class="pw-delta same">same as comfort</div>';
+  h+='<div class="snap-stat pw-blue"><div class="k">Maximum Buying Power</div><div class="v">'+money(highestQual)+'</div><div class="pw-sub">Based on qualifying ratios (DTI)</div>'+qDelta+'</div>';
+  const cd=cashPrice-highestComfort, cdPct=highestComfort>0?Math.round(Math.abs(cd)/highestComfort*100):0;
+  const cDelta = cd < -1 ? '<div class="pw-delta down">−'+money(-cd)+' ('+cdPct+'%)</div>' : (cd>1?'<div class="pw-delta up">+'+money(cd)+' ('+cdPct+'%)</div>':'<div class="pw-delta same">same as comfort</div>');
+  h+='<div class="snap-stat pw-amber"><div class="k">Cash Buying Power</div><div class="v">'+money(cashPrice)+'</div><div class="pw-sub">Based on '+money(inp.funds)+' available funds</div>'+cDelta+'</div>';
+  h+='</div>';
 
-  let h='<thead><tr><th class="rowlbl">Scenario</th>';
-  cols.forEach((s,i)=>{
-    const isSel = (i===selectedIdx && s.viable);
-    let flag='';
-    if(s.id==='fha') flag='<div class="flagline">⚠ MIP for LIFE of loan @ 3.5% down</div>';
-    let cls='';
-    if(!s.viable){ cls='col-dim'; }
-    h+='<th data-idx="'+i+'" class="'+cls+(isSel?' sel':'')+'">'+
-       '<span class="colname">'+s.label+'</span><span class="coldp">'+s.dpPct+'% down</span>'+flag+
-       (!s.viable?'<div class="dimreason">'+(s.dimReasons.join('; '))+'</div>':'')+'</th>';
-  });
-  // greyed ineligible programs
-  res.dims.forEach(d=>{
-    h+='<th class="col-dim"><span class="colname">'+d.label+'</span><span class="coldp">'+d.name.replace(d.label,'').trim()+'</span>'+
-       '<div class="dimreason">'+d.reasons.join('; ')+'</div></th>';
-  });
-  h+='</tr></thead><tbody>';
+  // ---- Card 4: Strategy Opportunity ----
+  const best = Engine.pickBestOverall(viable, inp);
+  const llLabel = lowDp.id==='fha'?'FHA Loan Limit':'Conforming Loan Limit';
+  const ceils=[
+    {p:highestComfort, why:'Comfort Payment'},
+    {p:highestQual,   why:'DTI'},
+    {p:cashPrice,     why:'Cash to Close'},
+    {p:loanLimitCeil, why:llLabel}
+  ].filter(x=>isFinite(x.p)).sort((a,b)=>a.p-b.p);
+  const ctxBase = {inp, viable, best, lowDp, qualTop, cashPrice, highestComfort};
 
-  rows.forEach(r=>{
-    const rowCls=r[2]==='total'?' class="total"':'';
-    h+='<tr'+rowCls+'><td class="rowlbl">'+r[0]+'</td>';
-    cols.forEach(s=>{
-      const out=r[1](s);
-      if(typeof out==='object'){
-        h+='<td class="money '+(s.viable?'':'col-dim')+' '+(out.cls||'')+'">'+out.v+'<span style="font-size:10px;color:var(--sub);font-weight:600">'+(out.tip||'')+'</span></td>';
+  if(!inp.shopping && inp.price>0){
+    // Specific offer: position it against the ceilings.
+    const offer=inp.price;
+    const exceeded = ceils.filter(x=>offer > x.p+1);
+    if(!exceeded.length){
+      h+=strategyOkCard('This '+money(offer)+' offer is within comfort, DTI, and cash parameters.');
+    } else {
+      const prim = exceeded[0]; // lowest exceeded ceiling = most binding
+      if(prim.why==='Comfort Payment'){
+        // qualifies + funded, but above comfort → stretch coaching
+        const s=Engine.computeScenario(Object.assign({},inp,{shopping:false,price:offer,dpTarget:null}), A_CONST, Engine.PROGRAMS[best.id], {dp:best.dp,name:best.name}, offer);
+        const overMo=s.piti-inp.target;
+        h+='<div class="strat-card gap"><div class="strat-h">Qualifies — about '+money(overMo)+'/mo above comfort</div>';
+        h+='<div class="strat-sub">✓ Within DTI and cash · ⚠ Above stated comfort ('+money(highestComfort)+')</div>';
+        h+=powerBadge('Comfort Payment');
+        h+='<div class="strat-script">“You qualify for this home — it runs about '+money(overMo)+'/mo above the payment you told me felt comfortable. Here’s how we can bring it down.”</div>';
+        h+=strategyActionsList(strategyActionsFor('Comfort Payment', Object.assign({}, ctxBase, {secondary:offer})));
+        h+='</div>';
       } else {
-        h+='<td class="money '+(s.viable?'':'col-dim')+'">'+out+'</td>';
+        const over=offer-prim.p;
+        h+='<div class="strat-card gap"><div class="strat-h">This '+money(offer)+' offer is '+money(over)+' over the '+powerLabel(prim.why)+' ceiling</div>';
+        h+='<div class="strat-sub">Solve this to make the purchase work.</div>';
+        h+=powerBadge(prim.why);
+        h+=strategyActionsList(strategyActionsFor(prim.why, Object.assign({}, ctxBase, {secondary:offer})));
+        h+='</div>';
       }
-    });
-    res.dims.forEach(()=>{ h+='<td class="col-dim">—</td>'; });
-    h+='</tr>';
-  });
-  h+='</tbody>';
-  $('grid').innerHTML=h;
-
-  // header click → select
-  $('grid').querySelectorAll('thead th[data-idx]').forEach(th=>{
-    th.addEventListener('click',()=>{
-      const i=parseInt(th.dataset.idx);
-      if(cols[i].viable){ selectedIdx=i; buildGrid(inp,A,res); buildPiti(inp,A,cols[i]); }
-    });
-  });
-
-  // PITI for current selection
-  const sel = cols[selectedIdx] && cols[selectedIdx].viable ? cols[selectedIdx] : viable[0];
-  buildPiti(inp,A,sel);
-}
-
-/* ---- PITI CALCULATOR ---- */
-function buildPiti(inp,A,s){
-  const box=$('piti');
-  if(!s){ box.innerHTML='<div class="hd">Full PITI</div><div class="hint">No viable scenario selected.</div>'; return; }
-  const taxesIns=inp.tiHoa;
-  const piti=s.pi+s.monthlyMI+taxesIns;
-  box.innerHTML='<div class="hd">Full PITI — '+s.name+'</div>'+
-    '<div class="rows">'+
-      '<div class="k">Principal &amp; Interest</div><div class="v">'+money(s.pi)+'</div>'+
-      '<div class="k">Mortgage insurance</div><div class="v">'+(s.monthlyMI>0?money(s.monthlyMI):'—')+'</div>'+
-      '<div class="k">Taxes + Insurance + HOA</div><div class="v">'+money(taxesIns)+'</div>'+
-      '<div class="k tot">Full monthly obligation</div><div class="v tot">'+money(piti)+'</div>'+
-    '</div>'+
-    '<div class="note">Back-end DTI at this PITI: <b>'+s.backRatio.toFixed(1)+'%</b> (limit '+s.ratios.back+'%) · Housing ratio <b>'+s.frontRatio.toFixed(1)+'%</b> (limit '+s.ratios.front+'%). '+
-    (s.cancelMonth&&s.miMode==='conv'?'PMI drops at month '+s.cancelMonth+' → PITI falls to '+money(piti-s.monthlyMI)+'.':'')+'</div>';
-}
-
-/* ---- WARNINGS ---- */
-function buildWarnings(inp,A,res){
-  const W=[];
-  const add=(t,type)=>W.push({t,type});
-  // LLPA
-  res.scenarios.forEach(s=>{
-    if(s.id==='conv' && inp.score<700 && s.ltv>90 && s.viable){
-      add('LLPA: score '+inp.score+' with '+s.ltv.toFixed(0)+'% LTV on '+s.name+' — pricing adjustments may make the stated conv rate unrepresentative. Verify pricing.','w-red');
     }
-  });
-  // FHA lifetime MIP
-  if(res.scenarios.some(s=>s.id==='fha'&&s.viable)){
-    add('FHA MIP runs for the LIFE of the loan at 3.5% down — it never cancels. Factor lifetime MI into the effective-rate comparison.','w-amber');
-  }
-  // Conv 3% AMI note
-  if(inp.fthb && res.scenarios.some(s=>s.id==='conv'&&s.dpPct===3&&s.viable)){
-    add('Conv 3%: income eligibility (≤80% AMI, or approved product) must be confirmed — not auto-verified by this tool.','w-info');
-  }
-  // DTI hits
-  res.scenarios.filter(s=>s.viable).forEach(s=>{
-    if(s.frontRatio>s.ratios.front) add(s.name+': housing ratio '+s.frontRatio.toFixed(1)+'% exceeds '+s.ratios.front+'% guideline.','w-red');
-    if(s.backRatio>s.ratios.back) add(s.name+': back-end DTI '+s.backRatio.toFixed(1)+'% exceeds '+s.ratios.back+'% guideline.','w-red');
-  });
-  // loan limit triggers already surface as greyed cols
-  res.dims.forEach(d=>{ d.reasons.forEach(r=>{ if(/limit|Jumbo/i.test(r)) add(d.label+' '+d.name+': '+r,'w-amber'); }); });
-  // funding fee exemption status
-  if(inp.vaOn){
-    const va=res.scenarios.find(s=>s.id==='va');
-    if(va){
-      if(va.vaExempt) add('VA funding fee EXEMPT (10%+ service-connected disability) — $0 funding fee applied.','w-info');
-      else add('VA funding fee '+va.fundingFeePct.toFixed(2)+'% ('+(inp.vaUse==='sub'?'subsequent':'first')+' use) = '+money(va.fundingFee)+' financed. Confirm exemption status.','w-info');
+  } else {
+    // Shopping mode: how much more can they buy by solving the binding constraint?
+    const prim=ceils[0];
+    if(prim.why==='Comfort Payment'){
+      h+=strategyOkCard('All targets met — buyer is within comfort, DTI, and cash parameters.');
+    } else {
+      const secondary = ceils[1] ? ceils[1].p : prim.p;
+      const increaseBy = Math.max(0, secondary - prim.p);
+      h+='<div class="strat-card gap"><div class="strat-h">Increase Buying Power by '+money(increaseBy)+'</div>';
+      h+='<div class="strat-sub">Current limitation: '+powerLabel(prim.why)+'</div>';
+      h+=powerBadge(prim.why);
+      h+=strategyActionsList(strategyActionsFor(prim.why, Object.assign({}, ctxBase, {secondary})));
+      h+='</div>';
     }
   }
-  // concession overages
-  if(inp.concessionOn){
-    res.scenarios.filter(s=>s.viable).forEach(s=>{
-      if(inp.concession>s.concessionLimit+0.5){
-        add(s.name+': entered concession '+money(inp.concession)+' exceeds allowable '+money(s.concessionLimit)+' ('+s.concessionLimitPct+'%'+(s.id==='va'?' buydown bucket; closing costs uncapped':'')+') — verify with lender.','w-red');
-      }
-    });
+  return h;
+}
+
+function renderSnapshot(inp, res, neg){
+  const box=$('snapBody');
+  const viable=res.scenarios.slice();
+  if(!viable.length){
+    box.innerHTML='<div class="noviable">No eligible scenario at these inputs. See eliminations below.</div>'+dpCreditFlag(inp)+elimHTML(res.eliminated);
+    return;
+  }
+  // max purchase price + corresponding loan + binding
+  let top=viable[0];
+  viable.forEach(s=>{ if(s.maxPrice>top.maxPrice) top=s; });
+  const maxLoan = top.loanAmount * (inp.shopping? 1 : 1); // at top scenario
+  // recompute loan at maxPrice for display
+  const bindLabel = deriveBinding(inp,res,top);
+
+  // confidence — a field at zero counts as "unknown" only if it isn't confirmed N/A
+  const unk = { hoa: inp.hoa===0 && !inp.hoaNA, cdd: inp.cdd===0 && !inp.cddNA, flood: inp.flood===0 && !inp.floodNA };
+  const unknowns = (unk.hoa?1:0)+(unk.cdd?1:0)+(unk.flood?1:0);
+  let conf;
+  if(inp.shopping){
+    // Shopping Range Mode: a price range is being solved, so it caps at Medium —
+    // but only when the escrow components are all known/confirmed. Any unknown -> Low.
+    conf = (unknowns===0) ? 'Medium' : 'Low';
+  } else {
+    conf = (unknowns>=2) ? 'Low' : (unknowns>=1 ? 'Medium' : 'High');
   }
 
-  const list=$('warnlist');
-  if(W.length===0){ list.innerHTML='<div class="noflags">✓ No warning flags on the current inputs.</div>'; return; }
-  // order red, amber, info
-  const order={'w-red':0,'w-amber':1,'w-info':2};
-  W.sort((a,b)=>order[a.type]-order[b.type]);
-  list.innerHTML='<ul>'+W.map(w=>'<li class="'+w.type+'"><span>'+(w.type==='w-red'?'⛔':w.type==='w-amber'?'⚠️':'ℹ️')+'</span><span>'+w.t+'</span></li>').join('')+'</ul>';
+  let h=buyingPowerHTML(inp, viable);
+  if(inp.negotiatingRoom>0 && neg) h+=negotiationPanelHTML(inp, neg);
+  h+='<div class="snap-top">';
+  h+=statHTML('Achievable Price', money(top.maxPrice), (inp.shopping?'best-fit: '+top.name:'best: '+top.name)+' · all limits applied');
+  const loanAtMax = maxLoanAt(inp, top);
+  h+=statHTML('Maximum Loan Amount', money(loanAtMax), top.label+' '+top.dp+'% down');
+  h+='<div class="snap-stat bind"><div class="k">Binding Constraint</div><div class="v">'+bindLabel+'</div></div>';
+  h+='<div class="snap-stat conf"><div class="k">Confidence Level</div><div class="v conf-'+conf+'">'+conf+'</div></div>';
+  h+='</div>';
+
+  // unknown assumptions
+  if(unknowns>0){
+    const parts=[]; if(unk.hoa)parts.push('HOA'); if(unk.cdd)parts.push('CDD'); if(unk.flood)parts.push('flood insurance');
+    h+='<div class="flagbox fb-amber"><span>⚠️</span><span>'+parts.join(', ')+(parts.length>1?' are':' is')+' unknown — actual payment may be higher than shown.</span></div>';
+  }
+  // Down payment > 20% with sub-620 credit
+  h+=dpCreditFlag(inp);
+  // DPA
+  if(inp.fthb && inp.score>=640){
+    h+='<div class="flagbox fb-info"><span>🏠</span><span>Buyer may be eligible for Hometown Heroes or other DPA programs — verify separately before presenting options.</span></div>';
+  }
+  // Housing (front-end) ratio flags — advisory; back-end qualifies
+  const frontFlagged = viable.filter(s=>s.frontFlag);
+  if(frontFlagged.length){
+    const names = frontFlagged.map(s=>s.name+' '+s.front.toFixed(1)+'%').join(', ');
+    h+='<div class="flagbox fb-amber"><span>⚠️</span><span>Housing ratio above guideline on '+names+' (limit '+frontFlagged[0].ratios.front+'%) — advisory only; these still qualify on back-end DTI, but note the payment runs high relative to income.</span></div>';
+  }
+  // LLPA warning
+  const llpa = viable.find(s=>s.id==='conv' && inp.score<700 && s.ltv>90);
+  if(llpa){
+    h+='<div class="flagbox fb-amber"><span>⚠️</span><span>LLPA adjustments at this score/LTV ('+inp.score+' / '+llpa.ltv.toFixed(0)+'%) may make the stated conventional rate unrepresentative — verify pricing with lender before presenting.</span></div>';
+  }
+  if(unknowns===0 && !inp.shopping){
+    h+='<div class="flagbox fb-good"><span>✓</span><span>Taxes, insurance and escrow components all entered — high-confidence figures.</span></div>';
+  }
+  h+=elimHTML(res.eliminated);
+  box.innerHTML=h;
+}
+function statHTML(k,v,sub){ return '<div class="snap-stat"><div class="k">'+k+'</div><div class="v">'+v+(sub?' <small>'+sub+'</small>':'')+'</div></div>'; }
+function maxLoanAt(inp, s){
+  // loan amount at the scenario's max price
+  const dpFrac=s.dp/100; const base=s.maxPrice*(1-dpFrac);
+  let fee=0;
+  if(s.id==='fha') fee=base*A_CONST.ufmip/100;
+  else if(s.id==='va') fee=base*(inp.vaExempt?0:(inp.vaUse==='sub'?A_CONST.vaSub:A_CONST.vaFirst))/100;
+  return base+fee;
+}
+function deriveBinding(inp,res,top){
+  // If programs are limited, surface that; else the top scenario's binding
+  const progElim=Engine.programEliminations(inp,A_CONST);
+  const onlyPrograms = res.scenarios.length<=1;
+  if(res.scenarios.length===0) return 'Available Programs';
+  if(inp.score<620 && !res.scenarios.some(s=>s.id==='conv')) {
+    if(top.binding==='Credit Score'||top.binding==='—') return 'Credit Score';
+  }
+  return top.binding;
+}
+function elimHTML(elim){
+  if(!elim.length) return '';
+  let h='<div class="elim"><div class="elim-h">Reason for Elimination</div><ul>';
+  elim.forEach(e=>{ h+='<li>❌ <b>'+e.name+'</b> — '+e.reason+'</li>'; });
+  h+='</ul></div>';
+  return h;
 }
 
-/* ---- SELLER-CONCESSION SPLIT STATE ---- */
-// splitState.costs = $ of the concession allocated to closing costs (rest = buydown).
-// userSet=false means "auto" → recompute the optimal split every recalc until Doug
-// takes manual control (edits a field, drags the slider, or clicks Show optimal split).
-const splitState={costs:0, userSet:false};
-function curConcession(){ return $('tgConcession').checked ? num('concession') : 0; }
+/* =====================================================================
+   NEGOTIATION STRATEGY ENGINE
+   Evaluates three deployments of the negotiable seller value — Price Reduction,
+   Seller Concession, Split — each scored across ALL eligible loan types with the
+   existing decision hierarchy (pickBestOverall / buyer priority) plus unused
+   seller value as a tiebreaker. Never anchors to Best Overall.
+   ===================================================================== */
+// Financing cost (interest + MI + financed fee) at an arbitrary rate over the horizon.
+function financingCostAt(loanAmount, annualR, horizon, miCostHorizon, financedFee){
+  const N=360, pi=Engine.pmt(annualR, N, loanAmount);
+  const payments = pi*Math.min(horizon,N);
+  const bal = horizon>=N ? 0 : Engine.balanceAfter(loanAmount, annualR, N, horizon);
+  const interest = payments - (loanAmount - bal);
+  return interest + miCostHorizon + financedFee;
+}
+// All eligible loan scenarios at a given price (no dp filter, viable only).
+function eligibleAt(inp, price){
+  if(price<=0) return [];
+  const t = Object.assign({}, inp, {shopping:false, price:price, dpTarget:null});
+  return Engine.run(t, A_CONST).scenarios;
+}
+// Build a scoring/display outcome object for one loan scenario under one path.
+function mkOutcome(fields){ return Object.assign({ totalCostHorizon:fields.financing }, fields); }
 
-function syncSplitUI(inp,A,res,C){
-  const panel=$('splitPanel');
-  panel.classList.toggle('off', !inp.concessionOn || C<=0);
-  const costs=Math.max(0,Math.min(C,splitState.costs));
-  const buydown=Math.max(0,C-costs);
-  // fields + slider (don't clobber a field the user is mid-typing? recalc fires on input,
-  // but we re-render normalized values — acceptable for these compact numeric fields)
-  if(document.activeElement!==$('splitCosts'))   $('splitCosts').value   = Math.round(costs).toLocaleString('en-US');
-  if(document.activeElement!==$('splitBuydown')) $('splitBuydown').value = Math.round(buydown).toLocaleString('en-US');
-  $('splitSlider').value = C>0 ? (costs/C*100) : 0;
-  $('splitTotal').textContent = 'Total '+money(C);
+/* ---------- smartSplit: the tool decides buydown vs closing costs ----------
+   Returns {buydown, costs, reason}. Decision order:
+     1. Cash-shortfall first — send just enough to closing costs to bring cash to
+        close within the buyer's funds (a credit can't exceed actual closing costs).
+     2. Priority steering for the remaining dollars:
+        • cash    → max out the closing-cost credit, overflow to buydown.
+        • payment → everything remaining to the rate buydown.
+        • balanced / power → break-even test: if a buydown of the remaining amount
+          pays for itself before the planned stay, buy the rate down; otherwise put
+          it toward closing costs (overflow to buydown once the credit is maxed).
+   The `reason` string is a one-line plain-English rationale for the UI. */
+function smartSplit(s, inp, deployable){
+  const stayY = Math.max(1, Math.round(inp.stayYears||7));
+  const stayM = stayY*12;
+  if(!s || deployable<=0) return { buydown:0, costs:0, reason:'' };
+  const cashShort = Math.max(0, s.cashToClose - inp.funds);
+  const cover = Math.min(deployable, s.closing, cashShort);   // costs needed to clear the cash gap
+  const remaining = deployable - cover;
+  const costsRoom = Math.max(0, s.closing - cover);           // remaining closing-cost credit capacity
 
-  const viable=res.scenarios.filter(s=>s.viable).sort((a,b)=>a.totalPM-b.totalPM);
-  const ref = viable[0] || res.scenarios[0];
-  const lim=$('splitLimit'), imp=$('splitImpact');
-  if(ref && C>0){
-    const over = C > ref.concessionLimit+0.5;
-    lim.className='split-limit '+(over?'over':'ok');
-    lim.textContent=(over?'⛔ exceeds ':'✓ within ')+'max '+money(ref.concessionLimit)+' ('+ref.concessionLimitPct+'%'+(ref.id==='va'?' buydown bucket':'')+', vs '+ref.name+')';
-    const pts=buydown>0?buydown/(ref.loanAmount*0.01):0;
-    const newRate=Math.max(0,ref.baseRate-pts*0.25);
-    let msg='Buydown '+money(buydown)+' ≈ <b>'+pts.toFixed(2)+' pts</b> → '+ref.baseRate.toFixed(3)+'%→<b>'+newRate.toFixed(3)+'%</b> on '+ref.name+
-            ' · closing credit <b>'+money(Math.min(costs,inp.closingCosts))+'</b> of '+money(inp.closingCosts)+' costs';
-    if(costs>inp.closingCosts+0.5) msg+=' · <b style="color:var(--red)">'+money(costs-inp.closingCosts)+' over actual costs (wasted — move to buydown)</b>';
-    imp.innerHTML=msg;
-  } else { lim.textContent=''; imp.textContent=''; }
+  let buydown, costs, mode, be=null;
+  if(inp.priority==='cash'){
+    const addCosts = Math.min(remaining, costsRoom);
+    costs = cover + addCosts; buydown = deployable - costs; mode='cash';
+  } else if(inp.priority==='payment'){
+    costs = cover; buydown = deployable - cover; mode='payment';
+  } else {
+    // balanced / power — break-even vs planned stay on the remaining buydown
+    if(remaining<=0){ buydown=0; costs=cover; mode='coveronly'; }
+    else {
+      const trial = Engine.applyConcession(s, inp, A_CONST, remaining, cover);
+      be = trial.breakeven; // months to recoup the buydown, or null if no monthly saving
+      if(be!=null && be<=stayM){ buydown=remaining; costs=cover; mode='buydown'; }
+      else { const addCosts=Math.min(remaining, costsRoom); costs=cover+addCosts; buydown=deployable-costs; mode='costs'; }
+    }
+  }
+  const reason = splitReason({mode, cover, costs, buydown, be, stayY});
+  return { buydown, costs, reason };
+}
+function splitReason(o){
+  const beY = o.be!=null ? Math.max(1, Math.round(o.be/12)) : null;
+  const coverNote = o.cover>0 ? ' (after '+money(o.cover)+' covers the cash gap)' : '';
+  if(o.mode==='cash')
+    return money(o.costs)+' → closing costs to keep cash to close as low as possible'
+      + (o.buydown>0 ? '; '+money(o.buydown)+' left over buys down the rate' : '') + '.';
+  if(o.mode==='payment')
+    return money(o.buydown)+' → rate buydown for the lowest monthly payment'+coverNote+'.';
+  if(o.mode==='coveronly')
+    return money(o.costs)+' → closing costs to cover the cash shortfall.';
+  if(o.mode==='buydown')
+    return money(o.buydown)+' → rate buydown — it breaks even in about '+beY+' year'+(beY===1?'':'s')
+      +', inside the '+o.stayY+'-year hold'+coverNote+'.';
+  // costs (balanced/power default)
+  return money(o.costs)+' → closing costs — a buydown wouldn\'t break even before year '+o.stayY
+    + (o.buydown>0 ? ', so only the '+money(o.buydown)+' overflow buys down the rate' : '') + '.';
+}
+function pathOutcome(baseS, inp, pathKey, negRoom){
+  const horizon = Math.round(inp.stayYears*12);
+  const commonViable = s => s.cashToClose<=inp.funds+0.5; // pre-help viability handled by eligibleAt
+  if(pathKey==='reduction'){
+    const price = inp.price - negRoom; if(price<=0) return null;
+    const s = Engine.computeScenario(Object.assign({},inp,{price}), A_CONST, Engine.PROGRAMS[baseS.id], {dp:baseS.dp,name:baseS.name}, price);
+    const limit = s.id==='fha'?A_CONST.fhaLimit:(s.id==='conv'?A_CONST.confLimit:Infinity);
+    if(s.baseLoan>limit+0.5 || s.cashToClose>inp.funds+0.5 || s.back>s.ratios.back+0.05) return null;
+    return mkOutcome({id:s.id,dp:s.dp,name:s.name,mipLife:s.mipLife,cancelMonth:s.cancelMonth,monthlyMI:s.monthlyMI,
+      concLimit:s.concLimit,concLimitPct:s.concLimitPct,price,rate:s.rate,pi:s.pi,piti:s.piti,
+      cashToClose:s.cashToClose,cashRemaining:inp.funds-s.cashToClose,maxPrice:price,
+      gap:s.piti-inp.target,used:negRoom,unused:0,buydown:0,financing:s.totalCostHorizon});
+  }
+  if(pathKey==='concession'){
+    const s = baseS;
+    const deployable = Math.min(negRoom, s.concLimit), unused = negRoom - deployable;
+    const opt = smartSplit(s, inp, deployable);
+    const conc = Engine.applyConcession(s, inp, A_CONST, opt.buydown, opt.costs);
+    if(conc.newCash>inp.funds+0.5 || (conc.newPITI+inp.debts)/inp.income*100>s.ratios.back+0.05) return null;
+    const financing = financingCostAt(s.loanAmount, conc.newRate, horizon, s.miCostHorizon, s.financedFee);
+    return mkOutcome({id:s.id,dp:s.dp,name:s.name,mipLife:s.mipLife,cancelMonth:s.cancelMonth,monthlyMI:s.monthlyMI,
+      concLimit:s.concLimit,concLimitPct:s.concLimitPct,price:inp.price,rate:conc.newRate,pi:conc.newPI,piti:conc.newPITI,
+      cashToClose:conc.newCash,cashRemaining:inp.funds-conc.newCash,maxPrice:inp.price,
+      gap:conc.newPITI-inp.target,used:deployable,unused,buydown:opt.buydown,financing});
+  }
+  if(pathKey==='split'){
+    const half=negRoom/2, price=inp.price-half; if(price<=0) return null;
+    const s = Engine.computeScenario(Object.assign({},inp,{price}), A_CONST, Engine.PROGRAMS[baseS.id], {dp:baseS.dp,name:baseS.name}, price);
+    const limit = s.id==='fha'?A_CONST.fhaLimit:(s.id==='conv'?A_CONST.confLimit:Infinity);
+    if(s.baseLoan>limit+0.5) return null;
+    const deployable = Math.min(half, s.concLimit), unused = half - deployable;
+    const opt = smartSplit(s, inp, deployable);
+    const conc = Engine.applyConcession(s, inp, A_CONST, opt.buydown, opt.costs);
+    if(conc.newCash>inp.funds+0.5 || (conc.newPITI+inp.debts)/inp.income*100>s.ratios.back+0.05) return null;
+    const financing = financingCostAt(s.loanAmount, conc.newRate, horizon, s.miCostHorizon, s.financedFee);
+    return mkOutcome({id:s.id,dp:s.dp,name:s.name,mipLife:s.mipLife,cancelMonth:s.cancelMonth,monthlyMI:s.monthlyMI,
+      concLimit:s.concLimit,concLimitPct:s.concLimitPct,price,rate:conc.newRate,pi:conc.newPI,piti:conc.newPITI,
+      cashToClose:conc.newCash,cashRemaining:inp.funds-conc.newCash,maxPrice:price,
+      gap:conc.newPITI-inp.target,used:half+deployable,unused,buydown:opt.buydown,financing});
+  }
+  return null;
+}
+// Pick the winning loan outcome for a path: existing hierarchy/priority + unused tiebreak.
+function pickPathWinner(outs, inp){
+  if(!outs.length) return null;
+  let winner = priorityScenario(outs, inp);
+  const near = outs.filter(o=>o!==winner
+    && Math.abs(o.piti-winner.piti)<=50 && Math.abs(o.cashToClose-winner.cashToClose)<=2000
+    && Math.abs(o.totalCostHorizon-winner.totalCostHorizon)<=2500 && o.unused < winner.unused-1);
+  if(near.length){ near.sort((a,b)=>a.unused-b.unused); winner=near[0]; }
+  return winner;
+}
+function analyzeNegotiation(inp, res){
+  if(inp.shopping || inp.price<=0 || inp.negotiatingRoom<=0) return null;
+  const room = inp.negotiatingRoom;
+  const baseAtPrice = eligibleAt(inp, inp.price);
+  const baseAtReduced = eligibleAt(inp, inp.price - room);
+  const baseAtHalf = eligibleAt(inp, inp.price - room/2);
+  if(!baseAtPrice.length && !baseAtReduced.length) return null;
+  const redOuts = baseAtReduced.map(s=>pathOutcome(s,inp,'reduction',room)).filter(Boolean);
+  const concOuts = baseAtPrice.map(s=>pathOutcome(s,inp,'concession',room)).filter(Boolean);
+  const splitOuts = baseAtHalf.map(s=>pathOutcome(s,inp,'split',room)).filter(Boolean);
+  const paths = {
+    reduction: pickPathWinner(redOuts, inp),
+    concession: pickPathWinner(concOuts, inp),
+    split: pickPathWinner(splitOuts, inp)
+  };
+  // overall recommended path = best of the three winners
+  const winnersList=[];
+  ['reduction','concession','split'].forEach(k=>{ if(paths[k]){ paths[k]._pathKey=k; winnersList.push(paths[k]); } });
+  const recommended = pickPathWinner(winnersList, inp);
+  const recommendedPathKey = recommended ? recommended._pathKey : null;
+
+  // Headline, keyed on which path the engine recommends.
+  let headline={type:'none'};
+  const cw=paths.concession, rw=paths.reduction;
+  const byUnused = concOuts.length ? concOuts.slice().sort((a,b)=>a.unused-b.unused) : [];
+  const bestDep = byUnused[0], worst = byUnused.length?byUnused[byUnused.length-1]:null;
+  const maxU = worst ? worst.unused : 0;
+  const rec = recommendedPathKey;
+  if(rec==='reduction' && rw){
+    // Price reduction wins — usually a financing-cost story over the hold.
+    const costLess = cw ? (cw.totalCostHorizon - rw.totalCostHorizon) : 0;
+    headline={type:'reduction', red:rw, conc:cw, costLess, stayYears:inp.stayYears};
+  } else if(rec==='concession' && cw){
+    if(maxU>1 && cw.unused <= bestDep.unused+1 && worst){
+      // switching to the winning loan deploys value another program leaves unused
+      headline={type:'unlock', winner:cw, alt:worst, unlocked: worst.unused - cw.unused, room};
+    } else {
+      // concession simply wins — lead with the psychology of keeping the sale price intact
+      const dPay = rw ? (rw.piti - cw.piti) : 0;
+      const dCash = rw ? (rw.cashToClose - cw.cashToClose) : 0;
+      headline={type:'psych', list:inp.price, offer:inp.offerPrice, adj:room, dPay, dCash, hasRed:!!rw, allfit:maxU<=1};
+    }
+  } else if(rec==='split' && paths.split){
+    headline={type:'split', win:paths.split, room};
+  } else if(maxU<=1 && concOuts.length){
+    headline={type:'allfit', amount:room};
+  }
+  return { paths, recommendedPathKey, recommended, headline, concOuts, room, hasEligible: !!(recommended) };
 }
 
-/* ---- MAIN RECALC ---- */
+const PATH_NAME = { reduction:'Price reduction', concession:'Seller concession', split:'Split' };
+function negotiationPanelHTML(inp, neg){
+  // Highlight the APPLIED path (= engine's recommendation in Compare mode, or the
+  // path Doug forced via the mode radios). Falls back to the recommendation.
+  const forced = inp.negotiationMode!=='compare';
+  const rec = (inp.appliedPath && neg.paths[inp.appliedPath]) ? inp.appliedPath : neg.recommendedPathKey;
+  if(!rec) return '';
+  const P=neg.paths, recO=P[rec], H=neg.headline, fam=o=>FAM_NAME[o.id];
+  // ---- headline (focal) ----
+  let hl='';
+  if(H.type==='psych'){
+    // Only surface deltas that actually favor the concession (the table shows the rest).
+    const deltas=[]; if(H.hasRed && H.dPay>=5) deltas.push(money(H.dPay)+'/mo lower payment');
+    if(H.hasRed && H.dCash>=100) deltas.push(money(H.dCash)+' lower cash to close');
+    hl='<div class="neg-headline unlock">🟢 Offer '+money(H.list)+' with a '+money(H.adj)+' seller concession instead of '+money(H.offer)+'.'
+      +'<span class="sub">Keeping the recorded sale price intact is often more acceptable to sellers'+(deltas.length?' — and produces a '+deltas.join(' and ')+' vs. a straight price reduction':'')+'.'
+      +(H.allfit?' The full '+money(H.adj)+' fits within allowable limits on all eligible programs.':'')+'</span></div>';
+  } else if(H.type==='unlock'){
+    hl='<div class="neg-headline unlock">🟢 Switching to '+H.winner.name+' unlocks an additional '+money(H.unlocked)+' of the requested adjustment.'
+      +'<span class="sub">'+H.winner.name+' allows the full '+money(H.room)+' as a concession. '+H.alt.name+' caps at '+money(H.alt.concLimit)+' — '+money(H.alt.unused)+' goes unused. '+H.winner.name+' also produces a lower payment over this buyer’s planned stay.</span></div>';
+  } else if(H.type==='reduction'){
+    hl='<div class="neg-headline flip">⚠️ Price reduction wins on a '+H.stayYears+'-year hold.'
+      +'<span class="sub">'+(H.conc?'The concession path deploys the full adjustment, but '+H.red.name+' with a price reduction costs '+money(Math.abs(H.costLess))+' less in total financing cost over '+H.stayYears+' years.':H.red.name+' with a price reduction is the lowest-cost structure over '+H.stayYears+' years.')+'</span></div>';
+  } else if(H.type==='split'){
+    hl='<div class="neg-headline allfit">◑ Split the '+money(H.room)+' evenly — '+money(H.room/2)+' price reduction + '+money(H.room/2)+' concession via '+H.win.name+' gives the best balance of payment, cash, and financing cost.</div>';
+  } else if(H.type==='allfit'){
+    hl='<div class="neg-headline allfit">✓ The full '+money(H.amount)+' fits within allowable limits on all eligible programs — full adjustment can be structured as a seller concession.</div>';
+  }
+  // ---- three-column comparison table ----
+  const cols=[['reduction','Price Reduction'],['concession','Seller Concession'],['split','Split ('+money(neg.room/2)+' / '+money(neg.room/2)+')']];
+  const gapTxt=o=>{ const c=o.gap<=0.5?'gap-ok':(o.gap<=100?'gap-amber':'gap-red'); return '<span class="'+c+'">'+(o.gap>0?'+':'')+money(o.gap)+'/mo</span>'; };
+  let t='<table class="neg-tbl"><thead><tr><th></th>'+cols.map(c=>'<th'+(c[0]===rec?' class="win"':'')+'>'+c[1]+(c[0]===rec?' ★':'')+'</th>').join('')+'</tr></thead><tbody>';
+  const row=(label,fn)=>{ t+='<tr><td>'+label+'</td>'+cols.map(c=>{ const o=P[c[0]]; return '<td'+(c[0]===rec?' class="win"':'')+'>'+(o?fn(o):'—')+'</td>'; }).join('')+'</tr>'; };
+  row('Best loan type', o=>o.name);
+  row('Effective purchase price', o=>money(o.price));
+  row('Rate', o=>o.rate.toFixed(3)+'%');
+  row('PITI', o=>money(o.piti)+'/mo');
+  row('Payment vs. target', o=>gapTxt(o));
+  row('Cash to close', o=>money(o.cashToClose));
+  row('Cash remaining', o=>money(o.cashRemaining));
+  row('Adjustment used', o=>money(o.used));
+  t+='<tr class="unused"><td>Unused adjustment</td>'+cols.map(c=>{ const o=P[c[0]]; if(!o) return '<td'+(c[0]===rec?' class="win"':'')+'>—</td>'; const cls=(o.unused>1?'pos':'zero'); return '<td class="'+cls+(c[0]===rec?' win':'')+'">'+money(o.unused)+'</td>'; }).join('')+'</tr>';
+  row('Financing cost over stay', o=>money(o.totalCostHorizon));
+  t+='</tbody></table>';
+  // ---- winner sentence referencing the deciding factor ----
+  const others=['reduction','concession','split'].filter(k=>k!==rec).map(k=>P[k]).filter(Boolean);
+  const alt = others.length ? pickPathWinner(others, inp) : null;
+  const bits=[];
+  if(alt){
+    const dP=alt.piti-recO.piti, dC=alt.cashToClose-recO.cashToClose, dF=alt.totalCostHorizon-recO.totalCostHorizon;
+    if(Math.abs(dP)>=5) bits.push(money(Math.abs(dP))+'/mo '+(dP>0?'lower':'higher')+' payment');
+    if(Math.abs(dC)>=100) bits.push(money(Math.abs(dC))+' '+(dC>0?'lower':'higher')+' cash to close');
+    if(recO.unused<=1) bits.push('$0 unused adjustment');
+    if(Math.abs(dF)>=500) bits.push(money(Math.abs(dF))+' '+(dF>0?'lower':'higher')+' financing cost over '+inp.stayYears+' years');
+  } else {
+    if(recO.unused<=1) bits.push('$0 unused adjustment');
+  }
+  const lead = forced ? 'Selected' : 'Recommended';
+  let sentence=lead+': '+PATH_NAME[rec]+' via '+FAM_NAME[recO.id]+(bits.length?' — '+bits.join(', '):'')+'.';
+  if(forced && neg.recommendedPathKey && neg.recommendedPathKey!==rec){
+    sentence += ' <span style="font-weight:600;color:var(--sub)">(Engine’s pick: '+PATH_NAME[neg.recommendedPathKey]+'.)</span>';
+  }
+  return '<div class="neg-panel">'+hl+t+'<div class="neg-rec">'+sentence+'</div></div>';
+}
+
+/* =====================================================================
+   SECTION 2 — RECOMMENDATION ENGINE (4 cards)
+   ===================================================================== */
+function renderCards(inp, res){
+  const box=$('cardsBody');
+  const viable=res.scenarios.slice();
+  const dimmed=(res.dpDimmed||[]).slice();
+  if(!viable.length && !dimmed.length){ box.innerHTML='<div class="noviable" style="grid-column:1/-1">No viable scenario to recommend. Resolve eliminations in Section 1 or use the Gap Solver.</div>'; return; }
+
+  let html=''; let topCount=0;
+  if(viable.length){
+    const best = Engine.pickBestOverall(viable, inp);
+    // One card per eligible program family (FHA / Conventional / VA). The
+    // recommended family (priority-aware) leads with the ★ badge; the rest follow.
+    const cards = Engine.programCards(viable, res.eliminated, inp);
+    topCount = cards.length;
+    html += cards.map(c=>familyCardHTML(c, inp, best)).join('');
+  } else {
+    html += '<div class="noviable" style="grid-column:1/-1">No scenario matches the '+dpLabel(inp)+' down-payment target — the options below are dimmed for reference.</div>';
+  }
+  // Down-payment-filtered scenarios stay visible but dimmed (not eliminated).
+  html += dimmed.map(s=>dpDimmedCardHTML(s, inp)).join('');
+  box.innerHTML = html;
+  // Fit the grid to the number of top-level cards so 1–3 cards don't stretch across
+  // four columns (dimmed reference cards count toward the layout width too).
+  const cols = Math.max(1, Math.min(4, topCount + dimmed.length));
+  box.style.gridTemplateColumns = 'repeat('+cols+',1fr)';
+}
+function dpLabel(inp){
+  const t=inp.dpTarget; if(!t) return '';
+  if(t.isPct) return (Number.isInteger(t.pct)?t.pct:t.pct.toFixed(1))+'%';
+  return money(t.dollar);
+}
+// A dimmed reference card for a scenario filtered out by the down-payment target.
+function dpDimmedCardHTML(s, inp){
+  const gap = s.piti - inp.target;
+  const gapCls = gap<=0.5?'gap-ok':(gap<=100?'gap-amber':'gap-red');
+  let h='<div class="scard dim">';
+  h+='<div class="arch">'+s.name+'</div>';
+  h+='<div class="prog">'+s.dp+'% down'+(s.lowScore?' · low-score tier':'')+'</div>';
+  h+='<div class="price">'+(inp.shopping?'Shopping range up to <b>'+money(s.maxPrice)+'</b>':'Price <b>'+money(s.price)+'</b>')+'</div>';
+  h+='<div class="piti">'+money(s.piti)+'<span style="font-size:11px;font-weight:600;color:var(--sub)">/mo PITI</span></div>';
+  h+='<div class="gaprow '+gapCls+'">'+(gap>0?'+':'')+money(gap)+'/mo vs target</div>';
+  h+='<div class="metrics">';
+  h+='<div class="k">Cash to close</div><div class="v">'+money(s.cashToClose)+'</div>';
+  h+='<div class="k">Cash remaining</div><div class="v '+(s.cashRemaining<0?'gap-red':'')+'">'+money(s.cashRemaining)+'</div>';
+  h+='</div>';
+  if(s.cashRemaining < 1000) h+='<div class="reservewarn">⚠ Reserves below $1,000 after closing</div>';
+  h+='<div class="dpnote">'+s.dpNote+'</div>';
+  h+='</div>';
+  return h;
+}
+// The scenario the current priority points at (shared by cards + Gap Solver).
+function priorityScenario(viable, inp){
+  if(!viable.length) return null;
+  switch(inp.priority){
+    case 'payment': return viable.slice().sort((a,b)=>a.piti-b.piti)[0];
+    case 'cash':    return viable.slice().sort((a,b)=>a.cashToClose-b.cashToClose)[0];
+    case 'power':   return viable.slice().sort((a,b)=>b.maxPrice-a.maxPrice)[0];
+    default:        return Engine.pickBestOverall(viable, inp);
+  }
+}
+
+const FAMILY_LABEL = { conv:'Conventional', fha:'FHA', va:'VA' };
+// Best negotiation path for ONE program-family scenario. Builds the three path
+// outcomes (reduction / concession / split) against this specific scenario and
+// returns the winner (honoring a forced negotiation mode), or null when Offer
+// Strategy is inactive or no path is viable for this program.
+function bestPathForScenario(baseScenario, inp){
+  if(!baseScenario || inp.shopping || inp.price<=0 || (inp.negotiatingRoom||0)<=0) return null;
+  const room = inp.negotiatingRoom;
+  const outs=[];
+  ['reduction','concession','split'].forEach(k=>{
+    const o = pathOutcome(baseScenario, inp, k, room);
+    if(o){ o._pathKey=k; outs.push(o); }
+  });
+  if(!outs.length) return null;
+  if(inp.negotiationMode && inp.negotiationMode!=='compare'){
+    const forced = outs.find(o=>o._pathKey===inp.negotiationMode);
+    if(forced) return forced;
+  }
+  return pickPathWinner(outs, inp);
+}
+
+// One program-family card. Headline shows the base (list-price) scenario; when
+// Offer Strategy is active a separate line shows this program's best offer path.
+function familyCardHTML(c, inp, best){
+  const s=c.s; if(!s) return '<div class="scard dim">—</div>';
+  const gap = s.piti - inp.target;
+  const gapCls = gap<=0.5?'gap-ok':(gap<=100?'gap-amber':'gap-red');
+  const gapTxt = (gap>0?'+':'')+money(gap)+'/mo '+(gap<=0.5?'under target ✓':'over target');
+
+  let h='<div class="scard'+(c.recommended?' primary':'')+'">';
+  if(c.recommended) h+='<div class="badge">★ Start here</div>';
+  h+='<div class="arch">'+s.name+'</div>';
+  h+='<div class="prog">'+FAMILY_LABEL[s.id]+(s.lowScore?' · 500–579 score tier':'')+'</div>';
+  if(c.note) h+='<div class="cnote">'+c.note+'</div>';
+  h+='<div class="price">'+(inp.shopping?'Shopping range up to <b>'+money(s.maxPrice)+'</b>':'Price <b>'+money(s.price)+'</b>')+'</div>';
+  h+='<div class="piti">'+money(s.piti)+'<span style="font-size:11px;font-weight:600;color:var(--sub)">/mo PITI</span></div>';
+  h+='<div class="gaprow '+gapCls+'">'+gapTxt+'</div>';
+
+  h+='<div class="metrics">';
+  h+='<div class="k">Rate</div><div class="v">'+s.rate.toFixed(3)+'%</div>';
+  h+='<div class="k">Cash to close</div><div class="v">'+money(s.cashToClose)+'</div>';
+  h+='<div class="k">Cash remaining</div><div class="v '+(s.cashRemaining<0?'gap-red':'')+'">'+money(s.cashRemaining)+'</div>';
+  if(s.monthlyMI>0){
+    let mi = s.miMode==='fha' ? (s.mipLife?'life of loan':'drops mo '+s.mipDropMonth) : (s.cancelMonth?'drops mo '+s.cancelMonth:'—');
+    h+='<div class="k">MI ('+money(s.monthlyMI)+')</div><div class="v" style="font-size:11px">'+mi+'</div>';
+  } else {
+    h+='<div class="k">Monthly MI</div><div class="v">none</div>';
+  }
+  h+='<div class="k">Financing cost / '+inp.stayYears+'y</div><div class="v">'+money(s.totalCostHorizon)+'</div>';
+  h+='</div>';
+  if(s.cashRemaining < 1000) h+='<div class="reservewarn">⚠ Reserves below $1,000 after closing</div>';
+
+  h+='<div class="guide"><span class="lb">Conversation guide</span>'+familyGuide(c, inp, best)+'</div>';
+  h+='<div class="trade"><span class="lb">Tradeoff</span>'+familyTrade(s, inp)+'</div>';
+
+  // Per-program offer strategy: this family's best path + resulting PITI / cash.
+  const bp = bestPathForScenario(s, inp);
+  if(bp){
+    const plabel = {reduction:'Price reduction', concession:'Seller concession', split:'Split evenly'}[bp._pathKey] || 'Offer';
+    h+='<div class="offerpath"><span class="lb">Offer strategy</span>'+plabel+' → <b>'+money(bp.piti)+'</b>/mo · cash to close <b>'+money(bp.cashToClose)+'</b></div>';
+  }
+  h+='</div>';
+  return h;
+}
+
+// One sentence on why this program suits (or doesn't suit) this buyer.
+function familyGuide(c, inp, best){
+  const s=c.s;
+  if(s.id==='va')
+    return 'For a VA-eligible buyer this is usually the move — no down payment and no monthly mortgage insurance keep both the payment and cash to close low.';
+  if(s.id==='fha')
+    return s.lowScore
+      ? 'FHA is the realistic path at a 500–579 score — it qualifies where conventional can\'t, in exchange for 10% down and mortgage insurance that stays on the loan.'
+      : 'FHA earns its place when credit or DTI is tight — more forgiving to qualify, with the tradeoff that its mortgage insurance is harder to shed than conventional PMI.';
+  // conventional
+  return inp.fthb
+    ? 'Conventional at a low down payment keeps mortgage insurance cancellable — it drops off at 20% equity, unlike FHA — making it the strongest long-term structure when credit supports it.'
+    : 'Conventional keeps mortgage insurance cancellable and gone at 20% equity — the cleanest long-term structure when credit and cash support it.';
+}
+// One sentence on what the buyer gives up with this program.
+function familyTrade(s, inp){
+  if(s.id==='fha' && s.mipLife) return 'FHA MIP never cancels at this down payment — it factors into lifetime cost on a long hold.';
+  if(s.id==='fha') return 'FHA carries upfront and monthly MIP; refinancing out is usually the path to drop it.';
+  if(s.id==='va') return 'Uses VA entitlement and finances the funding fee'+(inp.vaExempt?' (exempt here)':'')+'.';
+  if(s.dp>=20) return 'Requires the most cash up front to reach 20% down.';
+  if(s.monthlyMI>0 && s.cancelMonth) return 'Carries PMI until ~month '+s.cancelMonth+', then the payment drops '+money(s.monthlyMI)+'/mo.';
+  return 'Higher LTV means less equity cushion early on.';
+}
+function cap(t){ return t.charAt(0).toUpperCase()+t.slice(1); }
+
+/* =====================================================================
+   SECTION 3 — GAP SOLVER
+   ===================================================================== */
+function renderGapSolver(inp, res){
+  const viable=res.scenarios.slice();
+  // Gap Solver runs against the scenario the buyer priority points at.
+  const ref = viable.length?priorityScenario(viable,inp):null;
+  // status subtitles + flags
+  const payGap = ref ? ref.piti-inp.target : 0;
+  const cashShort = viable.some(s=>s.cashToClose>inp.funds+0.5) || res.eliminated.some(e=>/short/i.test(e.reason));
+  const dtiHit = viable.some(s=>s.back>s.ratios.back||s.front>s.ratios.front) || res.eliminated.some(e=>/DTI|ratio/i.test(e.reason));
+  $('stPay').textContent = ref ? (payGap>0.5?'gap '+money(payGap)+'/mo':'at/under target ✓') : '—';
+  $('stCash').textContent = cashShort ? 'shortfall present' : 'covered ✓';
+  $('stDti').textContent = dtiHit ? 'constraint hit' : 'within guidelines ✓';
+  $('gsBtns').querySelectorAll('.gs-btn').forEach(b=>{
+    b.classList.toggle('active', b.dataset.gs===gapSel);
+    const g=b.dataset.gs;
+    b.classList.toggle('flagged', (g==='pay'&&payGap>0.5)||(g==='cash'&&cashShort)||(g==='dti'&&dtiHit));
+  });
+
+  const panel=$('gsPanel');
+  if(!ref){ panel.innerHTML='<div class="gs-none">No eligible scenario yet — resolve Section 1 eliminations first.</div>'; return; }
+
+  if(gapSel==='pay')  panel.innerHTML = gsPayment(inp, res, ref);
+  else if(gapSel==='cash') panel.innerHTML = gsCash(inp, res, viable);
+  else panel.innerHTML = gsDti(inp, res, viable, ref);
+}
+
+/* ---- PAYMENT TOO HIGH ---- */
+function gsPayment(inp, res, best){
+  const gap = best.piti - inp.target;
+  let h='<h4>Payment is too high — reference: '+best.name+' at '+money(best.piti)+'/mo</h4>';
+  if(gap<=0.5){
+    h+='<div class="gs-none">✓ '+best.name+' already lands at '+money(best.piti)+'/mo — at or under the '+money(inp.target)+' comfort target. No payment gap to solve.</div>';
+    // still show concession comparison if a concession is entered
+    if(inp.concessionOn && inp.concession>0) h+=concessionVsPrice(inp,best,0);
+    return h;
+  }
+  // concession needed to close gap via buydown
+  const need = concessionToCloseGap(inp, best, gap);
+  if(need){
+    h+=sol('①', (need.capped?'Even the full allowable concession ('+money(best.concLimit)+') only reduces the payment to <b>'+money(need.reachedPITI)+'/mo</b> — short by '+money(need.reachedPITI-inp.target)+'. ':'A seller concession of <b>'+money(need.dollars)+'</b> applied to a rate buydown ')+(need.capped?'':'buys '+need.points.toFixed(2)+' pts → '+best.baseRate.toFixed(3)+'%→<b>'+need.newRate.toFixed(3)+'%</b>, reaching <b>'+money(need.reachedPITI)+'/mo</b>.'), need&&!need.capped);
+    if(!need.capped) h+=sol('②','Break-even on that buydown: <b>month '+need.breakeven+'</b> vs. a planned stay of '+(inp.stayYears*12)+' months'+(need.breakeven>inp.stayYears*12?' — <span class="num" style="color:var(--red)">break-even exceeds the stay; a price cut is likely better</span>':' — recovered well inside the hold ✓')+'.');
+    if(need.over) h+=sol('⚠','The '+money(need.dollars)+' needed exceeds the '+money(best.concLimit)+' allowable max for '+best.name+' ('+best.concLimitPct+'%) — cap the ask and combine with another lever.', false);
+  }
+  // alternative program with naturally lower payment
+  const alt = res.scenarios.filter(s=>s.id!==best.id && s.piti<best.piti).sort((a,b)=>a.piti-b.piti)[0];
+  if(alt) h+=sol('③','Alternative program: <b>'+alt.name+'</b> runs '+money(best.piti-alt.piti)+'/mo lower at '+money(alt.piti)+'/mo without any concession'+(alt.piti<=inp.target?' — clears the target on its own':'')+'.');
+  // price reduction to hit comfort with no concession
+  const pr = priceToHitTarget(inp, best);
+  if(pr.reduction>500) h+=sol('④','Without any concession, reducing the list price by <b>'+money(pr.reduction)+'</b> (to '+money(pr.price)+') brings '+best.name+' to the '+money(inp.target)+' comfort payment.');
+  // comparison card
+  h+=concessionVsPrice(inp, best, gap);
+  return h;
+}
+
+function concessionToCloseGap(inp, s, gap){
+  // find rate reduction needed so PITI hits target: newPI = pi - gap  (MI/escrow unchanged)
+  const targetPI = s.pi - gap;
+  if(targetPI<=0) return null;
+  // solve rate for targetPI on loanAmount
+  let lo=0, hi=s.baseRate;
+  for(let k=0;k<60;k++){ const mid=(lo+hi)/2; const p=Engine.pmt(mid,360,s.loanAmount); if(p>targetPI) hi=mid; else lo=mid; }
+  const solvedRate=(lo+hi)/2;
+  const rr = Engine.round125(s.baseRate - solvedRate);
+  const points = rr/0.25;
+  let dollars = points*s.loanAmount*0.01;
+  const over = dollars > s.concLimit+0.5;
+  const capped = over;
+  let effDollars = Math.min(dollars, s.concLimit);
+  const effPoints = effDollars/(s.loanAmount*0.01);
+  const effRR = Engine.round125(effPoints*0.25);
+  const newRate = Math.max(0, s.baseRate-effRR);
+  const newPI = Engine.pmt(newRate,360,s.loanAmount);
+  const reachedPITI = s.piti - s.pi + newPI;
+  const saving = s.piti - reachedPITI;
+  const breakeven = saving>0 ? Math.ceil(effDollars/saving) : null;
+  return { dollars:effDollars, points:effPoints, rateReduction:effRR, newRate, reachedPITI, breakeven, over, capped };
+}
+function priceToHitTarget(inp, s){
+  // linear PITI = k*price + b ; solve price for target using scenario coefficients
+  const mp = Engine.maxPriceForScenario(inp, A_CONST, Engine.PROGRAMS[s.id], {dp:s.dp, name:s.name});
+  const priceForTarget = mp.k>0 ? (inp.target - mp.b)/mp.k : s.price;
+  const basePrice = inp.shopping ? s.maxPrice : s.price;
+  return { price:Math.max(0,priceForTarget), reduction:Math.max(0, basePrice-priceForTarget) };
+}
+function concessionVsPrice(inp, best, gap){
+  // Concession path. If Doug has entered a concession, apply HIS split verbatim.
+  // If none is entered, illustrate the concession that would close the gap as an
+  // all-to-buydown hypothetical (this does not allocate any entered concession).
+  let conc, splitLabel;
+  if(inp.concessionOn && inp.concession>0){
+    conc = Engine.applyConcession(best, inp, A_CONST, concSplit.buydown, concSplit.costs);
+    splitLabel = (concSplit.auto?'auto split — ':'your split — ')+money(concSplit.buydown)+' buydown / '+money(concSplit.costs)+' costs';
+  } else if(gap>0.5){
+    const needObj = concessionToCloseGap(inp, best, gap);
+    if(!needObj) return '';
+    conc = Engine.applyConcession(best, inp, A_CONST, needObj.dollars, 0);
+    splitLabel = money(needObj.dollars)+' to buydown (to close the gap)';
+  } else return '';
+  // Price path: reduce price to hit target
+  const pr = priceToHitTarget(inp, best);
+  // recompute price-path scenario figures at reduced price
+  const prScn = Engine.computeScenario(inp, A_CONST, Engine.PROGRAMS[best.id], {dp:best.dp,name:best.name}, pr.price);
+
+  const stayM=inp.stayYears*12;
+  const concWins = (conc.breakeven && conc.breakeven<=stayM) && (conc.newPITI<=prScn.piti+25);
+  const recTxt = concWins
+    ? 'Ask for the seller concession — it produces a comparable-or-lower payment while preserving the buyer’s negotiating position, and the buydown breaks even in month '+conc.breakeven+', inside the '+stayM+'-month hold.'
+    : 'Negotiate a price reduction — '+(conc.breakeven&&conc.breakeven>stayM?'the planned stay ('+stayM+' mo) is shorter than the buydown break-even (month '+conc.breakeven+')':'it lowers both payment and cash to close')+', so the price cut is the more durable win.';
+
+  let h='<h4>Concession vs. price reduction <span style="font-weight:600;text-transform:none;color:var(--sub)">('+splitLabel+')</span></h4><table class="cmp"><thead><tr><th></th>'+
+        '<th class="'+(concWins?'win':'')+'">Seller Concession'+(concWins?' ★':'')+'</th>'+
+        '<th class="'+(!concWins?'win':'')+'">Price Reduction'+(!concWins?' ★':'')+'</th></tr></thead><tbody>';
+  const row=(k,cVal,pVal)=>{ h+='<tr><td>'+k+'</td><td class="'+(concWins?'win':'')+'">'+cVal+'</td><td class="'+(!concWins?'win':'')+'">'+pVal+'</td></tr>'; };
+  row('Price', money(best.price||best.maxPrice), money(pr.price));
+  row('Rate', conc.newRate.toFixed(3)+'%'+(conc.buydown>0?' ('+conc.points.toFixed(2)+'pt)':''), best.baseRate.toFixed(3)+'%');
+  row('PITI', money(conc.newPITI)+'/mo', money(prScn.piti)+'/mo');
+  row('Cash to close', money(conc.newCash), money(prScn.cashToClose));
+  row('Break-even', conc.breakeven?('month '+conc.breakeven):'—', 'n/a');
+  h+='</tbody></table><div class="cmp-rec">Recommended: '+recTxt+'</div>';
+  return h;
+}
+
+/* ---- CASH IS SHORT ---- */
+function gsCash(inp, res, viable){
+  let h='<h4>Cash is short — available funds '+money(inp.funds)+' ('+money(inp.ownFunds)+' own'+(inp.gift>0?' + '+money(inp.gift)+' gift':'')+')</h4>';
+  // combine viable + eliminated-for-cash scenarios
+  const shortList = viable.filter(s=>s.cashToClose>inp.funds+0.5);
+  const cushionList = viable.filter(s=>s.cashToClose<=inp.funds+0.5).sort((a,b)=>a.cashToClose-b.cashToClose);
+  if(!shortList.length && !res.eliminated.some(e=>/short/i.test(e.reason))){
+    h+='<div class="gs-none">✓ Cash to close is covered on '+(cushionList.length?cushionList[0].name+' ('+money(cushionList[0].cashToClose)+', '+money(inp.funds-cushionList[0].cashToClose)+' cushion)':'the eligible scenarios')+'. No cash shortfall to solve.</div>';
+  }
+  shortList.forEach((s,i)=>{
+    const short=s.cashToClose-inp.funds;
+    h+=sol('•','<b>'+s.name+'</b>: cash to close '+money(s.cashToClose)+' — short by <b class="num" style="color:var(--red)">'+money(short)+'</b>. A gift (or additional funds) of '+money(short)+' clears it.');
+  });
+  // lowest cash option overall
+  if(cushionList.length){
+    const lc=cushionList[0];
+    h+=sol('①','Lowest cash-to-close eligible option: <b>'+lc.name+'</b> at '+money(lc.cashToClose)+' — leaves '+money(inp.funds-lc.cashToClose)+' in reserve.', true);
+  }
+  // seller concession toward costs
+  const ref = (shortList[0]||cushionList[0]);
+  if(ref){
+    const credit = Math.min(ref.closing, inp.concessionOn&&inp.concession>0?inp.concession:ref.closing);
+    h+=sol('②','A seller concession applied to closing costs reduces cash dollar-for-dollar — up to '+money(ref.closing)+' of closing costs on '+ref.name+' (max '+ref.concLimitPct+'% = '+money(ref.concLimit)+').');
+  }
+  // lower down payment option
+  const lowestDp = viable.slice().sort((a,b)=>a.down-b.down)[0];
+  if(lowestDp && shortList.length) h+=sol('③','A lower down-payment structure cuts cash needed: <b>'+lowestDp.name+'</b> needs '+money(lowestDp.cashToClose)+' at closing.');
+  // DPA reminder
+  if(inp.fthb && inp.score>=640) h+=sol('④','FTHB + credit '+inp.score+': check Hometown Heroes / DPA — down-payment assistance can close the cash gap directly.');
+  return h;
+}
+
+/* ---- DTI IS LIMITING ---- */
+function gsDti(inp, res, viable, best){
+  const ref = viable.find(s=>s.back>s.ratios.back||s.front>s.ratios.front) || best;
+  const overBack = ref.back>ref.ratios.back;
+  const overFront = ref.front>ref.ratios.front;
+  let h='<h4>DTI is limiting — reference: '+ref.name+'</h4>';
+  if(!overBack && !overFront){
+    h+='<div class="gs-none">✓ '+ref.name+' is within DTI guidelines (housing '+ref.front.toFixed(1)+'% / '+ref.ratios.front+'%, back-end '+ref.back.toFixed(1)+'% / '+ref.ratios.back+'%). No DTI constraint to solve.</div>';
+    return h;
+  }
+  const backLimitPITI = ref.ratios.back/100*inp.income - inp.debts; // max PITI allowed by back-end
+  // debt elimination to resolve
+  const debtCut = Math.max(0, (ref.piti+inp.debts) - ref.ratios.back/100*inp.income);
+  if(overBack && debtCut>0 && debtCut<=inp.debts+0.5){
+    h+=sol('①','Eliminating <b class="num">'+money(debtCut)+'/mo</b> in debt brings back-end DTI to '+ref.ratios.back+'% and opens '+ref.name+'.', true);
+  } else if(overBack){
+    h+=sol('①','Back-end DTI is '+ref.back.toFixed(1)+'% vs. '+ref.ratios.back+'% — even removing all '+money(inp.debts)+' of monthly debt leaves housing alone at '+ref.front.toFixed(1)+'%; the payment itself must come down.', false);
+  }
+  // income needed
+  const incNeed = Math.max(0, (ref.piti+inp.debts)/(ref.ratios.back/100) - inp.income);
+  if(overBack) h+=sol('②','<b class="num">'+money(incNeed)+'/mo</b> additional gross income resolves the back-end DTI at the current payment.');
+  // co-borrower
+  if(overBack) h+=sol('③','Adding a co-borrower with '+money(incNeed)+'/mo gross income (and no new debt) resolves this constraint.');
+  // lower price
+  const pr = dtiPrice(inp, ref);
+  if(pr.reduction>500) h+=sol('④','Lowering the list price by <b>'+money(pr.reduction)+'</b> (to '+money(pr.price)+') brings '+ref.name+' within the '+ref.ratios.back+'% back-end threshold.');
+  // alternative loan type with better threshold
+  const alt = viable.filter(s=>s.id!==ref.id && s.back<=s.ratios.back && s.front<=s.ratios.front).sort((a,b)=>a.back-b.back)[0];
+  if(alt) h+=sol('⑤','Alternative with a more favorable DTI threshold: <b>'+alt.name+'</b> ('+alt.ratios.back+'% back-end'+(alt.id==='va'?', residual-income based':'')+') qualifies at '+alt.back.toFixed(1)+'%.');
+  return h;
+}
+function dtiPrice(inp, s){
+  const mp = Engine.maxPriceForScenario(inp, A_CONST, Engine.PROGRAMS[s.id], {dp:s.dp,name:s.name});
+  const maxPITI = s.ratios.back/100*inp.income - inp.debts;
+  const priceForDti = mp.k>0 ? (maxPITI - mp.b)/mp.k : s.price;
+  const basePrice = inp.shopping ? s.maxPrice : s.price;
+  return { price:Math.max(0,priceForDti), reduction:Math.max(0, basePrice-priceForDti) };
+}
+function sol(ic, txt, best){ return '<div class="sol'+(best?' best':'')+'"><div class="ic">'+ic+'</div><div class="txt">'+txt+'</div></div>'; }
+
+/* =====================================================================
+   ASSUMPTIONS CHANGED BANNER
+   ===================================================================== */
+const FIELD_LABELS = {
+  price:'List price', score:'Credit score', ownFunds:'Own funds', gift:'Gift funds',
+  dpTarget:'Down payment', target:'Target PITI', income:'Income', debts:'Monthly debts', stay:'Planned stay',
+  priority:'Buyer priority',
+  rateConv:'Conv rate', rateFha:'FHA rate', rateVa:'VA rate', ccPct:'Closing %',
+  ccOverride:'Closing $ override', taxRate:'Tax rate', hoi:'Insurance', hoa:'HOA',
+  cdd:'CDD', flood:'Flood', hoaNA:'HOA N/A', cddNA:'CDD N/A', floodNA:'Flood N/A',
+  offerPrice:'Offer amount',
+  tgFthb:'First-time buyer', tgVa:'VA eligible', vaUse:'VA use', vaExempt:'VA fee exemption',
+  oaPrice:'Offer A price', oaConc:'Offer A concession', oaLoan:'Offer A loan type',
+  obPrice:'Offer B price', obConc:'Offer B concession', obLoan:'Offer B loan type'
+};
+const MONEY_FIELDS = {price:1,ownFunds:1,gift:1,target:1,income:1,debts:1,ccOverride:1,hoi:1,hoa:1,cdd:1,flood:1,offerPrice:1,oaPrice:1,oaConc:1,obPrice:1,obConc:1};
+let prevSnapshot=null, changeLog=[], firstCalcDone=false, seq=0;
+
+function snapshotFields(){
+  const snap={};
+  Object.keys(FIELD_LABELS).forEach(id=>{
+    const el=$(id); if(!el) return;
+    if(el.type==='checkbox') snap[id]=el.checked;
+    else snap[id]=el.value.trim();
+  });
+  return snap;
+}
+function fmtVal(id,v){
+  if(typeof v==='boolean') return v?'on':'off';
+  if(v==='') return '(blank)';
+  if(MONEY_FIELDS[id]){ const n=parseFloat(v.replace(/[^0-9.\-]/g,'')); return isNaN(n)?v:money(n); }
+  if(id==='taxRate'){ const n=parseFloat(v.replace(/[^0-9.\-]/g,'')); return isNaN(n)?v:(unitState.tax==='dollar'?money(n)+'/yr':n+'%'); }
+  if(id==='dpTarget'){ const n=parseFloat(v.replace(/[^0-9.\-]/g,'')); return isNaN(n)?v:(unitState.dp==='dollar'?money(n):n+'%'); }
+  if(id==='rateConv'||id==='rateFha'||id==='rateVa'||id==='ccPct') return v+'%';
+  if(id==='stay') return v+' yrs';
+  if(id==='priority') return ({balanced:'Balanced',payment:'Lowest Monthly Payment',cash:'Lowest Cash to Close',power:'Maximum Buying Power'})[v]||v;
+  return v;
+}
+function logChanges(){
+  const snap=snapshotFields();
+  if(!firstCalcDone){ prevSnapshot=snap; firstCalcDone=true; return; }
+  const now=new Date();
+  const ts=now.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
+  Object.keys(snap).forEach(id=>{
+    const pv=fmtVal(id,prevSnapshot[id]), nv=fmtVal(id,snap[id]);
+    // compare on normalized/display values so comma-reformatting isn't logged as a change
+    if(pv!==nv){
+      changeLog.unshift({ id, t:ts, seq:++seq, txt: FIELD_LABELS[id]+': '+pv+' → '+nv });
+    }
+  });
+  prevSnapshot=snap;
+  renderChangeLog();
+}
+function renderChangeLog(){
+  const body=$('clBody'), latest=$('clLatest');
+  if(!changeLog.length){ body.innerHTML='<div class="cl-empty">No input changes logged yet.</div>'; latest.textContent='— no changes yet this session'; return; }
+  latest.textContent = '— '+changeLog[0].txt;
+  body.innerHTML='<ul>'+changeLog.slice(0,5).map(c=>'<li><span class="t">'+c.t+'</span><span>'+c.txt+'</span></li>').join('')+'</ul>';
+}
+
+/* =====================================================================
+   MAIN RECALC
+   ===================================================================== */
 function recalc(){
-  // VA sub-options visibility
-  $('vaOpts').style.display = $('tgVa').checked ? 'inline-flex':'none';
   const inp=gatherInputs();
-  const A=gatherAssumptions();
-  const C = inp.concessionOn ? inp.concession : 0;
+  const res=Engine.run(inp, A_CONST);
 
-  // resolve the split: optimal while in auto mode, else Doug's manual allocation
-  if(!splitState.userSet){ splitState.costs = Engine.optimalSplit(inp,A).toCosts; }
-  splitState.costs = Math.max(0, Math.min(C, splitState.costs));
-  inp.concToCosts   = splitState.costs;
-  inp.concToBuydown = C - splitState.costs;
+  // Negotiation analysis (specific mode only). Determines the applied path, which
+  // in turn sets the concession amount deployed on the cards and the split total.
+  const neg = analyzeNegotiation(inp, res);
+  if(inp.negotiatingRoom>0 && neg){
+    const applied = (inp.negotiationMode==='compare') ? (neg.recommendedPathKey || 'concession') : inp.negotiationMode;
+    inp.appliedPath = applied;
+    inp.appliedReduction  = (applied==='reduction') ? inp.negotiatingRoom : (applied==='split' ? inp.negotiatingRoom/2 : 0);
+    inp.appliedConcession = (applied==='concession') ? inp.negotiatingRoom : (applied==='split' ? inp.negotiatingRoom/2 : 0);
+    inp.concessionOn = inp.appliedConcession>0;
+    inp.concession = inp.appliedConcession;
+  }
+  appliedConcTotal = inp.appliedConcession || 0;
 
-  const res=Engine.run(inp,A);
-  buildStrategy(inp,A,res);
-  buildGrid(inp,A,res);
-  buildWarnings(inp,A,res);
-  syncSplitUI(inp,A,res,C);
+  updateInlineHints(inp);
+  // Concession split. In auto mode (default) the tool decides the buydown/costs
+  // allocation every recalc via smartSplit against the Best Overall scenario. In
+  // manual mode Doug's split is preserved and only re-normalized to the total.
+  if(inp.concessionOn && appliedConcTotal>0){
+    if(concSplit.auto){
+      const refBest = res.scenarios.length ? Engine.pickBestOverall(res.scenarios, inp) : null;
+      const sp = smartSplit(refBest, inp, appliedConcTotal);
+      concSplit.buydown = sp.buydown; concSplit.costs = sp.costs; concSplit.reason = sp.reason; concSplit.anchor='buydown';
+    }
+  } else {
+    concSplit.reason='';
+  }
+  normalizeSplit(appliedConcTotal);
+  renderSplitFields(true);
+
+  renderSnapshot(inp, res, neg);
+  renderCards(inp, res);
+  renderGapSolver(inp, res);
+  recalcOffers();          // Section 4 reads the current buyer profile
+  logChanges();
 }
 
-/* ---- input formatting: thousands separators on blur for $ fields ---- */
+/* =====================================================================
+   SECTION 4 — OFFER COMPARISON  (self-contained; does not touch 1/2/3)
+   ===================================================================== */
+const OFFERS = {
+  A:{price:'oaPrice', conc:'oaConc', buy:'oaBuydown', cost:'oaCosts', opt:'oaOptimal', loan:'oaLoan', dp:'oaDp', results:'oaResults'},
+  B:{price:'obPrice', conc:'obConc', buy:'obBuydown', cost:'obCosts', opt:'obOptimal', loan:'obLoan', dp:'obDp', results:'obResults'}
+};
+const FAM_NAME = { conv:'Conventional', fha:'FHA', va:'VA' };
+const LOAN_TYPES = {
+  conv3:{prog:'conv',dp:3,name:'Conv 3%'}, conv5:{prog:'conv',dp:5,name:'Conv 5%'},
+  conv10:{prog:'conv',dp:10,name:'Conv 10%'}, conv20:{prog:'conv',dp:20,name:'Conv 20%'},
+  'fha3.5':{prog:'fha',dp:3.5,name:'FHA 3.5%'}, va0:{prog:'va',dp:0,name:'VA 0%'}
+};
+const offerSplit = { A:{buydown:0,costs:0,anchor:'buydown',init:false}, B:{buydown:0,costs:0,anchor:'buydown',init:false} };
+const clampN=(v,lo,hi)=>Math.max(lo,Math.min(hi,v));
+
+function offerTotal(w){ return num(OFFERS[w].conc); }
+function normalizeOfferSplit(w, total){
+  const s=offerSplit[w];
+  if(total<=0){ s.buydown=0; s.costs=0; return; }
+  if(s.anchor==='costs'){ s.costs=clampN(s.costs,0,total); s.buydown=total-s.costs; }
+  else { s.buydown=clampN(s.buydown,0,total); s.costs=total-s.buydown; }
+}
+function renderOfferSplitFields(w, skipActive){
+  const cfg=OFFERS[w], s=offerSplit[w];
+  const bEl=$(cfg.buy), cEl=$(cfg.cost);
+  if(!(skipActive && document.activeElement===bEl)) bEl.value = Math.round(s.buydown).toLocaleString('en-US');
+  if(!(skipActive && document.activeElement===cEl)) cEl.value = Math.round(s.costs).toLocaleString('en-US');
+}
+
+// Build the offer's scenario + concession result from the shared buyer profile.
+function computeOffer(w, inp){
+  const cfg=OFFERS[w];
+  if(rawBlank(cfg.price)) return null;
+  const price=num(cfg.price);
+  if(price<=0) return null;
+  const baseInp=Object.assign({}, inp, {shopping:false, price:price, dpTarget:null});
+  const loanVal=$(cfg.loan).value;
+  let s, auto=false, noEligible=false;
+  if(loanVal==='auto'){
+    auto=true;
+    const res=Engine.run(baseInp, A_CONST);
+    const viable=res.scenarios.slice();
+    if(viable.length){ s=Engine.pickBestOverall(viable, baseInp); }
+    else { s=Engine.computeScenario(baseInp, A_CONST, Engine.PROGRAMS.conv, {dp:5,name:'Conv 5%'}, price); noEligible=true; }
+  } else {
+    const lt=LOAN_TYPES[loanVal];
+    s=Engine.computeScenario(baseInp, A_CONST, Engine.PROGRAMS[lt.prog], {dp:lt.dp,name:lt.name}, price);
+  }
+  const st=offerSplit[w];
+  const total=offerTotal(w);
+  const conc = total>0 ? Engine.applyConcession(s, baseInp, A_CONST, st.buydown, st.costs) : null;
+  const netCash = conc ? conc.newCash : s.cashToClose;
+  const cashRem = conc ? conc.newCashRemaining : s.cashRemaining;
+  const piti = conc ? conc.newPITI : s.piti;
+  return { w, s, conc, auto, noEligible, price, netCash, cashRem, piti,
+           gap: piti-inp.target, over: conc?conc.over:false,
+           overFunds: netCash > inp.funds+0.5 };
+}
+
+function recalcOffers(){
+  const inp=gatherInputs();
+  const results={};
+  ['A','B'].forEach(w=>{
+    const cfg=OFFERS[w];
+    const total=offerTotal(w);
+    const st=offerSplit[w];
+    if(total>0 && !st.init){ st.init=true; st.anchor='buydown'; st.buydown=total; st.costs=0; }
+    normalizeOfferSplit(w, total);
+    renderOfferSplitFields(w, true);
+    const r=computeOffer(w, inp);
+    results[w]=r;
+    $(cfg.results).innerHTML = r ? offerResultHTML(r, inp) : '<div class="op-empty">Enter an offer price to model this deal.</div>';
+    $(cfg.dp).textContent = r ? (r.s.dp+'% down'+(r.auto?(r.noEligible?' · no eligible option — showing Conv 5%':' · auto: '+r.s.name):'')) : '';
+    document.querySelector('.offer-panel.'+w.toLowerCase()).classList.remove('winner');
+  });
+  const cmp=$('offerCompare');
+  if(results.A && results.B){
+    const win=pickWinner(results.A, results.B, inp);
+    document.querySelector('.offer-panel.'+win.w.toLowerCase()).classList.add('winner');
+    cmp.innerHTML = compareHTML(results.A, results.B, inp, win);
+  } else {
+    cmp.innerHTML = '<div class="op-empty" style="padding:10px 2px">Enter both offer prices to compare the two structures and pick a winner.</div>';
+  }
+  logChanges();   // offer-field edits (which call recalcOffers directly) also log to the banner
+}
+
+function offerResultHTML(r, inp){
+  const s=r.s, conc=r.conc;
+  const rate = (conc && conc.buydown>0) ? conc.newRate : s.rate;
+  const pi = conc ? conc.newPI : s.pi;
+  const gapCls = r.gap<=0.5?'gap-ok':(r.gap<=100?'gap-amber':'gap-red');
+  let miTxt='none';
+  if(s.monthlyMI>0){
+    const when = s.miMode==='fha' ? (s.mipLife?'life of loan':'drops mo '+s.mipDropMonth) : (s.cancelMonth?'drops mo '+s.cancelMonth:'—');
+    miTxt = money(s.monthlyMI)+' · '+when;
+  }
+  let h='<div class="op-rows">';
+  h+='<div class="k">Offer price</div><div class="v">'+money(r.price)+'</div>';
+  h+='<div class="k">Loan type</div><div class="v">'+s.name+' ('+s.dp+'% down)</div>';
+  h+='<div class="k">Loan amount</div><div class="v">'+money(s.loanAmount)+'</div>';
+  h+='<div class="k">Rate</div><div class="v">'+(conc&&conc.buydown>0?'<span class="gap-ok">'+rate.toFixed(3)+'%</span> <span style="font-size:10px;color:var(--sub)">('+s.baseRate.toFixed(3)+'−'+conc.points.toFixed(2)+'pt)</span>':rate.toFixed(3)+'%')+'</div>';
+  h+='<div class="k">P&amp;I</div><div class="v">'+money(pi)+'</div>';
+  h+='<div class="k">Monthly MI</div><div class="v" style="font-size:11.5px">'+miTxt+'</div>';
+  h+='<div class="sec"></div>';
+  h+='<div class="k">Full PITI</div><div class="v big">'+money(r.piti)+'</div>';
+  h+='<div class="k">Payment gap</div><div class="v '+gapCls+'">'+(r.gap>0?'+':'')+money(r.gap)+'/mo</div>';
+  h+='<div class="sec"></div>';
+  h+='<div class="k">Cash to close (pre-concession)</div><div class="v">'+money(s.cashToClose)+'</div>';
+  h+='<div class="k">Net cash to close</div><div class="v">'+money(r.netCash)+'</div>';
+  h+='<div class="k">Cash remaining</div><div class="v '+(r.cashRem<0?'gap-red':'')+'">'+money(r.cashRem)+'</div>';
+  if(conc){
+    h+='<div class="sec"></div>';
+    h+='<div class="k">Concession applied</div><div class="v">'+money(conc.total)+'</div>';
+    h+='<div class="k">Buydown</div><div class="v" style="font-size:11.5px">'+(conc.buydown>0?money(conc.buydown)+' · '+conc.points.toFixed(2)+'pt · −'+conc.rateReduction.toFixed(3)+'%':'—')+'</div>';
+    h+='<div class="k">Break-even</div><div class="v">'+(conc.breakeven?('mo '+conc.breakeven+(conc.breakeven>inp.stayYears*12?' ⚠':'')):'—')+'</div>';
+    h+='<div class="k">Max as concession ('+s.concLimitPct+'%)</div><div class="v">'+money(s.concLimit)+'</div>';
+  }
+  h+='</div>';
+  if(r.over) h+='<div class="op-flag">⛔ Concession '+money(conc.total)+' exceeds the '+FAM_NAME[s.id]+' '+s.concLimitPct+'% max ('+money(s.concLimit)+') — restructure before submitting.</div>';
+  if(r.overFunds) h+='<div class="op-flag">⛔ Net cash to close '+money(r.netCash)+' exceeds available funds '+money(inp.funds)+' (short '+money(r.netCash-inp.funds)+').</div>';
+  if(r.cashRem < 1000 && !r.overFunds) h+='<div class="reservewarn">⚠ Reserves below $1,000 after closing</div>';
+  return h;
+}
+
+// Winner logic: hard fails first (concession limit, funds), else weighted score.
+function pickWinner(A, B, inp){
+  if(A.over !== B.over) return {w: A.over?'B':'A', reason:'conc'};
+  if(A.overFunds !== B.overFunds) return {w: A.overFunds?'B':'A', reason:'funds'};
+  const nb=(a,b,higherBetter)=>{ const mx=Math.max(a,b),mn=Math.min(a,b); if(mx===mn) return [0,0]; let ab=(a-mn)/(mx-mn),bb=(b-mn)/(mx-mn); return higherBetter?[1-ab,1-bb]:[ab,bb]; };
+  const [aCash,bCash]=nb(A.netCash,B.netCash,false);
+  const [aGap,bGap]=nb(Math.max(0,A.gap),Math.max(0,B.gap),false);
+  const [aRem,bRem]=nb(A.cashRem,B.cashRem,true);
+  const aBad=0.5*aCash+0.3*aGap+0.2*aRem;
+  const bBad=0.5*bCash+0.3*bGap+0.2*bRem;
+  return {w: aBad<=bBad?'A':'B', reason:'score', aBad, bBad};
+}
+
+function winnerSentence(win, A, B, inp){
+  const wl=win.w, ll=win.w==='A'?'B':'A';
+  const W=win.w==='A'?A:B, L=win.w==='A'?B:A;
+  if(win.reason==='conc'){
+    return 'Offer '+wl+' wins — Offer '+ll+'’s concession exceeds the '+FAM_NAME[L.s.id]+' '+L.s.concLimitPct+'% limit; restructure before submitting.';
+  }
+  if(win.reason==='funds'){
+    return 'Offer '+wl+' wins — Offer '+ll+' needs '+money(L.netCash-inp.funds)+' more than the buyer’s available funds ('+money(inp.funds)+').';
+  }
+  const cashDiff=L.netCash-W.netCash;   // + => winner is cheaper on cash
+  const payDiff=W.piti-L.piti;          // - => winner has the lower payment
+  const payPhrase = Math.abs(payDiff)<5 ? 'essentially the same payment'
+      : money(Math.abs(payDiff))+'/mo '+(payDiff<0?'lower':'higher')+' payment';
+  if(cashDiff >= 100){
+    return 'Offer '+wl+' wins — '+money(cashDiff)+' lower net cash to close'
+      + (payDiff<=5 ? ' and a '+payPhrase.replace('essentially the same payment','matching payment') : ' with '+(payDiff>0?'only ':'')+payPhrase) + '.';
+  }
+  // winner led on payment / reserves rather than cash
+  return 'Offer '+wl+' wins — '+payPhrase+'; net cash to close is within '+money(Math.abs(cashDiff))+' of Offer '+ll+'.';
+}
+
+function compareHTML(A, B, inp, win){
+  const row=(k, aVal, bVal)=>{
+    const aw=win.w==='A', bw=win.w==='B';
+    return '<tr><td>'+k+'</td><td class="'+(aw?'win':'')+'">'+aVal+'</td><td class="'+(bw?'win':'')+'">'+bVal+'</td></tr>';
+  };
+  const gapTxt=r=>{ const c=r.gap<=0.5?'gap-ok':(r.gap<=100?'gap-amber':'gap-red'); return '<span class="'+c+'">'+(r.gap>0?'+':'')+money(r.gap)+'/mo</span>'; };
+  const limTxt=r=>{ if(!r.conc||r.conc.total<=0) return '—'; return r.over?'<span class="gap-red">over '+r.s.concLimitPct+'% max</span>':'<span class="gap-ok">within '+r.s.concLimitPct+'%</span>'; };
+  const beTxt=r=>{ if(!r.conc||!r.conc.breakeven) return '—'; return 'mo '+r.conc.breakeven; };
+  let h='<div class="offer-compare"><table class="cmp"><thead><tr><th></th>'+
+        '<th class="'+(win.w==='A'?'win':'')+'">Offer A'+(win.w==='A'?' ★':'')+'</th>'+
+        '<th class="'+(win.w==='B'?'win':'')+'">Offer B'+(win.w==='B'?' ★':'')+'</th></tr></thead><tbody>';
+  h+=row('Offer price', money(A.price), money(B.price));
+  h+=row('Loan / down', A.s.name+' ('+A.s.dp+'%)', B.s.name+' ('+B.s.dp+'%)');
+  h+=row('Net cash to close', money(A.netCash), money(B.netCash));
+  h+=row('PITI', money(A.piti)+'/mo', money(B.piti)+'/mo');
+  h+=row('Payment gap', gapTxt(A), gapTxt(B));
+  h+=row('Cash remaining', money(A.cashRem), money(B.cashRem));
+  h+=row('Break-even (buydown)', beTxt(A), beTxt(B));
+  h+=row('Concession within limits', limTxt(A), limTxt(B));
+  h+='</tbody></table><div class="cmp-rec">'+winnerSentence(win, A, B, inp)+'</div></div>';
+  return h;
+}
+
+/* ---------- offer input handlers (Section 4 only; never re-triggers 1/2/3) ---------- */
+function attachOfferHandlers(){
+  ['A','B'].forEach(w=>{
+    const cfg=OFFERS[w];
+    // price: live + comma format on blur
+    $(cfg.price).addEventListener('input', recalcOffers);
+    $(cfg.price).addEventListener('blur', ()=>{ if(!rawBlank(cfg.price)) $(cfg.price).value=num(cfg.price).toLocaleString('en-US'); recalcOffers(); });
+    // loan type
+    $(cfg.loan).addEventListener('change', recalcOffers);
+    // concession total
+    $(cfg.conc).addEventListener('input', ()=>{ normalizeOfferSplit(w, offerTotal(w)); renderOfferSplitFields(w, true); recalcOffers(); });
+    $(cfg.conc).addEventListener('blur', ()=>{ if(!rawBlank(cfg.conc)) $(cfg.conc).value=num(cfg.conc).toLocaleString('en-US'); normalizeOfferSplit(w, offerTotal(w)); renderOfferSplitFields(w, false); recalcOffers(); });
+    // manual split
+    $(cfg.buy).addEventListener('input', ()=>{ offerSplit[w].buydown=num(cfg.buy); offerSplit[w].anchor='buydown'; normalizeOfferSplit(w, offerTotal(w)); renderOfferSplitFields(w, true); recalcOffers(); });
+    $(cfg.buy).addEventListener('blur', ()=>{ normalizeOfferSplit(w, offerTotal(w)); renderOfferSplitFields(w, false); recalcOffers(); });
+    $(cfg.cost).addEventListener('input', ()=>{ offerSplit[w].costs=num(cfg.cost); offerSplit[w].anchor='costs'; normalizeOfferSplit(w, offerTotal(w)); renderOfferSplitFields(w, true); recalcOffers(); });
+    $(cfg.cost).addEventListener('blur', ()=>{ normalizeOfferSplit(w, offerTotal(w)); renderOfferSplitFields(w, false); recalcOffers(); });
+    // optimal split — Engine.optimalSplit against this offer's scenario + shared profile
+    $(cfg.opt).addEventListener('click', ()=>{
+      const inp=gatherInputs(); const total=offerTotal(w);
+      const r=computeOffer(w, inp);
+      if(!r || total<=0) return;
+      const opt=Engine.optimalSplit(r.s, inp, total);
+      offerSplit[w].buydown=opt.buydown; offerSplit[w].costs=opt.costs; offerSplit[w].anchor='buydown'; offerSplit[w].init=true;
+      normalizeOfferSplit(w, total); renderOfferSplitFields(w, false); recalcOffers();
+    });
+  });
+}
+
+/* ---------- formatting on blur for $ fields ---------- */
 function attachFormatting(){
-  ['price','funds','income','debts','target','cc','concession','a_fhaLimit','a_confLimit','a_tiHoa'].forEach(id=>{
+  ['price','ownFunds','gift','target','income','debts','ccOverride','hoi','hoa','cdd','flood'].forEach(id=>{
     const el=$(id);
-    el.addEventListener('blur',()=>{ const v=num(el); if(v) el.value=v.toLocaleString('en-US'); recalc(); });
+    el.addEventListener('blur',()=>{ if(el.value.replace(/[^0-9.\-]/g,'')==='') { recalc(); return; } const v=num(el); el.value=v.toLocaleString('en-US'); recalc(); });
   });
 }
 
-/* ---- split control handlers (manual override) ---- */
-function attachSplitHandlers(){
-  $('splitSlider').addEventListener('input',()=>{
-    const C=curConcession(); splitState.costs=C*(parseFloat($('splitSlider').value)/100); splitState.userSet=true; recalc();
-  });
-  $('splitCosts').addEventListener('input',()=>{
-    const C=curConcession(); let v=Math.max(0,Math.min(C,num('splitCosts'))); splitState.costs=v; splitState.userSet=true; recalc();
-  });
-  $('splitBuydown').addEventListener('input',()=>{
-    const C=curConcession(); let v=Math.max(0,Math.min(C,num('splitBuydown'))); splitState.costs=C-v; splitState.userSet=true; recalc();
-  });
+/* ---------- concession + manual split handlers ----------
+   These fields are excluded from the generic input->recalc wiring so the split
+   invariant (buydown + costs = total) is maintained explicitly. */
+function attachConcessionHandlers(){
+  // Negotiable seller value amount
+  $('offerPrice').addEventListener('input', recalc);
+  $('offerPrice').addEventListener('blur',()=>{ if(!rawBlank('offerPrice')) $('offerPrice').value=num('offerPrice').toLocaleString('en-US'); recalc(); });
+  // Deployment mode radios
+  document.querySelectorAll('input[name="negMode"]').forEach(r=> r.addEventListener('change', recalc));
+  // "Adjust split manually" — reveal the fields and switch out of auto mode.
+  $('btnManualSplit').addEventListener('click',()=>{ concSplit.auto=false; renderSplitFields(false); });
+  // "Back to auto" — hand control back to smartSplit.
+  $('btnBackAuto').addEventListener('click',()=>{ concSplit.auto=true; recalc(); });
+  // manual concession split (applies to the deployed concession). Editing a field
+  // takes control away from auto mode.
+  $('concBuydown').addEventListener('input',()=>{ concSplit.auto=false; concSplit.buydown=num('concBuydown'); concSplit.anchor='buydown'; normalizeSplit(readConcTotal()); renderSplitFields(true); recalc(); });
+  $('concBuydown').addEventListener('blur',()=>{ normalizeSplit(readConcTotal()); renderSplitFields(false); recalc(); });
+  $('concCosts').addEventListener('input',()=>{ concSplit.auto=false; concSplit.costs=num('concCosts'); concSplit.anchor='costs'; normalizeSplit(readConcTotal()); renderSplitFields(true); recalc(); });
+  $('concCosts').addEventListener('blur',()=>{ normalizeSplit(readConcTotal()); renderSplitFields(false); recalc(); });
+  // "Optimal split" — a manual override; engine proposes a cover-then-buydown split
   $('btnOptimal').addEventListener('click',()=>{
-    const inp=gatherInputs(), A=gatherAssumptions();
-    splitState.costs=Engine.optimalSplit(inp,A).toCosts; splitState.userSet=true; recalc();
+    const t=readConcTotal(); if(t<=0){ return; }
+    const inp=gatherInputs();
+    const res=Engine.run(inp, A_CONST);
+    const viable=res.scenarios.slice();
+    const best = viable.length ? Engine.pickBestOverall(viable, inp) : null;
+    if(!best) return;
+    const opt = Engine.optimalSplit(best, inp, t);
+    concSplit.buydown=opt.buydown; concSplit.costs=opt.costs; concSplit.anchor='buydown'; concSplit.auto=false;
+    normalizeSplit(t); renderSplitFields(false); recalc();
   });
 }
 
-/* ---- wire everything ---- */
+/* ---------- collapsible sections ---------- */
+function attachSections(){
+  document.querySelectorAll('.sec-head').forEach(h=>{
+    h.addEventListener('click',()=>{ $(h.dataset.sec).classList.toggle('collapsed'); });
+  });
+}
+/* ---------- gap solver buttons ---------- */
+function attachGapButtons(){
+  $('gsBtns').querySelectorAll('.gs-btn').forEach(b=>{
+    b.addEventListener('click',()=>{ gapSel=b.dataset.gs; recalc(); });
+  });
+}
+
+/* ---------- $ / % unit toggles (dual-input fields) ---------- */
+function renderUnitToggles(){
+  [['dp','dpUnitTg','dpIa'],['tax','taxUnitTg','taxIa']].forEach(([w,id,ia])=>{
+    $(id).querySelectorAll('button').forEach(b=> b.classList.toggle('active', b.dataset.u===unitState[w]));
+    // show the matching $ or % symbol inside the field
+    $(ia).className = 'ia '+(unitState[w]==='dollar'?'dollar':'pct');
+  });
+}
+function setUnit(which, unit){
+  if(unitState[which]===unit) return;
+  const prev = unitState[which];
+  const fieldId = which==='dp' ? 'dpTarget' : 'taxRate';
+  const price = rawBlank('price') ? 0 : num('price');
+  const raw = rawBlank(fieldId) ? null : num(fieldId);
+  // Convert the displayed value when a purchase price is available, so switching
+  // units keeps the same real-world amount instead of reinterpreting the digits.
+  if(raw!=null && raw>0 && price>0){
+    if(which==='dp'){
+      if(prev==='pct' && unit==='dollar') $('dpTarget').value = Math.round(raw/100*price).toLocaleString('en-US');
+      else if(prev==='dollar' && unit==='pct') $('dpTarget').value = +(raw/price*100).toFixed(2);
+    } else { // tax: % is an annual rate, $ is an annual dollar amount
+      if(prev==='pct' && unit==='dollar') $('taxRate').value = Math.round(price*raw/100).toLocaleString('en-US');
+      else if(prev==='dollar' && unit==='pct') $('taxRate').value = +(raw/price*100).toFixed(3);
+    }
+  }
+  unitState[which] = unit;
+  renderUnitToggles();
+  recalc();
+}
+function attachUnitToggles(){
+  $('dpUnitTg').querySelectorAll('button').forEach(b=> b.addEventListener('click',()=>setUnit('dp', b.dataset.u)));
+  $('taxUnitTg').querySelectorAll('button').forEach(b=> b.addEventListener('click',()=>setUnit('tax', b.dataset.u)));
+  renderUnitToggles();
+}
+
 function init(){
-  buildPmiEditor();
   attachFormatting();
-  const SKIP={splitSlider:1,splitCosts:1,splitBuydown:1}; // split fields get dedicated handlers
+  attachSections();
+  attachGapButtons();
+  attachConcessionHandlers();
+  attachUnitToggles();
+  attachOfferHandlers();
+  const SKIP={offerPrice:1, concBuydown:1, concCosts:1}; // handled explicitly
   document.querySelectorAll('input,select').forEach(el=>{
     if(SKIP[el.id]) return;
+    if(el.name==='negMode') return;    // negotiation mode radios handled explicitly
+    if(el.closest('#sec4')) return;    // Section 4 inputs recalc offers only, never 1/2/3
     el.addEventListener('input',recalc);
     el.addEventListener('change',recalc);
   });
-  attachSplitHandlers();
   recalc();
 }
 init();

@@ -13,7 +13,7 @@
 | Flyer Generator | `realtor/flyer-generator.html` | realtor | Agent-forward co-branded listing payment-scenario flyer. | — |
 | Realtor Planning | `realtor/realtor-planning.html` | realtor | Realtor business planning calculator. | — |
 | Rate Board | `internal/rate-board.html` | internal | Doug's internal rate board. | — |
-| Buyer Strategy Engine | `internal/buyer-strategy/index.html` | internal | Internal LO decision tool — Conv/FHA/VA scenarios, strategy ladder, concession split, DTI/LLPA flags. Modular engine. | 2026-07-13 |
+| Buyer Strategy Engine v2 | `internal/buyer-strategy/index.html` | internal | Internal advisor decision tool — program-family cards, buying power analysis, offer strategy, negotiation structure, gap solver, offer comparison. | 2026-07-15 |
 *Conventions: one version per tool, one location. Archive old versions to `~/Tools/Archive/` with a date suffix before editing. Buyer tools are shared across all channels.*
 
 **Share Pattern (all buyer tools, added 2026-06-11):** Every buyer tool now includes `buildShareURL()`, `copyShareLink()`, and `applyParamsAndRun()`/`applyURLParams()`. Clicking "↗ Share with Client" copies a URL with all inputs encoded as query params + `&view=1`. Recipients open to pre-filled results in client view (inputs hidden, PDF save button shown).
