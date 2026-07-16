@@ -91,10 +91,8 @@
   .cs-opt:active{transform:translateY(1px)}
   .cs-sum{font-size:11px;font-weight:700;color:var(--sub);align-self:center}
   .cs-sum.over{color:var(--red)}
-  /* auto-split rationale line + manual-override toggle */
+  /* "Adjust split manually" link + manual-override toggle */
   .autosplit{flex-basis:100%;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-top:2px}
-  .autosplit .as-label{font-size:10px;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:.3px;white-space:nowrap}
-  .autosplit .as-reason{font-size:12.5px;font-weight:600;color:var(--ink);flex:1;min-width:180px}
   .autosplit .as-link{font-size:11px;font-weight:700;color:var(--blue);background:none;border:none;cursor:pointer;padding:0;text-decoration:underline;white-space:nowrap}
   .concsplit.hide{display:none}
   .concwrap.off .autosplit{display:none}
@@ -126,32 +124,59 @@
   .section.collapsed>.sec-head .chev{transform:rotate(-90deg)}
   .section>.sec-body{padding:12px 14px}
   .section.collapsed>.sec-body{display:none}
+  /* Property Strategy layout (2a–2d sub-steps) */
+  .propph{border:1px dashed var(--line);border-radius:10px;background:#f7fafc;padding:16px 18px;text-align:center}
+  .propph-h{font-size:13px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;color:var(--blue)}
+  .propph-b{font-size:13px;color:var(--sub);line-height:1.45;margin-top:6px;max-width:640px;margin-left:auto;margin-right:auto}
+  .substep{padding:12px 0 4px;border-top:1px solid var(--line)}
+  .substep:first-child{border-top:0;padding-top:2px}
+  .substep-h{display:flex;align-items:baseline;gap:8px;margin-bottom:9px}
+  .substep-h .sx{width:26px;height:20px;border-radius:6px;background:var(--headbg);color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex:none}
+  .substep-h .st2{font-size:13.5px;font-weight:800;color:var(--ink)}
+  .substep-h .sq{font-size:11px;color:var(--sub);font-weight:600}
+  .negmount{margin-top:2px}
+  .negph{margin-top:8px}
 
-  /* ---------- SECTION 4: OFFER COMPARISON ---------- */
-  .offergrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-  @media(max-width:760px){.offergrid{grid-template-columns:1fr}}
-  .offer-panel{border:1px solid var(--line);border-radius:10px;background:#fff;padding:11px 12px;border-top:3px solid var(--line)}
-  .offer-panel.a{border-top-color:var(--blue)}
-  .offer-panel.b{border-top-color:var(--green)}
-  .offer-panel.winner{box-shadow:0 0 0 2px var(--goodbg),0 3px 10px rgba(58,138,31,.15);background:#fcfefb}
-  .op-title{font-size:14px;font-weight:800;margin-bottom:8px}
-  .offer-panel.a .op-title{color:#1c86bf}
-  .offer-panel.b .op-title{color:#4d7a1d}
-  .op-title .winbadge{font-size:9.5px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;background:var(--green);color:#fff;padding:2px 7px;border-radius:10px;margin-left:6px}
-  .op-inputs{display:grid;grid-template-columns:1fr 1fr;gap:7px}
-  .op-inputs .fld:first-child{grid-column:1/-1}
-  .op-split{display:grid;grid-template-columns:1fr 1fr auto;gap:6px;align-items:end;margin-top:7px}
-  .op-split .cs-opt{height:33px}
-  .op-results{margin-top:9px;border-top:1px solid var(--line);padding-top:8px}
+  /* ---------- SECTION 4: COUNTER OFFER ANALYZER ---------- */
+  /* our-offer read-only bar */
+  .co-ouroffer{font-size:12.5px;color:var(--ink);background:#eef4f8;border:1px solid #d5e6f0;border-radius:8px;padding:8px 11px;margin-bottom:10px}
+  .co-oo-lb{font-size:9.5px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;color:var(--blue);margin-right:6px}
+  .co-oo-sep{color:var(--dim);margin:0 4px}
+  .co-oo-sub{color:var(--sub);font-size:11px}
+  .co-oo-none{color:var(--sub);font-style:italic}
+  /* counter inputs */
+  .co-inputs{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .co-inputs .fld.full{grid-column:1/-1}
+  @media(max-width:640px){.co-inputs{grid-template-columns:1fr}}
+  /* net seller value summary */
+  .co-netval{margin:10px 0;border:1px solid var(--line);border-radius:8px;padding:8px 11px;background:#fff}
+  .co-nv-row{display:flex;align-items:baseline;gap:8px;font-size:12.5px;padding:2px 0}
+  .co-nv-k{font-weight:700;color:var(--sub);flex:0 0 200px}
+  .co-nv-v{font-weight:800;font-variant-numeric:tabular-nums}
+  .co-nv-v.up{color:var(--good)} .co-nv-v.down{color:var(--red)}
+  .co-nv-form{font-size:11px;color:var(--dim);margin-left:auto}
+  /* panels */
+  .co-panels{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  @media(max-width:760px){.co-panels{grid-template-columns:1fr}}
+  .co-panel{border:1px solid var(--line);border-radius:10px;background:#fff;padding:11px 12px;border-top:3px solid var(--line)}
+  .co-panel.rec{grid-column:1/-1;border-top-color:var(--blue)}
+  .co-h{font-size:13px;font-weight:800;color:var(--ink);margin-bottom:7px}
+  .co-struct{font-size:13px;font-weight:800;color:#1c86bf;background:#eef6fc;border-radius:7px;padding:6px 9px;margin-bottom:7px}
+  .co-imp{font-size:11.5px;font-weight:700;color:#2f6b1e;background:var(--goodbg);border-radius:6px;padding:5px 8px;margin-top:6px}
+  .co-ok{font-size:11px;font-weight:700;color:#4d7a1d;background:var(--goodbg);border-radius:6px;padding:4px 8px;margin-top:6px}
+  .co-need{margin-top:8px}
+  .co-rec{font-size:13.5px;font-weight:700;line-height:1.4;border-radius:8px;padding:10px 12px}
+  .co-rec.accept{background:var(--goodbg);color:#2f6b1e;border-left:4px solid var(--green)}
+  .co-rec.restructure{background:#eef6fc;color:#175d82;border-left:4px solid var(--blue)}
+  .co-rec.again{background:var(--redbg);color:#b3271a;border-left:4px solid var(--red)}
+  /* reused result rows */
   .op-rows{display:grid;grid-template-columns:1fr auto;gap:2px 10px;font-size:12.5px}
   .op-rows .k{color:var(--sub)}
   .op-rows .v{text-align:right;font-weight:700;font-variant-numeric:tabular-nums}
   .op-rows .v.big{font-size:15px}
-  .op-rows .sec{grid-column:1/-1;border-top:1px dashed var(--line);margin:4px 0 2px}
   .op-empty{font-size:12.5px;color:var(--dim);font-style:italic;padding:6px 0}
   .op-flag{font-size:11px;font-weight:700;color:#b3271a;background:var(--redbg);border-radius:6px;padding:4px 8px;margin-top:6px}
-  .offer-compare{margin-top:12px}
-  .offer-compare .cmp-rec{margin-top:0}
+  .op-flag.amber{color:#8a5a00;background:var(--amberbg)}
 
   /* ---------- SECTION 1: SNAPSHOT ---------- */
   .snap-top{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-bottom:10px}
@@ -202,6 +227,28 @@
   .snap-stat.bind{background:#fff6e9;border-color:#f2d9a8}
   .snap-stat.bind .v{font-size:16px;color:#9a6300}
   .snap-stat.conf .v{font-size:16px}
+  .snap-top.solo{grid-template-columns:minmax(240px,420px)}
+  /* Two primary cards */
+  .snap-primary{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:10px}
+  .snap-primary .snap-stat{padding:14px 16px}
+  .snap-primary .snap-stat .v{font-size:30px;margin-top:2px}
+  .snap-stat.pp-comfort{border-top:3px solid var(--green)}
+  .snap-stat.pp-qual{border-top:3px solid var(--blue)}
+  @media(max-width:560px){.snap-primary{grid-template-columns:1fr}}
+  /* Limiting factor line (shopping) */
+  .limfac{border:1px solid var(--line);border-left:4px solid var(--amber);border-radius:9px;background:#fff9ef;padding:9px 13px;margin-bottom:10px}
+  .limfac-h{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--sub)}
+  .limfac-b{font-size:13px;font-weight:600;color:var(--ink);margin-top:2px}
+  .limfac-b b{font-weight:800}
+  /* Offer status line (specific) */
+  .offstat{border-radius:9px;padding:10px 14px;margin-bottom:10px;font-size:13.5px;font-weight:700;border:1px solid var(--line)}
+  .offstat.ok{background:var(--goodbg);color:#2f6b1e;border-left:4px solid var(--green)}
+  .offstat.warn{background:var(--amberbg);color:#8a5a00;border-left:4px solid var(--amber)}
+  .offstat.bad{background:var(--redbg);color:#a3271b;border-left:4px solid var(--red)}
+  .snap-stat .ap-limit{font-size:11.5px;font-weight:600;color:var(--sub);margin-top:6px}
+  .snap-stat .ap-limit b{color:#9a6300;font-weight:800}
+  .snap-stat .ap-lever{font-size:11.5px;color:var(--blue);margin-top:3px;line-height:1.35;font-weight:600}
+  .snap-stat .v.ap-fits{font-size:16px;color:#2f6b1e}
   .conf-High{color:var(--good)} .conf-Medium{color:var(--amber)} .conf-Low{color:var(--red)}
   .flagbox{border-radius:8px;padding:8px 11px;font-size:12.5px;font-weight:600;margin-top:8px;display:flex;gap:8px;align-items:flex-start}
   .fb-amber{background:var(--amberbg);color:#8a5a00;border-left:3px solid var(--amber)}
@@ -244,6 +291,9 @@
   .scard .offerpath{margin-top:6px;font-size:11.5px;line-height:1.35;background:var(--goodbg);border-radius:7px;padding:7px 8px;color:#2f6b1e}
   .scard .offerpath .lb{font-weight:800;color:var(--good);text-transform:uppercase;font-size:9px;letter-spacing:.4px;display:block;margin-bottom:2px}
   .scard .offerpath b{color:#1f4a14}
+  /* post-concession primary metrics: small "before" sub-labels */
+  .scard .premini{font-size:10.5px;font-weight:600;color:var(--sub);margin:-1px 0 1px}
+  .scard .metrics .v .sub-mini{font-size:10px;font-weight:600;color:var(--sub);line-height:1.2;margin-top:1px}
   .noviable{padding:14px;background:var(--redbg);color:#b3271a;border-radius:8px;font-weight:700}
 
   /* ---------- SECTION 3: GAP SOLVER ---------- */
@@ -318,7 +368,7 @@
           </select><div class="sub"></div></div>
       </div>
       <div class="toggles">
-        <label class="tg"><input type="checkbox" id="tgFthb" checked> First-time homebuyer <span style="font-weight:500;color:var(--sub)">(gates Conv 3%)</span></label>
+        <label class="tg"><input type="checkbox" id="tgFthb"> First-time homebuyer <span style="font-weight:500;color:var(--sub)">(Conv 3%)</span></label>
         <label class="tg"><input type="checkbox" id="tgVa"> VA eligible</label>
         <span class="subopt" id="vaOpts" style="display:none">
           Use:
@@ -356,32 +406,6 @@
       </div>
     </div>
 
-    <div class="concwrap off" id="concWrap">
-      <div class="neg-head">
-        <div class="igroup-h">Offer strategy</div>
-        <div class="fld negfield"><label>Offer amount</label><div class="ia dollar"><input id="offerPrice" type="text" inputmode="numeric" placeholder="buyer's offer"></div></div>
-        <div class="fld negfield"><label>Requested adjustment</label><div class="ia dollar"><input id="reqAdj" type="text" readonly value="0"></div><div class="sub info" id="reqAdjSub"></div></div>
-        <div class="negmodes">
-          <span class="negmode-lbl">How should we structure the requested adjustment?</span>
-          <label class="negmode"><input type="radio" name="negMode" value="compare" checked> Compare all three</label>
-          <label class="negmode"><input type="radio" name="negMode" value="reduction"> Price reduction only</label>
-          <label class="negmode"><input type="radio" name="negMode" value="concession"> Seller concession only</label>
-          <label class="negmode"><input type="radio" name="negMode" value="split"> Split evenly</label>
-        </div>
-      </div>
-      <div class="autosplit" id="autoSplitLine">
-        <span class="as-label">Auto split</span>
-        <span class="as-reason" id="autoSplitReason"></span>
-        <button type="button" class="as-link" id="btnManualSplit">Adjust split manually</button>
-      </div>
-      <div class="concsplit hide" id="concSplitBox">
-        <div class="cs-fld buy"><label>Concession → rate buydown</label><div class="ia dollar"><input id="concBuydown" type="text" inputmode="numeric" value="0"></div></div>
-        <div class="cs-fld cost"><label>Concession → closing costs</label><div class="ia dollar"><input id="concCosts" type="text" inputmode="numeric" value="0"></div></div>
-        <button type="button" class="cs-opt" id="btnOptimal">Optimal split</button>
-        <button type="button" class="cs-back" id="btnBackAuto">Back to auto</button>
-        <span class="cs-sum" id="concSumNote"></span>
-      </div>
-    </div>
   </div>
 
   <!-- ================= ASSUMPTIONS CHANGED BANNER ================= -->
@@ -396,73 +420,101 @@
     <div class="sec-body" id="snapBody"></div>
   </div>
 
-  <!-- ================= SECTION 2 ================= -->
+  <!-- ================= SECTION 2 — PROPERTY STRATEGY ================= -->
   <div class="section" id="sec2">
-    <div class="sec-head" data-sec="sec2"><span class="num">2</span><span class="title">Recommendation Engine</span><span class="q">What do I recommend?</span><span class="chev">▾</span></div>
-    <div class="sec-body"><div class="cards" id="cardsBody"></div></div>
-  </div>
-
-  <!-- ================= SECTION 3 ================= -->
-  <div class="section" id="sec3">
-    <div class="sec-head" data-sec="sec3"><span class="num">3</span><span class="title">Gap Solver</span><span class="q">What fixes the problem?</span><span class="chev">▾</span></div>
+    <div class="sec-head" data-sec="sec2"><span class="num">2</span><span class="title">Property Strategy</span><span class="q">How do we win this specific property?</span><span class="chev">▾</span></div>
     <div class="sec-body">
-      <div class="gs-q">What problem are we solving?</div>
-      <div class="gs-btns" id="gsBtns">
-        <button class="gs-btn" data-gs="pay">Payment is too high<span class="st" id="stPay"></span></button>
-        <button class="gs-btn" data-gs="cash">Cash is short<span class="st" id="stCash"></span></button>
-        <button class="gs-btn" data-gs="dti">DTI is limiting<span class="st" id="stDti"></span></button>
-      </div>
-      <div class="gs-panel" id="gsPanel"></div>
-    </div>
-  </div>
 
-  <!-- ================= SECTION 4 — OFFER COMPARISON ================= -->
-  <div class="section collapsed" id="sec4">
-    <div class="sec-head" data-sec="sec4"><span class="num">4</span><span class="title">Offer Comparison</span><span class="q">Which deal is better for this buyer?</span><span class="chev">▾</span></div>
-    <div class="sec-body" id="offerBody">
-      <div class="offergrid">
-        <div class="offer-panel a">
-          <div class="op-title">Offer A</div>
-          <div class="op-inputs">
-            <div class="fld"><label>Offer price</label><div class="ia dollar"><input id="oaPrice" type="text" inputmode="numeric" placeholder="price"></div></div>
-            <div class="fld"><label>Loan type</label>
-              <select id="oaLoan">
-                <option value="auto">Auto — best eligible</option>
-                <option value="conv3">Conv 3%</option><option value="conv5">Conv 5%</option>
-                <option value="conv10">Conv 10%</option><option value="conv20">Conv 20%</option>
-                <option value="fha3.5">FHA 3.5%</option><option value="va0">VA 0%</option>
-              </select><div class="sub info" id="oaDp"></div></div>
-            <div class="fld"><label>Concession from requested adjustment</label><div class="ia dollar"><input id="oaConc" type="text" inputmode="numeric" value="0"></div></div>
-          </div>
-          <div class="op-split">
-            <div class="cs-fld buy"><label>To rate buydown</label><div class="ia dollar"><input id="oaBuydown" type="text" inputmode="numeric" value="0"></div></div>
-            <div class="cs-fld cost"><label>To closing costs</label><div class="ia dollar"><input id="oaCosts" type="text" inputmode="numeric" value="0"></div></div>
-            <button type="button" class="cs-opt" id="oaOptimal">Optimal split</button>
-          </div>
-          <div class="op-results" id="oaResults"></div>
-        </div>
-        <div class="offer-panel b">
-          <div class="op-title">Offer B</div>
-          <div class="op-inputs">
-            <div class="fld"><label>Offer price</label><div class="ia dollar"><input id="obPrice" type="text" inputmode="numeric" placeholder="price"></div></div>
-            <div class="fld"><label>Loan type</label>
-              <select id="obLoan">
-                <option value="auto">Auto — best eligible</option>
-                <option value="conv3">Conv 3%</option><option value="conv5">Conv 5%</option>
-                <option value="conv10">Conv 10%</option><option value="conv20">Conv 20%</option>
-                <option value="fha3.5">FHA 3.5%</option><option value="va0">VA 0%</option>
-              </select><div class="sub info" id="obDp"></div></div>
-            <div class="fld"><label>Concession from requested adjustment</label><div class="ia dollar"><input id="obConc" type="text" inputmode="numeric" value="0"></div></div>
-          </div>
-          <div class="op-split">
-            <div class="cs-fld buy"><label>To rate buydown</label><div class="ia dollar"><input id="obBuydown" type="text" inputmode="numeric" value="0"></div></div>
-            <div class="cs-fld cost"><label>To closing costs</label><div class="ia dollar"><input id="obCosts" type="text" inputmode="numeric" value="0"></div></div>
-            <button type="button" class="cs-opt" id="obOptimal">Optimal split</button>
-          </div>
-          <div class="op-results" id="obResults"></div>
-        </div>
+      <!-- placeholder shown until a list price is entered -->
+      <div class="propph" id="propPlaceholder">
+        <div class="propph-h">Property Strategy</div>
+        <div class="propph-b">Enter a list price above to activate the full property strategy — loan recommendations, offer structure, negotiation analysis, and counter offer evaluation.</div>
       </div>
-      <div id="offerCompare"></div>
+
+      <!-- full property strategy (shown once a list price is entered) -->
+      <div class="propfull" id="propFull" style="display:none">
+
+        <!-- 2a — Recommendation Engine -->
+        <div class="substep">
+          <div class="substep-h"><span class="sx">2a</span><span class="st2">Recommendation Engine</span><span class="sq">— what do I recommend?</span></div>
+          <div class="cards" id="cardsBody"></div>
+        </div>
+
+        <!-- 2b — Offer Strategy + Negotiation Strategy -->
+        <div class="substep">
+          <div class="substep-h"><span class="sx">2b</span><span class="st2">Offer Strategy &amp; Negotiation</span><span class="sq">— how do we structure the offer?</span></div>
+          <div class="concwrap off" id="concWrap">
+            <div class="neg-head">
+              <div class="igroup-h">Offer strategy</div>
+              <div class="fld negfield"><label>Offer amount</label><div class="ia dollar"><input id="offerPrice" type="text" inputmode="numeric" placeholder="buyer's offer"></div></div>
+              <div class="fld negfield"><label>Requested adjustment</label><div class="ia dollar"><input id="reqAdj" type="text" readonly value="0"></div><div class="sub info" id="reqAdjSub"></div></div>
+              <div class="fld negfield"><label>Seller concession</label>
+                <div class="urow"><span class="ia dollar" id="offConcIa"><input id="offerConc" type="text" inputmode="numeric" value="0"></span><span class="unit-tg" id="offerConcUnitTg"><button type="button" data-u="dollar">$</button><button type="button" data-u="pct">%</button></span></div>
+                <div class="sub info" id="offerConcSub"></div></div>
+              <div class="negmodes">
+                <span class="negmode-lbl">How should we structure the requested adjustment?</span>
+                <label class="negmode"><input type="radio" name="negMode" value="compare"> Compare all three</label>
+                <label class="negmode"><input type="radio" name="negMode" value="reduction"> Price reduction only</label>
+                <label class="negmode"><input type="radio" name="negMode" value="concession" checked> Seller concession only</label>
+                <label class="negmode"><input type="radio" name="negMode" value="split"> Split evenly</label>
+              </div>
+            </div>
+            <div class="autosplit" id="splitLink">
+              <button type="button" class="as-link" id="btnManualSplit">Adjust split manually</button>
+            </div>
+            <div class="concsplit hide" id="concSplitBox">
+              <div class="cs-fld buy"><label>Concession → rate buydown</label><div class="ia dollar"><input id="concBuydown" type="text" inputmode="numeric" value="0"></div></div>
+              <div class="cs-fld cost"><label>Concession → closing costs</label><div class="ia dollar"><input id="concCosts" type="text" inputmode="numeric" value="0"></div></div>
+              <button type="button" class="cs-back" id="btnBackAuto">Use priority default</button>
+              <span class="cs-sum" id="concSumNote"></span>
+            </div>
+          </div>
+          <div class="negmount" id="negMount"></div>
+          <div class="propph negph" id="negPlaceholder">
+            <div class="propph-b">Enter an offer amount to see negotiation strategy — price reduction vs. seller concession vs. split.</div>
+          </div>
+        </div>
+
+        <!-- 2c — Gap Solver -->
+        <div class="substep">
+          <div class="substep-h"><span class="sx">2c</span><span class="st2">Gap Solver</span><span class="sq">— what fixes the problem?</span></div>
+          <div class="gs-q">What problem are we solving?</div>
+          <div class="gs-btns" id="gsBtns">
+            <button class="gs-btn" data-gs="pay">Payment is too high<span class="st" id="stPay"></span></button>
+            <button class="gs-btn" data-gs="cash">Cash is short<span class="st" id="stCash"></span></button>
+            <button class="gs-btn" data-gs="dti">DTI is limiting<span class="st" id="stDti"></span></button>
+          </div>
+          <div class="gs-panel" id="gsPanel"></div>
+        </div>
+
+        <!-- 2d — Counter Offer Analyzer -->
+        <div class="substep" id="sec4">
+          <div class="substep-h"><span class="sx">2d</span><span class="st2">Counter Offer Analyzer</span><span class="sq">— did the seller's response work?</span></div>
+          <div id="counterBody">
+            <!-- our offer (read-only, from Offer Strategy above) -->
+            <div class="co-ouroffer" id="coOurOffer"></div>
+            <!-- counter offer inputs -->
+            <div class="co-inputs">
+              <div class="fld"><label>Counter price</label><div class="ia dollar"><input id="counterPrice" type="text" inputmode="numeric" placeholder="seller's counter"></div></div>
+              <div class="fld"><label>Loan type</label>
+                <select id="counterLoan">
+                  <option value="auto">Auto — best eligible</option>
+                  <option value="fha3.5">FHA 3.5%</option>
+                  <option value="conv5">Conv 5%</option><option value="conv10">Conv 10%</option><option value="conv20">Conv 20%</option>
+                  <option value="va0">VA 0%</option>
+                </select><div class="sub info" id="counterDp"></div></div>
+              <div class="fld full"><label>Counter concession</label>
+                <div class="urow"><span class="ia dollar" id="counterConcIa"><input id="counterConc" type="text" inputmode="numeric" value="0"></span><span class="unit-tg" id="counterConcUnitTg"><button type="button" data-u="dollar">$</button><button type="button" data-u="pct">%</button></span></div>
+                <div class="sub info" id="counterConcSub"></div></div>
+            </div>
+            <!-- net seller value summary -->
+            <div class="co-netval" id="coNetVal"></div>
+            <!-- three output panels -->
+            <div class="co-panels" id="coPanels"></div>
+          </div>
+        </div>
+
+      </div>
     </div>
   </div>
 
@@ -810,6 +862,21 @@ const Engine = (function(){
   /* ---------- decision hierarchy: pick Best Overall ---------- */
   function pickBestOverall(viable, inp){
     if(!viable.length) return null;
+    // Cash preservation (default): when no down-payment target is set, prefer the
+    // lowest eligible down-payment tier. A higher-dp scenario only survives if the
+    // buyer priority is explicitly 'payment' AND it saves >$150/mo AND the extra
+    // down payment is recovered in under 36 months of that saving. When a dp target
+    // IS set, the down-payment filter already narrows the field — skip this.
+    if(!inp.dpTarget){
+      const lowestDpViable = viable.reduce((best, s) => s.dp < best.dp ? s : best, viable[0]);
+      viable = viable.filter(s => {
+        if(s.dp <= lowestDpViable.dp) return true;
+        if(inp.priority !== 'payment') return false;
+        const extraCash = (s.dp - lowestDpViable.dp) / 100 * s.price;
+        const paymentSavings = lowestDpViable.piti - s.piti;
+        return paymentSavings > 150 && extraCash / paymentSavings < 36;
+      });
+    }
     // Cash-reserve floor: a scenario that leaves under $500 after closing (often a
     // high-down-payment option whose price was forced down by limited funds) is not
     // something an advisor would lead with. Drop those, but only if a viable option
@@ -824,15 +891,6 @@ const Engine = (function(){
     const stay = inp.stayYears;
     const progRank = id => id==='va'?0 : id==='conv'?1 : 2; // Rule 4 simplicity: VA<Conv<FHA
 
-    // "Significant long-term cost difference" — Rule 3's override and Rule 5's
-    // penalty on life-of-loan FHA MIP. True when total ownership cost over the
-    // stay diverges materially, or one option carries never-cancelling FHA MIP.
-    function sigCostGap(a,b){
-      if(stay<=3) return false;                       // short hold: cost gap doesn't dominate
-      const gap = Math.abs(a.totalCostHorizon-b.totalCostHorizon);
-      const oneFhaLife = (a.id==='fha'&&a.mipLife)!==(b.id==='fha'&&b.mipLife);
-      return gap>3000 || (oneFhaLife && gap>1500);
-    }
     const scored = pool.slice().sort((a,b)=>{
       // Primary metric by stay length (Rule 5)
       let pa, pb;
@@ -843,11 +901,16 @@ const Engine = (function(){
                  : (stay<=7) ? Math.abs(a.piti-b.piti)<=50
                  : Math.abs(a.totalCostHorizon-b.totalCostHorizon) < 2500;
       if(!near) return pa-pb;
-      // Rule 3 exception: significant long-term cost gap overrides cash preference
-      if(sigCostGap(a,b)) return a.totalCostHorizon-b.totalCostHorizon;
-      // Rule 3: near-tie on payment -> preserve cash
-      if(stay>3 && stay<=7 && Math.abs(a.cashRemaining-b.cashRemaining)>250) return b.cashRemaining-a.cashRemaining;
-      // Rule 4: simplicity (VA<Conv<FHA); FHA life-of-loan MIP penalized
+      // ---- Tiebreaker cascade (Fix 1): a near-tie on the primary metric does NOT
+      // mean equal outcomes. Resolve in strict order — cash, then financing cost,
+      // then (only if all three are near-equal) Rule 4 program simplicity. ----
+      // 1) Cash to close: a gap > $2,000 wins regardless of program simplicity.
+      const dCash = a.cashToClose - b.cashToClose;
+      if(Math.abs(dCash) > 2000) return dCash;                 // lower cash to close first
+      // 2) Financing cost over the stay: a gap > $2,500 wins.
+      const dFin = a.totalCostHorizon - b.totalCostHorizon;
+      if(Math.abs(dFin) > 2500) return dFin;                   // lower financing cost
+      // 3) Payment, cash AND financing all near-equal → Rule 4 simplicity (VA<Conv<FHA).
       const ra=progRank(a.id), rb=progRank(b.id);
       if(ra!==rb) return ra-rb;
       return pa-pb;
@@ -951,6 +1014,18 @@ const Engine = (function(){
         if(el) skipped.push(el);
       }
       if(!chosen) chosen = conv.slice().sort((a,b)=>a.dp-b.dp)[0];   // custom >20% tier fallback
+      // Default is the lowest eligible tier. Only step up to Conv 10%/20% when the
+      // buyer priority is 'payment' AND a higher tier saves >$150/mo with the extra
+      // down recovered in under 36 months. Never for 'cash' (lock to lowest tier).
+      if(chosen && inp.priority==='payment' && !inp.dpTarget){
+        const lowest = chosen;
+        conv.forEach(s=>{
+          if(s.dp <= lowest.dp) return;
+          const extraCash = (s.dp - lowest.dp)/100 * s.price;
+          const paymentSavings = lowest.piti - s.piti;
+          if(paymentSavings > 150 && extraCash/paymentSavings < 36 && s.piti < chosen.piti) chosen = s;
+        });
+      }
       let note=null;
       if(chosen && skipped.length){
         const first = skipped[0], r = first.reason||'';
@@ -991,6 +1066,22 @@ const $ = id => document.getElementById(id);
 const money = n => (n<0?'-$':'$')+Math.abs(Math.round(n)).toLocaleString('en-US');
 const num = el => { const v=(typeof el==='string'?$(el):el).value.replace(/[^0-9.\-]/g,''); return parseFloat(v)||0; };
 const rawBlank = el => (typeof el==='string'?$(el):el).value.replace(/[^0-9.\-]/g,'')==='';
+// Live comma formatting for a whole-dollar input: strip to digits, insert commas,
+// and restore the caret to the same digit position so typing feels natural. The
+// stored value keeps commas (num() strips them before parsing).
+function liveComma(el){
+  const raw = el.value;
+  const digits = raw.replace(/[^0-9]/g,'');
+  if(digits===''){ el.value=''; return; }
+  const caret = el.selectionStart==null ? raw.length : el.selectionStart;
+  const digitsBefore = raw.slice(0, caret).replace(/[^0-9]/g,'').length;
+  const formatted = parseInt(digits,10).toLocaleString('en-US');
+  el.value = formatted;
+  // place the caret after the same number of digits it followed before
+  let pos=0, seen=0;
+  while(pos<formatted.length && seen<digitsBefore){ if(formatted.charCodeAt(pos)>=48 && formatted.charCodeAt(pos)<=57) seen++; pos++; }
+  try { el.setSelectionRange(pos,pos); } catch(e){}
+}
 
 let gapSel = 'pay';
 
@@ -998,16 +1089,17 @@ let gapSel = 'pay';
 // authoritative — the value is interpreted per the selected unit, not guessed
 // from whether it is under 100.
 const unitState = { dp:'pct', tax:'pct' };
+// $ / % unit for the Offer Strategy seller-concession field (% of the offer price).
+const offerConcUnit = { v:'dollar' };
 
 /* ---------- concession split state ----------
-   buydown + costs always sum to the total concession. By default the tool
-   decides the split automatically (`auto:true`) via smartSplit() — covering any
-   cash shortfall first, then applying a break-even-vs-planned-stay test. Doug can
+   buydown + costs always sum to the total concession. By default (`auto:true`)
+   the allocation follows the buyer priority directly via priorityAlloc()
+   (payment → rate buydown; cash / balanced / power → closing costs). Doug can
    click "Adjust split manually" to override; editing either field sets
-   `auto:false`. `anchor` records which field he edited last so re-normalizing to
-   a changed total preserves his intent. `reason` holds the current auto-split
-   rationale string for display. */
-const concSplit = { buydown:0, costs:0, anchor:'buydown', auto:true, reason:'' };
+   `auto:false` and the engine stays passive. `anchor` records which field he
+   edited last so re-normalizing to a changed total preserves his intent. */
+const concSplit = { buydown:0, costs:0, anchor:'costs', auto:true };
 // The concession being deployed (set each recalc from the applied negotiation path).
 let appliedConcTotal = 0;
 function readConcTotal(){ return appliedConcTotal; }
@@ -1029,12 +1121,12 @@ function renderSplitFields(skipActive){
   const note=$('concSumNote');
   note.textContent = total>0 ? 'Sum: '+money(total) : '';
   note.className='cs-sum';
-  // auto vs manual: show the rationale line only in auto mode, the fields only in manual mode
-  const box=$('concSplitBox'), line=$('autoSplitLine');
-  if(box && line){
+  // default (priority-based) vs manual: show the "Adjust split manually" link in
+  // default mode, the editable fields only when Doug has taken manual control.
+  const box=$('concSplitBox'), link=$('splitLink');
+  if(box && link){
     box.classList.toggle('hide', concSplit.auto);
-    line.style.display = concSplit.auto ? '' : 'none';
-    const r=$('autoSplitReason'); if(r) r.textContent = concSplit.reason || '';
+    link.style.display = concSplit.auto ? '' : 'none';
   }
 }
 
@@ -1074,6 +1166,13 @@ function gatherInputs(){
   const listP = shopping ? 0 : num('price');
   const offerP = rawBlank('offerPrice') ? 0 : num('offerPrice');
   const negReq = (listP>0 && offerP>0 && offerP<listP) ? (listP - offerP) : 0;
+  // Seller concession — an ADDITIONAL, explicit concession request on top of any
+  // price cut. In % mode it is a percent of the offer price (or list if no offer).
+  const offConcRaw = num('offerConc');
+  const concBase = offerP>0 ? offerP : listP;
+  const sellerConcession = (offerConcUnit.v==='pct')
+    ? ((concBase>0 && offConcRaw>0) ? Math.round(offConcRaw/100*concBase) : 0)
+    : offConcRaw;
   return {
     shopping, dpTarget, taxRate, taxMonthly, taxFixed, taxIsDollar, taxRaw,
     price: shopping ? 0 : num('price'),
@@ -1094,7 +1193,8 @@ function gatherInputs(){
     // concessionOn/concession are finalized in recalc() once the path is known.
     offerPrice: rawBlank('offerPrice')?0:num('offerPrice'),
     negotiatingRoom: negReq,
-    negotiationMode: (document.querySelector('input[name="negMode"]:checked')||{}).value || 'compare',
+    sellerConcession,
+    negotiationMode: (document.querySelector('input[name="negMode"]:checked')||{}).value || 'concession',
     concessionOn:false, concession:0, appliedPath:null, appliedReduction:0, appliedConcession:0
   };
 }
@@ -1151,22 +1251,25 @@ function updateInlineHints(inp){
   // Offer Strategy panel: hidden entirely in Shopping Range Mode (no list price);
   // inactive until a valid requested adjustment exists; split shown only when a
   // concession is actually being deployed by the applied path.
+  const sc = Math.max(0, inp.sellerConcession||0);
   $('concWrap').style.display = inp.shopping ? 'none' : '';
-  $('concWrap').classList.toggle('off', !(inp.negotiatingRoom>0));
+  $('concWrap').classList.toggle('off', !(inp.negotiatingRoom>0 || sc>0));
   $('reqAdj').value = money(inp.negotiatingRoom).replace('$','');
   $('reqAdjSub').textContent = (inp.negotiatingRoom>0)
     ? 'List '+money(inp.price)+' − offer '+money(inp.offerPrice)
     : (!inp.shopping && inp.offerPrice>0 && inp.offerPrice>=inp.price ? 'Offer ≥ list — no adjustment' : 'enter an offer below list');
+  // Seller concession $/% toggle + sub (resolved $ and the total seller ask).
+  renderOfferConcToggle(inp);
   // Show the split cluster only when a concession is actually deployed. When shown,
   // renderSplitFields() decides auto (rationale line) vs manual (fields) visibility,
   // so clear any inline display here and let it govern.
-  const hasConc = inp.negotiatingRoom>0 && (inp.appliedConcession||0)>0;
+  const hasConc = (inp.negotiatingRoom>0 || sc>0) && (inp.appliedConcession||0)>0;
   if(hasConc){
     $('concSplitBox').style.display='';
-    $('autoSplitLine').style.display='';
+    $('splitLink').style.display='';
   } else {
     $('concSplitBox').style.display='none';
-    $('autoSplitLine').style.display='none';
+    $('splitLink').style.display='none';
   }
   $('modeBadge').textContent = inp.shopping?'Shopping Range Mode':'Specific Scenario';
   $('modeBadge').className = 'mode '+(inp.shopping?'shop':'spec');
@@ -1237,149 +1340,143 @@ function strategyActionsFor(why, ctx){
   return acts;
 }
 
-function buyingPowerHTML(inp, viable){
-  const highestComfort = viable.reduce((m,s)=>Math.max(m, s.comfortPrice||0), 0);
-  let qualTop=viable[0]; viable.forEach(s=>{ if((s.qualPrice||0) > (qualTop.qualPrice||0)) qualTop=s; });
+/* The two primary cards (Comfort Purchase Price / Max Qualifying Price) are
+   BUYER-PROFILE ONLY — computed from a price-independent scenario set (`bp`), so they
+   never move when a specific list price is entered or removed. */
+function buyingPowerCardsHTML(inp, bp){
+  const highestComfort = bp.reduce((m,s)=>Math.max(m, s.comfortPrice||0), 0);
+  let qualTop=bp[0]; bp.forEach(s=>{ if((s.qualPrice||0) > (qualTop.qualPrice||0)) qualTop=s; });
   const highestQual = qualTop.qualPrice||0;
-  let lowDp=viable[0]; viable.forEach(s=>{ if(s.dp < lowDp.dp) lowDp=s; });
+  let lowDp=bp[0]; bp.forEach(s=>{ if(s.dp < lowDp.dp) lowDp=s; });
   const dpf=lowDp.dp/100;
   const cashDenom = dpf + (1-dpf)*inp.ccPct/100;
   const cashPrice = cashDenom>0 ? inp.funds/cashDenom : Infinity;
   const limitFor = id => id==='fha'?A_CONST.fhaLimit : (id==='conv'?A_CONST.confLimit:Infinity);
   const loanLimitCeil = (1-dpf)>0 ? limitFor(lowDp.id)/(1-dpf) : Infinity;
+  const backPct = (qualTop.ratios && qualTop.ratios.back) ? qualTop.ratios.back : 45;
 
-  // ---- three ceiling cards ----
-  let h='<div class="snap-power">';
-  h+='<div class="snap-stat pw-green"><div class="k">Comfort Buying Power</div><div class="v">'+money(highestComfort)+'</div><div class="pw-sub">Based on '+money(inp.target)+'/mo comfort target</div></div>';
-  const qd=highestQual-highestComfort, qdPct=highestComfort>0?Math.round(Math.abs(qd)/highestComfort*100):0;
-  const qDelta = qd>1 ? '<div class="pw-delta up">+'+money(qd)+' ('+qdPct+'%)</div>' : '<div class="pw-delta same">same as comfort</div>';
-  h+='<div class="snap-stat pw-blue"><div class="k">Maximum Buying Power</div><div class="v">'+money(highestQual)+'</div><div class="pw-sub">Based on qualifying ratios (DTI)</div>'+qDelta+'</div>';
-  const cd=cashPrice-highestComfort, cdPct=highestComfort>0?Math.round(Math.abs(cd)/highestComfort*100):0;
-  const cDelta = cd < -1 ? '<div class="pw-delta down">−'+money(-cd)+' ('+cdPct+'%)</div>' : (cd>1?'<div class="pw-delta up">+'+money(cd)+' ('+cdPct+'%)</div>':'<div class="pw-delta same">same as comfort</div>');
-  h+='<div class="snap-stat pw-amber"><div class="k">Cash Buying Power</div><div class="v">'+money(cashPrice)+'</div><div class="pw-sub">Based on '+money(inp.funds)+' available funds</div>'+cDelta+'</div>';
+  let h='<div class="snap-primary">';
+  h+='<div class="snap-stat pp-comfort"><div class="k">Comfort Purchase Price</div><div class="v">'+money(highestComfort)+'</div><div class="pw-sub">Based on '+money(inp.target)+'/mo target</div></div>';
+  h+='<div class="snap-stat pp-qual"><div class="k">Max Qualifying Price</div><div class="v">'+money(highestQual)+'</div><div class="pw-sub">Based on '+backPct+'% back-end DTI</div></div>';
   h+='</div>';
+  return {html:h, highestComfort, highestQual, qualTop, lowDp, cashPrice, loanLimitCeil};
+}
 
-  // ---- Card 4: Strategy Opportunity ----
-  const best = Engine.pickBestOverall(viable, inp);
-  const llLabel = lowDp.id==='fha'?'FHA Loan Limit':'Conforming Loan Limit';
-  const ceils=[
-    {p:highestComfort, why:'Comfort Payment'},
-    {p:highestQual,   why:'DTI'},
-    {p:cashPrice,     why:'Cash to Close'},
-    {p:loanLimitCeil, why:llLabel}
-  ].filter(x=>isFinite(x.p)).sort((a,b)=>a.p-b.p);
-  const ctxBase = {inp, viable, best, lowDp, qualTop, cashPrice, highestComfort};
+/* Limiting-factor line (Shopping Range Mode). Shows only the single lowest ceiling.
+   Cash is a candidate only when it falls at/below the comfort ceiling — ample cash is
+   not a constraint and is not shown. */
+function constraintLineHTML(inp, C){
+  const comfort=C.highestComfort, dti=C.highestQual, cash=C.cashPrice;
+  const cands=[{k:'comfort',p:comfort},{k:'dti',p:dti}];
+  if(isFinite(cash) && cash <= comfort+1) cands.push({k:'cash',p:cash});
+  cands.sort((a,b)=>a.p-b.p);
+  const b=cands[0];
+  let icon,text;
+  if(b.k==='cash'){ icon='💵'; text='<b>Cash to Close</b> — available funds support up to '+money(cash)+' at '+C.lowDp.name+' down'; }
+  else if(b.k==='dti'){ icon='📊'; text='<b>DTI</b> — qualifying income limits purchase price before comfort payment'; }
+  else { icon='🎯'; text='<b>Comfort Payment</b> — payment target is the binding ceiling'; }
+  return '<div class="limfac"><div class="limfac-h">Limiting Factor</div><div class="limfac-b">'+icon+' '+text+'</div></div>';
+}
 
-  if(!inp.shopping && inp.price>0){
-    // Specific offer: position it against the ceilings.
-    const offer=inp.price;
-    const exceeded = ceils.filter(x=>offer > x.p+1);
-    if(!exceeded.length){
-      h+=strategyOkCard('This '+money(offer)+' offer is within comfort, DTI, and cash parameters.');
-    } else {
-      const prim = exceeded[0]; // lowest exceeded ceiling = most binding
-      if(prim.why==='Comfort Payment'){
-        // qualifies + funded, but above comfort → stretch coaching
-        const s=Engine.computeScenario(Object.assign({},inp,{shopping:false,price:offer,dpTarget:null}), A_CONST, Engine.PROGRAMS[best.id], {dp:best.dp,name:best.name}, offer);
-        const overMo=s.piti-inp.target;
-        h+='<div class="strat-card gap"><div class="strat-h">Qualifies — about '+money(overMo)+'/mo above comfort</div>';
-        h+='<div class="strat-sub">✓ Within DTI and cash · ⚠ Above stated comfort ('+money(highestComfort)+')</div>';
-        h+=powerBadge('Comfort Payment');
-        h+='<div class="strat-script">“You qualify for this home — it runs about '+money(overMo)+'/mo above the payment you told me felt comfortable. Here’s how we can bring it down.”</div>';
-        h+=strategyActionsList(strategyActionsFor('Comfort Payment', Object.assign({}, ctxBase, {secondary:offer})));
-        h+='</div>';
-      } else {
-        const over=offer-prim.p;
-        h+='<div class="strat-card gap"><div class="strat-h">This '+money(offer)+' offer is '+money(over)+' over the '+powerLabel(prim.why)+' ceiling</div>';
-        h+='<div class="strat-sub">Solve this to make the purchase work.</div>';
-        h+=powerBadge(prim.why);
-        h+=strategyActionsList(strategyActionsFor(prim.why, Object.assign({}, ctxBase, {secondary:offer})));
-        h+='</div>';
-      }
-    }
-  } else {
-    // Shopping mode: how much more can they buy by solving the binding constraint?
-    const prim=ceils[0];
-    if(prim.why==='Comfort Payment'){
-      h+=strategyOkCard('All targets met — buyer is within comfort, DTI, and cash parameters.');
-    } else {
-      const secondary = ceils[1] ? ceils[1].p : prim.p;
-      const increaseBy = Math.max(0, secondary - prim.p);
-      h+='<div class="strat-card gap"><div class="strat-h">Increase Buying Power by '+money(increaseBy)+'</div>';
-      h+='<div class="strat-sub">Current limitation: '+powerLabel(prim.why)+'</div>';
-      h+=powerBadge(prim.why);
-      h+=strategyActionsList(strategyActionsFor(prim.why, Object.assign({}, ctxBase, {secondary})));
-      h+='</div>';
-    }
+/* Offer status line (Specific Scenario Mode). Positions the entered list price against
+   the buyer-profile comfort and DTI ceilings. */
+function offerStatusHTML(inp, C){
+  const offer=inp.price, comfort=C.highestComfort, dti=C.highestQual;
+  if(offer <= comfort+1){
+    return '<div class="offstat ok">✅ '+money(offer)+' is within your comfort range and qualifies.</div>';
   }
-  return h;
+  if(offer <= dti+1){
+    const over=Math.max(0, Math.round(offer-comfort));
+    const s=Engine.computeScenario(Object.assign({},inp,{shopping:false,price:offer,dpTarget:null}), A_CONST, Engine.PROGRAMS[C.lowDp.id], {dp:C.lowDp.dp,name:C.lowDp.name}, offer);
+    const overMo=Math.max(0, Math.round(s.piti-inp.target));
+    return '<div class="offstat warn">⚠️ '+money(offer)+' is '+money(over)+' above your comfort ceiling — qualifies but '+money(overMo)+'/mo over target.</div>';
+  }
+  return '<div class="offstat bad">❌ '+money(offer)+' exceeds your maximum qualifying price — does not qualify as structured.</div>';
 }
 
 function renderSnapshot(inp, res, neg){
   const box=$('snapBody');
   const viable=res.scenarios.slice();
-  if(!viable.length){
+  // Buyer-profile-only scenario set for the two primary cards — run the engine as if
+  // shopping (no list-price filter) so Comfort Purchase Price / Max Qualifying Price
+  // reflect the buyer alone and never move when a list price is entered.
+  const bpViable = Engine.run(Object.assign({}, inp, {shopping:true, price:0}), A_CONST).scenarios;
+  const bp = bpViable.length ? bpViable : viable;
+
+  // Buyer can't afford anything even in the abstract → pure no-viable state.
+  if(!bp.length){
     box.innerHTML='<div class="noviable">No eligible scenario at these inputs. See eliminations below.</div>'+dpCreditFlag(inp)+elimHTML(res.eliminated);
     return;
   }
-  // max purchase price + corresponding loan + binding
-  let top=viable[0];
-  viable.forEach(s=>{ if(s.maxPrice>top.maxPrice) top=s; });
-  const maxLoan = top.loanAmount * (inp.shopping? 1 : 1); // at top scenario
-  // recompute loan at maxPrice for display
-  const bindLabel = deriveBinding(inp,res,top);
 
-  // confidence — a field at zero counts as "unknown" only if it isn't confirmed N/A
-  const unk = { hoa: inp.hoa===0 && !inp.hoaNA, cdd: inp.cdd===0 && !inp.cddNA, flood: inp.flood===0 && !inp.floodNA };
-  const unknowns = (unk.hoa?1:0)+(unk.cdd?1:0)+(unk.flood?1:0);
-  let conf;
+  const C = buyingPowerCardsHTML(inp, bp);   // two primary cards + ceiling metrics
+  let h = C.html;
+
   if(inp.shopping){
-    // Shopping Range Mode: a price range is being solved, so it caps at Medium —
-    // but only when the escrow components are all known/confirmed. Any unknown -> Low.
-    conf = (unknowns===0) ? 'Medium' : 'Low';
+    // Shopping Range Mode: two primary cards + the single limiting factor. DPA flag
+    // if first-time-buyer eligible. No stat row, no banners.
+    h += constraintLineHTML(inp, C);
+    if(inp.fthb && inp.score>=640){
+      h+='<div class="flagbox fb-info"><span>🏠</span><span>Buyer may be eligible for Hometown Heroes or other DPA programs — verify separately before presenting options.</span></div>';
+    }
   } else {
-    conf = (unknowns>=2) ? 'Low' : (unknowns>=1 ? 'Medium' : 'High');
-  }
+    // Specific Scenario Mode: two primary cards + offer status line. The property-
+    // specific stat row + advisory banners appear only when a tier fits at this price.
+    h += offerStatusHTML(inp, C);
+    if(viable.length){
+      // Achievable Price references the LOWEST eligible down-payment tier (cash
+      // preservation), stepping up only when lower tiers are eliminated.
+      let top=viable[0];
+      viable.forEach(s=>{ if(s.dp < top.dp || (s.dp===top.dp && s.cashToClose < top.cashToClose)) top=s; });
+      const bindLabel = deriveBinding(inp,res,top);
+      const unk = { hoa: inp.hoa===0 && !inp.hoaNA, cdd: inp.cdd===0 && !inp.cddNA, flood: inp.flood===0 && !inp.floodNA };
+      const unknowns = (unk.hoa?1:0)+(unk.cdd?1:0)+(unk.flood?1:0);
+      const conf = (unknowns>=2) ? 'Low' : (unknowns>=1 ? 'Medium' : 'High');
 
-  let h=buyingPowerHTML(inp, viable);
-  if(inp.negotiatingRoom>0 && neg) h+=negotiationPanelHTML(inp, neg);
-  h+='<div class="snap-top">';
-  h+=statHTML('Achievable Price', money(top.maxPrice), (inp.shopping?'best-fit: '+top.name:'best: '+top.name)+' · all limits applied');
-  const loanAtMax = maxLoanAt(inp, top);
-  h+=statHTML('Maximum Loan Amount', money(loanAtMax), top.label+' '+top.dp+'% down');
-  h+='<div class="snap-stat bind"><div class="k">Binding Constraint</div><div class="v">'+bindLabel+'</div></div>';
-  h+='<div class="snap-stat conf"><div class="k">Confidence Level</div><div class="v conf-'+conf+'">'+conf+'</div></div>';
-  h+='</div>';
+      h+='<div class="snap-top">';
+      h+=statHTML('Achievable Price', money(top.maxPrice), 'lowest eligible: '+top.name);
+      const loanAtMax = maxLoanAt(inp, top);
+      h+=statHTML('Maximum Loan Amount', money(loanAtMax), top.label+' '+top.dp+'% down');
+      h+='<div class="snap-stat bind"><div class="k">Binding Constraint</div><div class="v">'+bindLabel+'</div></div>';
+      h+='<div class="snap-stat conf"><div class="k">Confidence Level</div><div class="v conf-'+conf+'">'+conf+'</div></div>';
+      h+='</div>';
 
-  // unknown assumptions
-  if(unknowns>0){
-    const parts=[]; if(unk.hoa)parts.push('HOA'); if(unk.cdd)parts.push('CDD'); if(unk.flood)parts.push('flood insurance');
-    h+='<div class="flagbox fb-amber"><span>⚠️</span><span>'+parts.join(', ')+(parts.length>1?' are':' is')+' unknown — actual payment may be higher than shown.</span></div>';
-  }
-  // Down payment > 20% with sub-620 credit
-  h+=dpCreditFlag(inp);
-  // DPA
-  if(inp.fthb && inp.score>=640){
-    h+='<div class="flagbox fb-info"><span>🏠</span><span>Buyer may be eligible for Hometown Heroes or other DPA programs — verify separately before presenting options.</span></div>';
-  }
-  // Housing (front-end) ratio flags — advisory; back-end qualifies
-  const frontFlagged = viable.filter(s=>s.frontFlag);
-  if(frontFlagged.length){
-    const names = frontFlagged.map(s=>s.name+' '+s.front.toFixed(1)+'%').join(', ');
-    h+='<div class="flagbox fb-amber"><span>⚠️</span><span>Housing ratio above guideline on '+names+' (limit '+frontFlagged[0].ratios.front+'%) — advisory only; these still qualify on back-end DTI, but note the payment runs high relative to income.</span></div>';
-  }
-  // LLPA warning
-  const llpa = viable.find(s=>s.id==='conv' && inp.score<700 && s.ltv>90);
-  if(llpa){
-    h+='<div class="flagbox fb-amber"><span>⚠️</span><span>LLPA adjustments at this score/LTV ('+inp.score+' / '+llpa.ltv.toFixed(0)+'%) may make the stated conventional rate unrepresentative — verify pricing with lender before presenting.</span></div>';
-  }
-  if(unknowns===0 && !inp.shopping){
-    h+='<div class="flagbox fb-good"><span>✓</span><span>Taxes, insurance and escrow components all entered — high-confidence figures.</span></div>';
+      // unknown assumptions
+      if(unknowns>0){
+        const parts=[]; if(unk.hoa)parts.push('HOA'); if(unk.cdd)parts.push('CDD'); if(unk.flood)parts.push('flood insurance');
+        h+='<div class="flagbox fb-amber"><span>⚠️</span><span>'+parts.join(', ')+(parts.length>1?' are':' is')+' unknown — actual payment may be higher than shown.</span></div>';
+      }
+      // Down payment > 20% with sub-620 credit
+      h+=dpCreditFlag(inp);
+      // DPA
+      if(inp.fthb && inp.score>=640){
+        h+='<div class="flagbox fb-info"><span>🏠</span><span>Buyer may be eligible for Hometown Heroes or other DPA programs — verify separately before presenting options.</span></div>';
+      }
+      // Housing (front-end) ratio flags — advisory; back-end qualifies
+      const frontFlagged = viable.filter(s=>s.frontFlag);
+      if(frontFlagged.length){
+        const names = frontFlagged.map(s=>s.name+' '+s.front.toFixed(1)+'%').join(', ');
+        h+='<div class="flagbox fb-amber"><span>⚠️</span><span>Housing ratio above guideline on '+names+' (limit '+frontFlagged[0].ratios.front+'%) — advisory only; these still qualify on back-end DTI, but note the payment runs high relative to income.</span></div>';
+      }
+      // LLPA warning
+      const llpa = viable.find(s=>s.id==='conv' && inp.score<700 && s.ltv>90);
+      if(llpa){
+        h+='<div class="flagbox fb-amber"><span>⚠️</span><span>LLPA adjustments at this score/LTV ('+inp.score+' / '+llpa.ltv.toFixed(0)+'%) may make the stated conventional rate unrepresentative — verify pricing with lender before presenting.</span></div>';
+      }
+      if(unknowns===0){
+        h+='<div class="flagbox fb-good"><span>✓</span><span>Taxes, insurance and escrow components all entered — high-confidence figures.</span></div>';
+      }
+    } else {
+      // Offer doesn't fit any tier at this price — surface the credit/dp note; the
+      // Reason for Elimination list below explains what blocked each tier.
+      h+=dpCreditFlag(inp);
+    }
   }
   h+=elimHTML(res.eliminated);
   box.innerHTML=h;
 }
 function statHTML(k,v,sub){ return '<div class="snap-stat"><div class="k">'+k+'</div><div class="v">'+v+(sub?' <small>'+sub+'</small>':'')+'</div></div>'; }
+
 function maxLoanAt(inp, s){
   // loan amount at the scenario's max price
   const dpFrac=s.dp/100; const base=s.maxPrice*(1-dpFrac);
@@ -1430,116 +1527,114 @@ function eligibleAt(inp, price){
 // Build a scoring/display outcome object for one loan scenario under one path.
 function mkOutcome(fields){ return Object.assign({ totalCostHorizon:fields.financing }, fields); }
 
-/* ---------- smartSplit: the tool decides buydown vs closing costs ----------
-   Returns {buydown, costs, reason}. Decision order:
-     1. Cash-shortfall first — send just enough to closing costs to bring cash to
-        close within the buyer's funds (a credit can't exceed actual closing costs).
-     2. Priority steering for the remaining dollars:
-        • cash    → max out the closing-cost credit, overflow to buydown.
-        • payment → everything remaining to the rate buydown.
-        • balanced / power → break-even test: if a buydown of the remaining amount
-          pays for itself before the planned stay, buy the rate down; otherwise put
-          it toward closing costs (overflow to buydown once the credit is maxed).
-   The `reason` string is a one-line plain-English rationale for the UI. */
-function smartSplit(s, inp, deployable){
-  const stayY = Math.max(1, Math.round(inp.stayYears||7));
-  const stayM = stayY*12;
-  if(!s || deployable<=0) return { buydown:0, costs:0, reason:'' };
-  const cashShort = Math.max(0, s.cashToClose - inp.funds);
-  const cover = Math.min(deployable, s.closing, cashShort);   // costs needed to clear the cash gap
-  const remaining = deployable - cover;
-  const costsRoom = Math.max(0, s.closing - cover);           // remaining closing-cost credit capacity
-
-  let buydown, costs, mode, be=null;
-  if(inp.priority==='cash'){
-    const addCosts = Math.min(remaining, costsRoom);
-    costs = cover + addCosts; buydown = deployable - costs; mode='cash';
-  } else if(inp.priority==='payment'){
-    costs = cover; buydown = deployable - cover; mode='payment';
-  } else {
-    // balanced / power — break-even vs planned stay on the remaining buydown
-    if(remaining<=0){ buydown=0; costs=cover; mode='coveronly'; }
-    else {
-      const trial = Engine.applyConcession(s, inp, A_CONST, remaining, cover);
-      be = trial.breakeven; // months to recoup the buydown, or null if no monthly saving
-      if(be!=null && be<=stayM){ buydown=remaining; costs=cover; mode='buydown'; }
-      else { const addCosts=Math.min(remaining, costsRoom); costs=cover+addCosts; buydown=deployable-costs; mode='costs'; }
-    }
-  }
-  const reason = splitReason({mode, cover, costs, buydown, be, stayY});
-  return { buydown, costs, reason };
+/* ---------- priorityAlloc: concession allocation follows buyer priority ----------
+   No auto-split, no remainder logic, single clean purpose:
+     • payment                  → 100% of the concession to a rate buydown
+     • cash / balanced / power  → 100% of the concession to closing costs
+   (Buying power is a cash story, so it goes to closing costs too.) The engine
+   only calculates consequences; a closing-cost credit is capped at actual closing
+   costs inside applyConcession. */
+function priorityAlloc(inp, deployable){
+  if(deployable<=0) return { buydown:0, costs:0 };
+  if(inp.priority==='payment') return { buydown:deployable, costs:0 };
+  return { buydown:0, costs:deployable };
 }
-function splitReason(o){
-  const beY = o.be!=null ? Math.max(1, Math.round(o.be/12)) : null;
-  const coverNote = o.cover>0 ? ' (after '+money(o.cover)+' covers the cash gap)' : '';
-  if(o.mode==='cash')
-    return money(o.costs)+' → closing costs to keep cash to close as low as possible'
-      + (o.buydown>0 ? '; '+money(o.buydown)+' left over buys down the rate' : '') + '.';
-  if(o.mode==='payment')
-    return money(o.buydown)+' → rate buydown for the lowest monthly payment'+coverNote+'.';
-  if(o.mode==='coveronly')
-    return money(o.costs)+' → closing costs to cover the cash shortfall.';
-  if(o.mode==='buydown')
-    return money(o.buydown)+' → rate buydown — it breaks even in about '+beY+' year'+(beY===1?'':'s')
-      +', inside the '+o.stayY+'-year hold'+coverNote+'.';
-  // costs (balanced/power default)
-  return money(o.costs)+' → closing costs — a buydown wouldn\'t break even before year '+o.stayY
-    + (o.buydown>0 ? ', so only the '+money(o.buydown)+' overflow buys down the rate' : '') + '.';
+// Optimal seller-concession deployment: cover closing costs first (drives cash to
+// close toward the down payment), then send every remaining dollar to a rate buydown
+// so no concession is left unused. Independent of buyer priority.
+function optimalConcAlloc(s, deployable){
+  if(deployable<=0) return { buydown:0, costs:0 };
+  const costs = Math.max(0, Math.min(deployable, s.closing||0));
+  return { buydown: Math.max(0, deployable - costs), costs };
 }
 function pathOutcome(baseS, inp, pathKey, negRoom){
   const horizon = Math.round(inp.stayYears*12);
+  const sc = Math.max(0, inp.sellerConcession||0);   // explicit seller concession, deployed on every path
   const commonViable = s => s.cashToClose<=inp.funds+0.5; // pre-help viability handled by eligibleAt
   if(pathKey==='reduction'){
     const price = inp.price - negRoom; if(price<=0) return null;
     const s = Engine.computeScenario(Object.assign({},inp,{price}), A_CONST, Engine.PROGRAMS[baseS.id], {dp:baseS.dp,name:baseS.name}, price);
     const limit = s.id==='fha'?A_CONST.fhaLimit:(s.id==='conv'?A_CONST.confLimit:Infinity);
-    if(s.baseLoan>limit+0.5 || s.cashToClose>inp.funds+0.5 || s.back>s.ratios.back+0.05) return null;
+    if(s.baseLoan>limit+0.5) return null;
+    // price cut only, plus the explicit seller concession (if any) on top — the
+    // concession covers closing costs first, then buys down the rate with the rest.
+    const deployable = Math.min(sc, s.concLimit), unused = sc - deployable;
+    const opt = optimalConcAlloc(s, deployable);
+    const conc = deployable>0 ? Engine.applyConcession(s, inp, A_CONST, opt.buydown, opt.costs) : null;
+    const piti = conc?conc.newPITI:s.piti, cash = conc?conc.newCash:s.cashToClose, rate = conc?conc.newRate:s.rate, pi = conc?conc.newPI:s.pi;
+    if(cash>inp.funds+0.5 || (piti+inp.debts)/inp.income*100>s.ratios.back+0.05) return null;
     return mkOutcome({id:s.id,dp:s.dp,name:s.name,mipLife:s.mipLife,cancelMonth:s.cancelMonth,monthlyMI:s.monthlyMI,
-      concLimit:s.concLimit,concLimitPct:s.concLimitPct,price,rate:s.rate,pi:s.pi,piti:s.piti,
-      cashToClose:s.cashToClose,cashRemaining:inp.funds-s.cashToClose,maxPrice:price,
-      gap:s.piti-inp.target,used:negRoom,unused:0,buydown:0,financing:s.totalCostHorizon});
+      concLimit:s.concLimit,concLimitPct:s.concLimitPct,price,rate,pi,piti,
+      cashToClose:cash,cashRemaining:inp.funds-cash,maxPrice:price,
+      basePITI:s.piti,baseCash:s.cashToClose,baseRate:s.rate,
+      gap:piti-inp.target,used:negRoom+deployable,unused,buydown:conc?conc.buydown:0,costs:conc?conc.costs:0,reduction:negRoom,concTotal:deployable,rateReduction:conc?conc.rateReduction:0,
+      financing: conc ? financingCostAt(s.loanAmount, rate, horizon, s.miCostHorizon, s.financedFee) : s.totalCostHorizon});
   }
   if(pathKey==='concession'){
     const s = baseS;
-    const deployable = Math.min(negRoom, s.concLimit), unused = negRoom - deployable;
-    const opt = smartSplit(s, inp, deployable);
+    const requested = negRoom + sc;
+    const deployable = Math.min(requested, s.concLimit), unused = requested - deployable;
+    // Cover closing costs first, then buy down the rate with the remainder — no
+    // concession left unused (the "lowest cash + lowest payment" deployment).
+    const opt = optimalConcAlloc(s, deployable);
     const conc = Engine.applyConcession(s, inp, A_CONST, opt.buydown, opt.costs);
     if(conc.newCash>inp.funds+0.5 || (conc.newPITI+inp.debts)/inp.income*100>s.ratios.back+0.05) return null;
     const financing = financingCostAt(s.loanAmount, conc.newRate, horizon, s.miCostHorizon, s.financedFee);
     return mkOutcome({id:s.id,dp:s.dp,name:s.name,mipLife:s.mipLife,cancelMonth:s.cancelMonth,monthlyMI:s.monthlyMI,
       concLimit:s.concLimit,concLimitPct:s.concLimitPct,price:inp.price,rate:conc.newRate,pi:conc.newPI,piti:conc.newPITI,
       cashToClose:conc.newCash,cashRemaining:inp.funds-conc.newCash,maxPrice:inp.price,
-      gap:conc.newPITI-inp.target,used:deployable,unused,buydown:opt.buydown,financing});
+      basePITI:s.piti,baseCash:s.cashToClose,baseRate:s.rate,
+      gap:conc.newPITI-inp.target,used:deployable,unused,buydown:opt.buydown,costs:opt.costs,reduction:0,concTotal:deployable,rateReduction:conc.rateReduction,financing});
   }
   if(pathKey==='split'){
     const half=negRoom/2, price=inp.price-half; if(price<=0) return null;
     const s = Engine.computeScenario(Object.assign({},inp,{price}), A_CONST, Engine.PROGRAMS[baseS.id], {dp:baseS.dp,name:baseS.name}, price);
     const limit = s.id==='fha'?A_CONST.fhaLimit:(s.id==='conv'?A_CONST.confLimit:Infinity);
     if(s.baseLoan>limit+0.5) return null;
-    const deployable = Math.min(half, s.concLimit), unused = half - deployable;
-    const opt = smartSplit(s, inp, deployable);
+    const requested = half + sc;
+    const deployable = Math.min(requested, s.concLimit), unused = requested - deployable;
+    // Concession portion covers closing costs first, then buys down the rate.
+    const opt = optimalConcAlloc(s, deployable);
     const conc = Engine.applyConcession(s, inp, A_CONST, opt.buydown, opt.costs);
     if(conc.newCash>inp.funds+0.5 || (conc.newPITI+inp.debts)/inp.income*100>s.ratios.back+0.05) return null;
     const financing = financingCostAt(s.loanAmount, conc.newRate, horizon, s.miCostHorizon, s.financedFee);
     return mkOutcome({id:s.id,dp:s.dp,name:s.name,mipLife:s.mipLife,cancelMonth:s.cancelMonth,monthlyMI:s.monthlyMI,
       concLimit:s.concLimit,concLimitPct:s.concLimitPct,price,rate:conc.newRate,pi:conc.newPI,piti:conc.newPITI,
       cashToClose:conc.newCash,cashRemaining:inp.funds-conc.newCash,maxPrice:price,
-      gap:conc.newPITI-inp.target,used:half+deployable,unused,buydown:opt.buydown,financing});
+      basePITI:s.piti,baseCash:s.cashToClose,baseRate:s.rate,
+      gap:conc.newPITI-inp.target,used:half+deployable,unused,buydown:opt.buydown,costs:opt.costs,reduction:half,concTotal:deployable,rateReduction:conc.rateReduction,financing});
   }
   return null;
 }
-// Pick the winning loan outcome for a path: existing hierarchy/priority + unused tiebreak.
+// Pick the winning outcome — buyer priority first, in every mode including Compare.
+// Matches the Gap Solver's priority-first logic: cash → lowest net cash to close,
+// payment → lowest PITI, balanced / power → lowest financing cost over the hold.
+// Each priority carries secondary tiebreakers (with small tolerances) so that when
+// the primary metric ties, the strictly-better outcome wins; a final tiebreak prefers
+// deploying more of the adjustment.
 function pickPathWinner(outs, inp){
   if(!outs.length) return null;
-  let winner = priorityScenario(outs, inp);
-  const near = outs.filter(o=>o!==winner
-    && Math.abs(o.piti-winner.piti)<=50 && Math.abs(o.cashToClose-winner.cashToClose)<=2000
-    && Math.abs(o.totalCostHorizon-winner.totalCostHorizon)<=2500 && o.unused < winner.unused-1);
-  if(near.length){ near.sort((a,b)=>a.unused-b.unused); winner=near[0]; }
-  return winner;
+  // Cash priority: a cash-to-close advantage only decides the winner when it exceeds
+  // $1,500 — below that, financing cost over the hold breaks the tie (a $700 cash edge
+  // must never override a $6,000 financing-cost edge).
+  const seq = ({
+    cash:    [['cashToClose',1500],['totalCostHorizon',100],['piti',1]],
+    payment: [['piti',1],['cashToClose',2],['totalCostHorizon',100]],
+    balanced:[['totalCostHorizon',100],['piti',1],['cashToClose',2]],
+    power:   [['totalCostHorizon',100],['piti',1],['cashToClose',2]]
+  })[inp.priority] || [['totalCostHorizon',100],['piti',1],['cashToClose',2]];
+  const rank = {concession:0, split:1, reduction:2};
+  return outs.slice().sort((a,b)=>{
+    for(const [k,eps] of seq){ const d=a[k]-b[k]; if(Math.abs(d)>eps) return d; }
+    const u=(a.unused||0)-(b.unused||0); if(u) return u;
+    // true tie (e.g. no price gap → all paths identical): prefer the concession framing
+    const ra=(rank[a._pathKey]!=null?rank[a._pathKey]:9), rb=(rank[b._pathKey]!=null?rank[b._pathKey]:9);
+    return ra-rb;
+  })[0];
 }
 function analyzeNegotiation(inp, res){
-  if(inp.shopping || inp.price<=0 || inp.negotiatingRoom<=0) return null;
+  const sc = Math.max(0, inp.sellerConcession||0);
+  if(inp.shopping || inp.price<=0 || (inp.negotiatingRoom<=0 && sc<=0)) return null;
   const room = inp.negotiatingRoom;
   const baseAtPrice = eligibleAt(inp, inp.price);
   const baseAtReduced = eligibleAt(inp, inp.price - room);
@@ -1609,15 +1704,25 @@ function negotiationPanelHTML(inp, neg){
     hl='<div class="neg-headline unlock">🟢 Switching to '+H.winner.name+' unlocks an additional '+money(H.unlocked)+' of the requested adjustment.'
       +'<span class="sub">'+H.winner.name+' allows the full '+money(H.room)+' as a concession. '+H.alt.name+' caps at '+money(H.alt.concLimit)+' — '+money(H.alt.unused)+' goes unused. '+H.winner.name+' also produces a lower payment over this buyer’s planned stay.</span></div>';
   } else if(H.type==='reduction'){
-    hl='<div class="neg-headline flip">⚠️ Price reduction wins on a '+H.stayYears+'-year hold.'
-      +'<span class="sub">'+(H.conc?'The concession path deploys the full adjustment, but '+H.red.name+' with a price reduction costs '+money(Math.abs(H.costLess))+' less in total financing cost over '+H.stayYears+' years.':H.red.name+' with a price reduction is the lowest-cost structure over '+H.stayYears+' years.')+'</span></div>';
+    const redPrice = money(H.red.price);
+    if(H.conc){
+      const concPrice = money(H.conc.price);
+      const cut = money(Math.max(0, Math.round(H.conc.price - H.red.price)));
+      hl='<div class="neg-headline flip">⚠️ Take the '+cut+' as a price cut, not a seller credit.'
+        +'<span class="sub">Both do the same thing on paper — but a seller credit keeps the price at '+concPrice+' and just helps with closing costs, while a price cut lowers the price to '+redPrice+' and shrinks the loan. The smaller loan saves the buyer about '+money(Math.abs(H.costLess))+' in interest and mortgage insurance over '+H.stayYears+' years.</span></div>';
+    } else {
+      hl='<div class="neg-headline flip">⚠️ A price cut to '+redPrice+' is the lowest-cost way to structure this over '+H.stayYears+' years.'
+        +'<span class="sub">Lowering the price shrinks the loan, so the buyer pays less in interest and mortgage insurance over the years they plan to keep the home.</span></div>';
+    }
   } else if(H.type==='split'){
     hl='<div class="neg-headline allfit">◑ Split the '+money(H.room)+' evenly — '+money(H.room/2)+' price reduction + '+money(H.room/2)+' concession via '+H.win.name+' gives the best balance of payment, cash, and financing cost.</div>';
   } else if(H.type==='allfit'){
     hl='<div class="neg-headline allfit">✓ The full '+money(H.amount)+' fits within allowable limits on all eligible programs — full adjustment can be structured as a seller concession.</div>';
   }
-  // ---- three-column comparison table ----
-  const cols=[['reduction','Price Reduction'],['concession','Seller Concession'],['split','Split ('+money(neg.room/2)+' / '+money(neg.room/2)+')']];
+  // ---- comparison table: all three columns ONLY in Compare mode; a single
+  // column for the selected path otherwise (Fix 1). ----
+  const allCols=[['reduction','Price Reduction'],['concession','Seller Concession'],['split','Split ('+money(neg.room/2)+' / '+money(neg.room/2)+')']];
+  const cols = (inp.negotiationMode==='compare') ? allCols : allCols.filter(c=>c[0]===rec);
   const gapTxt=o=>{ const c=o.gap<=0.5?'gap-ok':(o.gap<=100?'gap-amber':'gap-red'); return '<span class="'+c+'">'+(o.gap>0?'+':'')+money(o.gap)+'/mo</span>'; };
   let t='<table class="neg-tbl"><thead><tr><th></th>'+cols.map(c=>'<th'+(c[0]===rec?' class="win"':'')+'>'+c[1]+(c[0]===rec?' ★':'')+'</th>').join('')+'</tr></thead><tbody>';
   const row=(label,fn)=>{ t+='<tr><td>'+label+'</td>'+cols.map(c=>{ const o=P[c[0]]; return '<td'+(c[0]===rec?' class="win"':'')+'>'+(o?fn(o):'—')+'</td>'; }).join('')+'</tr>'; };
@@ -1632,25 +1737,42 @@ function negotiationPanelHTML(inp, neg){
   t+='<tr class="unused"><td>Unused adjustment</td>'+cols.map(c=>{ const o=P[c[0]]; if(!o) return '<td'+(c[0]===rec?' class="win"':'')+'>—</td>'; const cls=(o.unused>1?'pos':'zero'); return '<td class="'+cls+(c[0]===rec?' win':'')+'">'+money(o.unused)+'</td>'; }).join('')+'</tr>';
   row('Financing cost over stay', o=>money(o.totalCostHorizon));
   t+='</tbody></table>';
-  // ---- winner sentence referencing the deciding factor ----
-  const others=['reduction','concession','split'].filter(k=>k!==rec).map(k=>P[k]).filter(Boolean);
-  const alt = others.length ? pickPathWinner(others, inp) : null;
-  const bits=[];
-  if(alt){
-    const dP=alt.piti-recO.piti, dC=alt.cashToClose-recO.cashToClose, dF=alt.totalCostHorizon-recO.totalCostHorizon;
-    if(Math.abs(dP)>=5) bits.push(money(Math.abs(dP))+'/mo '+(dP>0?'lower':'higher')+' payment');
-    if(Math.abs(dC)>=100) bits.push(money(Math.abs(dC))+' '+(dC>0?'lower':'higher')+' cash to close');
-    if(recO.unused<=1) bits.push('$0 unused adjustment');
-    if(Math.abs(dF)>=500) bits.push(money(Math.abs(dF))+' '+(dF>0?'lower':'higher')+' financing cost over '+inp.stayYears+' years');
-  } else {
-    if(recO.unused<=1) bits.push('$0 unused adjustment');
-  }
-  const lead = forced ? 'Selected' : 'Recommended';
-  let sentence=lead+': '+PATH_NAME[rec]+' via '+FAM_NAME[recO.id]+(bits.length?' — '+bits.join(', '):'')+'.';
+  // ---- actionable offer sentence: what to write, then the buyer benefit ----
+  let sentence = offerActionSentence(inp, neg, rec, recO, H);
   if(forced && neg.recommendedPathKey && neg.recommendedPathKey!==rec){
     sentence += ' <span style="font-weight:600;color:var(--sub)">(Engine’s pick: '+PATH_NAME[neg.recommendedPathKey]+'.)</span>';
   }
   return '<div class="neg-panel">'+hl+t+'<div class="neg-rec">'+sentence+'</div></div>';
+}
+/* Actionable recommendation: leads with the exact offer structure the Realtor
+   writes, then the buyer benefit. No scoring language, no loan-tier suffix, no
+   mention of unused adjustment unless a loan-type switch is the deciding factor. */
+function offerActionSentence(inp, neg, rec, recO, H){
+  const offerAmt = money(recO.price);   // price to write (concession keeps list; reduction/split lower it)
+  // Loan-type switch is the deciding factor — name the program. Only when the
+  // winner and the capped alternative are DIFFERENT loan types (FHA vs conv);
+  // a tier difference within the same family isn't a type switch.
+  if(H && H.type==='unlock' && H.winner && H.alt && H.winner.id!==H.alt.id){
+    return 'Offer '+money(H.winner.price)+' with a '+money(H.winner.concTotal)+' seller concession via '+FAM_NAME[H.winner.id]
+      +' — '+FAM_NAME[H.winner.id]+' absorbs the full concession where '+FAM_NAME[H.alt.id]+' caps at '+money(H.alt.concLimit)+'.';
+  }
+  if(rec==='reduction'){
+    const cw=neg.paths.concession;
+    const saved = cw ? (cw.totalCostHorizon - recO.totalCostHorizon) : 0;
+    return 'Offer '+offerAmt+' — the lower price shrinks the loan'
+      + (saved>0 ? ', saving the buyer about '+money(saved)+' in interest and mortgage insurance over '+inp.stayYears+' years vs. taking it as a seller credit.'
+                 : ' and is the lowest-cost way to structure this over '+inp.stayYears+' years.');
+  }
+  // concession (or split — recO.price already reflects any price reduction)
+  if((recO.buydown||0)>0){
+    return 'Offer '+offerAmt+' with a '+money(recO.concTotal)+' seller concession applied to a rate buydown'
+      + ' — payment drops from '+money(recO.basePITI)+'/mo to '+money(recO.piti)+'/mo.';
+  }
+  // Applied to closing costs: a credit can't exceed actual closing costs, so state
+  // the amount that actually reduces cash (= the drop) rather than the full ask.
+  const drop = Math.max(0, recO.baseCash - recO.cashToClose);
+  return 'Offer '+offerAmt+' with a '+money(drop)+' seller concession applied to closing costs'
+    + ' — cash to close drops from '+money(recO.baseCash)+' to '+money(recO.cashToClose)+'.';
 }
 
 /* =====================================================================
@@ -1669,6 +1791,13 @@ function renderCards(inp, res){
     // recommended family (priority-aware) leads with the ★ badge; the rest follow.
     const cards = Engine.programCards(viable, res.eliminated, inp);
     topCount = cards.length;
+    // Attach each card's comparison scenario for the conversation guide: the
+    // recommended card is explained against the strongest runner-up program; every
+    // other card is explained against the recommended program.
+    const recCard = cards.find(c=>c.recommended) || cards[0];
+    const others = cards.filter(c=>c!==recCard);
+    const runnerS = others.length ? Engine.pickBestOverall(others.map(c=>c.s), inp) : null;
+    cards.forEach(c=>{ c.altS = c.recommended ? runnerS : (recCard ? recCard.s : null); });
     html += cards.map(c=>familyCardHTML(c, inp, best)).join('');
   } else {
     html += '<div class="noviable" style="grid-column:1/-1">No scenario matches the '+dpLabel(inp)+' down-payment target — the options below are dimmed for reference.</div>';
@@ -1730,20 +1859,42 @@ function bestPathForScenario(baseScenario, inp){
     if(o){ o._pathKey=k; outs.push(o); }
   });
   if(!outs.length) return null;
-  if(inp.negotiationMode && inp.negotiationMode!=='compare'){
-    const forced = outs.find(o=>o._pathKey===inp.negotiationMode);
-    if(forced) return forced;
+  // Follow the APPLIED path so every card describes the same strategy as the
+  // recommendation sentence and the negotiation panel. In a forced mode that's the
+  // forced path; in Compare mode it's the priority-based recommended path
+  // (inp.appliedPath). Only fall back to this scenario's own priority winner when the
+  // recommended path isn't viable for this particular program.
+  const wantPath = (inp.negotiationMode && inp.negotiationMode!=='compare')
+    ? inp.negotiationMode
+    : inp.appliedPath;
+  if(wantPath){
+    const chosen = outs.find(o=>o._pathKey===wantPath);
+    if(chosen) return chosen;
   }
   return pickPathWinner(outs, inp);
 }
 
-// One program-family card. Headline shows the base (list-price) scenario; when
-// Offer Strategy is active a separate line shows this program's best offer path.
+// One program-family card. When an Offer Strategy is active (a requested
+// adjustment is entered and this program has a viable path), the concession IS
+// the recommendation — so the primary metrics lead with the POST-concession
+// figures, each carrying a small "before" sub-label, and a single note at the
+// bottom states what was applied. With no offer strategy, the base scenario shows.
 function familyCardHTML(c, inp, best){
   const s=c.s; if(!s) return '<div class="scard dim">—</div>';
-  const gap = s.piti - inp.target;
+  // This program's best offer path (null when Offer Strategy is inactive).
+  const bp = bestPathForScenario(s, inp);
+  const post = !!bp;                       // show post-concession numbers as primary
+  const dPITI    = post ? bp.piti          : s.piti;
+  const dRate    = post ? bp.rate          : s.rate;
+  const dCash    = post ? bp.cashToClose   : s.cashToClose;
+  const dCashRem = post ? bp.cashRemaining : s.cashRemaining;
+  const buydown  = post ? (bp.buydown||0)  : 0;
+
+  const gap = dPITI - inp.target;
   const gapCls = gap<=0.5?'gap-ok':(gap<=100?'gap-amber':'gap-red');
   const gapTxt = (gap>0?'+':'')+money(gap)+'/mo '+(gap<=0.5?'under target ✓':'over target');
+  const subPrefix = (bp && bp._pathKey==='concession') ? 'before concession' : 'before offer';
+  const mini = t => '<div class="sub-mini">'+t+'</div>';
 
   let h='<div class="scard'+(c.recommended?' primary':'')+'">';
   if(c.recommended) h+='<div class="badge">★ Start here</div>';
@@ -1751,49 +1902,111 @@ function familyCardHTML(c, inp, best){
   h+='<div class="prog">'+FAMILY_LABEL[s.id]+(s.lowScore?' · 500–579 score tier':'')+'</div>';
   if(c.note) h+='<div class="cnote">'+c.note+'</div>';
   h+='<div class="price">'+(inp.shopping?'Shopping range up to <b>'+money(s.maxPrice)+'</b>':'Price <b>'+money(s.price)+'</b>')+'</div>';
-  h+='<div class="piti">'+money(s.piti)+'<span style="font-size:11px;font-weight:600;color:var(--sub)">/mo PITI</span></div>';
+  h+='<div class="piti">'+money(dPITI)+'<span style="font-size:11px;font-weight:600;color:var(--sub)">/mo PITI</span></div>';
+  if(post && Math.abs(dPITI - s.piti) >= 1) h+='<div class="premini">'+subPrefix+': '+money(s.piti)+'/mo</div>';
   h+='<div class="gaprow '+gapCls+'">'+gapTxt+'</div>';
 
   h+='<div class="metrics">';
-  h+='<div class="k">Rate</div><div class="v">'+s.rate.toFixed(3)+'%</div>';
-  h+='<div class="k">Cash to close</div><div class="v">'+money(s.cashToClose)+'</div>';
-  h+='<div class="k">Cash remaining</div><div class="v '+(s.cashRemaining<0?'gap-red':'')+'">'+money(s.cashRemaining)+'</div>';
+  // Rate — post-buydown primary with the original as a sub-label when bought down.
+  h+='<div class="k">Rate</div><div class="v">'+dRate.toFixed(3)+'%'+((post && buydown>0 && Math.abs(dRate-s.rate)>=0.001)?mini('from '+s.rate.toFixed(3)+'%'):'')+'</div>';
+  // Cash to close — post-concession primary with the pre-concession as a sub-label.
+  h+='<div class="k">Cash to close</div><div class="v">'+money(dCash)+((post && Math.abs(dCash-s.cashToClose)>=1)?mini(subPrefix+': '+money(s.cashToClose)):'')+'</div>';
+  // Cash remaining — post-concession.
+  h+='<div class="k">Cash remaining</div><div class="v '+(dCashRem<0?'gap-red':'')+'">'+money(dCashRem)+((post && Math.abs(dCashRem-s.cashRemaining)>=1)?mini(subPrefix+': '+money(s.cashRemaining)):'')+'</div>';
   if(s.monthlyMI>0){
     let mi = s.miMode==='fha' ? (s.mipLife?'life of loan':'drops mo '+s.mipDropMonth) : (s.cancelMonth?'drops mo '+s.cancelMonth:'—');
     h+='<div class="k">MI ('+money(s.monthlyMI)+')</div><div class="v" style="font-size:11px">'+mi+'</div>';
   } else {
     h+='<div class="k">Monthly MI</div><div class="v">none</div>';
   }
-  h+='<div class="k">Financing cost / '+inp.stayYears+'y</div><div class="v">'+money(s.totalCostHorizon)+'</div>';
+  h+='<div class="k">Financing cost / '+inp.stayYears+'y</div><div class="v">'+money(post?bp.totalCostHorizon:s.totalCostHorizon)+'</div>';
   h+='</div>';
-  if(s.cashRemaining < 1000) h+='<div class="reservewarn">⚠ Reserves below $1,000 after closing</div>';
+  if(dCashRem < 1000) h+='<div class="reservewarn">⚠ Reserves below $1,000 after closing</div>';
 
-  h+='<div class="guide"><span class="lb">Conversation guide</span>'+familyGuide(c, inp, best)+'</div>';
+  h+='<div class="guide"><span class="lb">Conversation guide</span>'+familyGuide(c, inp)+'</div>';
   h+='<div class="trade"><span class="lb">Tradeoff</span>'+familyTrade(s, inp)+'</div>';
 
-  // Per-program offer strategy: this family's best path + resulting PITI / cash.
-  const bp = bestPathForScenario(s, inp);
-  if(bp){
-    const plabel = {reduction:'Price reduction', concession:'Seller concession', split:'Split evenly'}[bp._pathKey] || 'Offer';
-    h+='<div class="offerpath"><span class="lb">Offer strategy</span>'+plabel+' → <b>'+money(bp.piti)+'</b>/mo · cash to close <b>'+money(bp.cashToClose)+'</b></div>';
-  }
+  // Single note stating what the recommended offer path applied (replaces the old
+  // "Offer strategy" line — those figures now lead the card).
+  if(bp) h+='<div class="concnote">'+offerNoteText(bp)+'</div>';
+
   h+='</div>';
   return h;
 }
+// Allocation phrase for a concession: buydown, closing costs, or both.
+function allocLabel(bp){
+  // Only call it a buydown when it actually moved the rate (a tiny overflow buydown
+  // that yields no rate reduction shouldn't be advertised as a buydown).
+  const b = (bp.buydown||0)>0 && (bp.rateReduction||0)>0, c = (bp.costs||0)>0;
+  if(b && c) return 'a rate buydown and closing costs';
+  if(b) return 'a rate buydown';
+  if(c) return 'closing costs';
+  return 'the offer';
+}
+// Bottom-of-card note describing what the recommended offer path applied.
+function offerNoteText(bp){
+  if(bp._pathKey==='reduction')
+    return '↓ Includes a '+money(bp.reduction)+' price reduction (offer below list).';
+  if(bp._pathKey==='split')
+    return '↓ Includes a '+money(bp.reduction)+' price reduction + '+money(bp.concTotal)+' seller concession applied to '+allocLabel(bp)+'.';
+  return '↓ Includes '+money(bp.concTotal)+' seller concession applied to '+allocLabel(bp)+'.';
+}
 
-// One sentence on why this program suits (or doesn't suit) this buyer.
-function familyGuide(c, inp, best){
-  const s=c.s;
-  if(s.id==='va')
-    return 'For a VA-eligible buyer this is usually the move — no down payment and no monthly mortgage insurance keep both the payment and cash to close low.';
-  if(s.id==='fha')
-    return s.lowScore
-      ? 'FHA is the realistic path at a 500–579 score — it qualifies where conventional can\'t, in exchange for 10% down and mortgage insurance that stays on the loan.'
-      : 'FHA earns its place when credit or DTI is tight — more forgiving to qualify, with the tradeoff that its mortgage insurance is harder to shed than conventional PMI.';
-  // conventional
-  return inp.fthb
-    ? 'Conventional at a low down payment keeps mortgage insurance cancellable — it drops off at 20% equity, unlike FHA — making it the strongest long-term structure when credit supports it.'
-    : 'Conventional keeps mortgage insurance cancellable and gone at 20% equity — the cleanest long-term structure when credit and cash support it.';
+// Conversation guide: states the SPECIFIC reason this program was recommended over
+// the alternative (or, on a non-recommended card, the specific tradeoff vs. the
+// recommended program). Mirrors the pickBestOverall tiebreaker: cash → financing
+// → simplicity. Never generic ("cleanest long-term structure") — always a number.
+function familyGuide(c, inp){
+  const s=c.s, alt=c.altS, stay=inp.stayYears;
+  // VA winner — its own clear story.
+  if(s.id==='va' && c.recommended)
+    return 'VA requires no down payment and no monthly MI — lowest cash to close and lowest total financing cost of any eligible program.';
+  if(!alt) return soloGuide(s);
+  const F=FAMILY_LABEL[s.id], A=FAMILY_LABEL[alt.id];
+  const dCash=s.cashToClose-alt.cashToClose;      // >0: this program needs more cash
+  const dFin =s.totalCostHorizon-alt.totalCostHorizon;
+  const dPay =s.piti-alt.piti;
+  const samePay=Math.abs(dPay)<=50;
+
+  if(c.recommended){
+    // This program WON. Explain the deciding axis where it beats the runner-up.
+    if(samePay && dCash < -2000)
+      return F+' produces '+money(-dCash)+' lower cash to close than '+A+' for the same payment — the right call when funds are the constraint.';
+    if(dFin < -2500){
+      const pmi=(s.id==='conv'&&s.cancelMonth)?' once PMI cancels at month '+s.cancelMonth:'';
+      return F+' costs '+money(-dFin)+' less in total financing over '+stay+' years'+pmi+' — worth the higher upfront cash at this hold length.';
+    }
+    if(dPay < -50){
+      const cashBit = dCash<-2000?' and '+money(-dCash)+' less cash to close':'';
+      return F+' delivers the lowest monthly payment of the eligible programs — '+money(-dPay)+'/mo under '+A+cashBit+'.';
+    }
+    if(dCash < -2000)
+      return F+' produces '+money(-dCash)+' lower cash to close than '+A+' at a comparable payment — the right call when funds are the constraint.';
+    // payment, cash AND financing all near-equal → simplicity
+    if(s.id==='conv' && alt.id==='fha')
+      return 'Payments and cash are nearly identical — Conventional wins because PMI cancels'+(s.cancelMonth?' at month '+s.cancelMonth:' at 20% equity')+' where FHA MIP runs for the life of the loan.';
+    return 'Payments, cash, and financing cost are nearly identical — '+F+' is the simpler structure at this hold length.';
+  }
+  // Non-recommended card — the specific tradeoff vs. the recommended program.
+  if(dCash > 2000)
+    return F+' needs '+money(dCash)+' more cash to close than the recommended '+A+(samePay?' for the same payment':'')+'.';
+  if(dFin > 2500){
+    const why=(s.id==='fha'&&s.mipLife)?' — its MIP never cancels':'';
+    return F+' costs '+money(dFin)+' more in total financing over '+stay+' years than the recommended '+A+why+'.';
+  }
+  if(dCash < -2000)
+    return F+' has '+money(-dCash)+' lower cash to close, but '+A+' was recommended on payment and long-term cost.';
+  if(s.id==='fha' && s.mipLife)
+    return 'Comparable to the recommended '+A+' on payment and cash, but FHA MIP runs for the life of the loan.';
+  return 'Comparable to the recommended '+A+' on payment and cash — '+A+' edges it on total cost at this hold length.';
+}
+// Single-program fallback when no alternative exists to compare against.
+function soloGuide(s){
+  if(s.id==='va') return 'VA requires no down payment and no monthly MI — the lowest cash to close and financing cost available.';
+  if(s.id==='fha') return s.mipLife
+    ? 'FHA qualifies where conventional can’t, but its MIP runs for the life of the loan at this down payment.'
+    : 'FHA qualifies where conventional can’t; refinancing is the usual path to drop MIP.';
+  return 'Conventional’s PMI cancels'+(s.cancelMonth?' at about month '+s.cancelMonth:' at 20% equity')+', unlike FHA MIP which can run for the life of the loan.';
 }
 // One sentence on what the buyer gives up with this program.
 function familyTrade(s, inp){
@@ -1809,13 +2022,48 @@ function cap(t){ return t.charAt(0).toUpperCase()+t.slice(1); }
 /* =====================================================================
    SECTION 3 — GAP SOLVER
    ===================================================================== */
+// True when a specific concession-only offer is on the table (offer below list,
+// "Seller concession only" mode). The Gap Solver then reflects the POST-concession
+// reality of that offer rather than the base list-price scenario.
+function offerActive(inp){
+  return !inp.shopping && inp.negotiationMode==='concession' && ((inp.negotiatingRoom||0)>0 || (inp.sellerConcession||0)>0);
+}
+// Apply the requested adjustment + seller concession (per buyer priority) to the
+// reference scenario at list price. Returns the concession result + deployed amount.
+function offerConc(inp, ref){
+  const requested = (inp.negotiatingRoom||0) + Math.max(0,(inp.sellerConcession||0));
+  const deployable = Math.min(requested, ref.concLimit);
+  const alloc = priorityAlloc(inp, deployable);
+  const conc = Engine.applyConcession(ref, inp, A_CONST, alloc.buydown, alloc.costs);
+  return { conc, deployable, alloc };
+}
+// Reference scenario at list price, ignoring the cash-to-close viability filter.
+// Needed for the active-offer "cash is short" case: at list the buyer may be
+// cash-eliminated, yet the whole point of the concession is to resolve that — so we
+// recompute with the funds constraint relaxed to surface the base scenario.
+function refAtListIgnoringCash(inp){
+  const fat = Object.assign({}, inp, {funds: 1e12, ownFunds: 1e12});
+  const r2 = Engine.run(fat, A_CONST);
+  if(!r2.scenarios.length) return null;
+  // Cash is the binding constraint here, so reference the most accessible entry
+  // point — the lowest cash-to-close option — not the highest-down program.
+  return r2.scenarios.slice().sort((a,b)=>a.cashToClose-b.cashToClose)[0];
+}
 function renderGapSolver(inp, res){
   const viable=res.scenarios.slice();
   // Gap Solver runs against the scenario the buyer priority points at.
-  const ref = viable.length?priorityScenario(viable,inp):null;
-  // status subtitles + flags
-  const payGap = ref ? ref.piti-inp.target : 0;
-  const cashShort = viable.some(s=>s.cashToClose>inp.funds+0.5) || res.eliminated.some(e=>/short/i.test(e.reason));
+  const active0 = offerActive(inp);
+  let ref = viable.length ? priorityScenario(viable,inp) : null;
+  // Active concession offer with everyone cash-eliminated at list → build a reference
+  // anyway, since the concession is what makes the deal work.
+  if(!ref && active0) ref = refAtListIgnoringCash(inp);
+  // When a concession-only offer is active, the reference is that scenario POST-concession.
+  const active = !!(ref && active0);
+  const oc = active ? offerConc(inp, ref) : null;
+  // status subtitles + flags (reflect the post-concession reference when active)
+  const payGap = ref ? ((active?oc.conc.newPITI:ref.piti) - inp.target) : 0;
+  const cashShort = active ? (oc.conc.newCash > inp.funds+0.5)
+                           : (viable.some(s=>s.cashToClose>inp.funds+0.5) || res.eliminated.some(e=>/short/i.test(e.reason)));
   const dtiHit = viable.some(s=>s.back>s.ratios.back||s.front>s.ratios.front) || res.eliminated.some(e=>/DTI|ratio/i.test(e.reason));
   $('stPay').textContent = ref ? (payGap>0.5?'gap '+money(payGap)+'/mo':'at/under target ✓') : '—';
   $('stCash').textContent = cashShort ? 'shortfall present' : 'covered ✓';
@@ -1829,9 +2077,47 @@ function renderGapSolver(inp, res){
   const panel=$('gsPanel');
   if(!ref){ panel.innerHTML='<div class="gs-none">No eligible scenario yet — resolve Section 1 eliminations first.</div>'; return; }
 
-  if(gapSel==='pay')  panel.innerHTML = gsPayment(inp, res, ref);
-  else if(gapSel==='cash') panel.innerHTML = gsCash(inp, res, viable);
+  if(gapSel==='pay')  panel.innerHTML = active ? gsPaymentOffer(inp, ref, oc) : gsPayment(inp, res, ref);
+  else if(gapSel==='cash') panel.innerHTML = active ? gsCashOffer(inp, ref, oc) : gsCash(inp, res, viable);
   else panel.innerHTML = gsDti(inp, res, viable, ref);
+}
+/* ---- PAYMENT TAB — active concession offer ----
+   Reference PITI = post-concession PITI at list price. Comparison: (a) list price +
+   the concession as entered vs (b) the offer price as a price reduction only. */
+function gsPaymentOffer(inp, best, oc){
+  const conc=oc.conc, postPITI=conc.newPITI, gap=postPITI-inp.target;
+  const toBuydown=(conc.buydown||0)>0 && (conc.rateReduction||0)>0;
+  const concLabel=money(oc.deployable)+' seller concession';
+  let h='<h4>Payment vs. target — reference: '+best.name+' at list '+money(inp.price)+' with the '+concLabel+'</h4>';
+  if(gap<=0.5){
+    h+='<div class="gs-none">✓ With the '+concLabel+' applied '+(toBuydown?'to a rate buydown':'to closing costs')+', '+best.name+' lands at '+money(postPITI)+'/mo — at or under the '+money(inp.target)+' comfort target.</div>';
+  } else {
+    h+=sol('•','With the '+concLabel+' applied '+(toBuydown?'to a rate buydown':'to closing costs (payment unchanged)')+', the payment is <b>'+money(postPITI)+'/mo</b> — still <b class="num" style="color:var(--red)">'+money(gap)+'/mo</b> over the '+money(inp.target)+' target.', false);
+  }
+  h+=concessionVsPrice(inp, best, gap, {conc, reductionPrice:inp.offerPrice, concPrice:inp.price});
+  return h;
+}
+/* ---- CASH TAB — active concession offer ----
+   Reference cash to close = post-concession cash. States whether the concession as
+   entered resolves the shortfall, and the remaining gap if not. */
+function gsCashOffer(inp, best, oc){
+  const conc=oc.conc, postCash=conc.newCash, pre=best.cashToClose;
+  const short0=pre-inp.funds, postShort=postCash-inp.funds;
+  const toCosts=(conc.costsAlloc||0)>0;
+  let h='<h4>Cash to close — reference: '+best.name+' at list '+money(inp.price)+', available funds '+money(inp.funds)+'</h4>';
+  h+=sol('•','Cash to close before the concession: <b>'+money(pre)+'</b>'+(short0>0.5?' — short by <b class="num" style="color:var(--red)">'+money(short0)+'</b>':' — already covered')+'.');
+  if(postShort<=0.5){
+    if(toCosts)
+      h+=sol('✓','The '+money(oc.deployable)+' seller concession applied to closing costs brings net cash to close to <b>'+money(postCash)+'</b> — within the buyer’s '+money(inp.funds)+', leaving '+money(inp.funds-postCash)+' in reserve.', true);
+    else
+      h+=sol('✓','Cash to close is within the buyer’s '+money(inp.funds)+' at <b>'+money(postCash)+'</b> — per the buyer priority the concession is applied to a rate buydown, not to cash.', true);
+  } else if(toCosts){
+    h+=sol('①','The '+money(oc.deployable)+' concession applied to closing costs cuts net cash to <b>'+money(postCash)+'</b> — still short by <b class="num" style="color:var(--red)">'+money(postShort)+'</b>. Close the remainder with a gift or additional funds.', false);
+  } else {
+    h+=sol('①','Per the buyer priority the concession is applied to a rate buydown, so it does not reduce cash to close — net cash stays at <b>'+money(postCash)+'</b>, short by <b class="num" style="color:var(--red)">'+money(postShort)+'</b>. Reallocate the concession to closing costs (up to '+money(best.closing)+') to cut cash dollar-for-dollar.', false);
+  }
+  if(inp.fthb && inp.score>=640) h+=sol('②','FTHB + credit '+inp.score+': check Hometown Heroes / DPA — down-payment assistance can close the remaining cash gap directly.');
+  return h;
 }
 
 /* ---- PAYMENT TOO HIGH ---- */
@@ -1851,8 +2137,22 @@ function gsPayment(inp, res, best){
     if(!need.capped) h+=sol('②','Break-even on that buydown: <b>month '+need.breakeven+'</b> vs. a planned stay of '+(inp.stayYears*12)+' months'+(need.breakeven>inp.stayYears*12?' — <span class="num" style="color:var(--red)">break-even exceeds the stay; a price cut is likely better</span>':' — recovered well inside the hold ✓')+'.');
     if(need.over) h+=sol('⚠','The '+money(need.dollars)+' needed exceeds the '+money(best.concLimit)+' allowable max for '+best.name+' ('+best.concLimitPct+'%) — cap the ask and combine with another lever.', false);
   }
-  // alternative program with naturally lower payment
-  const alt = res.scenarios.filter(s=>s.id!==best.id && s.piti<best.piti).sort((a,b)=>a.piti-b.piti)[0];
+  // Alternative program with a naturally lower payment — respecting the same cash-
+  // preservation rule as pickBestOverall(): a higher down-payment tier (e.g. Conv 10%
+  // / 20%) is only surfaced when priority is 'payment' AND the extra down is recovered
+  // within 36 months of the payment saving. For cash / balanced, never suggest one.
+  let altCands = res.scenarios.filter(s=>s.id!==best.id && s.piti<best.piti);
+  if(!inp.dpTarget && altCands.length){
+    const lowDp = res.scenarios.reduce((m,s)=>s.dp<m.dp?s:m, res.scenarios[0]);
+    altCands = altCands.filter(s=>{
+      if(s.dp <= lowDp.dp) return true;
+      if(inp.priority !== 'payment') return false;
+      const extraCash = (s.dp - lowDp.dp)/100 * s.price;
+      const paymentSavings = lowDp.piti - s.piti;
+      return paymentSavings > 150 && extraCash/paymentSavings < 36;
+    });
+  }
+  const alt = altCands.sort((a,b)=>a.piti-b.piti)[0];
   if(alt) h+=sol('③','Alternative program: <b>'+alt.name+'</b> runs '+money(best.piti-alt.piti)+'/mo lower at '+money(alt.piti)+'/mo without any concession'+(alt.piti<=inp.target?' — clears the target on its own':'')+'.');
   // price reduction to hit comfort with no concession
   const pr = priceToHitTarget(inp, best);
@@ -1892,37 +2192,66 @@ function priceToHitTarget(inp, s){
   const basePrice = inp.shopping ? s.maxPrice : s.price;
   return { price:Math.max(0,priceForTarget), reduction:Math.max(0, basePrice-priceForTarget) };
 }
-function concessionVsPrice(inp, best, gap){
-  // Concession path. If Doug has entered a concession, apply HIS split verbatim.
-  // If none is entered, illustrate the concession that would close the gap as an
-  // all-to-buydown hypothetical (this does not allocate any entered concession).
+function concessionVsPrice(inp, best, gap, opts){
+  opts = opts || {};
+  const stayM=inp.stayYears*12;
+  // Concession path. Priority: an explicit `opts.conc` (active offer) → Doug's entered
+  // concession → the hypothetical that would close the gap.
   let conc, splitLabel;
-  if(inp.concessionOn && inp.concession>0){
+  if(opts.conc){
+    conc = opts.conc;
+    splitLabel = money(conc.total)+' concession as entered';
+  } else if(inp.concessionOn && inp.concession>0){
     conc = Engine.applyConcession(best, inp, A_CONST, concSplit.buydown, concSplit.costs);
-    splitLabel = (concSplit.auto?'auto split — ':'your split — ')+money(concSplit.buydown)+' buydown / '+money(concSplit.costs)+' costs';
+    splitLabel = (concSplit.auto?'priority default — ':'manual — ')+money(concSplit.buydown)+' buydown / '+money(concSplit.costs)+' costs';
   } else if(gap>0.5){
     const needObj = concessionToCloseGap(inp, best, gap);
     if(!needObj) return '';
     conc = Engine.applyConcession(best, inp, A_CONST, needObj.dollars, 0);
     splitLabel = money(needObj.dollars)+' to buydown (to close the gap)';
   } else return '';
-  // Price path: reduce price to hit target
-  const pr = priceToHitTarget(inp, best);
-  // recompute price-path scenario figures at reduced price
-  const prScn = Engine.computeScenario(inp, A_CONST, Engine.PROGRAMS[best.id], {dp:best.dp,name:best.name}, pr.price);
+  // Price-reduction path: the offer price when active, else the price that hits target.
+  const active = opts.reductionPrice!=null;
+  const concPrice = opts.concPrice!=null ? opts.concPrice : (best.price||best.maxPrice);
+  const prPrice = active ? opts.reductionPrice : priceToHitTarget(inp, best).price;
+  const prScn = Engine.computeScenario(inp, A_CONST, Engine.PROGRAMS[best.id], {dp:best.dp,name:best.name}, prPrice);
 
-  const stayM=inp.stayYears*12;
-  const concWins = (conc.breakeven && conc.breakeven<=stayM) && (conc.newPITI<=prScn.piti+25);
-  const recTxt = concWins
-    ? 'Ask for the seller concession — it produces a comparable-or-lower payment while preserving the buyer’s negotiating position, and the buydown breaks even in month '+conc.breakeven+', inside the '+stayM+'-month hold.'
-    : 'Negotiate a price reduction — '+(conc.breakeven&&conc.breakeven>stayM?'the planned stay ('+stayM+' mo) is shorter than the buydown break-even (month '+conc.breakeven+')':'it lowers both payment and cash to close')+', so the price cut is the more durable win.';
+  // Winner is decided by BUYER PRIORITY first:
+  //   cash    → lower net cash to close wins
+  //   payment → lower PITI wins
+  //   balanced / power → lower financing cost over the stay wins
+  const concFin = financingCostAt(best.loanAmount, conc.newRate, stayM, best.miCostHorizon, best.financedFee);
+  const concAmt = money(conc.total);
+  // Recommendation states the EXACT savings on the deciding metric, and always
+  // shows both paths' figures in parentheses (winner first) for the call.
+  let concWins, recTxt;
+  if(inp.priority==='cash'){
+    concWins = conc.newCash <= prScn.cashToClose + 0.5;
+    const save = money(Math.abs(prScn.cashToClose - conc.newCash));
+    recTxt = concWins
+      ? 'Offer '+money(concPrice)+' with a '+concAmt+' seller concession — saves '+save+' in cash to close vs. a price reduction ('+money(conc.newCash)+' vs. '+money(prScn.cashToClose)+').'
+      : 'Offer '+money(prPrice)+' — saves '+save+' in cash to close vs. a seller concession ('+money(prScn.cashToClose)+' vs. '+money(conc.newCash)+').';
+  } else if(inp.priority==='payment'){
+    concWins = conc.newPITI <= prScn.piti + 0.5;
+    const save = money(Math.abs(prScn.piti - conc.newPITI));
+    recTxt = concWins
+      ? 'Offer '+money(concPrice)+' with a '+concAmt+' seller concession — saves '+save+'/mo vs. a price reduction ('+money(conc.newPITI)+' vs. '+money(prScn.piti)+'/mo).'
+      : 'Offer '+money(prPrice)+' — saves '+save+'/mo vs. a seller concession ('+money(prScn.piti)+' vs. '+money(conc.newPITI)+'/mo).';
+  } else { // balanced / power → financing cost
+    concWins = concFin <= prScn.totalCostHorizon + 0.5;
+    const save = money(Math.abs(concFin - prScn.totalCostHorizon));
+    recTxt = concWins
+      ? 'Offer '+money(concPrice)+' with a '+concAmt+' seller concession — saves '+save+' in total financing cost over '+inp.stayYears+' years vs. a price reduction ('+money(concFin)+' vs. '+money(prScn.totalCostHorizon)+').'
+      : 'Offer '+money(prPrice)+' — saves '+save+' in total financing cost over '+inp.stayYears+' years vs. a seller concession ('+money(prScn.totalCostHorizon)+' vs. '+money(concFin)+').';
+  }
 
+  const redHead = active ? 'Price Reduction (offer '+money(prPrice)+')' : 'Price Reduction';
   let h='<h4>Concession vs. price reduction <span style="font-weight:600;text-transform:none;color:var(--sub)">('+splitLabel+')</span></h4><table class="cmp"><thead><tr><th></th>'+
         '<th class="'+(concWins?'win':'')+'">Seller Concession'+(concWins?' ★':'')+'</th>'+
-        '<th class="'+(!concWins?'win':'')+'">Price Reduction'+(!concWins?' ★':'')+'</th></tr></thead><tbody>';
+        '<th class="'+(!concWins?'win':'')+'">'+redHead+(!concWins?' ★':'')+'</th></tr></thead><tbody>';
   const row=(k,cVal,pVal)=>{ h+='<tr><td>'+k+'</td><td class="'+(concWins?'win':'')+'">'+cVal+'</td><td class="'+(!concWins?'win':'')+'">'+pVal+'</td></tr>'; };
-  row('Price', money(best.price||best.maxPrice), money(pr.price));
-  row('Rate', conc.newRate.toFixed(3)+'%'+(conc.buydown>0?' ('+conc.points.toFixed(2)+'pt)':''), best.baseRate.toFixed(3)+'%');
+  row('Price', money(concPrice), money(prPrice));
+  row('Rate', conc.newRate.toFixed(3)+'%'+(conc.buydown>0?' ('+conc.points.toFixed(2)+'pt)':''), prScn.rate.toFixed(3)+'%');
   row('PITI', money(conc.newPITI)+'/mo', money(prScn.piti)+'/mo');
   row('Cash to close', money(conc.newCash), money(prScn.cashToClose));
   row('Break-even', conc.breakeven?('month '+conc.breakeven):'—', 'n/a');
@@ -2012,12 +2341,11 @@ const FIELD_LABELS = {
   rateConv:'Conv rate', rateFha:'FHA rate', rateVa:'VA rate', ccPct:'Closing %',
   ccOverride:'Closing $ override', taxRate:'Tax rate', hoi:'Insurance', hoa:'HOA',
   cdd:'CDD', flood:'Flood', hoaNA:'HOA N/A', cddNA:'CDD N/A', floodNA:'Flood N/A',
-  offerPrice:'Offer amount',
+  offerPrice:'Offer amount', offerConc:'Seller concession',
   tgFthb:'First-time buyer', tgVa:'VA eligible', vaUse:'VA use', vaExempt:'VA fee exemption',
-  oaPrice:'Offer A price', oaConc:'Offer A concession', oaLoan:'Offer A loan type',
-  obPrice:'Offer B price', obConc:'Offer B concession', obLoan:'Offer B loan type'
+  counterPrice:'Counter price', counterConc:'Counter concession', counterLoan:'Counter loan type'
 };
-const MONEY_FIELDS = {price:1,ownFunds:1,gift:1,target:1,income:1,debts:1,ccOverride:1,hoi:1,hoa:1,cdd:1,flood:1,offerPrice:1,oaPrice:1,oaConc:1,obPrice:1,obConc:1};
+const MONEY_FIELDS = {price:1,ownFunds:1,gift:1,target:1,income:1,debts:1,ccOverride:1,hoi:1,hoa:1,cdd:1,flood:1,offerPrice:1,counterPrice:1,counterConc:1};
 let prevSnapshot=null, changeLog=[], firstCalcDone=false, seq=0;
 
 function snapshotFields(){
@@ -2032,6 +2360,10 @@ function snapshotFields(){
 function fmtVal(id,v){
   if(typeof v==='boolean') return v?'on':'off';
   if(v==='') return '(blank)';
+  // Counter concession value respects its $ / % unit.
+  if(id==='counterConc'){ const n=parseFloat(v.replace(/[^0-9.\-]/g,'')); if(isNaN(n)) return v; return (counterUnit.v==='pct')?n+'%':money(n); }
+  // Seller concession (offer strategy) respects its $ / % unit.
+  if(id==='offerConc'){ const n=parseFloat(v.replace(/[^0-9.\-]/g,'')); if(isNaN(n)) return v; return (offerConcUnit.v==='pct')?n+'%':money(n); }
   if(MONEY_FIELDS[id]){ const n=parseFloat(v.replace(/[^0-9.\-]/g,'')); return isNaN(n)?v:money(n); }
   if(id==='taxRate'){ const n=parseFloat(v.replace(/[^0-9.\-]/g,'')); return isNaN(n)?v:(unitState.tax==='dollar'?money(n)+'/yr':n+'%'); }
   if(id==='dpTarget'){ const n=parseFloat(v.replace(/[^0-9.\-]/g,'')); return isNaN(n)?v:(unitState.dp==='dollar'?money(n):n+'%'); }
@@ -2072,28 +2404,27 @@ function recalc(){
   // Negotiation analysis (specific mode only). Determines the applied path, which
   // in turn sets the concession amount deployed on the cards and the split total.
   const neg = analyzeNegotiation(inp, res);
-  if(inp.negotiatingRoom>0 && neg){
+  const scDeploy = Math.max(0, inp.sellerConcession||0);   // explicit seller concession, always a concession
+  if((inp.negotiatingRoom>0 || scDeploy>0) && neg){
     const applied = (inp.negotiationMode==='compare') ? (neg.recommendedPathKey || 'concession') : inp.negotiationMode;
     inp.appliedPath = applied;
     inp.appliedReduction  = (applied==='reduction') ? inp.negotiatingRoom : (applied==='split' ? inp.negotiatingRoom/2 : 0);
-    inp.appliedConcession = (applied==='concession') ? inp.negotiatingRoom : (applied==='split' ? inp.negotiatingRoom/2 : 0);
+    // The explicit seller concession stacks on top of whatever the applied path
+    // structures from the price gap.
+    inp.appliedConcession = ((applied==='concession') ? inp.negotiatingRoom : (applied==='split' ? inp.negotiatingRoom/2 : 0)) + scDeploy;
     inp.concessionOn = inp.appliedConcession>0;
     inp.concession = inp.appliedConcession;
   }
   appliedConcTotal = inp.appliedConcession || 0;
 
   updateInlineHints(inp);
-  // Concession split. In auto mode (default) the tool decides the buydown/costs
-  // allocation every recalc via smartSplit against the Best Overall scenario. In
-  // manual mode Doug's split is preserved and only re-normalized to the total.
-  if(inp.concessionOn && appliedConcTotal>0){
-    if(concSplit.auto){
-      const refBest = res.scenarios.length ? Engine.pickBestOverall(res.scenarios, inp) : null;
-      const sp = smartSplit(refBest, inp, appliedConcTotal);
-      concSplit.buydown = sp.buydown; concSplit.costs = sp.costs; concSplit.reason = sp.reason; concSplit.anchor='buydown';
-    }
-  } else {
-    concSplit.reason='';
+  // Concession allocation. By default it follows the buyer priority directly
+  // (payment → rate buydown; cash / balanced / power → closing costs). Doug can
+  // override via "Adjust split manually"; while manual (auto=false) his split is
+  // preserved and only re-normalized to the deployed total.
+  if(inp.concessionOn && appliedConcTotal>0 && concSplit.auto){
+    const sp = priorityAlloc(inp, appliedConcTotal);
+    concSplit.buydown = sp.buydown; concSplit.costs = sp.costs; concSplit.anchor = (inp.priority==='payment')?'buydown':'costs';
   }
   normalizeSplit(appliedConcTotal);
   renderSplitFields(true);
@@ -2101,219 +2432,321 @@ function recalc(){
   renderSnapshot(inp, res, neg);
   renderCards(inp, res);
   renderGapSolver(inp, res);
-  recalcOffers();          // Section 4 reads the current buyer profile
+  recalcCounter();         // Counter Offer Analyzer reads the current buyer profile
+  renderPropertyStrategy(inp, neg);   // gate Section 2 + mount negotiation panel
   logChanges();
+}
+
+/* ---------------------------------------------------------------------
+   Property Strategy (Section 2) visibility — layout only, no logic.
+   Gated on a list price; the negotiation panel mounts under the Offer
+   Strategy inputs once an offer amount is entered.
+   ------------------------------------------------------------------- */
+function renderPropertyStrategy(inp, neg){
+  const hasPrice = (inp.price||0) > 0;
+  $('propPlaceholder').style.display = hasPrice ? 'none' : '';
+  $('propFull').style.display        = hasPrice ? '' : 'none';
+  // Negotiation panel: show when an offer amount is entered and there is an
+  // analysis to show; otherwise show the prompt placeholder.
+  const hasOffer = (inp.offerPrice||0) > 0;
+  const mount = $('negMount'), ph = $('negPlaceholder');
+  if(hasOffer && neg){
+    mount.innerHTML = negotiationPanelHTML(inp, neg);
+    mount.style.display = '';
+    ph.style.display = 'none';
+  } else {
+    mount.innerHTML = '';
+    mount.style.display = 'none';
+    ph.style.display = '';
+  }
 }
 
 /* =====================================================================
    SECTION 4 — OFFER COMPARISON  (self-contained; does not touch 1/2/3)
    ===================================================================== */
-const OFFERS = {
-  A:{price:'oaPrice', conc:'oaConc', buy:'oaBuydown', cost:'oaCosts', opt:'oaOptimal', loan:'oaLoan', dp:'oaDp', results:'oaResults'},
-  B:{price:'obPrice', conc:'obConc', buy:'obBuydown', cost:'obCosts', opt:'obOptimal', loan:'obLoan', dp:'obDp', results:'obResults'}
-};
 const FAM_NAME = { conv:'Conventional', fha:'FHA', va:'VA' };
 const LOAN_TYPES = {
   conv3:{prog:'conv',dp:3,name:'Conv 3%'}, conv5:{prog:'conv',dp:5,name:'Conv 5%'},
   conv10:{prog:'conv',dp:10,name:'Conv 10%'}, conv20:{prog:'conv',dp:20,name:'Conv 20%'},
   'fha3.5':{prog:'fha',dp:3.5,name:'FHA 3.5%'}, va0:{prog:'va',dp:0,name:'VA 0%'}
 };
-const offerSplit = { A:{buydown:0,costs:0,anchor:'buydown',init:false}, B:{buydown:0,costs:0,anchor:'buydown',init:false} };
-const clampN=(v,lo,hi)=>Math.max(lo,Math.min(hi,v));
+/* Counter Offer Analyzer — reads Section 1 offer-strategy inputs live; its own
+   inputs never re-trigger Sections 1–3. */
+const counterUnit = { v:'dollar' };   // $ / % for the counter concession
 
-function offerTotal(w){ return num(OFFERS[w].conc); }
-function normalizeOfferSplit(w, total){
-  const s=offerSplit[w];
-  if(total<=0){ s.buydown=0; s.costs=0; return; }
-  if(s.anchor==='costs'){ s.costs=clampN(s.costs,0,total); s.buydown=total-s.costs; }
-  else { s.buydown=clampN(s.buydown,0,total); s.costs=total-s.buydown; }
-}
-function renderOfferSplitFields(w, skipActive){
-  const cfg=OFFERS[w], s=offerSplit[w];
-  const bEl=$(cfg.buy), cEl=$(cfg.cost);
-  if(!(skipActive && document.activeElement===bEl)) bEl.value = Math.round(s.buydown).toLocaleString('en-US');
-  if(!(skipActive && document.activeElement===cEl)) cEl.value = Math.round(s.costs).toLocaleString('en-US');
+// Resolved counter-concession dollars ($ mode: as entered; % mode: percent of counter price).
+function counterConcTotal(){
+  const raw = num('counterConc');
+  if(counterUnit.v==='pct'){
+    const cp = rawBlank('counterPrice') ? 0 : num('counterPrice');
+    return (cp>0 && raw>0) ? Math.round(raw/100*cp) : 0;
+  }
+  return raw;
 }
 
-// Build the offer's scenario + concession result from the shared buyer profile.
-function computeOffer(w, inp){
-  const cfg=OFFERS[w];
-  if(rawBlank(cfg.price)) return null;
-  const price=num(cfg.price);
-  if(price<=0) return null;
-  const baseInp=Object.assign({}, inp, {shopping:false, price:price, dpTarget:null});
-  const loanVal=$(cfg.loan).value;
-  let s, auto=false, noEligible=false;
+// Base scenario at a given price using the Section 4 loan-type dropdown.
+function counterScenario(inp, price){
+  const baseInp = Object.assign({}, inp, {shopping:false, price:price, dpTarget:null});
+  const loanVal = $('counterLoan').value;
   if(loanVal==='auto'){
-    auto=true;
-    const res=Engine.run(baseInp, A_CONST);
-    const viable=res.scenarios.slice();
-    if(viable.length){ s=Engine.pickBestOverall(viable, baseInp); }
-    else { s=Engine.computeScenario(baseInp, A_CONST, Engine.PROGRAMS.conv, {dp:5,name:'Conv 5%'}, price); noEligible=true; }
-  } else {
-    const lt=LOAN_TYPES[loanVal];
-    s=Engine.computeScenario(baseInp, A_CONST, Engine.PROGRAMS[lt.prog], {dp:lt.dp,name:lt.name}, price);
+    const res = Engine.run(baseInp, A_CONST);
+    const viable = res.scenarios.slice();
+    if(viable.length) return { s:Engine.pickBestOverall(viable, baseInp), auto:true, noEligible:false };
+    return { s:Engine.computeScenario(baseInp, A_CONST, Engine.PROGRAMS.conv, {dp:5,name:'Conv 5%'}, price), auto:true, noEligible:true };
   }
-  const st=offerSplit[w];
-  const total=offerTotal(w);
-  const conc = total>0 ? Engine.applyConcession(s, baseInp, A_CONST, st.buydown, st.costs) : null;
-  const netCash = conc ? conc.newCash : s.cashToClose;
-  const cashRem = conc ? conc.newCashRemaining : s.cashRemaining;
+  const lt = LOAN_TYPES[loanVal];
+  return { s:Engine.computeScenario(baseInp, A_CONST, Engine.PROGRAMS[lt.prog], {dp:lt.dp,name:lt.name}, price), auto:false, noEligible:false };
+}
+
+// Evaluate a structure = (price, concession $) with the concession allocated per buyer
+// priority (cash/balanced/power → closing costs; payment → rate buydown).
+function evalStructure(inp, price, concAmt){
+  const sc = counterScenario(inp, price), s = sc.s;
+  let conc = null;
+  if(concAmt>0){
+    const alloc = priorityAlloc(inp, concAmt);
+    conc = Engine.applyConcession(s, inp, A_CONST, alloc.buydown, alloc.costs);
+  }
   const piti = conc ? conc.newPITI : s.piti;
-  return { w, s, conc, auto, noEligible, price, netCash, cashRem, piti,
-           gap: piti-inp.target, over: conc?conc.over:false,
-           overFunds: netCash > inp.funds+0.5 };
-}
-
-function recalcOffers(){
-  const inp=gatherInputs();
-  const results={};
-  ['A','B'].forEach(w=>{
-    const cfg=OFFERS[w];
-    const total=offerTotal(w);
-    const st=offerSplit[w];
-    if(total>0 && !st.init){ st.init=true; st.anchor='buydown'; st.buydown=total; st.costs=0; }
-    normalizeOfferSplit(w, total);
-    renderOfferSplitFields(w, true);
-    const r=computeOffer(w, inp);
-    results[w]=r;
-    $(cfg.results).innerHTML = r ? offerResultHTML(r, inp) : '<div class="op-empty">Enter an offer price to model this deal.</div>';
-    $(cfg.dp).textContent = r ? (r.s.dp+'% down'+(r.auto?(r.noEligible?' · no eligible option — showing Conv 5%':' · auto: '+r.s.name):'')) : '';
-    document.querySelector('.offer-panel.'+w.toLowerCase()).classList.remove('winner');
-  });
-  const cmp=$('offerCompare');
-  if(results.A && results.B){
-    const win=pickWinner(results.A, results.B, inp);
-    document.querySelector('.offer-panel.'+win.w.toLowerCase()).classList.add('winner');
-    cmp.innerHTML = compareHTML(results.A, results.B, inp, win);
-  } else {
-    cmp.innerHTML = '<div class="op-empty" style="padding:10px 2px">Enter both offer prices to compare the two structures and pick a winner.</div>';
-  }
-  logChanges();   // offer-field edits (which call recalcOffers directly) also log to the banner
-}
-
-function offerResultHTML(r, inp){
-  const s=r.s, conc=r.conc;
+  const cash = conc ? conc.newCash : s.cashToClose;
+  const cashRem = conc ? conc.newCashRemaining : s.cashRemaining;
   const rate = (conc && conc.buydown>0) ? conc.newRate : s.rate;
-  const pi = conc ? conc.newPI : s.pi;
-  const gapCls = r.gap<=0.5?'gap-ok':(r.gap<=100?'gap-amber':'gap-red');
-  let miTxt='none';
-  if(s.monthlyMI>0){
-    const when = s.miMode==='fha' ? (s.mipLife?'life of loan':'drops mo '+s.mipDropMonth) : (s.cancelMonth?'drops mo '+s.cancelMonth:'—');
-    miTxt = money(s.monthlyMI)+' · '+when;
+  const financing = financingCostAt(s.loanAmount, rate, inp.stayYears*12, s.miCostHorizon, s.financedFee);
+  return { s, sc, conc, price, concAmt, piti, cash, cashRem, rate, financing,
+           over: conc?conc.over:false, gap: piti-inp.target };
+}
+
+// Priority metric — lower is better (used to pick the optimal restructure).
+function coMetric(inp, e){
+  if(inp.priority==='cash') return e.cash;
+  if(inp.priority==='payment') return e.piti;
+  return e.financing;   // balanced / power → financing cost
+}
+
+// Optimal restructure: redistribute the SAME net seller value between price
+// reduction (R) and concession (C = netValue − R); pick the best per buyer priority.
+function optimalRestructure(inp, netValue, list){
+  if(netValue<=0.5) return null;
+  const atList = counterScenario(inp, list).s;
+  const capConc = Math.max(0, atList.concLimit);
+  const capClose = Math.max(0, atList.closing);
+  const targets = [0, Math.min(netValue,capClose), Math.min(netValue,capConc), netValue];
+  const cands = [], seen = new Set();
+  targets.forEach(Ct=>{
+    let C = Math.max(0, Math.min(Ct, netValue));
+    let R = netValue - C, price = Math.max(1, list - R);
+    let e = evalStructure(inp, price, C);
+    if(e.conc && e.conc.over){ C = e.s.concLimit; R = netValue - C; price = Math.max(1, list - R); e = evalStructure(inp, price, C); }
+    e.R = R; e.C = C;
+    const key = Math.round(R)+'/'+Math.round(C);
+    if(!seen.has(key)){ seen.add(key); cands.push(e); }
+  });
+  cands.sort((a,b)=> ((a.over?1:0)-(b.over?1:0)) || (coMetric(inp,a)-coMetric(inp,b)) || (a.cash-b.cash) || (a.piti-b.piti));
+  return cands[0];
+}
+
+// Additional rate-buydown $ needed to bring a structure's PITI down to target (uncapped).
+function additionalForPayment(inp, e){
+  const s = e.s, gap = e.piti - inp.target;
+  if(gap<=0.5) return 0;
+  const curPI = (e.conc && e.conc.buydown>0) ? e.conc.newPI : s.pi;
+  const curRate = (e.conc && e.conc.buydown>0) ? e.conc.newRate : s.baseRate;
+  const targetPI = curPI - gap;
+  if(targetPI<=0) return Math.max(0, (curRate/0.25)*s.loanAmount*0.01);   // max buydown (rate→0)
+  let lo=0, hi=curRate;
+  for(let k=0;k<60;k++){ const mid=(lo+hi)/2; if(Engine.pmt(mid,360,s.loanAmount)>targetPI) hi=mid; else lo=mid; }
+  const rr = curRate - (lo+hi)/2;
+  return Math.max(0, (rr/0.25)*s.loanAmount*0.01);
+}
+
+const NEG_MODE_LABEL = { compare:'Compare all three', reduction:'Price reduction only', concession:'Seller concession only', split:'Split evenly' };
+
+function renderOurOffer(inp){
+  const el=$('coOurOffer');
+  if(!(inp.price>0) || !(inp.offerPrice>0) || inp.negotiatingRoom<=0){
+    el.innerHTML='<span class="co-oo-none">Enter an offer below list in Section 1 (Offer Strategy) to frame the counter.</span>';
+    return;
   }
-  let h='<div class="op-rows">';
-  h+='<div class="k">Offer price</div><div class="v">'+money(r.price)+'</div>';
-  h+='<div class="k">Loan type</div><div class="v">'+s.name+' ('+s.dp+'% down)</div>';
-  h+='<div class="k">Loan amount</div><div class="v">'+money(s.loanAmount)+'</div>';
-  h+='<div class="k">Rate</div><div class="v">'+(conc&&conc.buydown>0?'<span class="gap-ok">'+rate.toFixed(3)+'%</span> <span style="font-size:10px;color:var(--sub)">('+s.baseRate.toFixed(3)+'−'+conc.points.toFixed(2)+'pt)</span>':rate.toFixed(3)+'%')+'</div>';
-  h+='<div class="k">P&amp;I</div><div class="v">'+money(pi)+'</div>';
-  h+='<div class="k">Monthly MI</div><div class="v" style="font-size:11.5px">'+miTxt+'</div>';
-  h+='<div class="sec"></div>';
-  h+='<div class="k">Full PITI</div><div class="v big">'+money(r.piti)+'</div>';
-  h+='<div class="k">Payment gap</div><div class="v '+gapCls+'">'+(r.gap>0?'+':'')+money(r.gap)+'/mo</div>';
-  h+='<div class="sec"></div>';
-  h+='<div class="k">Cash to close (pre-concession)</div><div class="v">'+money(s.cashToClose)+'</div>';
-  h+='<div class="k">Net cash to close</div><div class="v">'+money(r.netCash)+'</div>';
-  h+='<div class="k">Cash remaining</div><div class="v '+(r.cashRem<0?'gap-red':'')+'">'+money(r.cashRem)+'</div>';
-  if(conc){
-    h+='<div class="sec"></div>';
-    h+='<div class="k">Concession applied</div><div class="v">'+money(conc.total)+'</div>';
-    h+='<div class="k">Buydown</div><div class="v" style="font-size:11.5px">'+(conc.buydown>0?money(conc.buydown)+' · '+conc.points.toFixed(2)+'pt · −'+conc.rateReduction.toFixed(3)+'%':'—')+'</div>';
-    h+='<div class="k">Break-even</div><div class="v">'+(conc.breakeven?('mo '+conc.breakeven+(conc.breakeven>inp.stayYears*12?' ⚠':'')):'—')+'</div>';
-    h+='<div class="k">Max as concession ('+s.concLimitPct+'%)</div><div class="v">'+money(s.concLimit)+'</div>';
+  el.innerHTML='<span class="co-oo-lb">Our offer</span>'+money(inp.offerPrice)
+    +'<span class="co-oo-sep">·</span>requested adjustment '+money(inp.negotiatingRoom)
+    +'<span class="co-oo-sep">·</span>structured as <b>'+(NEG_MODE_LABEL[inp.negotiationMode]||inp.negotiationMode)+'</b> '
+    +'<span class="co-oo-sub">(list '+money(inp.price)+')</span>';
+}
+
+function renderCounterUnitToggle(){
+  const unit=counterUnit.v;
+  $('counterConcUnitTg').querySelectorAll('button').forEach(b=>b.classList.toggle('active', b.dataset.u===unit));
+  $('counterConcIa').className='ia '+(unit==='dollar'?'dollar':'pct');
+  const sub=$('counterConcSub');
+  if(unit==='pct'){
+    const cp = rawBlank('counterPrice')?0:num('counterPrice'), tot=counterConcTotal();
+    sub.textContent = tot>0 ? '= '+money(tot)+' of '+money(cp) : (cp<=0?'enter a counter price to resolve %':'');
+  } else sub.textContent='';
+}
+function setCounterUnit(unit){
+  if(counterUnit.v===unit) return;
+  const prev=counterUnit.v, cp=rawBlank('counterPrice')?0:num('counterPrice'), raw=rawBlank('counterConc')?null:num('counterConc');
+  if(raw!=null && raw>0 && cp>0){
+    if(prev==='dollar'&&unit==='pct')      $('counterConc').value=+(raw/cp*100).toFixed(2);
+    else if(prev==='pct'&&unit==='dollar') $('counterConc').value=Math.round(raw/100*cp).toLocaleString('en-US');
+  }
+  counterUnit.v=unit; recalcCounter();
+}
+
+/* ---------- offer-strategy seller concession $/% toggle ---------- */
+function renderOfferConcToggle(inp){
+  const unit=offerConcUnit.v;
+  $('offerConcUnitTg').querySelectorAll('button').forEach(b=>b.classList.toggle('active', b.dataset.u===unit));
+  $('offConcIa').className='ia '+(unit==='dollar'?'dollar':'pct');
+  const sub=$('offerConcSub');
+  const sc  = Math.max(0,(inp&&inp.sellerConcession)||0);
+  const gap = Math.max(0,(inp&&inp.negotiatingRoom)||0);
+  const base= (inp&&inp.offerPrice>0)?inp.offerPrice:((inp&&inp.price)||0);
+  if(unit==='pct'){
+    if(sc>0 && base>0) sub.textContent='= '+money(sc)+' of '+money(base)+(gap>0?'  ·  total ask '+money(gap+sc):'');
+    else sub.textContent = base<=0 ? 'enter an offer or list price to resolve %' : '';
+  } else {
+    sub.textContent = (sc>0 && gap>0) ? 'total ask to seller '+money(gap+sc) : '';
+  }
+}
+function setOfferConcUnit(unit){
+  if(offerConcUnit.v===unit) return;
+  const prev=offerConcUnit.v, raw=rawBlank('offerConc')?null:num('offerConc');
+  // resolve the base the % is measured against (offer price, else list price)
+  const op = rawBlank('offerPrice')?0:num('offerPrice');
+  const lp = rawBlank('price')?0:num('price');
+  const base = op>0 ? op : lp;
+  if(raw!=null && raw>0 && base>0){
+    if(prev==='dollar'&&unit==='pct')      $('offerConc').value=+(raw/base*100).toFixed(2);
+    else if(prev==='pct'&&unit==='dollar') $('offerConc').value=Math.round(raw/100*base).toLocaleString('en-US');
+  }
+  offerConcUnit.v=unit; recalc();
+}
+
+function renderNetVal(inp, list, cp, cc, netVal, change){
+  const el=$('coNetVal');
+  if(netVal==null){ el.innerHTML='<span class="co-oo-none" style="font-size:12px">Enter the seller’s counter price to compute net seller value.</span>'; return; }
+  const chgTxt = change>=0 ? '+'+money(change)+' vs. our ask' : money(change)+' vs. our ask';
+  el.innerHTML =
+    '<div class="co-nv-row"><span class="co-nv-k">Net seller value in counter</span><span class="co-nv-v">'+money(netVal)+'</span>'
+    +'<span class="co-nv-form">list '+money(list)+' − counter '+money(cp)+(cc>0?' + concession '+money(cc):'')+'</span></div>'
+    +'<div class="co-nv-row"><span class="co-nv-k">Change from our offer</span><span class="co-nv-v '+(change>=0?'up':'down')+'">'+chgTxt+'</span>'
+    +'<span class="co-nv-form">we requested '+money(inp.negotiatingRoom)+'</span></div>';
+}
+
+function structureLabel(e, list){
+  const R=Math.round(e.R), C=Math.round(e.C);
+  if(C>0 && R<=0.5) return 'Full list price '+money(list)+' with '+money(C)+' seller concession';
+  if(C>0 && R>0.5)  return 'Counter price '+money(list-R)+' with '+money(C)+' seller concession';
+  if(R>0.5)         return 'Counter price '+money(list-R)+' — full price reduction, no concession';
+  return 'No seller value to structure';
+}
+
+function coPanel1(inp, e, netVal){
+  const gapCls = e.gap<=0.5?'gap-ok':(e.gap<=100?'gap-amber':'gap-red');
+  let h='<div class="co-panel"><div class="co-h">1 · Counter as structured</div><div class="op-rows">';
+  h+='<div class="k">Counter price</div><div class="v">'+money(e.price)+'</div>';
+  h+='<div class="k">Loan type</div><div class="v">'+e.s.name+' ('+e.s.dp+'% down)'+(e.sc.auto?' · auto':'')+'</div>';
+  h+='<div class="k">PITI</div><div class="v big">'+money(e.piti)+'/mo</div>';
+  h+='<div class="k">Payment gap</div><div class="v '+gapCls+'">'+(e.gap>0?'+':'')+money(e.gap)+'/mo</div>';
+  h+='<div class="k">Cash to close</div><div class="v">'+money(e.cash)+'</div>';
+  h+='<div class="k">Cash remaining</div><div class="v '+(e.cashRem<0?'gap-red':'')+'">'+money(e.cashRem)+'</div>';
+  h+='<div class="k">Net seller value used</div><div class="v">'+money(Math.max(0,netVal))+'</div>';
+  h+='</div>';
+  if(e.over) h+='<div class="op-flag">⛔ Concession '+money(e.conc.total)+' exceeds the '+FAM_NAME[e.s.id]+' '+e.s.concLimitPct+'% max ('+money(e.s.concLimit)+') — over limit.</div>';
+  else if(e.concAmt>0) h+='<div class="co-ok">✓ Concession within '+FAM_NAME[e.s.id]+' '+e.s.concLimitPct+'% limit ('+money(e.concAmt)+' of '+money(e.s.concLimit)+' max).</div>';
+  h+='</div>';
+  return h;
+}
+
+function coImprovement(inp, a, o){
+  if(inp.priority==='cash'){ const d=a.cash-o.cash; return d>0.5?'Restructuring saves '+money(d)+' in cash to close.':(d<-0.5?'Counter as structured is '+money(-d)+' lower cash — keep it.':'Same cash to close as structured.'); }
+  if(inp.priority==='payment'){ const d=a.piti-o.piti; return d>0.5?'Restructuring produces '+money(d)+'/mo lower payment.':(d<-0.5?'Counter as structured is '+money(-d)+'/mo lower payment — keep it.':'Same payment as structured.'); }
+  const d=a.financing-o.financing; return d>0.5?'Restructuring saves '+money(d)+' in financing cost over '+inp.stayYears+' years.':(d<-0.5?'Counter as structured is '+money(-d)+' lower financing — keep it.':'Same financing cost as structured.');
+}
+
+function coPanel2(inp, asStruct, opt, list, counterConc){
+  let h='<div class="co-panel"><div class="co-h">2 · Optimal restructure</div>';
+  if(!opt){ h+='<div class="op-empty">No net seller value below list to redistribute.</div></div>'; return h; }
+  h+='<div class="co-struct">'+structureLabel(opt, list)+'</div><div class="op-rows">';
+  h+='<div class="k">PITI</div><div class="v big">'+money(opt.piti)+'/mo</div>';
+  h+='<div class="k">Cash to close</div><div class="v">'+money(opt.cash)+'</div>';
+  h+='</div>';
+  h+='<div class="co-imp">'+coImprovement(inp, asStruct, opt)+'</div>';
+  if((opt.C||0) > counterConc + 0.5) h+='<div class="op-flag amber">↔ Requires seller to accept a concession in place of a price reduction.</div>';
+  h+='</div>';
+  return h;
+}
+
+function coRestructureAsk(opt, counterConc, sellerCut){
+  const optC=Math.round(opt.C), moveToConc=Math.max(0, optC - counterConc);
+  if(sellerCut>0.5 && counterConc<0.5 && optC>0.5) return 'the seller’s '+money(sellerCut)+' price cut should be a '+money(optC)+' seller concession instead.';
+  if(moveToConc>0.5) return 'shift '+money(moveToConc)+' of the counter into a seller concession ('+money(optC)+' concession total).';
+  return 'restructure the counter to lead with the seller concession.';
+}
+function coRestructureBenefit(inp, a, o){
+  if(inp.priority==='cash') return 'cash to close drops from '+money(a.cash)+' to '+money(o.cash);
+  if(inp.priority==='payment') return 'payment drops from '+money(a.piti)+'/mo to '+money(o.piti)+'/mo';
+  return 'financing cost drops '+money(Math.max(0,a.financing-o.financing))+' over '+inp.stayYears+' years';
+}
+
+function coPanel3(inp, asStruct, opt, list, counterPrice, counterConc){
+  const meets = e => !!e && e.piti<=inp.target+0.5 && e.cash<=inp.funds+0.5;
+  let h='<div class="co-panel rec"><div class="co-h">3 · Recommendation</div>';
+  if(meets(asStruct)){
+    h+='<div class="co-rec accept">✅ Accept — counter works as structured. PITI '+money(asStruct.piti)+'/mo is within the '+money(inp.target)+' comfort target and cash to close '+money(asStruct.cash)+' is within available funds '+money(inp.funds)+'.</div>';
+  } else if(meets(opt)){
+    const sellerCut = Math.max(0, list - counterPrice);
+    h+='<div class="co-rec restructure">🔄 Counter with restructure — '+coRestructureAsk(opt, counterConc, sellerCut)+' Same net value to seller, but '+coRestructureBenefit(inp, asStruct, opt)+' for your buyer. Ask the listing agent to restructure.</div>';
+  } else {
+    const base = opt || asStruct;
+    const payGap = Math.max(0, base.piti - inp.target);
+    const cashShort = Math.max(0, base.cash - inp.funds);
+    const addPay = payGap>0.5 ? additionalForPayment(inp, base) : 0;
+    const addCash = cashShort;
+    const addTotal = Math.max(addPay, addCash);
+    h+='<div class="co-rec again">❌ Counter again — even restructured'+((opt&&opt.C>0.5)?' as a concession':'')+', PITI is '+money(payGap)+'/mo over target and cash to close is '+money(cashShort)+' short. Buyer needs '+money(addTotal)+' more from the seller to make this work.</div>';
+    h+='<div class="op-rows co-need">';
+    h+='<div class="k">Additional concession to meet comfort payment</div><div class="v">'+money(addPay)+'</div>';
+    h+='<div class="k">Additional concession to cover cash shortfall</div><div class="v">'+money(addCash)+'</div>';
+    h+='<div class="k">Total additional seller value needed</div><div class="v big">'+money(addTotal)+'</div>';
+    h+='</div>';
   }
   h+='</div>';
-  if(r.over) h+='<div class="op-flag">⛔ Concession '+money(conc.total)+' exceeds the '+FAM_NAME[s.id]+' '+s.concLimitPct+'% max ('+money(s.concLimit)+') — restructure before submitting.</div>';
-  if(r.overFunds) h+='<div class="op-flag">⛔ Net cash to close '+money(r.netCash)+' exceeds available funds '+money(inp.funds)+' (short '+money(r.netCash-inp.funds)+').</div>';
-  if(r.cashRem < 1000 && !r.overFunds) h+='<div class="reservewarn">⚠ Reserves below $1,000 after closing</div>';
   return h;
 }
 
-// Winner logic: hard fails first (concession limit, funds), else weighted score.
-function pickWinner(A, B, inp){
-  if(A.over !== B.over) return {w: A.over?'B':'A', reason:'conc'};
-  if(A.overFunds !== B.overFunds) return {w: A.overFunds?'B':'A', reason:'funds'};
-  const nb=(a,b,higherBetter)=>{ const mx=Math.max(a,b),mn=Math.min(a,b); if(mx===mn) return [0,0]; let ab=(a-mn)/(mx-mn),bb=(b-mn)/(mx-mn); return higherBetter?[1-ab,1-bb]:[ab,bb]; };
-  const [aCash,bCash]=nb(A.netCash,B.netCash,false);
-  const [aGap,bGap]=nb(Math.max(0,A.gap),Math.max(0,B.gap),false);
-  const [aRem,bRem]=nb(A.cashRem,B.cashRem,true);
-  const aBad=0.5*aCash+0.3*aGap+0.2*aRem;
-  const bBad=0.5*bCash+0.3*bGap+0.2*bRem;
-  return {w: aBad<=bBad?'A':'B', reason:'score', aBad, bBad};
+function recalcCounter(){
+  const inp = gatherInputs();
+  const list = inp.price;
+  renderOurOffer(inp);
+  renderCounterUnitToggle();
+  const cp = rawBlank('counterPrice') ? 0 : num('counterPrice');
+  const cc = counterConcTotal();
+  const netVal = (list>0 && cp>0) ? ((list - cp) + cc) : null;
+  const change = (netVal!=null) ? (netVal - inp.negotiatingRoom) : null;
+  renderNetVal(inp, list, cp, cc, netVal, change);
+  if(!(list>0) || !(cp>0)){
+    $('counterDp').textContent='';
+    $('coPanels').innerHTML='<div class="op-empty">Enter the seller’s counter price to analyze the response.</div>';
+    logChanges();
+    return;
+  }
+  const asStruct = evalStructure(inp, cp, cc);
+  $('counterDp').textContent = asStruct.s.dp+'% down'+(asStruct.sc.auto?(asStruct.sc.noEligible?' · no eligible option — showing Conv 5%':' · auto: '+asStruct.s.name):'');
+  const opt = optimalRestructure(inp, Math.max(0,netVal), list);
+  $('coPanels').innerHTML = coPanel1(inp, asStruct, netVal) + coPanel2(inp, asStruct, opt, list, cc) + coPanel3(inp, asStruct, opt, list, cp, cc);
+  logChanges();
 }
 
-function winnerSentence(win, A, B, inp){
-  const wl=win.w, ll=win.w==='A'?'B':'A';
-  const W=win.w==='A'?A:B, L=win.w==='A'?B:A;
-  if(win.reason==='conc'){
-    return 'Offer '+wl+' wins — Offer '+ll+'’s concession exceeds the '+FAM_NAME[L.s.id]+' '+L.s.concLimitPct+'% limit; restructure before submitting.';
-  }
-  if(win.reason==='funds'){
-    return 'Offer '+wl+' wins — Offer '+ll+' needs '+money(L.netCash-inp.funds)+' more than the buyer’s available funds ('+money(inp.funds)+').';
-  }
-  const cashDiff=L.netCash-W.netCash;   // + => winner is cheaper on cash
-  const payDiff=W.piti-L.piti;          // - => winner has the lower payment
-  const payPhrase = Math.abs(payDiff)<5 ? 'essentially the same payment'
-      : money(Math.abs(payDiff))+'/mo '+(payDiff<0?'lower':'higher')+' payment';
-  if(cashDiff >= 100){
-    return 'Offer '+wl+' wins — '+money(cashDiff)+' lower net cash to close'
-      + (payDiff<=5 ? ' and a '+payPhrase.replace('essentially the same payment','matching payment') : ' with '+(payDiff>0?'only ':'')+payPhrase) + '.';
-  }
-  // winner led on payment / reserves rather than cash
-  return 'Offer '+wl+' wins — '+payPhrase+'; net cash to close is within '+money(Math.abs(cashDiff))+' of Offer '+ll+'.';
-}
-
-function compareHTML(A, B, inp, win){
-  const row=(k, aVal, bVal)=>{
-    const aw=win.w==='A', bw=win.w==='B';
-    return '<tr><td>'+k+'</td><td class="'+(aw?'win':'')+'">'+aVal+'</td><td class="'+(bw?'win':'')+'">'+bVal+'</td></tr>';
-  };
-  const gapTxt=r=>{ const c=r.gap<=0.5?'gap-ok':(r.gap<=100?'gap-amber':'gap-red'); return '<span class="'+c+'">'+(r.gap>0?'+':'')+money(r.gap)+'/mo</span>'; };
-  const limTxt=r=>{ if(!r.conc||r.conc.total<=0) return '—'; return r.over?'<span class="gap-red">over '+r.s.concLimitPct+'% max</span>':'<span class="gap-ok">within '+r.s.concLimitPct+'%</span>'; };
-  const beTxt=r=>{ if(!r.conc||!r.conc.breakeven) return '—'; return 'mo '+r.conc.breakeven; };
-  let h='<div class="offer-compare"><table class="cmp"><thead><tr><th></th>'+
-        '<th class="'+(win.w==='A'?'win':'')+'">Offer A'+(win.w==='A'?' ★':'')+'</th>'+
-        '<th class="'+(win.w==='B'?'win':'')+'">Offer B'+(win.w==='B'?' ★':'')+'</th></tr></thead><tbody>';
-  h+=row('Offer price', money(A.price), money(B.price));
-  h+=row('Loan / down', A.s.name+' ('+A.s.dp+'%)', B.s.name+' ('+B.s.dp+'%)');
-  h+=row('Net cash to close', money(A.netCash), money(B.netCash));
-  h+=row('PITI', money(A.piti)+'/mo', money(B.piti)+'/mo');
-  h+=row('Payment gap', gapTxt(A), gapTxt(B));
-  h+=row('Cash remaining', money(A.cashRem), money(B.cashRem));
-  h+=row('Break-even (buydown)', beTxt(A), beTxt(B));
-  h+=row('Concession within limits', limTxt(A), limTxt(B));
-  h+='</tbody></table><div class="cmp-rec">'+winnerSentence(win, A, B, inp)+'</div></div>';
-  return h;
-}
-
-/* ---------- offer input handlers (Section 4 only; never re-triggers 1/2/3) ---------- */
-function attachOfferHandlers(){
-  ['A','B'].forEach(w=>{
-    const cfg=OFFERS[w];
-    // price: live + comma format on blur
-    $(cfg.price).addEventListener('input', recalcOffers);
-    $(cfg.price).addEventListener('blur', ()=>{ if(!rawBlank(cfg.price)) $(cfg.price).value=num(cfg.price).toLocaleString('en-US'); recalcOffers(); });
-    // loan type
-    $(cfg.loan).addEventListener('change', recalcOffers);
-    // concession total
-    $(cfg.conc).addEventListener('input', ()=>{ normalizeOfferSplit(w, offerTotal(w)); renderOfferSplitFields(w, true); recalcOffers(); });
-    $(cfg.conc).addEventListener('blur', ()=>{ if(!rawBlank(cfg.conc)) $(cfg.conc).value=num(cfg.conc).toLocaleString('en-US'); normalizeOfferSplit(w, offerTotal(w)); renderOfferSplitFields(w, false); recalcOffers(); });
-    // manual split
-    $(cfg.buy).addEventListener('input', ()=>{ offerSplit[w].buydown=num(cfg.buy); offerSplit[w].anchor='buydown'; normalizeOfferSplit(w, offerTotal(w)); renderOfferSplitFields(w, true); recalcOffers(); });
-    $(cfg.buy).addEventListener('blur', ()=>{ normalizeOfferSplit(w, offerTotal(w)); renderOfferSplitFields(w, false); recalcOffers(); });
-    $(cfg.cost).addEventListener('input', ()=>{ offerSplit[w].costs=num(cfg.cost); offerSplit[w].anchor='costs'; normalizeOfferSplit(w, offerTotal(w)); renderOfferSplitFields(w, true); recalcOffers(); });
-    $(cfg.cost).addEventListener('blur', ()=>{ normalizeOfferSplit(w, offerTotal(w)); renderOfferSplitFields(w, false); recalcOffers(); });
-    // optimal split — Engine.optimalSplit against this offer's scenario + shared profile
-    $(cfg.opt).addEventListener('click', ()=>{
-      const inp=gatherInputs(); const total=offerTotal(w);
-      const r=computeOffer(w, inp);
-      if(!r || total<=0) return;
-      const opt=Engine.optimalSplit(r.s, inp, total);
-      offerSplit[w].buydown=opt.buydown; offerSplit[w].costs=opt.costs; offerSplit[w].anchor='buydown'; offerSplit[w].init=true;
-      normalizeOfferSplit(w, total); renderOfferSplitFields(w, false); recalcOffers();
-    });
-  });
+/* ---------- counter offer handlers (Section 4 only; never re-triggers 1/2/3) ---------- */
+function attachCounterHandlers(){
+  $('counterPrice').addEventListener('input', ()=>{ liveComma($('counterPrice')); recalcCounter(); });
+  $('counterPrice').addEventListener('blur',  ()=>{ if(!rawBlank('counterPrice')) $('counterPrice').value=num('counterPrice').toLocaleString('en-US'); recalcCounter(); });
+  $('counterConc').addEventListener('input',  ()=>{ if(counterUnit.v==='dollar') liveComma($('counterConc')); recalcCounter(); });
+  $('counterConc').addEventListener('blur',   ()=>{ if(!rawBlank('counterConc') && counterUnit.v==='dollar') $('counterConc').value=num('counterConc').toLocaleString('en-US'); recalcCounter(); });
+  $('counterConcUnitTg').querySelectorAll('button').forEach(b=> b.addEventListener('click', ()=>setCounterUnit(b.dataset.u)));
+  $('counterLoan').addEventListener('change', recalcCounter);
 }
 
 /* ---------- formatting on blur for $ fields ---------- */
@@ -2328,33 +2761,26 @@ function attachFormatting(){
    These fields are excluded from the generic input->recalc wiring so the split
    invariant (buydown + costs = total) is maintained explicitly. */
 function attachConcessionHandlers(){
-  // Negotiable seller value amount
-  $('offerPrice').addEventListener('input', recalc);
+  // Offer amount — live comma formatting
+  $('offerPrice').addEventListener('input', ()=>{ liveComma($('offerPrice')); recalc(); });
   $('offerPrice').addEventListener('blur',()=>{ if(!rawBlank('offerPrice')) $('offerPrice').value=num('offerPrice').toLocaleString('en-US'); recalc(); });
+  // Seller concession — live comma in $ mode; % passes through
+  $('offerConc').addEventListener('input', ()=>{ if(offerConcUnit.v==='dollar') liveComma($('offerConc')); recalc(); });
+  $('offerConc').addEventListener('blur',  ()=>{ if(!rawBlank('offerConc') && offerConcUnit.v==='dollar') $('offerConc').value=num('offerConc').toLocaleString('en-US'); recalc(); });
+  $('offerConcUnitTg').querySelectorAll('button').forEach(b=> b.addEventListener('click', ()=>setOfferConcUnit(b.dataset.u)));
   // Deployment mode radios
   document.querySelectorAll('input[name="negMode"]').forEach(r=> r.addEventListener('change', recalc));
-  // "Adjust split manually" — reveal the fields and switch out of auto mode.
+  // "Adjust split manually" — reveal the fields and take manual control.
   $('btnManualSplit').addEventListener('click',()=>{ concSplit.auto=false; renderSplitFields(false); });
-  // "Back to auto" — hand control back to smartSplit.
+  // "Use priority default" — collapse the fields and hand allocation back to the
+  // priority-based default (payment → buydown; cash / balanced / power → costs).
   $('btnBackAuto').addEventListener('click',()=>{ concSplit.auto=true; recalc(); });
-  // manual concession split (applies to the deployed concession). Editing a field
-  // takes control away from auto mode.
-  $('concBuydown').addEventListener('input',()=>{ concSplit.auto=false; concSplit.buydown=num('concBuydown'); concSplit.anchor='buydown'; normalizeSplit(readConcTotal()); renderSplitFields(true); recalc(); });
+  // manual concession split. Editing a field takes manual control; the engine is
+  // passive after that — no re-suggestions.
+  $('concBuydown').addEventListener('input',()=>{ liveComma($('concBuydown')); concSplit.auto=false; concSplit.buydown=num('concBuydown'); concSplit.anchor='buydown'; normalizeSplit(readConcTotal()); renderSplitFields(true); recalc(); });
   $('concBuydown').addEventListener('blur',()=>{ normalizeSplit(readConcTotal()); renderSplitFields(false); recalc(); });
-  $('concCosts').addEventListener('input',()=>{ concSplit.auto=false; concSplit.costs=num('concCosts'); concSplit.anchor='costs'; normalizeSplit(readConcTotal()); renderSplitFields(true); recalc(); });
+  $('concCosts').addEventListener('input',()=>{ liveComma($('concCosts')); concSplit.auto=false; concSplit.costs=num('concCosts'); concSplit.anchor='costs'; normalizeSplit(readConcTotal()); renderSplitFields(true); recalc(); });
   $('concCosts').addEventListener('blur',()=>{ normalizeSplit(readConcTotal()); renderSplitFields(false); recalc(); });
-  // "Optimal split" — a manual override; engine proposes a cover-then-buydown split
-  $('btnOptimal').addEventListener('click',()=>{
-    const t=readConcTotal(); if(t<=0){ return; }
-    const inp=gatherInputs();
-    const res=Engine.run(inp, A_CONST);
-    const viable=res.scenarios.slice();
-    const best = viable.length ? Engine.pickBestOverall(viable, inp) : null;
-    if(!best) return;
-    const opt = Engine.optimalSplit(best, inp, t);
-    concSplit.buydown=opt.buydown; concSplit.costs=opt.costs; concSplit.anchor='buydown'; concSplit.auto=false;
-    normalizeSplit(t); renderSplitFields(false); recalc();
-  });
 }
 
 /* ---------- collapsible sections ---------- */
@@ -2411,13 +2837,23 @@ function init(){
   attachGapButtons();
   attachConcessionHandlers();
   attachUnitToggles();
-  attachOfferHandlers();
-  const SKIP={offerPrice:1, concBuydown:1, concCosts:1}; // handled explicitly
+  attachCounterHandlers();
+  const SKIP={offerPrice:1, offerConc:1, concBuydown:1, concCosts:1}; // handled explicitly
+  // Whole-dollar fields that comma-format live as the user types.
+  const DOLLAR = new Set(['price','ownFunds','gift','target','income','debts','ccOverride','hoi','hoa','cdd','flood']);
+  // Dual-unit fields: comma-format live only when their $ / % toggle is on $.
+  const DOLLAR_UNIT = { dpTarget:'dp', taxRate:'tax' };
   document.querySelectorAll('input,select').forEach(el=>{
     if(SKIP[el.id]) return;
     if(el.name==='negMode') return;    // negotiation mode radios handled explicitly
     if(el.closest('#sec4')) return;    // Section 4 inputs recalc offers only, never 1/2/3
-    el.addEventListener('input',recalc);
+    if(DOLLAR.has(el.id)){
+      el.addEventListener('input',()=>{ liveComma(el); recalc(); });
+    } else if(DOLLAR_UNIT[el.id]){
+      el.addEventListener('input',()=>{ if(unitState[DOLLAR_UNIT[el.id]]==='dollar') liveComma(el); recalc(); });
+    } else {
+      el.addEventListener('input',recalc);
+    }
     el.addEventListener('change',recalc);
   });
   recalc();
