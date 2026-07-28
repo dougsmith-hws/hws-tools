@@ -3,7 +3,7 @@
 
 **HomeWealth Solutions LLC** · Company NMLS #2742458 · FL OFR Mortgage Broker License #MBR8082
 Owner: Doug Smith, President & Broker, CMA®
-Last updated: **2026-07-28** (Gate B)
+Last updated: **2026-07-28** (Gate B.5)
 
 > **This is the controlling status document for the Buyer Strategy Engine redesign.**
 > Any new Cowork session working on the BSE should read this file first, then the two documents referenced below. Do not reconstruct prior phases from memory or summary — the full detail is on disk.
@@ -19,6 +19,7 @@ Last updated: **2026-07-28** (Gate B)
 | **Phase 2** | Architecture decision lock and data model design | **COMPLETE / CLOSED** — 13 locked decisions (L-1…L-13), 6 questions resolved (Q-1…Q-6), 0 open |
 | **Phase 3 — Gate A** | M-1 / `applyState` canonical unit handling | **COMPLETE / APPROVED** — see `BSE-Phase3-GateA-Report.md` |
 | **Phase 3 — Gate B** | Numerical baseline + canonical application-state architecture | **COMPLETE** — see `BSE-Phase3-GateB-Report.md` |
+| **Phase 3 — Gate B.5** | Pre-persistence hardening — C-4b, `gatherInputs()` cutover, review-field classification | **COMPLETE** — see `BSE-Phase3-GateB5-Report.md` |
 | **Phase 3 — Gate C** | Supabase schema, auth, RLS, persistence | **NOT AUTHORIZED** |
 
 Phases 0, 1, and 2 were audit and design only — no source was modified in any of them. Application source was first modified in **Gate A** (three unit-toggle functions plus an additive canonical-unit layer) and extended in **Gate B** (a purely additive canonical application-state layer). The calculation engine, lines 526–1060, is byte-identical to `540ccbe` throughout.
@@ -38,7 +39,7 @@ Any session beginning implementation work must verify these before touching anyt
 
 **Pre-Phase-3 git baseline: `540ccbe`** — "Live comma formatting on input with cursor-position restore", 2026-07-27, branch `main`. `main` still points here.
 
-**Current work: branch `phase3/gate-b-canonical-state`.** The production BSE MD5 on that branch is `f8b2b9b51c06b021b4b1d3242b482979` (Gate A produced `d5c16fde3b9c57a14f26ab9bae1b38ec`); the table above remains the correct baseline for `main` and for the three untouched files.
+**Current work: branch `phase3/gate-b5-pre-persistence-hardening`.** The production BSE MD5 on that branch is `1f4cde6c104c5d77db5634eac0efff05` (Gate A produced `d5c16fde…`, Gate B `f8b2b9b5…`); the table above remains the correct baseline for `main` and for the three untouched files.
 
 Verification command:
 
@@ -79,7 +80,7 @@ These are locked and carry forward into every future session.
 
 5. **`maxPriceForScenario` must not be modified.** It mirrors `computeScenario`'s PITI assembly exactly; breaking that mirror makes every number in the tool internally inconsistent.
 
-6. ~~**No regression baseline exists yet.**~~ **Discharged in Gate B, Stage 1.** The permanent 47-scenario numerical baseline lives at `internal/buyer-strategy/tests/baseline/bse-expected-baseline.json`, with expected values established by an independent implementation of the documented formulas (`tests/oracle/reference_model.py`), not by the engine. 3,625 fields are `EXPECTED VALUE VERIFIED`; 1,532 are `EXPECTED VALUE REQUIRES REVIEW` per audit §11.5. Run it before and after any code change.
+6. ~~**No regression baseline exists yet.**~~ **Discharged in Gate B, Stage 1.** The permanent 47-scenario numerical baseline lives at `internal/buyer-strategy/tests/baseline/bse-expected-baseline.json`, with expected values established by an independent implementation of the documented formulas (`tests/oracle/reference_model.py`), not by the engine. **4,000** fields are `EXPECTED VALUE VERIFIED`; **1,157** are `EXPECTED VALUE REQUIRES REVIEW` (Gate B.5 promoted 375 after deriving horizon costs and the post-cancellation payment independently). Run it before and after any code change.
 
 ---
 
@@ -90,6 +91,7 @@ These are locked and carry forward into every future session.
 | `docs/BSE-Phase0-1-Forensic-Audit.md` | Complete Phase 0/1 forensic audit: function inventory, all 54 findings with risk classifications, regression baseline scenarios, protected functions, Live vs Staging divergence, FL property-tax findings, persistence audit, field classifications |
 | `docs/BSE-Phase2-Architecture.md` | Complete Phase 2 architecture: 7-table model, all schemas and field definitions, DDL, assumption-set and reproducibility design, tax method architecture, `qualifying_tax_basis`, closing/occupancy dates, DTI override, `organization_id`, canonical-value design, all 13 locked decisions, all 6 resolved questions, migration risks, phase sequencing |
 | `docs/BSE-Phase3-GateA-Report.md` | Gate A completion report — M-1 failure path, the fix, tests, regression results, Gate B findings |
+| `docs/BSE-Phase3-GateB5-Report.md` | Gate B.5 completion report — the C-4b failure path and fix, the `gatherInputs()` cutover, the 1,532-field classification, the safe `result_summary` set, Gate C readiness |
 | `docs/BSE-Phase3-GateB-Report.md` | Gate B completion report — Checkpoint B1, the permanent baseline and how its expected values were established, the canonical state layer, limitations, Gate C findings |
 | `docs/BSE-Project-Status.md` | This file |
 
@@ -136,14 +138,17 @@ Also note: `Tools/_to_delete/phase3-cleanup-20260728/` contains a zero-byte prob
 
 ## 7. IMMEDIATE NEXT ACTION
 
-**Gate B is complete and stopped for review.** Nothing further is authorized without Doug's written approval.
+**Gate B.5 is complete and stopped for review.** Nothing further is authorized without Doug's written approval.
 
-Before any Gate C work is authorized, the Gate B report's §35 items should be settled — in particular:
+The three Gate B blockers are discharged: C-4b is fixed and proved, `gatherInputs()` now consumes the canonical model, and the review fields are classified with the persistence-critical subset either verified or explicitly scoped out of persistence. Gate C readiness is assessed against its stated standard in the Gate B.5 report.
 
-1. Fix `updateInlineHints` (C-4b / M-6) **before** persistence. The canonical model cannot be corrupted; the DOM still can, and persistence saves what the DOM holds.
-2. Decide the 1,532 `EXPECTED VALUE REQUIRES REVIEW` fields — specify them or sign off on the recorded values before they become historical records.
-3. Do the `gatherInputs()` cutover to the canonical model **before** Supabase, not after. The equivalence test makes it safe now.
-4. Run Gate C on the computer, not in a cloud session (Section 6).
+Carry into Gate C (report §44):
+
+1. Delete `__legacyGatherInputsFromDom()` as the first commit.
+2. Enforce mechanically that `result_summary` is never read back into a calculation (M-3).
+3. Decide whether a blank rate or closing-cost percent should inherit the assumption-set default — behaviour was deliberately preserved as 0.
+4. Reconcile `pending_concession_value` / `pending_negotiation_mode` with the Phase 2 §8 round schema.
+5. Run Gate C on the computer, not in a cloud session (Section 6).
 
 To run the suites, see `internal/buyer-strategy/tests/README.md`.
 
