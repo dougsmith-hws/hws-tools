@@ -461,19 +461,59 @@ function parseNum(s) {
   return parseFloat(s.replace(/,/g, '')) || 0;
 }
 
-// ── oninput sanitizers (no reformatting — just strip illegal chars) ──
+// ── Cursor-safe live formatting helpers ──
 
-// Whole-dollar fields: digits only while typing
-function sanitizeWhole(el) {
-  el.value = el.value.replace(/[^0-9]/g, '');
+// Count digits in str before index
+function _digitsBeforeIdx(str, idx) {
+  return (str.slice(0, idx).match(/\d/g) || []).length;
+}
+// Find position in str after N digits have been passed
+function _posAfterNDigits(str, n) {
+  if (n === 0) return 0;
+  let count = 0;
+  for (let i = 0; i < str.length; i++) {
+    if (/\d/.test(str[i])) { count++; if (count === n) return i + 1; }
+  }
+  return str.length;
 }
 
-// Cents-allowed fields: digits + one decimal point while typing
+// oninput — whole dollar: live comma formatting with cursor restore
+function sanitizeWhole(el) {
+  const pos = el.selectionStart;
+  const old = el.value;
+  const digits = old.replace(/\D/g, '');
+  if (!digits) { el.value = ''; return; }
+  const dBefore   = _digitsBeforeIdx(old, pos);
+  const formatted = parseInt(digits, 10).toLocaleString('en-US');
+  el.value = formatted;
+  const newPos = _posAfterNDigits(formatted, dBefore);
+  el.setSelectionRange(newPos, newPos);
+}
+
+// oninput — cents: live comma formatting on integer part, decimal left as typed
 function sanitizeCents(el) {
-  let v = el.value.replace(/[^0-9.]/g, '');
-  const parts = v.split('.');
-  if (parts.length > 2) v = parts[0] + '.' + parts.slice(1).join('');
-  el.value = v;
+  const pos    = el.selectionStart;
+  const old    = el.value;
+  const dotIdx = old.indexOf('.');
+  const hasDot = dotIdx !== -1;
+
+  const intRaw  = hasDot ? old.slice(0, dotIdx) : old;
+  const decRaw  = hasDot ? old.slice(dotIdx + 1).replace(/\D/g, '').slice(0, 2) : '';
+  const intDigs = intRaw.replace(/\D/g, '');
+  const fmtInt  = intDigs ? parseInt(intDigs, 10).toLocaleString('en-US') : '';
+
+  el.value = hasDot ? fmtInt + '.' + decRaw : fmtInt;
+
+  if (!hasDot || pos <= dotIdx) {
+    // cursor in integer portion
+    const dBefore = _digitsBeforeIdx(intRaw, Math.min(pos, intRaw.length));
+    el.setSelectionRange(_posAfterNDigits(fmtInt, dBefore), _posAfterNDigits(fmtInt, dBefore));
+  } else {
+    // cursor in decimal portion — keep offset from dot
+    const newDot   = el.value.indexOf('.');
+    const offset   = Math.min(pos - dotIdx, decRaw.length + 1);
+    el.setSelectionRange(newDot + offset, newDot + offset);
+  }
 }
 
 // Decimal-only (millage)
@@ -481,21 +521,17 @@ function fmtDecimal(el) {
   el.value = el.value.replace(/[^0-9.]/g, '');
 }
 
-// ── onblur formatters (called when field loses focus) ──
+// ── onblur: finalize formatting with $ prefix ──
 
-// Whole-dollar format — for Purchase Price, Prior values
 function fmtWhole(el) {
-  const raw = el.value.replace(/[$,]/g, '');
-  const n = parseFloat(raw);
-  if (!isNaN(n) && raw !== '') {
-    el.value = '$' + Math.round(n).toLocaleString('en-US');
-  }
+  const digits = el.value.replace(/\D/g, '');
+  if (!digits) return;
+  el.value = '$' + parseInt(digits, 10).toLocaleString('en-US');
 }
 
-// Cents format — for Current Bill, Non-Ad Valorem
 function fmtCents(el) {
   const raw = el.value.replace(/[$,]/g, '');
-  const n = parseFloat(raw);
+  const n   = parseFloat(raw);
   if (!isNaN(n) && raw !== '') {
     el.value = '$' + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   }
