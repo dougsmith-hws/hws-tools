@@ -7,15 +7,21 @@ supabase/
 ├── migrations/
 │   ├── 0001_bse_schema.sql          seven tables, constraints, indexes, RLS, triggers
 │   └── 0002_seed_reference_data.sql tax methods + the immutable 2026.07-baseline assumption set
-├── mapping/
-│   └── canonical-to-db.js           BSEModel canonical state <-> database rows (pure, no network)
 └── local-verify/
     └── 00_auth_stub.sql             LOCAL ONLY — recreates auth.uid()/auth.role() on plain Postgres
 ```
 
+There is deliberately **no `mapping/` directory**. The canonical↔row mapping lives in the
+application itself, inside `BSEPersistence` in `internal/buyer-strategy/index.html`, and the
+test suite calls it *inside the page*. A second copy of that mapping in this directory would
+have been a second source of truth — exactly the defect Gate B.5 removed from `gatherInputs()`.
+
 ## Status
 
-The schema, constraints, RLS policies and the canonical↔database mapping are **written and verified against a real PostgreSQL 16 instance**. They have **not** been applied to a Supabase project, because no Supabase project, credential, or connector was reachable from this session — see `docs/BSE-Phase3-GateC-Report.md` §5.
+Applied. Both migrations were run in the `hws-buyer-strategy` Supabase project on
+**2026-07-28** and all seven verification checks passed. The schema, constraints and RLS
+policies are additionally verified against a real PostgreSQL 16 instance on every test run,
+so they remain reproducible without Supabase.
 
 ## Applying to Supabase (once a project exists)
 
@@ -40,7 +46,25 @@ psql -d bse_verify -f supabase/migrations/0002_seed_reference_data.sql
 PGHOST=/tmp/pgsock PGPORT=5433 node tests/persistence-db.test.js internal/buyer-strategy/index.html
 ```
 
-That suite runs the real application headless, captures canonical state, writes it through the mapping into the real schema **with RLS enabled and forced**, reads it back as the owning user, restores it, and asserts round-trip identity, cross-user denial, and constraint enforcement.
+That suite runs the real application headless, captures canonical state, writes it through
+**the application's own mapping** into the real schema **with RLS enabled and forced**, reads
+it back as the owning user, restores it, and asserts round-trip identity, cross-user denial,
+constraint enforcement, and the repeat-save write strategy (D12).
+
+The client half — save/load orchestration, debounce, single-flight, failure handling — needs
+no database at all:
+
+```bash
+node tests/persistence-client.test.js internal/buyer-strategy/index.html
+```
+
+## A note on how rounds are written
+
+`negotiation_round` rows are **upserted on the natural key `(property_scenario_id,
+round_number)`**, never deleted and re-inserted. Delete-and-reinsert is rejected by
+`bse_round_delete_guard` the moment a scenario leaves `draft`, which would make every autosave
+after the first client presentation fail. Test `D12a` pins that behaviour so the strategy
+cannot quietly regress.
 
 ## What the schema enforces, not just the application
 

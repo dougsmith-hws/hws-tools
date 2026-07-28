@@ -3,7 +3,8 @@
    Phase 3 Gate C.
 
    Runs the real Buyer Strategy Engine headless, captures canonical state,
-   writes it through supabase/mapping/canonical-to-db.js into a REAL
+   writes it through the application's OWN mapping — BSEPersistence, called
+   inside the page, the same code that runs against Supabase — into a REAL
    PostgreSQL database created from supabase/migrations/*.sql with RLS
    enabled and forced, reads it back as the owning user, reconstructs the
    canonical model, restores it into the application, and asserts:
@@ -30,7 +31,6 @@ const { chromium } = require('playwright');
 const { Client } = require('pg');
 const path = require('path');
 const fs = require('fs');
-const map = require('../supabase/mapping/canonical-to-db');
 const harness = require('./lib/app-harness');
 
 const APP = path.resolve(process.argv[2]);
@@ -149,7 +149,10 @@ const CASES = [
                          recommended_scenario_dp: 3.5, piti: 1, cash_to_close: 1,
                          binding_constraint: 'Nonsense', price: 1, max_price: 1,
                          assumption_set_version: 'bogus', engine_version: 'bogus' };
-    const rows = map.serialize(before.model, ctx, falseCache);
+    // The mapping under test is the application's own, executed in the page.
+    const rows = await page.evaluate(
+      ([m, c, cache]) => BSEPersistence.__serializeRows(m, c, cache),
+      [before.model, ctx, falseCache]);
 
     let readBack;
     try {
@@ -216,12 +219,16 @@ const CASES = [
     }
 
     // ---------- D9 canonical A -> DB -> canonical B ----------
-    const restored = map.deserialize(readBack, before.model.presentation, before.model.ui_state);
-    const after = await page.evaluate(m => {
-      BSEModel.apply(m);
+    const after = await page.evaluate(([rb, pres, ui]) => {
+      const restored = BSEPersistence.__deserializeRows(rb, pres, ui);
+      BSEModel.apply(restored);
       return { model: JSON.parse(JSON.stringify(BSEModel.capture())),
-               summary: BSEModel.buildResultSummary() };
-    }, restored);
+               summary: BSEModel.buildResultSummary(),
+               restored_has_result_summary: Object.prototype.hasOwnProperty.call(restored, 'result_summary') };
+    }, [readBack, before.model.presentation, before.model.ui_state]);
+
+    check('D10 ' + c.id + ' — the deserialized model carries no result_summary at all',
+      after.restored_has_result_summary === false);
 
     const authoredOf = m => JSON.stringify({
       buyer_profile: m.buyer_profile, shopping_plan: m.shopping_plan,
@@ -243,8 +250,7 @@ const CASES = [
       a === b, firstDiff);
 
     check('D10 ' + c.id + ' — load recomputes; the false cache had no effect',
-      JSON.stringify(after.summary) !== JSON.stringify(map.authored(null)) &&
-      after.summary.recommended_program === before.summary.recommended_program &&
+      after.summary && after.summary.recommended_program === before.summary.recommended_program &&
       String(after.summary.piti) === String(before.summary.piti) &&
       after.summary.assumption_set_version === '2026.07-baseline',
       JSON.stringify({ before: before.summary.piti, after: after.summary.piti }));
@@ -326,6 +332,113 @@ const CASES = [
   });
   await expectViolation('D8 a presented scenario cannot be hard-deleted (soft-delete rule)',
     'delete from property_scenario where id=$1', [anyScenarioId], /not hard-deletable|draft/i);
+
+  /* ---------- D12 the REPEAT-SAVE write strategy ----------
+     Autosave rewrites the same scenario every 1.5 s. The strategy the client
+     transport uses to write negotiation rounds is therefore executed hundreds
+     of times per session against rows the buyer has already been shown, and it
+     has to keep working after the scenario leaves 'draft'.
+
+     An earlier revision of the transport wrote rounds by DELETE-then-INSERT.
+     D12a proves that strategy is rejected outright by bse_round_delete_guard on
+     a presented scenario — which would have made every autosave after the first
+     presentation fail, silently, for the rest of that buyer's file. The shipped
+     strategy is UPSERT on the natural key with a delete confined to surplus
+     rounds; D12b/c/d prove it survives the same conditions. */
+  const D12 = await asUser(db, USER_A, async () => {
+    const [bpId, spId, prId, scId] = ids(4);
+    const owner = USER_A;
+    await db.query(insert('buyer_profile', { id: bpId, owner_user_id: owner, display_name: 'Repeat-save buyer',
+      qualifying_income_monthly: 9500, monthly_debts: 650, own_funds: 40000, gift_funds: 0 }));
+    await db.query(insert('shopping_plan', { id: spId, owner_user_id: owner, buyer_profile_id: bpId,
+      plan_label: 'Plan', is_active: true, target_payment: 2800, assumption_set_id: asId.id }));
+    await db.query(insert('property', { id: prId, owner_user_id: owner, buyer_profile_id: bpId, label: 'P' }));
+    await db.query(insert('property_scenario', { id: scId, owner_user_id: owner, property_id: prId,
+      buyer_profile_id: bpId, shopping_plan_id: spId, scenario_label: 'S', assumption_set_id: asId.id,
+      engine_version: 'gate-c', status: 'presented' }));
+    await db.query(insert('negotiation_round', { owner_user_id: owner, property_scenario_id: scId,
+      round_number: 1, actor: 'buyer', price: 485000 }));
+    return { scId: scId, owner: owner };
+  });
+
+  await expectViolation('D12a the OLD delete-then-insert round strategy is rejected once a scenario is presented',
+    'delete from negotiation_round where property_scenario_id=$1', [D12.scId],
+    /may only be deleted while the parent scenario is draft/);
+
+  // the shipped strategy, executed the way the transport executes it
+  const upsertRound = r => ({
+    text: `insert into negotiation_round (owner_user_id,property_scenario_id,round_number,actor,price,
+             concession_value,concession_unit,negotiation_mode)
+           values ($1,$2,$3,$4,$5,$6,$7,$8)
+           on conflict (property_scenario_id, round_number) do update set
+             actor=excluded.actor, price=excluded.price,
+             concession_value=excluded.concession_value,
+             concession_unit=excluded.concession_unit,
+             negotiation_mode=excluded.negotiation_mode
+           returning *`,
+    values: [D12.owner, D12.scId, r.round_number, r.actor, r.price,
+             r.concession_value ?? null, r.concession_unit ?? null, r.negotiation_mode ?? null]
+  });
+
+  let d12b = null, d12bErr = null;
+  try {
+    d12b = await asUser(db, USER_A, async () => {
+      // three consecutive autosaves of the same presented scenario, price rising
+      for (const price of [486000, 487500, 489000]) {
+        await db.query(upsertRound({ round_number: 1, actor: 'buyer', price: price,
+                                     concession_value: 8000, concession_unit: 'amount',
+                                     negotiation_mode: 'split' }));
+        const highest = 1;
+        await db.query('delete from negotiation_round where property_scenario_id=$1 and round_number > $2',
+          [D12.scId, highest]);
+      }
+      return (await db.query('select round_number, price, id from negotiation_round where property_scenario_id=$1 order by round_number',
+        [D12.scId])).rows;
+    });
+  } catch (e) { d12bErr = e.message; }
+  check('D12b repeated autosaves of a PRESENTED scenario succeed with the upsert strategy',
+    d12bErr === null && d12b && d12b.length === 1 && parseFloat(d12b[0].price) === 489000,
+    d12bErr || JSON.stringify(d12b));
+
+  let d12c = null, d12cErr = null;
+  try {
+    d12c = await asUser(db, USER_A, async () => {
+      const before = (await db.query('select id from negotiation_round where property_scenario_id=$1 and round_number=1',
+        [D12.scId])).rows[0].id;
+      // a seller counter arrives: round 2 is added, round 1 must keep its identity
+      await db.query(upsertRound({ round_number: 2, actor: 'seller', price: 492000,
+                                   concession_value: 4000, concession_unit: 'amount' }));
+      await db.query(upsertRound({ round_number: 1, actor: 'buyer', price: 489000,
+                                   concession_value: 8000, concession_unit: 'amount',
+                                   negotiation_mode: 'split' }));
+      await db.query('delete from negotiation_round where property_scenario_id=$1 and round_number > $2',
+        [D12.scId, 2]);
+      const after = (await db.query('select id from negotiation_round where property_scenario_id=$1 and round_number=1',
+        [D12.scId])).rows[0].id;
+      const all = (await db.query('select round_number, actor, price from negotiation_round where property_scenario_id=$1 order by round_number',
+        [D12.scId])).rows;
+      return { stableId: before === after, all: all };
+    });
+  } catch (e) { d12cErr = e.message; }
+  check('D12c adding a counter round preserves the identity of the round already shown to the client',
+    d12cErr === null && d12c && d12c.stableId === true && d12c.all.length === 2 &&
+    d12c.all[0].actor === 'buyer' && d12c.all[1].actor === 'seller',
+    d12cErr || JSON.stringify(d12c));
+
+  let d12dErr = null;
+  try {
+    await asUser(db, USER_A, async () => {
+      // the surplus delete matches nothing while both rounds stand: no trigger fires
+      await db.query('delete from negotiation_round where property_scenario_id=$1 and round_number > $2',
+        [D12.scId, 2]);
+    });
+  } catch (e) { d12dErr = e.message; }
+  check('D12d the surplus-round delete is a no-op when nothing was withdrawn, so the guard never fires',
+    d12dErr === null, d12dErr);
+
+  await expectViolation('D12e withdrawing a round a client was already shown is still refused — the soft-delete rule holds',
+    'delete from negotiation_round where property_scenario_id=$1 and round_number > 1', [D12.scId],
+    /may only be deleted while the parent scenario is draft/);
 
   // ---------- D11 assumption sets are immutable ----------
   let updBlocked = false, delBlocked = false;

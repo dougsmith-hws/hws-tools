@@ -3,7 +3,7 @@
 
 **HomeWealth Solutions LLC** · Company NMLS #2742458 · FL OFR Mortgage Broker License #MBR8082
 Owner: Doug Smith, President & Broker, CMA®
-Last updated: **2026-07-28** (Gate C — partial, stopped)
+Last updated: **2026-07-28** (Gate C — code complete, awaiting live-auth verification by Doug)
 
 > **This is the controlling status document for the Buyer Strategy Engine redesign.**
 > Any new Cowork session working on the BSE should read this file first, then the two documents referenced below. Do not reconstruct prior phases from memory or summary — the full detail is on disk.
@@ -21,7 +21,7 @@ Last updated: **2026-07-28** (Gate C — partial, stopped)
 | **Phase 3 — Gate B** | Numerical baseline + canonical application-state architecture | **COMPLETE** — see `BSE-Phase3-GateB-Report.md` |
 | **Phase 3 — Gate B.5** | Pre-persistence hardening — C-4b, `gatherInputs()` cutover, review-field classification | **COMPLETE** — see `BSE-Phase3-GateB5-Report.md` |
 | **Phase 3 — Gate B.75** | Persistence contract lock — legacy path removed, blank inheritance, pending fields reconciled, `result_summary` non-authoritative | **COMPLETE** — see `BSE-Phase3-GateB75-Report.md` |
-| **Phase 3 — Gate C** | Supabase schema, auth, RLS, persistence | **IN PROGRESS / STOPPED** — schema, mapping and RLS built and verified on real PostgreSQL; auth and transport blocked on a reachable Supabase project. See `BSE-Phase3-GateC-Report.md` §5 |
+| **Phase 3 — Gate C** | Supabase schema, auth, RLS, persistence | **CODE COMPLETE — awaiting Doug's live-auth tests.** Schema and RLS live in Supabase; client persistence layer built and tested (401 assertions, 0 failures). Magic-link sign-in, cross-device and cross-user denial need a human inbox and a second device. See `BSE-Phase3-GateC-Report.md` §58 |
 
 Phases 0, 1, and 2 were audit and design only — no source was modified in any of them. Application source was first modified in **Gate A** (three unit-toggle functions plus an additive canonical-unit layer) and extended in **Gate B** (a purely additive canonical application-state layer). The calculation engine, lines 526–1060, is byte-identical to `540ccbe` throughout.
 
@@ -40,7 +40,7 @@ Any session beginning implementation work must verify these before touching anyt
 
 **Pre-Phase-3 git baseline: `540ccbe`** — "Live comma formatting on input with cursor-position restore", 2026-07-27, branch `main`. `main` still points here.
 
-**Current work: branch `phase3/gate-c-supabase-persistence`.** The production BSE MD5 is unchanged from Gate B.75 at `90bcc96f62feb7f90c34c8407ddeacd0` — Gate C has not modified the application (Gate A produced `d5c16fde…`, Gate B `f8b2b9b5…`, Gate B.5 `1f4cde6c…`); the table above remains the correct baseline for `main` and for the three untouched files.
+**Current work: branch `phase3/gate-c-supabase-persistence`.** The production BSE is now `5a34444d249c40558d925e0c4cb76f08` (Gate A produced `d5c16fde…`, Gate B `f8b2b9b5…`, Gate B.5 `1f4cde6c…`, Gate B.75 `90bcc96f…`). Gate C's change is **two insertions with zero deletions** — `diff` against Gate B.75 reports `3395a3396,3966` and `3423a3995,3996` and nothing else. The table above remains the correct baseline for `main` and for the three untouched files.
 
 Verification command:
 
@@ -141,33 +141,39 @@ Also note: `Tools/_to_delete/phase3-cleanup-20260728/` contains a zero-byte prob
 
 ## 7. IMMEDIATE NEXT ACTION
 
-**Gate C is IN PROGRESS and stopped at a genuine access limitation.** The schema half is built and verified; the auth half cannot start.
+**Gate C is code complete. Three things remain, and all three require Doug.**
 
-**To unblock Gate C, Doug needs to provide:**
+Serve the tool from the exact origin registered as the Supabase redirect URL:
 
-1. A Supabase project (free tier is enough), or confirmation that one exists.
-2. Its **project URL and anon/publishable key** — public values, safe to share and commit. **Never** the service-role key or database password.
-3. A route to reach it. `supabase.com` is unreachable from the Cowork cloud sandbox and the desktop VM is offline, so the practical path is: **apply `supabase/migrations/0001` then `0002` yourself in the Supabase SQL editor** (copy-paste, two files) and report the result.
-4. Authorization for a **Netlify preview/branch deploy** as the magic-link callback target — production deployment is not authorized.
+```
+cd ~/Tools/Live/internal/buyer-strategy
+python3 -m http.server 8080
+# then open http://localhost:8080/index.html
+```
 
-**Database artifacts live in `~/Tools/Live/supabase/`** and are reproducible without Supabase: see `supabase/README.md`.
+Then run the five tests in `BSE-Phase3-GateC-Report.md` §58 and report the results:
+
+1. **Magic-link sign-in** — did the email arrive, did the link return you to the tool, what does the status chip say?
+2. **Cross-session and cross-device** — does the session survive closing the tab, and does a second device see the same buyer?
+3. **Cross-user denial** — sign in with a second email address. It must see nothing. Anything else is a security finding.
+4. **Network failure** — turn wi-fi off mid-edit. Your numbers and the recommendation must stay on screen.
+5. **The offline promise (M-10)** — cold start with wi-fi off. The tool must calculate normally and read *Not connected*.
+
+Until those are run, treat report §6, §7, §37 and §38 as unverified.
+
+**Not deployed.** No production, no preview, no Netlify. `localhost:8080` only. The branch is not merged to `main`.
+
+**A defect was found and fixed during Gate C** — the round write strategy would have silently broken every autosave for any buyer in active negotiation. Report §57 has the full account; it is worth reading.
 
 Gate B.75 remains complete and approved.
 
-All four Gate B.5 carry-forward items are discharged. **Locked persistence-contract decisions**, now binding on Gate C:
+All four Gate B.5 carry-forward items are discharged. **Locked persistence-contract decisions**, now enforced by the database as well as the application:
 
-1. **BSEModel is the sole authoritative economic state.** The DOM is an interface. There is one `gatherInputs()` and it delegates to the model.
-2. **Blank ≠ zero.** A blank authored value is NULL and inherits per L-1 — ultimately from the assumption set (rates 6.750 / 6.250 / 6.125, closing costs 3.00%). An explicit 0 is an authored zero and wins. The resolved default is **never** written back into the authored record.
-3. **Concession-before-price and mode-before-round are first-class Property Scenario state** — `offer_concession_value` / `offer_concession_unit` / `negotiation_mode`. A `negotiation_round` snapshots the mode and carries its own copy of the pair. `resolve().concession_resolvable` marks a percentage with no price as unresolvable rather than zero.
-4. **`result_summary` is cache-only and mechanically non-authoritative.** It is stripped on restore, always rebuilt from a fresh engine run, and a disagreeing cache is discarded and reported. Recompute always wins.
-
-Carry into Gate C (report §45):
-
-1. Map authored NULL to database NULL deliberately — the blank-inheritance contract depends on it.
-2. Enforce the non-authoritative `result_summary` rule at the persistence boundary as well as in the model.
-3. Decide whether a `negotiation_round` may ever exist without a price.
-4. Debounce autosave off the `recalc` path (M-8).
-5. Run Gate C on the computer, not in a cloud session (Section 6).
+1. **BSEModel is the sole authoritative economic state.** The DOM is an interface. There is one `gatherInputs()` and it delegates to the model. Gate C added no second mapping — the canonical↔row translation lives in the application and the tests call it inside the page.
+2. **Blank ≠ zero.** A blank authored value is NULL and inherits per L-1 — ultimately from the assumption set (rates 6.750 / 6.250 / 6.125, closing costs 3.00%). An explicit 0 is an authored zero and wins. The resolved default is **never** written back into the authored record, and `resolved_inputs` is persisted as NULL unconditionally.
+3. **Concession-before-price and mode-before-round are first-class Property Scenario state** — `offer_concession_value` / `offer_concession_unit` / `negotiation_mode`. A `negotiation_round` requires a price; scenario-level negotiation intent does not.
+4. **`result_summary` is cache-only and mechanically non-authoritative.** It is stripped on restore, never returned into canonical state at all, always rebuilt from a fresh engine run, and a disagreeing cache is discarded and reported. Recompute always wins.
+5. **Persistence never runs from `recalc()`.** Autosave listens on its own `input`/`change` handlers, debounced 1500 ms, single-flight with a queued latest snapshot.
 
 To run the suites, see `internal/buyer-strategy/tests/README.md`.
 

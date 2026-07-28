@@ -1,14 +1,22 @@
 # Buyer Strategy Engine — test suites
 
-Four suites. All drive the real application in headless Chromium; none stubs,
-mocks, or re-implements a calculation inside the application.
+Nine suites, **401 assertions**. All drive the real application in headless
+Chromium; none stubs, mocks, or re-implements a calculation inside the
+application. The only mock anywhere is the *network transport* in
+`persistence-client.test.js` — the mapping and the orchestration it exercises are
+the application's own code, running in the page.
 
-| Suite | File | What it protects |
-|---|---|---|
-| **Permanent numerical regression** | `bse-regression.test.js` | The 47 audit scenarios against **fixed expected values**. The numerical contract |
-| **Cross-tool R-47** | `r47-cross-tool.test.js` | The documented $115,338 Comfort Calculator vs BSE gap (audit C-6) |
-| **M-1 / canonical units** | `m1-canonical-units.test.js` | Gate A: restore never converts; repeated toggling never drifts |
-| **Canonical application state** | `canonical-state.test.js` | Gate B: model ⇄ DOM ⇄ engine identity, L-1 inheritance, DTI resolution, assumption-set immutability, prohibited-data absence |
+| Suite | File | Assertions | What it protects |
+|---|---|---|---|
+| **Permanent numerical regression** | `bse-regression.test.js` | 68 | The 47 audit scenarios against **fixed expected values**. The numerical contract |
+| **M-1 / canonical units** | `m1-canonical-units.test.js` | 80 | Gate A: restore never converts; repeated toggling never drifts |
+| **Canonical application state** | `canonical-state.test.js` | 22 | Gate B: model ⇄ DOM ⇄ engine identity, L-1 inheritance, DTI resolution, assumption-set immutability, prohibited-data absence |
+| **C-4b presentation integrity** | `c4b-presentation-integrity.test.js` | 64 | Gate B.5: what is rendered was computed from the values the model actually holds |
+| **Model authority** | `model-authority.test.js` | 12 | Gate B.5/B.75: `BSEModel` is the only economic source of truth; no legacy DOM path survives |
+| **Persistence contract** | `persistence-contract.test.js` | 40 | Gate B.75: blank ≠ zero, authored vs resolved, `result_summary` non-authoritative |
+| **Cross-tool R-47** | `r47-cross-tool.test.js` | 4 | The documented $115,338 Comfort Calculator vs BSE gap (audit C-6) |
+| **Persistence — client** | `persistence-client.test.js` | 41 | Gate C: save/load orchestration, debounce, single-flight, failure safety, status truthfulness. **No database required** |
+| **Persistence — schema/RLS** | `persistence-db.test.js` | 70 | Gate C: the migrations, RLS enable+force, cross-user denial, constraint enforcement, canonical round-trip identity, repeat-save strategy. **Requires PostgreSQL** |
 
 ## Running them
 
@@ -25,8 +33,17 @@ node tests/r47-cross-tool.test.js index.html ../../buyer/comfort-calculator.html
 git show 540ccbe:internal/buyer-strategy/index.html > /tmp/bse-baseline.html
 node tests/m1-canonical-units.test.js /tmp/bse-baseline.html index.html
 
-# 4 — Gate B canonical application state
+# 4-7 — Gate B / B.5 / B.75
 node tests/canonical-state.test.js index.html
+node tests/c4b-presentation-integrity.test.js index.html
+node tests/model-authority.test.js index.html
+node tests/persistence-contract.test.js index.html
+
+# 8 — Gate C client orchestration (no database, no network)
+node tests/persistence-client.test.js index.html
+
+# 9 — Gate C schema and RLS (needs a local PostgreSQL — see supabase/README.md)
+PGHOST=/tmp/pgsock PGPORT=5433 node tests/persistence-db.test.js index.html
 ```
 
 Exit code 0 = pass. Every failure names the scenario and the field.
@@ -95,6 +112,13 @@ Analyzer · buydown at 0.25 · negotiation paths · decision thresholds.
 - **`property-tax.html` scenarios T-1…T-11 are not run.** FL tax is not
   integrated and the tool is out of scope.
 - **No human click-through, no iPad or phone validation, no live buyer call.**
+- **Supabase Auth itself is not covered.** `persistence-client.test.js` proves the
+  orchestration around the transport; `persistence-db.test.js` proves the schema
+  and RLS on real Postgres. Neither can prove that a magic-link email is
+  delivered, that the returned JWT is valid, or that Supabase's PostgREST layer
+  applies the same policies — those require a live project and a human inbox, and
+  are covered by the manual procedure in
+  `docs/BSE-Phase3-GateC-Report.md` §58.
 - **R-43 diverges on restore by design** — `gatherInputs()` runs before
   `updateInlineHints()` inside `recalc()`, so its captured render was computed
   from a value the DOM no longer held (finding C-4b). Canonical-state identity is
