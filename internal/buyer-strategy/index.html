@@ -1149,73 +1149,6 @@ function gatherInputs(){
   return BSEModel.toInputs(BSEModel.capture());
 }
 
-/* VERIFICATION ONLY — do not call from application code. */
-function __legacyGatherInputsFromDom(){
-  const own = num('ownFunds'), gift = num('gift');
-  const shopping = rawBlank('price');
-  // Optional down-payment target. Unit is set explicitly by the $/% toggle.
-  let dpTarget = null;
-  if(!rawBlank('dpTarget')){
-    const v = num('dpTarget');
-    if(v>0) dpTarget = (unitState.dp==='pct') ? {isPct:true, pct:v, dollar:null} : {isPct:false, pct:null, dollar:v};
-  }
-  // Property tax: dual input, unit set explicitly by the $/% toggle.
-  //  • $  -> a fixed monthly escrow amount (taxRaw/12) that works in BOTH modes;
-  //         it does not scale with price, so Shopping Range Mode handles it fine.
-  //  • %  -> an annual rate that scales with the purchase price.
-  const taxRaw = num('taxRate');
-  const taxIsDollar = unitState.tax==='dollar';
-  const priceNow = shopping ? 0 : num('price');
-  let taxRate, taxMonthly = null, taxFixed = false;
-  if(taxIsDollar){
-    taxMonthly = taxRaw/12; taxFixed = true;
-    taxRate = priceNow>0 ? taxRaw/priceNow*100 : 0;   // derived, display only
-  } else {
-    taxRate = taxRaw;                                 // annual % entered
-  }
-  // Requested adjustment = list price − offer amount (0 unless a valid discount).
-  const listP = shopping ? 0 : num('price');
-  const offerP = rawBlank('offerPrice') ? 0 : num('offerPrice');
-  const negReq = (listP>0 && offerP>0 && offerP<listP) ? (listP - offerP) : 0;
-  // Seller concession — an ADDITIONAL, explicit concession request on top of any
-  // price cut. In % mode it is a percent of the offer price (or list if no offer).
-  const offConcRaw = num('offerConc');
-  const concBase = offerP>0 ? offerP : listP;
-  const sellerConcession = (offerConcUnit.v==='pct')
-    ? ((concBase>0 && offConcRaw>0) ? Math.round(offConcRaw/100*concBase) : 0)
-    : offConcRaw;
-  return {
-    shopping, dpTarget, taxRate, taxMonthly, taxFixed, taxIsDollar, taxRaw,
-    price: shopping ? 0 : num('price'),
-    score: Math.max(300,Math.min(850,Math.round(num('score')))),
-    ownFunds: own, gift, funds: own+gift,
-    target: num('target'), income: num('income'), debts: num('debts'),
-    stayYears: parseInt($('stay').value)||7,
-    rates:{ conv:num('rateConv'), fha:num('rateFha'), va:num('rateVa') },
-    ccPct: num('ccPct'), ccOverride: rawBlank('ccOverride')?0:num('ccOverride'),
-    hoi:num('hoi'),
-    // C-4b: the N/A confirmation is the authoritative economic statement. A
-    // confirmed-none cost contributes zero regardless of what the (now preserved)
-    // input still displays. This is where the destroyed '0' used to come from.
-    hoa:   $('hoaNA').checked   ? 0 : num('hoa'),
-    cdd:   $('cddNA').checked   ? 0 : num('cdd'),
-    flood: $('floodNA').checked ? 0 : num('flood'),
-    // N/A confirmation toggles: a checked box means "confirmed zero", not "unknown"
-    hoaNA: $('hoaNA').checked, cddNA: $('cddNA').checked, floodNA: $('floodNA').checked,
-    fthb: $('tgFthb').checked, vaOn: $('tgVa').checked,
-    vaUse: $('vaUse').value, vaExempt: $('vaExempt').checked,
-    priority: $('priority').value,
-    // Offer strategy. The requested adjustment (list − offer) is the amount to
-    // structure; internally it drives negotiatingRoom so the engine is unchanged.
-    // concessionOn/concession are finalized in recalc() once the path is known.
-    offerPrice: rawBlank('offerPrice')?0:num('offerPrice'),
-    negotiatingRoom: negReq,
-    sellerConcession,
-    negotiationMode: (document.querySelector('input[name="negMode"]:checked')||{}).value || 'concession',
-    concessionOn:false, concession:0, appliedPath:null, appliedReduction:0, appliedConcession:0
-  };
-}
-
 /* ---------- inline input hints ---------- */
 function updateInlineHints(inp){
   $('totalFunds').value = Math.round(inp.funds).toLocaleString('en-US');
@@ -3090,15 +3023,16 @@ const BSEModel = (function(){
       hoa_monthly: hoa.monthly, hoa_status: hoa.status,
       cdd_monthly: cdd.monthly, cdd_status: cdd.status,
       flood_monthly: flood.monthly, flood_status: flood.status,
-      // Behaviour-preserving on purpose (Gate B.5). The DOM reader treats a blank
-      // rate or closing-cost percent as 0, not as "inherit the assumption set".
-      // Capturing 0 keeps the cutover numerically identical. Whether a blank field
-      // SHOULD inherit 6.750 / 3.00 instead is a real improvement and a deliberate
-      // behaviour change — it belongs to Gate C with its own approval, not here.
-      rate_conv: num('rateConv'),
-      rate_fha:  num('rateFha'),
-      rate_va:   num('rateVa'),
-      closing_cost_pct: num('ccPct'),
+      // Gate B.75 — blank and zero are different economic instructions.
+      //   blank / NULL   -> no authored value; inherit per the L-1 hierarchy,
+      //                     ultimately from the assumption set
+      //   explicit 0     -> an authored zero, and it wins over any default
+      // The inherited value is resolved in memory only and is NEVER written back
+      // into the authored record, so AUTHORED and RESOLVED stay distinguishable.
+      rate_conv: blank('rateConv') ? null : num('rateConv'),
+      rate_fha:  blank('rateFha')  ? null : num('rateFha'),
+      rate_va:   blank('rateVa')   ? null : num('rateVa'),
+      closing_cost_pct: blank('ccPct') ? null : num('ccPct'),
       assumption_set_version: ASSUMPTION_SET.version_label
     };
   }
@@ -3136,16 +3070,21 @@ const BSEModel = (function(){
       dti_override_back: null, dti_override_source: null,
       closing_date: null, occupancy_date: null,
       tax_inputs: null, tax_outputs: null, tax_method_version: null,
-      // The UI can select a negotiation mode before any round exists. Phase 2 §8
-      // puts negotiation_mode on the buyer round, so this carries the pending
-      // selection until a round is created. Inert without an offer price.
-      pending_negotiation_mode: (document.querySelector('input[name="negMode"]:checked')||{}).value || 'concession',
-      // A concession can be asked before an offer price exists. Phase 2 §8 requires a
-      // negotiation_round to carry a price, so the pre-round entry is held here as the
-      // canonical (value, unit) pair and is superseded by round 1 the moment an offer
-      // price is entered. Gate C should reconcile this with the round schema.
-      pending_concession_value: blank('offerConc') ? null : num('offerConc'),
-      pending_concession_unit:  blank('offerConc') ? null : UNIT[offerConcUnit.v],
+      // Gate B.75 — reconciled with Phase 2 §8. These are first-class Property
+      // Scenario state, not temporary holders:
+      //   negotiation_mode        the advisor's current strategy for THIS property.
+      //                           A negotiation_round snapshots the mode in force
+      //                           when that round was authored (§8 keeps its own
+      //                           copy); the scenario owns the current selection.
+      //   offer_concession_*      the authored concession ask as a canonical
+      //                           (value, unit) pair. It exists whether or not an
+      //                           offer price does; §8's round carries the same pair
+      //                           once a price puts a round on the table.
+      // Authored intent is never lost and never resolved against a price that does
+      // not exist — see resolve().concession_resolvable.
+      negotiation_mode: (document.querySelector('input[name="negMode"]:checked')||{}).value || 'concession',
+      offer_concession_value: blank('offerConc') ? null : num('offerConc'),
+      offer_concession_unit:  blank('offerConc') ? null : UNIT[offerConcUnit.v],
       // L-7 — carried now, consumed only when FL millage is integrated (not Gate B)
       qualifying_tax_basis: 'projected_reassessed',
       assumption_set_version: ASSUMPTION_SET.version_label,
@@ -3163,6 +3102,7 @@ const BSEModel = (function(){
         round_number: 1, actor: 'buyer', price: num('offerPrice'),
         concession_value: blank('offerConc') ? null : num('offerConc'),
         concession_unit:  blank('offerConc') ? null : UNIT[offerConcUnit.v],
+        // §8: the round records the mode in force when it was authored.
         negotiation_mode: (document.querySelector('input[name="negMode"]:checked')||{}).value || 'concession',
         loan_program_override: null,
         // C-9 / M-12: reserved, deliberately not surfaced as authoritative
@@ -3250,7 +3190,18 @@ const BSEModel = (function(){
       rate_va:   pick(sc.rate_va,   sp.rate_va,   A.rates_default.va),
       closing_cost_pct: pick(sc.closing_cost_pct, sp.closing_cost_pct, A.costs.closing_cost_pct_default),
       closing_cost_override_amount: sc.closing_cost_override_amount,
-      qualifying_tax_basis: sc.qualifying_tax_basis
+      qualifying_tax_basis: sc.qualifying_tax_basis,
+      // Gate B.75 — the authored concession, plus whether a price exists to resolve
+      // it against. A percentage with no price is NOT zero; it is unresolvable.
+      negotiation_mode: sc.negotiation_mode,
+      concession_value: sc.offer_concession_value,
+      concession_unit: sc.offer_concession_unit,
+      concession_resolvable: (function(){
+        const round = (model.negotiation_rounds||[]).filter(function(x){ return x.actor==='buyer'; })[0];
+        const offer = round ? round.price : 0;
+        const list = sc.analysis_mode === 'shopping' ? 0 : (sc.list_price || 0);
+        return (offer > 0 ? offer : list) > 0;
+      })()
     };
   }
 
@@ -3301,8 +3252,8 @@ const BSEModel = (function(){
     const buyerRound = model.negotiation_rounds.filter(function(x){ return x.actor==='buyer'; })[0] || null;
     // The concession comes from the buyer round once one exists, otherwise from the
     // pending pair. One source at a time — never two writable ones.
-    const concSrc = buyerRound || { concession_value: model.property_scenario.pending_concession_value,
-                                    concession_unit:  model.property_scenario.pending_concession_unit };
+    const concSrc = buyerRound || { concession_value: r.concession_value,
+                                    concession_unit:  r.concession_unit };
     const listP  = shopping ? 0 : (r.list_price || 0);
     const offerP = buyerRound ? buyerRound.price : 0;
     const negReq = (listP>0 && offerP>0 && offerP<listP) ? (listP-offerP) : 0;
@@ -3333,7 +3284,7 @@ const BSEModel = (function(){
       priority: r.buyer_priority,
       offerPrice: offerP, negotiatingRoom: negReq, sellerConcession: sellerConcession,
       negotiationMode: (buyerRound && buyerRound.negotiation_mode)
-                       || model.property_scenario.pending_negotiation_mode || 'concession',
+                       || r.negotiation_mode || 'concession',
       concessionOn:false, concession:0, appliedPath:null, appliedReduction:0, appliedConcession:0
     };
   }
@@ -3343,6 +3294,8 @@ const BSEModel = (function(){
      exactly: value and unit are written together and no toggle handler runs. */
   function apply(model, opts){
     if(!model || !model.presentation) return false;
+    // A cached result_summary is never restored into canonical state (Gate B.75).
+    if(model.result_summary) delete model.result_summary;
     const ok = applyState(model.presentation, { silent: true });
     if(!ok) return false;
     // presentation-only state, applied after the economic restore and never
@@ -3359,8 +3312,53 @@ const BSEModel = (function(){
     return true;
   }
 
+  /* ---------- result_summary — CACHE ONLY, NEVER AUTHORITATIVE (Gate B.75) ----------
+     The authoritative historical record is: canonical inputs + assumption-set
+     version + engine version. The recommendation is always RECOMPUTED from those.
+     A cached summary is a convenience for list views. It is never restored into
+     canonical state and never feeds a calculation. Migration risk M-3. */
+  const RESULT_SUMMARY_AUTHORITATIVE = false;
+
+  function buildResultSummary(){
+    const inp = toInputs(capture());
+    const res = Engine.run(inp, A_CONST);
+    const pick = res.scenarios.length ? Engine.pickBestOverall(res.scenarios, inp) : null;
+    return {
+      cache_only: true, authoritative: false,
+      recommended_program: pick ? pick.id : null,
+      recommended_scenario_dp: pick ? pick.dp : null,
+      piti: pick ? pick.piti : null,
+      cash_to_close: pick ? pick.cashToClose : null,
+      binding_constraint: pick ? pick.binding : null,
+      price: pick ? pick.price : null,
+      max_price: pick ? pick.maxPrice : null,
+      assumption_set_version: ASSUMPTION_SET.version_label,
+      engine_version: BSE_ENGINE_VERSION
+    };
+  }
+
+  /* The load contract. Canonical state is applied, the engine recomputes, and the
+     recomputed summary is returned. Any cached summary on the incoming record is
+     reported for observability and then discarded — it cannot win. */
+  function loadWithRecompute(saved){
+    const staleCache = saved && saved.result_summary ? JSON.parse(JSON.stringify(saved.result_summary)) : null;
+    const clean = saved ? JSON.parse(JSON.stringify(saved)) : null;
+    if(clean) delete clean.result_summary;          // never enters canonical state
+    const applied = apply(clean);
+    const recomputed = buildResultSummary();
+    let agreed = null;
+    if(staleCache){
+      agreed = staleCache.recommended_program === recomputed.recommended_program &&
+               Math.abs((staleCache.piti||0) - (recomputed.piti||0)) < 0.005;
+    }
+    return { applied: applied, result_summary: recomputed, cache_discarded: staleCache,
+             cache_agreed_with_recompute: agreed, authoritative_source: 'recomputed' };
+  }
+
   return { capture: capture, apply: apply, resolve: resolve, toInputs: toInputs,
            resolveDti: resolveDti, assumptionSet: ASSUMPTION_SET,
+           buildResultSummary: buildResultSummary, loadWithRecompute: loadWithRecompute,
+           RESULT_SUMMARY_AUTHORITATIVE: RESULT_SUMMARY_AUTHORITATIVE,
            SCHEMA: BSE_MODEL_SCHEMA, ENGINE_VERSION: BSE_ENGINE_VERSION };
 })();
 

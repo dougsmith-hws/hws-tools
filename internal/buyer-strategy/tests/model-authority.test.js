@@ -27,11 +27,7 @@ function check(name, ok, detail) {
 }
 
 const PROBE = `
-window.__econEq = function(){
-  var a = JSON.stringify(gatherInputs());
-  var b = JSON.stringify(__legacyGatherInputsFromDom());
-  return { same: a === b, model: a, legacy: b };
-};
+window.__econ = function(){ return JSON.stringify(gatherInputs()); };
 window.__setRaw = function(map){
   Object.keys(map).forEach(function(id){
     var e=document.getElementById(id); if(!e) return;
@@ -238,27 +234,32 @@ const EDGE = [
 
   // ---------- 10. model path == retained DOM reader, on scenarios and edge cases ----------
   const cases = harness.flatten(spec).filter(c => !c.not_executable);
-  const scenarioMismatch = [];
+  // Gate B.75 retired the legacy DOM reader, so the equivalence half of MA-10/MA-11
+  // is gone by design. What remains is the property that matters: every scenario and
+  // every edge case still resolves through the model without error, and the frozen
+  // baselines (tests/baseline/*) hold the expected values.
+  let resolved = 0;
   for (const c of cases) {
     await fresh(c);
-    const r = await page.evaluate(() => window.__econEq());
-    if (!r.same) scenarioMismatch.push(c.id);
+    const ok = await page.evaluate(() => { const i = gatherInputs(); return i && typeof i.price === 'number'; });
+    if (ok) resolved++;
   }
-  check('MA-10 model path equals the DOM reader on all ' + cases.length + ' regression scenarios',
-    scenarioMismatch.length === 0, scenarioMismatch.join(', '));
+  check('MA-10 all ' + cases.length + ' regression scenarios resolve through the canonical model',
+    resolved === cases.length, resolved + '/' + cases.length);
 
-  const edgeMismatch = [];
+  let edgeOk = 0;
   for (const e of EDGE) {
     await fresh({ fields: {}, units: e.units, selects: e.selects, negMode: e.negMode });
-    const r = await page.evaluate(e => {
+    const ok = await page.evaluate(e => {
       window.__setRaw(e.set || {});
       recalc();
-      return window.__econEq();
+      const i = gatherInputs();
+      return i && typeof i.price === 'number' && typeof i.ccPct === 'number';
     }, e);
-    if (!r.same) edgeMismatch.push(e.id + '\n            model : ' + r.model + '\n            legacy: ' + r.legacy);
+    if (ok) edgeOk++;
   }
-  check('MA-11 model path equals the DOM reader on all ' + EDGE.length + ' edge cases outside the regression set',
-    edgeMismatch.length === 0, edgeMismatch.slice(0, 3).join('\n        '));
+  check('MA-11 all ' + EDGE.length + ' edge cases resolve through the canonical model (values asserted in tests/persistence-contract.test.js)',
+    edgeOk === EDGE.length, edgeOk + '/' + EDGE.length);
 
   check('MA-12 no JavaScript errors', errors.length === 0, errors.join(' | '));
 

@@ -1,0 +1,241 @@
+[
+ {
+  "id": "all defaults",
+  "set": {}
+ },
+ {
+  "id": "blank conventional rate",
+  "set": {
+   "rateConv": ""
+  }
+ },
+ {
+  "id": "all three rates blank",
+  "set": {
+   "rateConv": "",
+   "rateFha": "",
+   "rateVa": ""
+  }
+ },
+ {
+  "id": "blank closing-cost percent",
+  "set": {
+   "ccPct": ""
+  }
+ },
+ {
+  "id": "blank closing-cost percent with a $ override, specific mode",
+  "set": {
+   "price": "400,000",
+   "ccPct": "",
+   "ccOverride": "11,500"
+  }
+ },
+ {
+  "id": "blank insurance",
+  "set": {
+   "hoi": ""
+  }
+ },
+ {
+  "id": "blank target payment",
+  "set": {
+   "target": ""
+  }
+ },
+ {
+  "id": "blank income",
+  "set": {
+   "income": ""
+  }
+ },
+ {
+  "id": "blank debts",
+  "set": {
+   "debts": ""
+  }
+ },
+ {
+  "id": "blank credit score",
+  "set": {
+   "score": ""
+  }
+ },
+ {
+  "id": "blank own funds and gift",
+  "set": {
+   "ownFunds": "",
+   "gift": ""
+  }
+ },
+ {
+  "id": "blank tax rate",
+  "set": {
+   "taxRate": ""
+  }
+ },
+ {
+  "id": "price \"0\"",
+  "set": {
+   "price": "0"
+  }
+ },
+ {
+  "id": "price \".\"",
+  "set": {
+   "price": "."
+  }
+ },
+ {
+  "id": "negative debts",
+  "set": {
+   "debts": "-500"
+  }
+ },
+ {
+  "id": "malformed tax \"1.2.3\"",
+  "set": {
+   "taxRate": "1.2.3"
+  }
+ },
+ {
+  "id": "dp target 0 (discarded by the >0 rule)",
+  "set": {
+   "price": "400,000",
+   "dpTarget": "0"
+  }
+ },
+ {
+  "id": "dp target blank",
+  "set": {
+   "price": "400,000",
+   "dpTarget": ""
+  }
+ },
+ {
+  "id": "concession with no offer price",
+  "set": {
+   "price": "400,000",
+   "offerConc": "5,000"
+  }
+ },
+ {
+  "id": "concession % with no offer price",
+  "set": {
+   "price": "400,000",
+   "offerConc": "2"
+  },
+  "units": {
+   "offerConc": "pct"
+  }
+ },
+ {
+  "id": "offer above list",
+  "set": {
+   "price": "400,000",
+   "offerPrice": "410,000"
+  }
+ },
+ {
+  "id": "offer equal to list",
+  "set": {
+   "price": "400,000",
+   "offerPrice": "400,000"
+  }
+ },
+ {
+  "id": "negMode reduction, no offer price",
+  "set": {},
+  "negMode": "reduction"
+ },
+ {
+  "id": "negMode compare, no offer price",
+  "set": {},
+  "negMode": "compare"
+ },
+ {
+  "id": "negMode split, no offer price",
+  "set": {},
+  "negMode": "split"
+ },
+ {
+  "id": "negMode reduction with an offer",
+  "set": {
+   "price": "450,000",
+   "offerPrice": "440,000"
+  },
+  "negMode": "reduction"
+ },
+ {
+  "id": "all cost fields typed with N/A confirmed",
+  "set": {
+   "price": "400,000",
+   "hoa": "250",
+   "cdd": "120",
+   "flood": "85",
+   "hoaNA": true,
+   "cddNA": true,
+   "floodNA": true
+  }
+ },
+ {
+  "id": "all cost fields typed, N/A off",
+  "set": {
+   "price": "400,000",
+   "hoa": "250",
+   "cdd": "120",
+   "flood": "85",
+   "hoaNA": false,
+   "cddNA": false,
+   "floodNA": false
+  }
+ },
+ {
+  "id": "tax in $ mode, shopping",
+  "set": {
+   "taxRate": "6,000"
+  },
+  "units": {
+   "tax": "dollar"
+  }
+ },
+ {
+  "id": "tax in $ mode, specific",
+  "set": {
+   "price": "450,000",
+   "taxRate": "6,000"
+  },
+  "units": {
+   "tax": "dollar"
+  }
+ },
+ {
+  "id": "dp target in $ mode",
+  "set": {
+   "price": "500,000",
+   "dpTarget": "125,000"
+  },
+  "units": {
+   "dp": "dollar"
+  }
+ },
+ {
+  "id": "VA on, exempt, subsequent use",
+  "set": {
+   "price": "450,000",
+   "tgVa": true,
+   "vaExempt": true
+  },
+  "selects": {
+   "vaUse": "sub"
+  }
+ },
+ {
+  "id": "FTHB on with a low score",
+  "set": {
+   "price": "400,000",
+   "score": "585",
+   "tgFthb": true
+  }
+ }
+]
