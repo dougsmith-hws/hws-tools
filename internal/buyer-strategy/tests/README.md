@@ -1,56 +1,104 @@
-# Buyer Strategy Engine — Gate A test harness
+# Buyer Strategy Engine — test suites
 
-Regression + M-1 harness for Phase 3 Gate A (`applyState` canonical unit
-restoration — Phase 1 finding **C-4a**, Phase 2 migration risk **M-1**, locked by
-Phase 2 Decision **L-13**).
+Four suites. All drive the real application in headless Chromium; none stubs,
+mocks, or re-implements a calculation inside the application.
 
-This is the first automated test asset in the repository. Phase 1 §11.1 recorded
-that none existed.
+| Suite | File | What it protects |
+|---|---|---|
+| **Permanent numerical regression** | `bse-regression.test.js` | The 47 audit scenarios against **fixed expected values**. The numerical contract |
+| **Cross-tool R-47** | `r47-cross-tool.test.js` | The documented $115,338 Comfort Calculator vs BSE gap (audit C-6) |
+| **M-1 / canonical units** | `m1-canonical-units.test.js` | Gate A: restore never converts; repeated toggling never drifts |
+| **Canonical application state** | `canonical-state.test.js` | Gate B: model ⇄ DOM ⇄ engine identity, L-1 inheritance, DTI resolution, assumption-set immutability, prohibited-data absence |
 
-## What it does
+## Running them
 
-The harness drives the real application in headless Chromium. It does not stub,
-mock, or re-implement any calculation.
+Requires Node and Playwright's Chromium. From `internal/buyer-strategy/`:
 
-| Part | Purpose |
-|---|---|
-| **A — Regression** | 37 scenarios run against the pre-change baseline **and** the patched file with identical economic inputs. `gatherInputs()` output and the rendered text of every output region must match exactly. |
-| **B — M-1** | Capture → restore → recalculate identity, canonical-pair preservation, ten consecutive restore cycles, and repeated `%`/`$` toggling for all four dual-unit fields. |
-| **C — Defect** | Reproduces the M-1 failure on the baseline file and demonstrates its absence on the patched file. Also records the baseline's repeated-toggle drift. |
+```bash
+# 1 — permanent numerical regression (47 scenarios vs frozen expected values)
+node tests/bse-regression.test.js index.html
 
-Part A sets unit state by direct assignment on **both** files, so the two sides
-receive identical economic inputs. Toggle-driven sequences are deliberately kept
-out of Part A — the corrected drift behaviour is an intended difference and is
-asserted in Parts B and C instead.
+# 2 — cross-tool R-47 (Comfort Calculator is opened READ-ONLY)
+node tests/r47-cross-tool.test.js index.html ../../buyer/comfort-calculator.html
 
-## Running it
-
-Requires Node and Playwright's Chromium. Provide a copy of the pre-change
-baseline (git `540ccbe`, md5 `8395ad3441b500f559d5c615ac7f5efa`) and the current
-file:
-
-```
+# 3 — Gate A M-1 suite (needs the pre-Phase-3 baseline for the differential half)
 git show 540ccbe:internal/buyer-strategy/index.html > /tmp/bse-baseline.html
-node tests/m1-canonical-units.test.js /tmp/bse-baseline.html internal/buyer-strategy/index.html
+node tests/m1-canonical-units.test.js /tmp/bse-baseline.html index.html
+
+# 4 — Gate B canonical application state
+node tests/canonical-state.test.js index.html
 ```
 
-Exit code 0 = all assertions passed. The suite prints one line per assertion and
-a PASS/FAIL summary.
+Exit code 0 = pass. Every failure names the scenario and the field.
 
-## Scope — what is NOT covered
+## How the expected values were established — read this before trusting a green run
 
-Stated explicitly so coverage is never overclaimed:
+The regression suite compares the application to **fixed values in
+`tests/baseline/bse-expected-baseline.json`**. It never recomputes them.
 
-- No scenario asserts an **expected value** captured from production. Part A
-  proves *the patch changed nothing*; it is not the Phase 1 §11.3 regression
-  baseline, which still has to be captured from the running application (47 BSE
-  + 11 FL scenarios) before any further refactor.
-- `monthToBalance` PMI cancellation months, both bisection solvers, and near-tie
-  ordering are covered only in the sense that baseline and patched agree.
-- `property-tax.html` and `comfort-calculator.html` are untouched by Gate A and
-  are not exercised here.
-- The change log, `concSplit` manual-allocation state, and the Gap Solver tab
-  selection are not part of the captured state object (out of Gate A scope).
+Those values were produced by `tests/oracle/reference_model.py` — a second,
+independent implementation of the formulas documented in
+`docs/BSE-Phase0-1-Forensic-Audit.md` §2.1–§2.5, written from the audit's prose
+and tables, **not** from `index.html`. That is what makes the suite
+non-circular: it is not the engine agreeing with itself.
+
+Each field carries a status:
+
+| Status | Meaning |
+|---|---|
+| `EXPECTED VALUE VERIFIED` | The oracle derived the same number independently. A mismatch is a calculation regression |
+| `EXPECTED VALUE REQUIRES REVIEW` | Audit §11.5 records it as not establishable statically — both bisection solvers, near-tie winners, `optimalRestructure`'s split, all rendered prose. The recorded value is a **change detector only**, never a correctness claim |
+
+### The suite has teeth — proved by mutation
+
+| Mutation | Scenarios that fail |
+|---|---|
+| Buydown ratio `0.25` → `0.24` (Staging's value) at all five sites | **14** |
+| One PMI table cell, `740–759 / band b`, `0.38` → `0.39` | **44** |
+
+A green run therefore means something.
+
+## Rebuilding the baseline
+
+Only when a calculation change has been separately approved in writing.
+
+```bash
+node tests/capture-engine-output.js index.html /tmp/capture.json
+python3 tests/build-expected-baseline.py /tmp/capture.json tests/baseline/bse-expected-baseline.json
+```
+
+`build-expected-baseline.py` refuses to bless anything: it recomputes with the
+oracle and reports a `DISCREPANCY` for any field where the two disagree.
+
+## Coverage and its limits — stated so it is never overclaimed
+
+**Covered.** Shopping Range · Maximum / Comfort / Cash-Limited Buying Power ·
+Conventional, FHA and VA scenarios · P&I · taxes (flat rate, % and annual $) ·
+HOI, HOA, CDD, flood · PMI table and bands · FHA MIP and UFMIP · VA funding fee ·
+PITI · down payment · closing costs · cash to close · seller concessions ·
+available-funds constraint · DTI · program eligibility and elimination strings ·
+Gap Solver · Recommendation Engine · Best Overall · Offer Strategy · Counteroffer
+Analyzer · buydown at 0.25 · negotiation paths · decision thresholds.
+
+**Not covered.**
+
+- **R-13d (LTV 85.00) is not executable.** The engine enumerates Conv 3/5/10/20
+  plus a custom tier only above 20.5% down, so a 15%-down scenario cannot be
+  produced through the UI and PMI band `c` (85–90) is unreachable end-to-end.
+- **Six cases legitimately produce no scenarios** — R-5 (score 480), R-31, R-32
+  (Gap Solver cases where every program is eliminated), R-41 (blank score → 300),
+  R-42 (price `0`), R-44 (stale dp target). That elimination *is* the documented
+  behaviour under test.
+- **Eleven scenarios needed a viability adjustment** — funds or income raised so
+  the tier under test is not eliminated before it can be measured. Each one
+  records a `viability_adjustment` string saying exactly what changed and why.
+- **`property-tax.html` scenarios T-1…T-11 are not run.** FL tax is not
+  integrated and the tool is out of scope.
+- **No human click-through, no iPad or phone validation, no live buyer call.**
+- **R-43 diverges on restore by design** — `gatherInputs()` runs before
+  `updateInlineHints()` inside `recalc()`, so its captured render was computed
+  from a value the DOM no longer held (finding C-4b). Canonical-state identity is
+  asserted at the model level for that scenario instead.
 
 *HomeWealth Solutions LLC · Company NMLS #2742458 · FL OFR Mortgage Broker
 License #MBR8082*

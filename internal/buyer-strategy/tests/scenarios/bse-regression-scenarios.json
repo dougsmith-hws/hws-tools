@@ -1,0 +1,826 @@
+{
+  "schema": "bse-regression-scenarios/1",
+  "source": "docs/BSE-Phase0-1-Forensic-Audit.md \u00a711.3 \u2014 the 47 BSE baseline scenarios, transcribed verbatim. Scenario ids, names and setups are the audit's; nothing was invented, renamed, merged or dropped.",
+  "generated_for": "Phase 3 Gate B, Stage 1 \u2014 permanent numerical regression baseline",
+  "defaults": {
+    "fields": {
+      "price": "",
+      "score": "740",
+      "ownFunds": "40,000",
+      "gift": "0",
+      "dpTarget": "",
+      "target": "3,200",
+      "income": "9,500",
+      "debts": "650",
+      "stay": "7",
+      "priority": "balanced",
+      "rateConv": "6.750",
+      "rateFha": "6.250",
+      "rateVa": "6.125",
+      "ccPct": "3",
+      "ccOverride": "",
+      "taxRate": "1.20",
+      "hoi": "150",
+      "hoa": "0",
+      "cdd": "0",
+      "flood": "0",
+      "offerPrice": "",
+      "offerConc": "0",
+      "counterPrice": "",
+      "counterConc": "0",
+      "counterLoan": "auto"
+    },
+    "checkboxes": {
+      "hoaNA": true,
+      "cddNA": true,
+      "floodNA": true,
+      "tgFthb": false,
+      "tgVa": false,
+      "vaExempt": false
+    },
+    "selects": {
+      "vaUse": "first"
+    },
+    "units": {
+      "dp": "pct",
+      "tax": "pct",
+      "offerConc": "dollar",
+      "counterConc": "dollar"
+    },
+    "negMode": "concession"
+  },
+  "scenarios": [
+    {
+      "id": "R-1",
+      "name": "Conventional baseline, Shopping Mode",
+      "setup": "defaults, price blank",
+      "fields": {}
+    },
+    {
+      "id": "R-2",
+      "name": "Conventional, Specific Mode",
+      "setup": "price $400,000",
+      "fields": {
+        "price": "400,000"
+      }
+    },
+    {
+      "id": "R-3",
+      "name": "FHA 3.5%",
+      "setup": "score 660, FTHB on",
+      "fields": {
+        "price": "400,000",
+        "score": "660"
+      },
+      "checkboxes": {
+        "tgFthb": true
+      }
+    },
+    {
+      "id": "R-4",
+      "name": "FHA 10% tier",
+      "setup": "score 540",
+      "fields": {
+        "price": "350,000",
+        "score": "540",
+        "ownFunds": "80,000"
+      },
+      "viability_adjustment": "Audit setup fixes only score and the FHA 10% tier. With the default $40,000 the tier is eliminated for cash before any number can be checked, so funds are raised to $80,000 to exercise it. No other input changed."
+    },
+    {
+      "id": "R-5",
+      "name": "FHA below floor",
+      "setup": "score 480",
+      "fields": {
+        "price": "350,000",
+        "score": "480"
+      }
+    },
+    {
+      "id": "R-6",
+      "name": "VA first use",
+      "setup": "VA on, score 700",
+      "fields": {
+        "price": "450,000",
+        "score": "700",
+        "income": "13,000"
+      },
+      "checkboxes": {
+        "tgVa": true
+      },
+      "viability_adjustment": "Audit setup fixes VA first use at score 700. With the default $9,500 income the VA scenario is eliminated on back-end DTI (42.6% vs 41%), so income is raised to $13,000 to exercise it."
+    },
+    {
+      "id": "R-7",
+      "name": "VA subsequent use",
+      "setup": "VA on, vaUse = sub",
+      "fields": {
+        "price": "450,000",
+        "score": "700",
+        "income": "13,000"
+      },
+      "checkboxes": {
+        "tgVa": true
+      },
+      "selects": {
+        "vaUse": "sub"
+      },
+      "viability_adjustment": "Same adjustment as R-6, for the same reason."
+    },
+    {
+      "id": "R-8",
+      "name": "VA exempt",
+      "setup": "VA on, vaExempt checked",
+      "fields": {
+        "price": "450,000",
+        "score": "700",
+        "income": "13,000"
+      },
+      "checkboxes": {
+        "tgVa": true,
+        "vaExempt": true
+      },
+      "viability_adjustment": "Same adjustment as R-6, for the same reason."
+    },
+    {
+      "id": "R-9",
+      "name": "High down payment",
+      "setup": "dpTarget 25%, price $500,000",
+      "fields": {
+        "price": "500,000",
+        "dpTarget": "25",
+        "ownFunds": "200,000",
+        "income": "14,000"
+      },
+      "viability_adjustment": "A 25% down payment on $500,000 is $125,000; the default funds and income eliminate the tier before it can be measured."
+    },
+    {
+      "id": "R-10",
+      "name": "Low down payment / max PMI",
+      "setup": "Conv 3%, FTHB on, score 640",
+      "fields": {
+        "price": "400,000",
+        "score": "640",
+        "dpTarget": "3"
+      },
+      "checkboxes": {
+        "tgFthb": true
+      }
+    },
+    {
+      "id": "R-11",
+      "name": "PMI cancellation",
+      "setup": "Conv 5%, price $400,000",
+      "fields": {
+        "price": "400,000",
+        "dpTarget": "5"
+      }
+    },
+    {
+      "id": "R-12",
+      "name": "No PMI",
+      "setup": "Conv 20%",
+      "fields": {
+        "price": "400,000",
+        "dpTarget": "20",
+        "ownFunds": "120,000"
+      },
+      "viability_adjustment": "20% down on $400,000 is $80,000; default funds eliminate the tier."
+    },
+    {
+      "id": "R-13",
+      "name": "PMI band boundaries",
+      "setup": "LTV exactly 80.00, 85, 90, 95",
+      "subcases": [
+        {
+          "id": "R-13a",
+          "label": "LTV 95.00 (Conv 5% tier)",
+          "fields": {
+            "price": "400,000",
+            "dpTarget": "5"
+          }
+        },
+        {
+          "id": "R-13b",
+          "label": "LTV 90.00 (Conv 10% tier)",
+          "fields": {
+            "price": "400,000",
+            "dpTarget": "10",
+            "ownFunds": "60,000"
+          },
+          "viability_adjustment": "10% down on $400,000 is $40,000; default funds eliminate the tier."
+        },
+        {
+          "id": "R-13c",
+          "label": "LTV 80.00 (Conv 20% tier)",
+          "fields": {
+            "price": "400,000",
+            "dpTarget": "20",
+            "ownFunds": "120,000"
+          },
+          "viability_adjustment": "20% down on $400,000 is $80,000; default funds eliminate the tier."
+        },
+        {
+          "id": "R-13d",
+          "label": "LTV 85.00 (15% down)",
+          "not_executable": "The engine enumerates fixed tiers \u2014 Conv 3/5/10/20 plus a custom tier only above 20.5% down (audit \u00a71 'Programs and coverage'). A 15% tier is unreachable through the UI, so LTV 85.00 cannot be produced. Band 'c' (85\u201390) is therefore not exercisable end-to-end."
+        }
+      ]
+    },
+    {
+      "id": "R-14",
+      "name": "Credit bucket boundaries",
+      "setup": "score 639/640, 659/660, 679/680, 699/700, 719/720, 739/740, 759/760",
+      "subcases": [
+        {
+          "id": "R-14a",
+          "label": "score 639",
+          "fields": {
+            "price": "400,000",
+            "dpTarget": "5",
+            "score": "639"
+          }
+        },
+        {
+          "id": "R-14b",
+          "label": "score 640",
+          "fields": {
+            "price": "400,000",
+            "dpTarget": "5",
+            "score": "640"
+          }
+        },
+        {
+          "id": "R-14c",
+          "label": "score 659",
+          "fields": {
+            "price": "400,000",
+            "dpTarget": "5",
+            "score": "659"
+          }
+        },
+        {
+          "id": "R-14d",
+          "label": "score 660",
+          "fields": {
+            "price": "400,000",
+            "dpTarget": "5",
+            "score": "660"
+          }
+        },
+        {
+          "id": "R-14e",
+          "label": "score 679",
+          "fields": {
+            "price": "400,000",
+            "dpTarget": "5",
+            "score": "679"
+          }
+        },
+        {
+          "id": "R-14f",
+          "label": "score 680",
+          "fields": {
+            "price": "400,000",
+            "dpTarget": "5",
+            "score": "680"
+          }
+        },
+        {
+          "id": "R-14g",
+          "label": "score 699",
+          "fields": {
+            "price": "400,000",
+            "dpTarget": "5",
+            "score": "699"
+          }
+        },
+        {
+          "id": "R-14h",
+          "label": "score 700",
+          "fields": {
+            "price": "400,000",
+            "dpTarget": "5",
+            "score": "700"
+          }
+        },
+        {
+          "id": "R-14i",
+          "label": "score 719",
+          "fields": {
+            "price": "400,000",
+            "dpTarget": "5",
+            "score": "719"
+          }
+        },
+        {
+          "id": "R-14j",
+          "label": "score 720",
+          "fields": {
+            "price": "400,000",
+            "dpTarget": "5",
+            "score": "720"
+          }
+        },
+        {
+          "id": "R-14k",
+          "label": "score 739",
+          "fields": {
+            "price": "400,000",
+            "dpTarget": "5",
+            "score": "739"
+          }
+        },
+        {
+          "id": "R-14l",
+          "label": "score 740",
+          "fields": {
+            "price": "400,000",
+            "dpTarget": "5",
+            "score": "740"
+          }
+        },
+        {
+          "id": "R-14m",
+          "label": "score 759",
+          "fields": {
+            "price": "400,000",
+            "dpTarget": "5",
+            "score": "759"
+          }
+        },
+        {
+          "id": "R-14n",
+          "label": "score 760",
+          "fields": {
+            "price": "400,000",
+            "dpTarget": "5",
+            "score": "760"
+          }
+        }
+      ]
+    },
+    {
+      "id": "R-15",
+      "name": "Tax as %",
+      "setup": "tax 1.20%, price $450,000",
+      "fields": {
+        "price": "450,000",
+        "taxRate": "1.20"
+      },
+      "units": {
+        "tax": "pct"
+      }
+    },
+    {
+      "id": "R-16",
+      "name": "Tax as $ (fixed escrow)",
+      "setup": "tax toggle $, $6,000/yr, price $450,000",
+      "fields": {
+        "price": "450,000",
+        "taxRate": "6,000"
+      },
+      "units": {
+        "tax": "dollar"
+      }
+    },
+    {
+      "id": "R-17",
+      "name": "Tax unit toggle round-trip",
+      "setup": "1.20% -> $ -> % at price $437,000",
+      "fields": {
+        "price": "437,000",
+        "taxRate": "1.20"
+      },
+      "units": {
+        "tax": "pct"
+      },
+      "toggles": [
+        {
+          "key": "tax",
+          "to": "dollar"
+        },
+        {
+          "key": "tax",
+          "to": "pct"
+        }
+      ],
+      "audit_note": "Audit expectation was the C-4a lossy round trip. Gate A (approved) removed the drift; the post-Gate-A value is the contract from here."
+    },
+    {
+      "id": "R-18",
+      "name": "Tax unit toggle in Shopping Mode",
+      "setup": "price blank, tax 1.2, toggle to $",
+      "fields": {
+        "price": "",
+        "taxRate": "1.2"
+      },
+      "units": {
+        "tax": "pct"
+      },
+      "toggles": [
+        {
+          "key": "tax",
+          "to": "dollar"
+        }
+      ],
+      "audit_note": "Documents the silent reinterpretation: escrow collapses to ~$0.10/mo. Preserved deliberately \u2014 not part of M-1 (Gate A report \u00a710)."
+    },
+    {
+      "id": "R-19",
+      "name": "Cash-limited binding",
+      "setup": "own funds $15,000, price blank",
+      "fields": {
+        "ownFunds": "15,000"
+      }
+    },
+    {
+      "id": "R-20",
+      "name": "DTI-limited binding",
+      "setup": "income $6,000, debts $1,500",
+      "fields": {
+        "income": "6,000",
+        "debts": "1,500"
+      }
+    },
+    {
+      "id": "R-21",
+      "name": "Loan-limit binding",
+      "setup": "income $30,000, funds $400,000",
+      "fields": {
+        "income": "30,000",
+        "ownFunds": "400,000"
+      }
+    },
+    {
+      "id": "R-22",
+      "name": "Seller concession \u2014 concession path",
+      "setup": "price $450,000, offer $440,000, mode concession",
+      "fields": {
+        "price": "450,000",
+        "offerPrice": "440,000"
+      },
+      "negMode": "concession"
+    },
+    {
+      "id": "R-23",
+      "name": "Seller concession \u2014 reduction path",
+      "setup": "same, mode reduction",
+      "fields": {
+        "price": "450,000",
+        "offerPrice": "440,000"
+      },
+      "negMode": "reduction"
+    },
+    {
+      "id": "R-24",
+      "name": "Seller concession \u2014 split path",
+      "setup": "same, mode split",
+      "fields": {
+        "price": "450,000",
+        "offerPrice": "440,000"
+      },
+      "negMode": "split"
+    },
+    {
+      "id": "R-25",
+      "name": "Seller concession \u2014 compare",
+      "setup": "same, mode compare",
+      "fields": {
+        "price": "450,000",
+        "offerPrice": "440,000"
+      },
+      "negMode": "compare"
+    },
+    {
+      "id": "R-26",
+      "name": "Concession over limit",
+      "setup": "Conv 95% LTV, concession 5% (limit 3%)",
+      "fields": {
+        "price": "400,000",
+        "dpTarget": "5",
+        "offerPrice": "400,000",
+        "offerConc": "5"
+      },
+      "units": {
+        "offerConc": "pct"
+      }
+    },
+    {
+      "id": "R-27",
+      "name": "Explicit concession + price gap together",
+      "setup": "offer below list AND offerConc > 0",
+      "fields": {
+        "price": "450,000",
+        "offerPrice": "440,000",
+        "offerConc": "9,000"
+      }
+    },
+    {
+      "id": "R-28",
+      "name": "Rate buydown",
+      "setup": "concession to buydown, price $450,000",
+      "fields": {
+        "price": "450,000",
+        "offerPrice": "450,000",
+        "offerConc": "13,500",
+        "priority": "payment"
+      }
+    },
+    {
+      "id": "R-29",
+      "name": "Buydown ratio",
+      "setup": "same as R-28 \u2014 capture at 0.25 (C-5 comparison point vs Staging 0.24)",
+      "fields": {
+        "price": "450,000",
+        "offerPrice": "450,000",
+        "offerConc": "13,500",
+        "priority": "payment"
+      }
+    },
+    {
+      "id": "R-30",
+      "name": "Gap Solver \u2014 payment",
+      "setup": "target $2,500, price $450,000",
+      "fields": {
+        "price": "450,000",
+        "target": "2,500"
+      },
+      "gap": "pay"
+    },
+    {
+      "id": "R-31",
+      "name": "Gap Solver \u2014 cash",
+      "setup": "own funds $10,000, price $400,000",
+      "fields": {
+        "price": "400,000",
+        "ownFunds": "10,000"
+      },
+      "gap": "cash"
+    },
+    {
+      "id": "R-32",
+      "name": "Gap Solver \u2014 DTI",
+      "setup": "income $6,500, debts $1,800",
+      "fields": {
+        "price": "450,000",
+        "income": "6,500",
+        "debts": "1,800"
+      },
+      "gap": "dti"
+    },
+    {
+      "id": "R-33",
+      "name": "Gap Solver bisection convergence",
+      "setup": "a case requiring a large buydown",
+      "fields": {
+        "price": "600,000",
+        "target": "2,900",
+        "income": "16,000",
+        "ownFunds": "150,000"
+      },
+      "gap": "pay"
+    },
+    {
+      "id": "R-34",
+      "name": "Offer Strategy",
+      "setup": "price $500,000, offer $485,000, concession $8,000",
+      "fields": {
+        "price": "500,000",
+        "offerPrice": "485,000",
+        "offerConc": "8,000",
+        "ownFunds": "60,000",
+        "income": "14,000"
+      },
+      "viability_adjustment": "At $500,000 the default income eliminates every tier on back-end DTI, leaving no Offer Strategy to measure."
+    },
+    {
+      "id": "R-35",
+      "name": "Counteroffer \u2014 accept as-structured",
+      "setup": "counter $492,000, counter conc $4,000",
+      "fields": {
+        "price": "500,000",
+        "offerPrice": "485,000",
+        "offerConc": "8,000",
+        "counterPrice": "492,000",
+        "counterConc": "4,000",
+        "ownFunds": "60,000",
+        "income": "14,000"
+      },
+      "counter": true,
+      "viability_adjustment": "Same as R-34 \u2014 the Counteroffer Analyzer needs a surviving scenario."
+    },
+    {
+      "id": "R-36",
+      "name": "Counteroffer \u2014 restructure wins",
+      "setup": "a case where optimalRestructure differs",
+      "fields": {
+        "price": "500,000",
+        "offerPrice": "480,000",
+        "offerConc": "12,000",
+        "counterPrice": "495,000",
+        "counterConc": "6,000",
+        "priority": "payment",
+        "ownFunds": "60,000",
+        "income": "14,000"
+      },
+      "counter": true,
+      "viability_adjustment": "Same as R-34."
+    },
+    {
+      "id": "R-37",
+      "name": "Counteroffer with a prior concession ask",
+      "setup": "R-27 setup, then a counter",
+      "fields": {
+        "price": "450,000",
+        "offerPrice": "440,000",
+        "offerConc": "9,000",
+        "counterPrice": "446,000",
+        "counterConc": "3,000"
+      },
+      "counter": true
+    },
+    {
+      "id": "R-38",
+      "name": "Buyer priority x 4",
+      "setup": "R-1 at balanced / payment / cash / power",
+      "subcases": [
+        {
+          "id": "R-38a",
+          "label": "balanced",
+          "fields": {
+            "priority": "balanced"
+          }
+        },
+        {
+          "id": "R-38b",
+          "label": "payment",
+          "fields": {
+            "priority": "payment"
+          }
+        },
+        {
+          "id": "R-38c",
+          "label": "cash",
+          "fields": {
+            "priority": "cash"
+          }
+        },
+        {
+          "id": "R-38d",
+          "label": "power",
+          "fields": {
+            "priority": "power"
+          }
+        }
+      ]
+    },
+    {
+      "id": "R-39",
+      "name": "Planned stay regime switch",
+      "setup": "R-1 at stay 3, 7 and 10 \u2014 confirms the 3->5 and 7->10 discontinuities",
+      "subcases": [
+        {
+          "id": "R-39a",
+          "label": "stay 3",
+          "fields": {
+            "stay": "3"
+          }
+        },
+        {
+          "id": "R-39b",
+          "label": "stay 7",
+          "fields": {
+            "stay": "7"
+          }
+        },
+        {
+          "id": "R-39c",
+          "label": "stay 10",
+          "fields": {
+            "stay": "10"
+          }
+        }
+      ]
+    },
+    {
+      "id": "R-40",
+      "name": "Near-tie ordering",
+      "setup": "three scenarios inside the $50 PITI window \u2014 documents the non-transitive comparator",
+      "fields": {
+        "price": "400,000"
+      }
+    },
+    {
+      "id": "R-41",
+      "name": "Blank credit score",
+      "setup": "clear #score \u2014 documents the 300 coercion",
+      "fields": {
+        "price": "400,000",
+        "score": ""
+      }
+    },
+    {
+      "id": "R-42",
+      "name": "Price = \"0\"",
+      "setup": "enter 0 in price \u2014 documents the two definitions of 'has a price'",
+      "fields": {
+        "price": "0"
+      }
+    },
+    {
+      "id": "R-43",
+      "name": "N/A checkbox destruction",
+      "setup": "enter HOA $250, tick HOA N/A",
+      "fields": {
+        "price": "400,000",
+        "hoa": "250"
+      },
+      "checkboxes": {
+        "hoaNA": true
+      },
+      "audit_note": "Documents C-4b. updateInlineHints overwrites the typed value with '0' at render time; unchanged by Gate A and Gate B.",
+      "render_divergence_on_restore": "Documented C-4b consequence, not a state defect. gatherInputs() runs BEFORE updateInlineHints() inside recalc(), so the render captured here was computed from HOA $250 while the DOM field had already been overwritten with '0'. No state capture can reproduce a render that did not correspond to the DOM. A restore therefore yields the DOM-consistent result ($250 lower monthly HOA), which is the correct one. Canonical-state identity is asserted at the model level for this scenario instead of the rendered level."
+    },
+    {
+      "id": "R-44",
+      "name": "dpTarget corruption",
+      "setup": "10% target, price $400,000, toggle to $, change price to $600,000",
+      "fields": {
+        "price": "400,000",
+        "dpTarget": "10"
+      },
+      "units": {
+        "dp": "pct"
+      },
+      "toggles": [
+        {
+          "key": "dp",
+          "to": "dollar"
+        }
+      ],
+      "then_fields": {
+        "price": "600,000"
+      },
+      "audit_note": "Documents C-4a. Gate A (approved) fixed the restore/drift half; the single user-initiated conversion is unchanged, so the stale $40,000 against a $600,000 property still stands. Recorded as the contract."
+    },
+    {
+      "id": "R-45",
+      "name": "HOA contamination of buyer cards",
+      "setup": "R-1, note Comfort Price; add HOA $340; re-note",
+      "subcases": [
+        {
+          "id": "R-45a",
+          "label": "no HOA",
+          "fields": {}
+        },
+        {
+          "id": "R-45b",
+          "label": "HOA $340",
+          "fields": {
+            "hoa": "340"
+          },
+          "checkboxes": {
+            "hoaNA": false
+          }
+        }
+      ],
+      "audit_note": "Documents C-4c \u2014 the 'buyer-only' number moves. Unchanged by Gate B."
+    },
+    {
+      "id": "R-46",
+      "name": "Manual concession split",
+      "setup": "R-22, then set a manual split",
+      "fields": {
+        "price": "450,000",
+        "offerPrice": "440,000"
+      },
+      "negMode": "concession",
+      "manual_split": {
+        "costs": "4,000"
+      },
+      "audit_note": "Documents C-9 \u2014 cards unchanged, Gap Solver table changes."
+    },
+    {
+      "id": "R-47",
+      "name": "Comfort Calculator parity",
+      "setup": "the C-6 worked inputs in both tools \u2014 the $115,338 gap as the documented starting delta",
+      "fields": {
+        "price": "",
+        "income": "9,500",
+        "debts": "650",
+        "target": "3,200",
+        "ownFunds": "40,000",
+        "score": "740",
+        "rateConv": "6.750"
+      },
+      "cross_tool": {
+        "tool": "buyer/comfort-calculator.html",
+        "documented_delta_max_price": 115338,
+        "documented_cc_max_price": 524047,
+        "documented_bse_max_price": 408709
+      },
+      "audit_note": "Cross-tool. The Comfort Calculator is read-only in this suite \u2014 loaded, never modified."
+    }
+  ]
+}
