@@ -40,7 +40,7 @@ Any session beginning implementation work must verify these before touching anyt
 
 **Pre-Phase-3 git baseline: `540ccbe`** — "Live comma formatting on input with cursor-position restore", 2026-07-27, branch `main`. `main` still points here.
 
-**Current work: branch `phase3/gate-c-supabase-persistence`.** The production BSE is now `9bb3047bf936ec30d43d7c1a05dbd835` (Gate A produced `d5c16fde…`, Gate B `f8b2b9b5…`, Gate B.5 `1f4cde6c…`, Gate B.75 `90bcc96f…`). Gate C's change is **two insertions with zero deletions** — `diff` against Gate B.75 reports `3395a3396,3998` and `3423a4027,4028` and nothing else. The table above remains the correct baseline for `main` and for the three untouched files.
+**Current work: branch `phase3/gate-c-supabase-persistence`.** The production BSE is now `f4466ff69519203968119e4380ab9519` (Gate A produced `d5c16fde…`, Gate B `f8b2b9b5…`, Gate B.5 `1f4cde6c…`, Gate B.75 `90bcc96f…`). Gate C's change is **two insertions with zero deletions** — `diff` against Gate B.75 reports `3395a3396,3998` and `3423a4027,4028` and nothing else. The table above remains the correct baseline for `main` and for the three untouched files.
 
 Verification command:
 
@@ -165,7 +165,9 @@ Until those are run, treat report §6, §7, §37 and §38 as unverified.
 
 **Two defects were found and fixed during Gate C.** The round write strategy would have silently broken every autosave for any buyer in active negotiation (report §57a). Doug's first live sign-in attempt then exposed a pre-authentication chicken-and-egg: `boot()` read a table granted to `authenticated` only, so you could not sign in because signing in required already being signed in (report §57b). Both are pinned by tests that fail against the broken build.
 
-**Test 1 in §58 needs re-running** — that is where the sign-in defect surfaced.
+A third issue was configuration, not code: the Supabase project URL supplied was 19 characters instead of 20 and did not resolve, producing `Sign-in failed — Failed to fetch`. Corrected to `https://oxvtuvoguulphgycgixg.supabase.co` (report §57c). No code changed.
+
+**Test 1 in §58 still has not succeeded and is the next action.**
 
 Gate B.75 remains complete and approved.
 

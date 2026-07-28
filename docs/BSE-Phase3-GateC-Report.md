@@ -17,7 +17,7 @@ Date: **July 28, 2026**
 >
 > **Built, tested and committed: 414 assertions, 0 failures.** The schema and RLS are live in the `hws-buyer-strategy` Supabase project. The client persistence layer is implemented, and every part of it that can be proven without a live inbox has been proven.
 >
-> **Your first live sign-in attempt found a real defect.** It is diagnosed, fixed, and pinned by tests that reproduce your exact error message against the old build and pass against the new one. §57b has the full account. Re-run test 1 in §58.
+> **Two live sign-in attempts have been made.** The first found a real client defect (§57b — fixed and pinned). The second was a configuration error, not a code defect: the project URL was one character short (§57c — corrected). Test 1 in §58 has not yet succeeded and is the next thing to run.
 >
 > **Three things still require you, not me** — a magic-link sign-in, a genuine second device, and a second Supabase account. They need a human with an email inbox. §58 is the exact procedure.
 >
@@ -35,7 +35,7 @@ Date: **July 28, 2026**
 
 ## 3. Ending commit
 
-`99472f5` — "Gate C — Supabase auth, RLS and cross-device persistence"; then the pre-authentication fix in §57b (`d7dbbcf` was the interim stop). The BSE application file is now **`9bb3047bf936ec30d43d7c1a05dbd835`**, up from Gate B.75's `90bcc96f62feb7f90c34c8407ddeacd0`. `main` still points at `540ccbe` and has not been touched.
+`99472f5` — "Gate C — Supabase auth, RLS and cross-device persistence"; then the pre-authentication fix in §57b (`d7dbbcf` was the interim stop). The BSE application file is now **`f4466ff69519203968119e4380ab9519`**, up from Gate B.75's `90bcc96f62feb7f90c34c8407ddeacd0`. `main` still points at `540ccbe` and has not been touched.
 
 ## 4. Files changed
 
@@ -72,7 +72,7 @@ Two insertions. Nothing removed, nothing rewritten. That is the strongest availa
 | Seven post-migration verification checks | **7 of 7 PASS** — tables 7/7; RLS enabled+forced 5/5; owner policies 5/5; pair-intact constraints 3/3; round price NOT NULL; assumption set `2026.07-baseline` with buydown `0.25`; tax methods `fl_millage=false`, `flat_rate=true` |
 | Email (magic-link) authentication | Enabled |
 | Site URL / redirect | `http://localhost:8080` and `http://localhost:8080/**` |
-| Project URL + publishable key | Supplied and embedded in the client — both are **public** values |
+| Project URL + publishable key | `https://oxvtuvoguulphgycgixg.supabase.co` — embedded in the client with the publishable key; both are **public** values. The first URL supplied was 19 characters and did not resolve; see §57c |
 | Service-role key / database password | **Never requested, never received, never present anywhere** |
 
 ## 6. Auth implementation
@@ -421,6 +421,46 @@ FAIL  P10 the chip never shows a raw internal error to the user
 ```
 
 That is the regression pinned by the exact symptom you reported.
+
+## 57c. The second sign-in attempt — a configuration error, not a defect
+
+The retest returned:
+
+```
+Sign-in failed — Failed to fetch
+```
+
+That message is the §57b fix working. The chip read *Sign in to save* first,
+which means the library loaded, the transport was created and `getSession()`
+succeeded — and the failure was correctly reported as a **sign-in** failure with
+its real reason, not as a phantom save failure with a TypeError. The new
+diagnostics pointed at the right layer immediately.
+
+**The cause was in the configuration, not the code.** The project URL originally
+supplied was:
+
+```
+https://oxvtuvoqulphgycgixg.supabase.co     19 characters — no DNS record
+https://oxvtuvoguulphgycgixg.supabase.co    20 characters — resolves
+```
+
+A Supabase project ref is exactly 20 characters. The first had a character
+dropped in transcription (`...voq...` for `...vogu...`), so the hostname did not
+exist, the browser's `fetch` never reached a server, and it rejected with
+`Failed to fetch`. Confirmed by DNS: `supabase.co` resolved normally from the
+same resolver while the configured host returned no record at all; the corrected
+host resolves to Cloudflare.
+
+**No code changed.** One string constant was corrected and the full suite re-run:
+**414 assertions, 0 failures.** The application diff against Gate B.75 is
+unchanged at two insertions, zero deletions, and the engine region is still
+byte-identical to `540ccbe`.
+
+**Not yet done, deliberately.** A boot-time sanity check on the project URL —
+so a malformed value says *"Project URL looks wrong — check Settings → API"*
+instead of leaving an opaque `Failed to fetch` — was proposed and **not built**,
+because it is outside what was authorized. It is a one-line guard and a test
+whenever you want it.
 
 ## 58. What is NOT proven, and exactly what you need to do
 
