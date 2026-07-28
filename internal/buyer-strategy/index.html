@@ -2941,6 +2941,390 @@ window.BSEState = {
   setCounterUnit: function(u){ return setCounterUnit(u); }
 };
 
+/* =====================================================================
+   CANONICAL APPLICATION STATE — Phase 3 Gate B
+   Implements the Phase 2 architecture (docs/BSE-Phase2-Architecture.md
+   §4 Buyer Profile, §5 Shopping Plan, §6 Property, §7 Property Scenario,
+   §8 negotiation_round, §9 assumption set, §15 DTI, §16 canonical units).
+
+   What this layer is:
+     • the canonical, serialisable representation of the application's
+       ECONOMIC data, separated from DOM presentation state
+     • the L-1 inheritance mechanism: scenario ?? plan ?? assumption set ??
+       engine default, resolved in memory and NEVER written back
+     • the immutable `2026.07-baseline` assumption set
+
+   What this layer is NOT:
+     • persistence of any kind — no storage, no network, no Supabase
+     • a calculation change — the Engine and gatherInputs() are untouched and
+       still drive every number on screen
+     • an FL millage integration — `tax_method` is carried as a discriminator
+       only, and Shopping Plans stay `flat_rate` (L-1 / §13.5)
+
+   M-1 stays fixed: restore goes through applyState(), which writes value and
+   unit together and never invokes a unit toggle handler.
+   ===================================================================== */
+
+/* ---------- §9 immutable assumption set — the audited production values ---------- */
+const ASSUMPTION_SET = Object.freeze({
+  version_label: '2026.07-baseline',
+  effective_from: '2026-07-28',
+  is_current: true,
+  notes: 'Seed version 1. Audited production values, verbatim (Phase 2 §9.2). INSERT-only: never edit a payload.',
+  payload: Object.freeze({
+    engine: Object.freeze({ term_months: 360 }),
+    programs: Object.freeze({
+      conv: Object.freeze({ min_score: 620, dti_front: 28, dti_back: 45 }),
+      fha:  Object.freeze({ min_score: 500, dti_front: 31, dti_back: 43 }),
+      va:   Object.freeze({ min_score: 0,   dti_front: 41, dti_back: 41 })
+    }),
+    mi: Object.freeze({
+      fha_ufmip_pct: 1.75, fha_annual_high_pct: 0.55, fha_annual_low_pct: 0.50,
+      fha_mip_drop_month: 132, va_funding_fee_first_pct: 2.15, va_funding_fee_sub_pct: 3.30,
+      pmi_ltv_bands: Object.freeze({ a: '> 95', b: '> 90', c: '> 85', d: '> 80.0001' })
+    }),
+    limits: Object.freeze({ conforming: 766550, fha_national_floor: 498257, fha_limit_is_county_specific: false }),
+    concession_limits_pct: Object.freeze({ fha: 6, va: 4 }),
+    costs: Object.freeze({ closing_cost_pct_default: 3.00 }),
+    rates_default: Object.freeze({ conv: 6.750, fha: 6.250, va: 6.125 }),
+    // L-8: Live is authoritative. Staging's 0.24 is NOT adopted.
+    buydown: Object.freeze({ pct_per_point: 0.25, rate_rounding: 0.125 }),
+    decision_thresholds: Object.freeze({
+      step_up_min_payment_saving: 150, step_up_max_payback_months: 36,
+      reserve_preference_floor: 500, reserve_warning_floor: 1000,
+      near_tie_cash: 250, near_tie_payment: 50, near_tie_financing: 2500,
+      tiebreak_cash_delta: 2000, tiebreak_financing_delta: 2500
+    }),
+    tax_defaults: Object.freeze({ flat_rate_pct: 1.20 })
+  })
+});
+
+const BSE_ENGINE_VERSION = 'bse-2.0.0';
+const BSE_MODEL_SCHEMA = 'bse-canonical-state/1';
+
+const BSEModel = (function(){
+
+  /* ---------- helpers ---------- */
+  const rawOf = id => { const el = $(id); return el ? el.value : ''; };
+  const blank = id => rawOf(id).replace(/[^0-9.\-]/g,'') === '';
+  const numOrNull = id => blank(id) ? null : num(id);
+
+  // §5 three-state cost field. The N/A checkbox means "confirmed none".
+  // The value column is NULL in both zero cases, so a status change has
+  // nothing to overwrite — C-4b becomes structurally impossible in the model.
+  function costField(valueId, naId){
+    const na = $(naId) ? $(naId).checked : false;
+    if(na) return { monthly: null, status: 'confirmed_none' };
+    if(blank(valueId)) return { monthly: null, status: 'unknown' };
+    const v = num(valueId);
+    return v > 0 ? { monthly: v, status: 'known' } : { monthly: null, status: 'unknown' };
+  }
+  const costValue = f => (f && f.status === 'known' && f.monthly != null) ? f.monthly : 0;
+  const UNIT = { pct: 'percent', dollar: 'amount' };
+  const UNIT_BACK = { percent: 'pct', amount: 'dollar' };
+
+  /* ---------- §4 Buyer Profile ---------- */
+  function captureBuyerProfile(){
+    return {
+      display_name: null, reference_code: null,
+      qualifying_income_monthly: num('income'),
+      monthly_debts: num('debts'),
+      credit_score: blank('score') ? null : num('score'),
+      own_funds: num('ownFunds'),
+      gift_funds: num('gift'),
+      is_first_time_buyer: $('tgFthb').checked,
+      va_eligible: $('tgVa').checked,
+      va_use: $('tgVa').checked ? $('vaUse').value : null,
+      va_funding_fee_exempt: $('vaExempt').checked,
+      // §15 — no UI surface yet; the structure exists so an override can be
+      // authored without a schema change. Program defaults are NOT stored here.
+      dti_override_enabled: false, dti_override_front: null,
+      dti_override_back: null, dti_override_source: null,
+      // buyer-level FL fields (§4) — carried, never calculated with in Gate B
+      homestead_intent: null, prior_homestead_market_value: null,
+      prior_homestead_assessed_value: null, portability_eligible: false,
+      status: 'active'
+    };
+  }
+
+  /* ---------- §5 Shopping Plan ---------- */
+  function captureShoppingPlan(){
+    const hoa = costField('hoa','hoaNA'), cdd = costField('cdd','cddNA'), flood = costField('flood','floodNA');
+    const taxUnit = UNIT[unitState.tax];
+    const taxRaw  = blank('taxRate') ? null : num('taxRate');
+    return {
+      plan_label: 'Original Plan', is_active: true,
+      target_payment: num('target'),
+      // §16 canonical pair — value as entered, never converted
+      dp_target_value: blank('dpTarget') ? null : num('dpTarget'),
+      dp_target_unit: blank('dpTarget') ? null : UNIT[unitState.dp],
+      planned_stay_years: parseInt($('stay').value) || 7,
+      buyer_priority: $('priority').value,
+      // L-1 / §13.5 — Shopping Plans are flat_rate. No millage, ever, at this layer.
+      tax_method: 'flat_rate',
+      tax_rate_pct:      taxUnit === 'percent' ? taxRaw : null,
+      tax_annual_amount: taxUnit === 'amount'  ? taxRaw : null,
+      tax_input_unit: taxUnit,
+      hoi_monthly: blank('hoi') ? null : num('hoi'),
+      hoa_monthly: hoa.monthly, hoa_status: hoa.status,
+      cdd_monthly: cdd.monthly, cdd_status: cdd.status,
+      flood_monthly: flood.monthly, flood_status: flood.status,
+      rate_conv: blank('rateConv') ? null : num('rateConv'),
+      rate_fha:  blank('rateFha')  ? null : num('rateFha'),
+      rate_va:   blank('rateVa')   ? null : num('rateVa'),
+      closing_cost_pct: blank('ccPct') ? null : num('ccPct'),
+      assumption_set_version: ASSUMPTION_SET.version_label
+    };
+  }
+
+  /* ---------- §6 Property ---------- */
+  function captureProperty(){
+    return { label: null, address_line1: null, address_line2: null, city: null,
+             state: 'FL', postal_code: null, county: null, property_type: null,
+             mls_number: null, status: 'active' };
+  }
+
+  /* ---------- §7 Property Scenario ----------
+     Every assumption column is NULL = inherit. The current single-form UI has
+     no surface for authoring a property-level override distinct from the plan,
+     so they capture as NULL and resolve() falls through to the plan. The
+     mechanism is real and tested; the authoring UI is later-phase work. */
+  function capturePropertyScenario(){
+    return {
+      scenario_label: 'Scenario 1',
+      // M-5: explicit, never inferred from a null price downstream
+      analysis_mode: blank('price') ? 'shopping' : 'property',
+      list_price: blank('price') ? null : num('price'),
+      tax_method: null,
+      hoi_monthly: null,
+      hoa_monthly: null, hoa_status: null,
+      cdd_monthly: null, cdd_status: null,
+      flood_monthly: null, flood_status: null,
+      rate_conv: null, rate_fha: null, rate_va: null,
+      closing_cost_pct: null,
+      closing_cost_override_amount: blank('ccOverride') ? null : num('ccOverride'),
+      target_payment: null,
+      dp_target_value: null, dp_target_unit: null,
+      planned_stay_years: null, buyer_priority: null,
+      dti_override_enabled: null, dti_override_front: null,
+      dti_override_back: null, dti_override_source: null,
+      closing_date: null, occupancy_date: null,
+      tax_inputs: null, tax_outputs: null, tax_method_version: null,
+      // L-7 — carried now, consumed only when FL millage is integrated (not Gate B)
+      qualifying_tax_basis: 'projected_reassessed',
+      assumption_set_version: ASSUMPTION_SET.version_label,
+      assumption_overrides: null,
+      engine_version: BSE_ENGINE_VERSION,
+      status: 'draft', is_accepted_property: false
+    };
+  }
+
+  /* ---------- §8 negotiation rounds ---------- */
+  function captureNegotiationRounds(){
+    const rounds = [];
+    if(!blank('offerPrice')){
+      rounds.push({
+        round_number: 1, actor: 'buyer', price: num('offerPrice'),
+        concession_value: blank('offerConc') ? null : num('offerConc'),
+        concession_unit:  blank('offerConc') ? null : UNIT[offerConcUnit.v],
+        negotiation_mode: (document.querySelector('input[name="negMode"]:checked')||{}).value || 'concession',
+        loan_program_override: null,
+        // C-9 / M-12: reserved, deliberately not surfaced as authoritative
+        manual_split_buydown: concSplit.auto ? null : concSplit.buydown,
+        manual_split_costs:   concSplit.auto ? null : concSplit.costs,
+        manual_split_enabled: !concSplit.auto,
+        is_accepted: false, note: null
+      });
+    }
+    if(!blank('counterPrice')){
+      rounds.push({
+        round_number: rounds.length + 1, actor: 'seller', price: num('counterPrice'),
+        concession_value: blank('counterConc') ? null : num('counterConc'),
+        concession_unit:  blank('counterConc') ? null : UNIT[counterUnit.v],
+        negotiation_mode: null,
+        loan_program_override: $('counterLoan') ? $('counterLoan').value : null,
+        manual_split_buydown: null, manual_split_costs: null, manual_split_enabled: false,
+        is_accepted: false, note: null
+      });
+    }
+    return rounds;
+  }
+
+  /* ---------- presentation state — deliberately outside the economic model ---------- */
+  function captureUiState(){
+    const collapsed = [];
+    document.querySelectorAll('.section').forEach(function(el){ if(el.id && el.classList.contains('collapsed')) collapsed.push(el.id); });
+    return {
+      gap_tab: gapSel,
+      collapsed_sections: collapsed,
+      // toggle POSITIONS only. They are derived from the canonical units on
+      // restore and never mutate an economic value (L-13).
+      displayed_units: { dp: unitState.dp, tax: unitState.tax,
+                         offerConc: offerConcUnit.v, counterConc: counterUnit.v },
+      manual_split_open: !concSplit.auto
+    };
+  }
+
+  /* ---------- capture ---------- */
+  function capture(){
+    return {
+      schema: BSE_MODEL_SCHEMA,
+      engine_version: BSE_ENGINE_VERSION,
+      assumption_set: { version_label: ASSUMPTION_SET.version_label, is_current: ASSUMPTION_SET.is_current },
+      buyer_profile: captureBuyerProfile(),
+      shopping_plan: captureShoppingPlan(),
+      property: captureProperty(),
+      property_scenario: capturePropertyScenario(),
+      negotiation_rounds: captureNegotiationRounds(),
+      ui_state: captureUiState(),
+      // the Gate A canonical unit payload, so a restore is byte-exact
+      presentation: BSEState.capture()
+    };
+  }
+
+  /* ---------- §7 inheritance resolution — in memory, never written back ---------- */
+  function pick(){
+    for(let i=0;i<arguments.length;i++){ if(arguments[i] !== null && arguments[i] !== undefined) return arguments[i]; }
+    return null;
+  }
+  function resolve(model){
+    const sc = model.property_scenario, sp = model.shopping_plan, A = ASSUMPTION_SET.payload;
+    const cost = function(key){
+      const s = sc[key+'_status'], p = sp[key+'_status'];
+      return s !== null && s !== undefined
+        ? { monthly: sc[key+'_monthly'], status: s }
+        : { monthly: sp[key+'_monthly'], status: p };
+    };
+    return {
+      analysis_mode: sc.analysis_mode,
+      list_price: sc.list_price,
+      target_payment: pick(sc.target_payment, sp.target_payment),
+      dp_target_value: sc.dp_target_unit !== null ? sc.dp_target_value : sp.dp_target_value,
+      dp_target_unit:  sc.dp_target_unit !== null ? sc.dp_target_unit  : sp.dp_target_unit,
+      planned_stay_years: pick(sc.planned_stay_years, sp.planned_stay_years),
+      buyer_priority: pick(sc.buyer_priority, sp.buyer_priority),
+      tax_method: pick(sc.tax_method, sp.tax_method, 'flat_rate'),
+      tax_rate_pct: sc.tax_method !== null ? sc.tax_rate_pct : sp.tax_rate_pct,
+      tax_annual_amount: sc.tax_method !== null ? sc.tax_annual_amount : sp.tax_annual_amount,
+      tax_input_unit: sc.tax_method !== null ? sc.tax_input_unit : sp.tax_input_unit,
+      hoi_monthly: pick(sc.hoi_monthly, sp.hoi_monthly, 0),
+      hoa: cost('hoa'), cdd: cost('cdd'), flood: cost('flood'),
+      rate_conv: pick(sc.rate_conv, sp.rate_conv, A.rates_default.conv),
+      rate_fha:  pick(sc.rate_fha,  sp.rate_fha,  A.rates_default.fha),
+      rate_va:   pick(sc.rate_va,   sp.rate_va,   A.rates_default.va),
+      closing_cost_pct: pick(sc.closing_cost_pct, sp.closing_cost_pct, A.costs.closing_cost_pct_default),
+      closing_cost_override_amount: sc.closing_cost_override_amount,
+      qualifying_tax_basis: sc.qualifying_tax_basis
+    };
+  }
+
+  /* ---------- §15 DTI — program default, buyer override, scenario override ----------
+     Architectural capability only. Nothing in Gate B consumes this; the Engine
+     continues to use its own PROGRAMS ratios and no DTI mathematics changed. */
+  function resolveDti(family, model){
+    const prog = ASSUMPTION_SET.payload.programs[family];
+    const base = { front: prog.dti_front, back: prog.dti_back, source: 'program_default' };
+    const bp = model.buyer_profile, sc = model.property_scenario;
+    if(bp.dti_override_enabled && bp.dti_override_back != null){
+      base.front = bp.dti_override_front != null ? bp.dti_override_front : base.front;
+      base.back = bp.dti_override_back; base.source = bp.dti_override_source || 'buyer_override';
+    }
+    if(sc.dti_override_enabled && sc.dti_override_back != null){
+      base.front = sc.dti_override_front != null ? sc.dti_override_front : base.front;
+      base.back = sc.dti_override_back; base.source = sc.dti_override_source || 'scenario_override';
+    }
+    return base;
+  }
+
+  /* ---------- canonical model -> engine input ----------
+     The adapter that proves the model is complete: it reproduces the shape
+     gatherInputs() returns, from the canonical model alone. gatherInputs()
+     itself is unchanged and still drives the live application. */
+  function toInputs(model){
+    const r = resolve(model), bp = model.buyer_profile;
+    const shopping = r.analysis_mode === 'shopping';
+    const priceNow = shopping ? 0 : (r.list_price || 0);
+
+    let dpTarget = null;
+    if(r.dp_target_value != null && r.dp_target_value > 0){
+      dpTarget = (r.dp_target_unit === 'percent')
+        ? { isPct:true,  pct:r.dp_target_value, dollar:null }
+        : { isPct:false, pct:null, dollar:r.dp_target_value };
+    }
+
+    const taxIsDollar = r.tax_input_unit === 'amount';
+    const taxRaw = taxIsDollar ? (r.tax_annual_amount || 0) : (r.tax_rate_pct || 0);
+    let taxRate, taxMonthly = null, taxFixed = false;
+    if(taxIsDollar){
+      taxMonthly = taxRaw/12; taxFixed = true;
+      taxRate = priceNow>0 ? taxRaw/priceNow*100 : 0;
+    } else {
+      taxRate = taxRaw;
+    }
+
+    const buyerRound = model.negotiation_rounds.filter(function(x){ return x.actor==='buyer'; })[0] || null;
+    const listP  = shopping ? 0 : (r.list_price || 0);
+    const offerP = buyerRound ? buyerRound.price : 0;
+    const negReq = (listP>0 && offerP>0 && offerP<listP) ? (listP-offerP) : 0;
+    const concBase = offerP>0 ? offerP : listP;
+    const concRaw  = buyerRound && buyerRound.concession_value != null ? buyerRound.concession_value : 0;
+    const sellerConcession = (buyerRound && buyerRound.concession_unit === 'percent')
+      ? ((concBase>0 && concRaw>0) ? Math.round(concRaw/100*concBase) : 0)
+      : concRaw;
+
+    const own = bp.own_funds, gift = bp.gift_funds;
+    return {
+      shopping: shopping, dpTarget: dpTarget,
+      taxRate: taxRate, taxMonthly: taxMonthly, taxFixed: taxFixed,
+      taxIsDollar: taxIsDollar, taxRaw: taxRaw,
+      price: shopping ? 0 : (r.list_price || 0),
+      score: Math.max(300, Math.min(850, Math.round(bp.credit_score || 0))),
+      ownFunds: own, gift: gift, funds: own+gift,
+      target: r.target_payment, income: bp.qualifying_income_monthly, debts: bp.monthly_debts,
+      stayYears: r.planned_stay_years,
+      rates: { conv: r.rate_conv, fha: r.rate_fha, va: r.rate_va },
+      ccPct: r.closing_cost_pct, ccOverride: r.closing_cost_override_amount || 0,
+      hoi: r.hoi_monthly, hoa: costValue(r.hoa), cdd: costValue(r.cdd), flood: costValue(r.flood),
+      hoaNA: r.hoa.status === 'confirmed_none',
+      cddNA: r.cdd.status === 'confirmed_none',
+      floodNA: r.flood.status === 'confirmed_none',
+      fthb: bp.is_first_time_buyer, vaOn: bp.va_eligible,
+      vaUse: bp.va_use || 'first', vaExempt: bp.va_funding_fee_exempt,
+      priority: r.buyer_priority,
+      offerPrice: offerP, negotiatingRoom: negReq, sellerConcession: sellerConcession,
+      negotiationMode: (buyerRound && buyerRound.negotiation_mode) || 'concession',
+      concessionOn:false, concession:0, appliedPath:null, appliedReduction:0, appliedConcession:0
+    };
+  }
+
+  /* ---------- restore ----------
+     Delegates to applyState() so the Gate A M-1 guarantee is preserved
+     exactly: value and unit are written together and no toggle handler runs. */
+  function apply(model, opts){
+    if(!model || !model.presentation) return false;
+    const ok = applyState(model.presentation, { silent: true });
+    if(!ok) return false;
+    // presentation-only state, applied after the economic restore and never
+    // able to alter it
+    const ui = model.ui_state || {};
+    if(ui.gap_tab) gapSel = ui.gap_tab;
+    if(typeof ui.manual_split_open === 'boolean') concSplit.auto = !ui.manual_split_open;
+    if(Array.isArray(ui.collapsed_sections)){
+      document.querySelectorAll('.section').forEach(function(el){
+        if(el.id) el.classList.toggle('collapsed', ui.collapsed_sections.indexOf(el.id) >= 0);
+      });
+    }
+    if(!(opts && opts.silent)) recalc();
+    return true;
+  }
+
+  return { capture: capture, apply: apply, resolve: resolve, toInputs: toInputs,
+           resolveDti: resolveDti, assumptionSet: ASSUMPTION_SET,
+           SCHEMA: BSE_MODEL_SCHEMA, ENGINE_VERSION: BSE_ENGINE_VERSION };
+})();
+
+window.BSEModel = BSEModel;
+
 /* ---------- $ / % unit toggles (dual-input fields) ---------- */
 function renderUnitToggles(){
   [['dp','dpUnitTg','dpIa'],['tax','taxUnitTg','taxIa']].forEach(([w,id,ia])=>{
