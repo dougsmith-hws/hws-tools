@@ -358,7 +358,7 @@
         <div class="field">
           <label>Purchase Price</label>
           <input type="text" id="purchase-price" placeholder="$0"
-                 oninput="fmtWhole(this)" onchange="calculate()">
+                 oninput="sanitizeWhole(this)" onblur="fmtWhole(this); calculate()">
         </div>
       </div>
 
@@ -375,7 +375,7 @@
             </span>
           </label>
           <input type="text" id="current-bill" placeholder="$6,987.09"
-                 oninput="fmtCents(this)" onchange="calculate()">
+                 oninput="sanitizeCents(this)" onblur="fmtCents(this); calculate()">
           <div class="field-note">Enables the Current Tax Bill and Escrow Impact cards.</div>
         </div>
 
@@ -389,7 +389,7 @@
         <div class="field">
           <label>Non-Ad Valorem Assessments <span class="hint">(annual)</span></label>
           <input type="text" id="non-ad-val" placeholder="$814.60"
-                 oninput="fmtCents(this)" onchange="calculate()">
+                 oninput="sanitizeCents(this)" onblur="fmtCents(this); calculate()">
           <div class="field-note">Fire, solid waste, stormwater. Varies by parcel — verify with county records.</div>
         </div>
       </div>
@@ -415,12 +415,12 @@
             <div class="field" style="margin-top:8px;">
               <label>Prior Home — Market Value <span class="hint">at time of sale/move</span></label>
               <input type="text" id="prior-market" placeholder="$0"
-                     oninput="fmtWhole(this)" onchange="calculate()">
+                     oninput="sanitizeWhole(this)" onblur="fmtWhole(this); calculate()">
             </div>
             <div class="field">
               <label>Prior Home — Assessed Value <span class="hint">most recent TRIM notice</span></label>
               <input type="text" id="prior-assessed" placeholder="$0"
-                     oninput="fmtWhole(this)" onchange="calculate()">
+                     oninput="sanitizeWhole(this)" onblur="fmtWhole(this); calculate()">
             </div>
           </div>
         </div>
@@ -461,7 +461,29 @@ function parseNum(s) {
   return parseFloat(s.replace(/,/g, '')) || 0;
 }
 
-// Whole-dollar format (no cents) — for Purchase Price, Prior values
+// ── oninput sanitizers (no reformatting — just strip illegal chars) ──
+
+// Whole-dollar fields: digits only while typing
+function sanitizeWhole(el) {
+  el.value = el.value.replace(/[^0-9]/g, '');
+}
+
+// Cents-allowed fields: digits + one decimal point while typing
+function sanitizeCents(el) {
+  let v = el.value.replace(/[^0-9.]/g, '');
+  const parts = v.split('.');
+  if (parts.length > 2) v = parts[0] + '.' + parts.slice(1).join('');
+  el.value = v;
+}
+
+// Decimal-only (millage)
+function fmtDecimal(el) {
+  el.value = el.value.replace(/[^0-9.]/g, '');
+}
+
+// ── onblur formatters (called when field loses focus) ──
+
+// Whole-dollar format — for Purchase Price, Prior values
 function fmtWhole(el) {
   const raw = el.value.replace(/[$,]/g, '');
   const n = parseFloat(raw);
@@ -470,19 +492,13 @@ function fmtWhole(el) {
   }
 }
 
-// Cents-allowed format — for Current Bill, Non-Ad Valorem
+// Cents format — for Current Bill, Non-Ad Valorem
 function fmtCents(el) {
-  // Only reformat on blur-like events; during typing allow freeform
   const raw = el.value.replace(/[$,]/g, '');
   const n = parseFloat(raw);
-  if (!isNaN(n) && raw !== '' && !raw.endsWith('.')) {
+  if (!isNaN(n) && raw !== '') {
     el.value = '$' + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   }
-}
-
-// Decimal-only (millage)
-function fmtDecimal(el) {
-  el.value = el.value.replace(/[^0-9.]/g, '');
 }
 
 // Display helpers
