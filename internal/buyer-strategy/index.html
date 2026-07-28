@@ -2585,11 +2585,13 @@ function renderCounterUnitToggle(){
 }
 function setCounterUnit(unit){
   if(counterUnit.v===unit) return;
-  const prev=counterUnit.v, cp=rawBlank('counterPrice')?0:num('counterPrice'), raw=rawBlank('counterConc')?null:num('counterConc');
-  if(raw!=null && raw>0 && cp>0){
-    if(prev==='dollar'&&unit==='pct')      $('counterConc').value=+(raw/cp*100).toFixed(2);
-    else if(prev==='pct'&&unit==='dollar') $('counterConc').value=Math.round(raw/100*cp).toLocaleString('en-US');
-  }
+  // M-1 / L-13: convert from the canonical (value, unit) pair, never from the
+  // already-converted digits on screen. Toggling back to the canonical unit
+  // restores the canonical value verbatim, so repeated switching cannot drift.
+  const cp = rawBlank('counterPrice')?0:num('counterPrice');
+  canonSync('counterConc');
+  const out = canonConvert('counterConc', unit, cp);
+  if(out!==null) canonWrite('counterConc', out);
   counterUnit.v=unit; recalcCounter();
 }
 
@@ -2611,15 +2613,14 @@ function renderOfferConcToggle(inp){
 }
 function setOfferConcUnit(unit){
   if(offerConcUnit.v===unit) return;
-  const prev=offerConcUnit.v, raw=rawBlank('offerConc')?null:num('offerConc');
+  // M-1 / L-13: convert from the canonical (value, unit) pair. See canonConvert.
   // resolve the base the % is measured against (offer price, else list price)
   const op = rawBlank('offerPrice')?0:num('offerPrice');
   const lp = rawBlank('price')?0:num('price');
   const base = op>0 ? op : lp;
-  if(raw!=null && raw>0 && base>0){
-    if(prev==='dollar'&&unit==='pct')      $('offerConc').value=+(raw/base*100).toFixed(2);
-    else if(prev==='pct'&&unit==='dollar') $('offerConc').value=Math.round(raw/100*base).toLocaleString('en-US');
-  }
+  canonSync('offerConc');
+  const out = canonConvert('offerConc', unit, base);
+  if(out!==null) canonWrite('offerConc', out);
   offerConcUnit.v=unit; recalc();
 }
 
@@ -2796,6 +2797,150 @@ function attachGapButtons(){
   });
 }
 
+/* =====================================================================
+   CANONICAL VALUE / UNIT STORE + STATE CAPTURE / RESTORE
+   Phase 3 Gate A — resolves migration risk M-1 (Phase 1 finding C-4a),
+   locked by Phase 2 Decision L-13.
+
+   The canonical value of a dual-unit field is the (value, unit) PAIR.
+   `dpTarget = "20"` is meaningless alone: it is either 20% or $20.
+
+     • RESTORING state and a USER-INITIATED unit change are different
+       operations. applyState() writes value and unit together, directly,
+       and never invokes setUnit / setOfferConcUnit / setCounterUnit.
+     • A user toggle may convert for display, but it converts FROM the
+       canonical pair, so repeated switching cannot accumulate rounding.
+
+   No calculation function is involved. gatherInputs() still reads the DOM
+   and the unit state exactly as before, so identical economic inputs
+   produce identical outputs.
+   ===================================================================== */
+const canonUnit = {
+  dp:          { field:'dpTarget',    value:null, unit:'pct',    shown:null },
+  tax:         { field:'taxRate',     value:null, unit:'pct',    shown:null },
+  offerConc:   { field:'offerConc',   value:null, unit:'dollar', shown:null },
+  counterConc: { field:'counterConc', value:null, unit:'dollar', shown:null }
+};
+const CANON_KEYS = ['dp','tax','offerConc','counterConc'];
+// The unit currently DISPLAYED for a field (presentation state).
+function canonUnitNow(key){
+  if(key==='dp' || key==='tax') return unitState[key];
+  return key==='offerConc' ? offerConcUnit.v : counterUnit.v;
+}
+// Re-anchor the canonical pair from the DOM when the user has typed since the
+// last value this module wrote. Typing is a deliberate re-entry in the unit on
+// screen; it becomes the new canonical pair.
+function canonSync(key){
+  const c = canonUnit[key], el = $(c.field);
+  if(!el) return c;
+  if(c.shown===null || el.value !== c.shown){ c.value = el.value; c.unit = canonUnitNow(key); c.shown = el.value; }
+  return c;
+}
+// Write a display string without disturbing the canonical pair.
+function canonWrite(key, text){
+  const c = canonUnit[key], el = $(c.field);
+  if(!el) return;
+  el.value = text; c.shown = text;
+}
+// Pure display conversion FROM the canonical pair. Returns null when there is
+// nothing valid to convert, in which case the digits on screen are left alone
+// (unchanged pre-existing behaviour when no price/base is available).
+// Rounding matches the previous implementation exactly: %->$ Math.round,
+// $->% toFixed(3) for tax and toFixed(2) for the other three fields.
+function canonConvert(key, target, basis){
+  const c = canonUnit[key];
+  const raw = parseFloat(String(c.value==null?'':c.value).replace(/[^0-9.\-]/g,'')) || 0;
+  if(!(raw>0) || !(basis>0)) return null;
+  if(c.unit===target) return c.value;                 // exact canonical restore
+  if(c.unit==='pct' && target==='dollar') return Math.round(raw/100*basis).toLocaleString('en-US');
+  if(c.unit==='dollar' && target==='pct') return String(+(raw/basis*100).toFixed(key==='tax'?3:2));
+  return null;
+}
+// Set a canonical pair directly. No conversion. Used by applyState.
+function canonSet(key, value, unit){
+  const c = canonUnit[key], el = $(c.field);
+  c.value = value; c.unit = unit; c.shown = value;
+  if(el) el.value = value;
+}
+
+const BSE_STATE_VERSION = 1;
+
+/* Capture the full input surface: every form field, the four display units,
+   and the four canonical (value, unit) pairs. Values are captured as the exact
+   strings on screen, so a restore is byte-identical. */
+function captureState(){
+  CANON_KEYS.forEach(canonSync);
+  const fields = {};
+  document.querySelectorAll('input,select').forEach(el=>{
+    if(el.type==='radio'){ if(el.checked && el.name) fields['name:'+el.name] = { value: el.value }; return; }
+    if(!el.id) return;
+    if(el.type==='checkbox') fields[el.id] = { checked: el.checked };
+    else fields[el.id] = { value: el.value };
+  });
+  const canonical = {};
+  CANON_KEYS.forEach(k=>{ canonical[k] = { value: canonUnit[k].value, unit: canonUnit[k].unit }; });
+  return {
+    version: BSE_STATE_VERSION,
+    fields: fields,
+    units: { dp: unitState.dp, tax: unitState.tax, offerConc: offerConcUnit.v, counterConc: counterUnit.v },
+    canonical: canonical
+  };
+}
+
+/* Restore. Units are assigned directly; the toggle handlers are never called,
+   so no value passes through a conversion path on the restore leg. Pass
+   {silent:true} to restore without triggering a recalculation. */
+function applyState(state, opts){
+  if(!state || !state.fields) return false;
+  const silent = !!(opts && opts.silent);
+  // 1 — units first, by direct assignment (never via setUnit/setOfferConcUnit/setCounterUnit)
+  if(state.units){
+    if(state.units.dp) unitState.dp = state.units.dp;
+    if(state.units.tax) unitState.tax = state.units.tax;
+    if(state.units.offerConc) offerConcUnit.v = state.units.offerConc;
+    if(state.units.counterConc) counterUnit.v = state.units.counterConc;
+  }
+  // 2 — field values, written verbatim. No conversion, no re-formatting.
+  //     Accepts either the captured {value}/{checked} record or a bare value,
+  //     and never writes undefined/null into an input.
+  Object.keys(state.fields).forEach(k=>{
+    const rec = state.fields[k];
+    const isRec = rec!==null && typeof rec === 'object';
+    if(k.indexOf('name:')===0){
+      const want = isRec ? rec.value : rec;
+      document.querySelectorAll('input[name="'+k.slice(5)+'"]').forEach(r=>{ r.checked = (r.value===want); });
+      return;
+    }
+    const el = $(k); if(!el) return;
+    if(el.type==='checkbox'){ el.checked = isRec ? !!rec.checked : !!rec; return; }
+    const v = isRec ? rec.value : rec;
+    if(v!==undefined && v!==null) el.value = String(v);
+  });
+  // 3 — canonical pairs, restored verbatim and re-anchored to what is on screen
+  CANON_KEYS.forEach(key=>{
+    const c = canonUnit[key], src = state.canonical && state.canonical[key];
+    if(src){ c.value = src.value; c.unit = src.unit; }
+    else { c.value = $(c.field) ? $(c.field).value : null; c.unit = canonUnitNow(key); }
+    c.shown = $(c.field) ? $(c.field).value : null;
+  });
+  renderUnitToggles();
+  if(!silent) recalc();
+  return true;
+}
+
+// Test / future-persistence surface. No storage, no network, no autosave.
+window.BSEState = {
+  VERSION: BSE_STATE_VERSION,
+  capture: captureState,
+  apply: applyState,
+  canon: canonUnit,
+  units: function(){ return { dp: unitState.dp, tax: unitState.tax, offerConc: offerConcUnit.v, counterConc: counterUnit.v }; },
+  gatherInputs: function(){ return gatherInputs(); },
+  setUnit: function(w,u){ return setUnit(w,u); },
+  setOfferConcUnit: function(u){ return setOfferConcUnit(u); },
+  setCounterUnit: function(u){ return setCounterUnit(u); }
+};
+
 /* ---------- $ / % unit toggles (dual-input fields) ---------- */
 function renderUnitToggles(){
   [['dp','dpUnitTg','dpIa'],['tax','taxUnitTg','taxIa']].forEach(([w,id,ia])=>{
@@ -2806,21 +2951,15 @@ function renderUnitToggles(){
 }
 function setUnit(which, unit){
   if(unitState[which]===unit) return;
-  const prev = unitState[which];
-  const fieldId = which==='dp' ? 'dpTarget' : 'taxRate';
-  const price = rawBlank('price') ? 0 : num('price');
-  const raw = rawBlank(fieldId) ? null : num(fieldId);
   // Convert the displayed value when a purchase price is available, so switching
   // units keeps the same real-world amount instead of reinterpreting the digits.
-  if(raw!=null && raw>0 && price>0){
-    if(which==='dp'){
-      if(prev==='pct' && unit==='dollar') $('dpTarget').value = Math.round(raw/100*price).toLocaleString('en-US');
-      else if(prev==='dollar' && unit==='pct') $('dpTarget').value = +(raw/price*100).toFixed(2);
-    } else { // tax: % is an annual rate, $ is an annual dollar amount
-      if(prev==='pct' && unit==='dollar') $('taxRate').value = Math.round(price*raw/100).toLocaleString('en-US');
-      else if(prev==='dollar' && unit==='pct') $('taxRate').value = +(raw/price*100).toFixed(3);
-    }
-  }
+  // M-1 / L-13: the conversion always originates from the canonical (value, unit)
+  // pair, never from the previously converted display value, and toggling back to
+  // the canonical unit restores the canonical value verbatim (no rounding drift).
+  const price = rawBlank('price') ? 0 : num('price');
+  canonSync(which);
+  const out = canonConvert(which, unit, price);
+  if(out!==null) canonWrite(which, out);
   unitState[which] = unit;
   renderUnitToggles();
   recalc();
