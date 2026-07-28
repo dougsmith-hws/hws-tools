@@ -33,7 +33,7 @@ Date: **July 28, 2026**
 
 ## 3. Ending commit
 
-`d7dbbcf` was the interim stop. This report covers the work through the Gate C completion commit on the same branch. The BSE application file is now **`5a34444d249c40558d925e0c4cb76f08`**, up from Gate B.75's `90bcc96f62feb7f90c34c8407ddeacd0`.
+`99472f5` — "Gate C — Supabase auth, RLS and cross-device persistence" (`d7dbbcf` was the interim stop). The BSE application file is now **`5a34444d249c40558d925e0c4cb76f08`**, up from Gate B.75's `90bcc96f62feb7f90c34c8407ddeacd0`. `main` still points at `540ccbe` and has not been touched.
 
 ## 4. Files changed
 
@@ -44,7 +44,7 @@ Date: **July 28, 2026**
 | `supabase/migrations/0002_seed_reference_data.sql` | Added — tax methods + the immutable `2026.07-baseline` assumption set |
 | `supabase/local-verify/00_auth_stub.sql` | Added — local-only `auth.uid()` / `auth.role()` so the migrations can be executed and RLS exercised on plain Postgres |
 | `supabase/README.md` | Added |
-| `supabase/mapping/canonical-to-db.js` | **Added, then deleted** — see §9 |
+| `supabase/mapping/canonical-to-db.js` | **Added, then deleted** — see §9. The now-empty `supabase/mapping/` directory could not be removed through the device bridge; git does not track directories, so this has no effect on the repository |
 | `internal/buyer-strategy/tests/persistence-db.test.js` | Added — 70 assertions against a real PostgreSQL 16.13 database |
 | `internal/buyer-strategy/tests/persistence-client.test.js` | Added — 41 assertions, no database and no network required |
 | `internal/buyer-strategy/tests/README.md` | Updated — nine suites, 401 assertions, coverage limits restated |
