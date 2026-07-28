@@ -40,10 +40,12 @@ VERIFIABLE = ["price", "down", "baseLoan", "ltv", "rate", "feePct", "financedFee
               "miRate", "monthlyMI", "pi", "taxes", "fixedEsc", "escrow", "piti", "closing",
               "cashToClose", "cashRemaining", "front", "back", "concLimitPct", "concLimit",
               "cancelMonth", "mipDropMonth", "mipLife", "maxPrice", "binding",
-              "comfortPrice", "qualPrice"]
+              "comfortPrice", "qualPrice",
+              # promoted from REQUIRES REVIEW in Gate B.5 — now derived independently
+              "miCostHorizon", "totalCostHorizon", "postCancelPITI"]
 
 # audit §11.5 — not establishable statically. Captured, never blessed.
-REVIEW_FIELDS = ["miCostHorizon", "totalCostHorizon", "postCancelPITI", "conc", "miMode",
+REVIEW_FIELDS = ["conc", "miMode",
                  "frontFlag", "requiresGift", "feeLabel", "label", "name"]
 
 REVIEW_BLOCKS = {
@@ -101,6 +103,14 @@ for cid, c in cap["cases"].items():
         o = ref.compute_scenario(price=price, family=family, dp_pct=dp, inp=inp)
         o.update({"maxPrice": mp["maxPrice"], "binding": mp["binding"],
                   "comfortPrice": mp["comfortPrice"], "qualPrice": mp["qualPrice"]})
+        # Gate B.5: horizon costs and the post-cancellation payment are derived from
+        # the documented §2.4 definitions, so they are no longer "requires review".
+        hc = ref.horizon_costs(loan_amount=o["loanAmount"], rate=o["rate"],
+                               monthly_mi=o["monthlyMI"], cancel_month=o["cancelMonth"],
+                               financed_fee=o["financedFee"],
+                               stay_years=c["inputs"]["stayYears"])
+        o.update(hc)
+        o["postCancelPITI"] = ref.post_cancel_piti(o["piti"], o["monthlyMI"], o["cancelMonth"])
 
         srec = {"scenarioKey": family + "@" + str(dp), "expected": {}, "status": {}}
         for f in VERIFIABLE:

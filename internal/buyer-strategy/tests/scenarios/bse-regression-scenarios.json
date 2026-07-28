@@ -739,8 +739,7 @@
       "checkboxes": {
         "hoaNA": true
       },
-      "audit_note": "Documents C-4b. updateInlineHints overwrites the typed value with '0' at render time; unchanged by Gate A and Gate B.",
-      "render_divergence_on_restore": "Documented C-4b consequence, not a state defect. gatherInputs() runs BEFORE updateInlineHints() inside recalc(), so the render captured here was computed from HOA $250 while the DOM field had already been overwritten with '0'. No state capture can reproduce a render that did not correspond to the DOM. A restore therefore yields the DOM-consistent result ($250 lower monthly HOA), which is the correct one. Canonical-state identity is asserted at the model level for this scenario instead of the rendered level."
+      "audit_note": "Documented C-4b. RESOLVED in Gate B.5: updateInlineHints no longer overwrites the typed value, and the N/A confirmation is the authoritative economic statement. The typed $250 survives in the DOM, contributes zero to the calculation, and the render now agrees with the engine. Capture/restore is exact for this scenario from Gate B.5 onward."
     },
     {
       "id": "R-44",

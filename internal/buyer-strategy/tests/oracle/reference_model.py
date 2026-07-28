@@ -298,3 +298,32 @@ def primary_metric(stay_years: float) -> str:
     if stay_years <= 3: return "maximize:cashRemaining"
     if stay_years <= 7: return "minimize:piti"
     return "minimize:totalCostHorizon"
+
+# ---------------------------------------------------------------- horizon costs (audit §2.4)
+
+def interest_paid(loan: float, annual_pct: float, months_held: int) -> float:
+    """Interest paid over a holding period: payments made less principal retired."""
+    p = pmt(annual_pct, N_MONTHS, loan)
+    bal = balance_after(loan, annual_pct, N_MONTHS, months_held)
+    return p * months_held - (loan - bal)
+
+
+def horizon_costs(*, loan_amount, rate, monthly_mi, cancel_month, financed_fee, stay_years):
+    """audit §2.4 lines 691-705: totalCostHorizon = interestPaid + miCost + financedFee
+    over the planned stay. Principal is deliberately excluded as equity kept."""
+    months = int(stay_years) * 12
+    ip = interest_paid(loan_amount, rate, months)
+    if monthly_mi <= 0:
+        mi_months = 0
+    elif cancel_month:
+        mi_months = min(months, cancel_month)
+    else:
+        mi_months = months
+    mi = monthly_mi * mi_months
+    return {"miCostHorizon": mi, "totalCostHorizon": ip + mi + financed_fee}
+
+
+def post_cancel_piti(piti: float, monthly_mi: float, cancel_month) -> float:
+    """The payment once mortgage insurance drops. Where it never drops (FHA
+    life-of-loan, or no MI at all) the payment is unchanged."""
+    return (piti - monthly_mi) if cancel_month else piti

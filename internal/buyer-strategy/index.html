@@ -1138,8 +1138,19 @@ const A_CONST = {
   pmi:Engine.PMI
 };
 
-/* ---------- gather inputs ---------- */
+/* ---------- gather inputs ----------
+   Gate B.5: gatherInputs() is now a thin resolver over the canonical model.
+   The DOM-reading implementation below is retained ONLY so the cutover can be
+   proved equivalent (tests/model-authority.test.js). It has no caller in the
+   application and is scheduled for deletion at Gate C. */
 function gatherInputs(){
+  // UI -> canonical model -> L-1 resolution -> engine input.
+  // BSEModel is the authoritative economic state; the DOM is an interface.
+  return BSEModel.toInputs(BSEModel.capture());
+}
+
+/* VERIFICATION ONLY — do not call from application code. */
+function __legacyGatherInputsFromDom(){
   const own = num('ownFunds'), gift = num('gift');
   const shopping = rawBlank('price');
   // Optional down-payment target. Unit is set explicitly by the $/% toggle.
@@ -1182,7 +1193,13 @@ function gatherInputs(){
     stayYears: parseInt($('stay').value)||7,
     rates:{ conv:num('rateConv'), fha:num('rateFha'), va:num('rateVa') },
     ccPct: num('ccPct'), ccOverride: rawBlank('ccOverride')?0:num('ccOverride'),
-    hoi:num('hoi'), hoa:num('hoa'), cdd:num('cdd'), flood:num('flood'),
+    hoi:num('hoi'),
+    // C-4b: the N/A confirmation is the authoritative economic statement. A
+    // confirmed-none cost contributes zero regardless of what the (now preserved)
+    // input still displays. This is where the destroyed '0' used to come from.
+    hoa:   $('hoaNA').checked   ? 0 : num('hoa'),
+    cdd:   $('cddNA').checked   ? 0 : num('cdd'),
+    flood: $('floodNA').checked ? 0 : num('flood'),
     // N/A confirmation toggles: a checked box means "confirmed zero", not "unknown"
     hoaNA: $('hoaNA').checked, cddNA: $('cddNA').checked, floodNA: $('floodNA').checked,
     fthb: $('tgFthb').checked, vaOn: $('tgVa').checked,
@@ -1239,11 +1256,15 @@ function updateInlineHints(inp){
       dpSub.textContent = price>0 ? money(inp.dpTarget.dollar)+' = '+(inp.dpTarget.dollar/price*100).toFixed(1)+'%' : money(inp.dpTarget.dollar)+' (enter price for %)';
     }
   } else dpSub.textContent='';
-  // N/A confirmation: when checked, hold the field at zero, disable it, and drop the Unknown label
+  // N/A confirmation — PRESENTATION ONLY (C-4b, Gate B.5).
+  // Ticking N/A disables the field and relabels it. It no longer overwrites the
+  // typed value: the checkbox is the economic statement ("confirmed none") and
+  // gatherInputs resolves the contribution to zero from the checkbox, not from a
+  // destroyed input. The value survives, so un-ticking restores it, and the DOM
+  // can never end up representing a different assumption than the one calculated.
   [['hoa','hoaNA','hoaSub'],['cdd','cddNA','cddSub'],['flood','floodNA','floodSub']].forEach(([f,na,sub])=>{
     const on=$(na).checked;
     $(f).disabled=on;
-    if(on) $(f).value='0';
     $(sub).textContent = (num(f)===0 && !on) ? 'Unknown' : (on?'Confirmed N/A':'');
     $(sub).className = 'sub'+(on?' info':'');
   });
@@ -3069,10 +3090,15 @@ const BSEModel = (function(){
       hoa_monthly: hoa.monthly, hoa_status: hoa.status,
       cdd_monthly: cdd.monthly, cdd_status: cdd.status,
       flood_monthly: flood.monthly, flood_status: flood.status,
-      rate_conv: blank('rateConv') ? null : num('rateConv'),
-      rate_fha:  blank('rateFha')  ? null : num('rateFha'),
-      rate_va:   blank('rateVa')   ? null : num('rateVa'),
-      closing_cost_pct: blank('ccPct') ? null : num('ccPct'),
+      // Behaviour-preserving on purpose (Gate B.5). The DOM reader treats a blank
+      // rate or closing-cost percent as 0, not as "inherit the assumption set".
+      // Capturing 0 keeps the cutover numerically identical. Whether a blank field
+      // SHOULD inherit 6.750 / 3.00 instead is a real improvement and a deliberate
+      // behaviour change — it belongs to Gate C with its own approval, not here.
+      rate_conv: num('rateConv'),
+      rate_fha:  num('rateFha'),
+      rate_va:   num('rateVa'),
+      closing_cost_pct: num('ccPct'),
       assumption_set_version: ASSUMPTION_SET.version_label
     };
   }
@@ -3110,6 +3136,16 @@ const BSEModel = (function(){
       dti_override_back: null, dti_override_source: null,
       closing_date: null, occupancy_date: null,
       tax_inputs: null, tax_outputs: null, tax_method_version: null,
+      // The UI can select a negotiation mode before any round exists. Phase 2 §8
+      // puts negotiation_mode on the buyer round, so this carries the pending
+      // selection until a round is created. Inert without an offer price.
+      pending_negotiation_mode: (document.querySelector('input[name="negMode"]:checked')||{}).value || 'concession',
+      // A concession can be asked before an offer price exists. Phase 2 §8 requires a
+      // negotiation_round to carry a price, so the pre-round entry is held here as the
+      // canonical (value, unit) pair and is superseded by round 1 the moment an offer
+      // price is entered. Gate C should reconcile this with the round schema.
+      pending_concession_value: blank('offerConc') ? null : num('offerConc'),
+      pending_concession_unit:  blank('offerConc') ? null : UNIT[offerConcUnit.v],
       // L-7 — carried now, consumed only when FL millage is integrated (not Gate B)
       qualifying_tax_basis: 'projected_reassessed',
       assumption_set_version: ASSUMPTION_SET.version_label,
@@ -3263,12 +3299,16 @@ const BSEModel = (function(){
     }
 
     const buyerRound = model.negotiation_rounds.filter(function(x){ return x.actor==='buyer'; })[0] || null;
+    // The concession comes from the buyer round once one exists, otherwise from the
+    // pending pair. One source at a time — never two writable ones.
+    const concSrc = buyerRound || { concession_value: model.property_scenario.pending_concession_value,
+                                    concession_unit:  model.property_scenario.pending_concession_unit };
     const listP  = shopping ? 0 : (r.list_price || 0);
     const offerP = buyerRound ? buyerRound.price : 0;
     const negReq = (listP>0 && offerP>0 && offerP<listP) ? (listP-offerP) : 0;
     const concBase = offerP>0 ? offerP : listP;
-    const concRaw  = buyerRound && buyerRound.concession_value != null ? buyerRound.concession_value : 0;
-    const sellerConcession = (buyerRound && buyerRound.concession_unit === 'percent')
+    const concRaw  = concSrc.concession_value != null ? concSrc.concession_value : 0;
+    const sellerConcession = (concSrc.concession_unit === 'percent')
       ? ((concBase>0 && concRaw>0) ? Math.round(concRaw/100*concBase) : 0)
       : concRaw;
 
@@ -3292,7 +3332,8 @@ const BSEModel = (function(){
       vaUse: bp.va_use || 'first', vaExempt: bp.va_funding_fee_exempt,
       priority: r.buyer_priority,
       offerPrice: offerP, negotiatingRoom: negReq, sellerConcession: sellerConcession,
-      negotiationMode: (buyerRound && buyerRound.negotiation_mode) || 'concession',
+      negotiationMode: (buyerRound && buyerRound.negotiation_mode)
+                       || model.property_scenario.pending_negotiation_mode || 'concession',
       concessionOn:false, concession:0, appliedPath:null, appliedReduction:0, appliedConcession:0
     };
   }
