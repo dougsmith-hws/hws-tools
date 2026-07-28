@@ -15,9 +15,11 @@ Date: **July 28, 2026**
 
 > ## STATUS
 >
-> **Built, tested and committed: 401 assertions, 0 failures.** The schema and RLS are live in the `hws-buyer-strategy` Supabase project. The client persistence layer is implemented, and every part of it that can be proven without a live inbox has been proven.
+> **Built, tested and committed: 414 assertions, 0 failures.** The schema and RLS are live in the `hws-buyer-strategy` Supabase project. The client persistence layer is implemented, and every part of it that can be proven without a live inbox has been proven.
 >
-> **Three things remain, and all three require you, not me** — a magic-link sign-in, a genuine second device, and a second Supabase account. They need a human with an email inbox. §58 is the exact procedure.
+> **Your first live sign-in attempt found a real defect.** It is diagnosed, fixed, and pinned by tests that reproduce your exact error message against the old build and pass against the new one. §57b has the full account. Re-run test 1 in §58.
+>
+> **Three things still require you, not me** — a magic-link sign-in, a genuine second device, and a second Supabase account. They need a human with an email inbox. §58 is the exact procedure.
 >
 > **Nothing was deployed.** No production, no preview, no Netlify. The tool runs from `localhost:8080` for testing only.
 
@@ -33,27 +35,27 @@ Date: **July 28, 2026**
 
 ## 3. Ending commit
 
-`99472f5` — "Gate C — Supabase auth, RLS and cross-device persistence" (`d7dbbcf` was the interim stop). The BSE application file is now **`5a34444d249c40558d925e0c4cb76f08`**, up from Gate B.75's `90bcc96f62feb7f90c34c8407ddeacd0`. `main` still points at `540ccbe` and has not been touched.
+`99472f5` — "Gate C — Supabase auth, RLS and cross-device persistence"; then the pre-authentication fix in §57b (`d7dbbcf` was the interim stop). The BSE application file is now **`9bb3047bf936ec30d43d7c1a05dbd835`**, up from Gate B.75's `90bcc96f62feb7f90c34c8407ddeacd0`. `main` still points at `540ccbe` and has not been touched.
 
 ## 4. Files changed
 
 | File | Change |
 |---|---|
-| `internal/buyer-strategy/index.html` | **Modified — purely additive.** One 571-line block inserted before `init()`, plus two lines appended after `init()`. `diff` reports **zero deletions and zero modified lines** |
+| `internal/buyer-strategy/index.html` | **Modified — purely additive.** One 603-line block inserted before `init()`, plus two lines appended after `init()`. `diff` reports **zero deletions and zero modified lines** |
 | `supabase/migrations/0001_bse_schema.sql` | Added — seven-table schema, constraints, indexes, RLS, triggers, grants |
 | `supabase/migrations/0002_seed_reference_data.sql` | Added — tax methods + the immutable `2026.07-baseline` assumption set |
 | `supabase/local-verify/00_auth_stub.sql` | Added — local-only `auth.uid()` / `auth.role()` so the migrations can be executed and RLS exercised on plain Postgres |
 | `supabase/README.md` | Added |
 | `supabase/mapping/canonical-to-db.js` | **Added, then deleted** — see §9. The now-empty `supabase/mapping/` directory could not be removed through the device bridge; git does not track directories, so this has no effect on the repository |
-| `internal/buyer-strategy/tests/persistence-db.test.js` | Added — 70 assertions against a real PostgreSQL 16.13 database |
-| `internal/buyer-strategy/tests/persistence-client.test.js` | Added — 41 assertions, no database and no network required |
-| `internal/buyer-strategy/tests/README.md` | Updated — nine suites, 401 assertions, coverage limits restated |
+| `internal/buyer-strategy/tests/persistence-db.test.js` | Added — 74 assertions against a real PostgreSQL 16.13 database |
+| `internal/buyer-strategy/tests/persistence-client.test.js` | Added — 50 assertions, no database and no network required |
+| `internal/buyer-strategy/tests/README.md` | Updated — nine suites, 414 assertions, coverage limits restated |
 
 The full application diff:
 
 ```
-3395a3396,3966      (the persistence block)
-3423a3995,3996      (the boot call)
+3395a3396,3998      (the persistence block)
+3423a4027,4028      (the boot call)
 ```
 
 Two insertions. Nothing removed, nothing rewritten. That is the strongest available statement that no calculation changed.
@@ -268,9 +270,9 @@ Not one number moved.
 
 ## 45. New Gate C tests
 
-**`tests/persistence-db.test.js` — 70 assertions, 70 pass**, against a real PostgreSQL 16.13 database built from the migrations: schema and RLS presence (3), cross-user denial (6), authored NULL and explicit zero (4), 13 canonical round trips, 13 `result_summary`-absent checks, 13 stale-cache recompute checks, pair-split refusal (2), three-state refusal, round-price refusal (2), `fl_millage`-without-closing-date refusal, soft-delete guard, **repeat-save write strategy (5 — see §57)**, assumption-set immutability.
+**`tests/persistence-db.test.js` — 74 assertions, 74 pass**, against a real PostgreSQL 16.13 database built from the migrations: schema and RLS presence (3), cross-user denial (6), authored NULL and explicit zero (4), 13 canonical round trips, 13 `result_summary`-absent checks, 13 stale-cache recompute checks, pair-split refusal (2), three-state refusal, round-price refusal (2), `fl_millage`-without-closing-date refusal, soft-delete guard, **repeat-save write strategy (5 — see §57a)**, **anonymous pre-authentication surface (4 — see §57b)**, assumption-set immutability.
 
-**`tests/persistence-client.test.js` — 41 assertions, 41 pass**, no database and no network. A mock transport is injected through a testing hook; everything it exercises is the application's own code.
+**`tests/persistence-client.test.js` — 50 assertions, 50 pass**, no database and no network. A mock transport is injected through a testing hook; everything it exercises is the application's own code.
 
 | Group | Proves |
 |---|---|
@@ -283,11 +285,12 @@ Not one number moved.
 | P7 (4) | Every save-status chip state is truthful |
 | P8 (5) | The presentation payload is rebuilt from **authored** values — `(3.375, pct)`, `(1.205, pct)`, `(2.75, pct)` — so restore cannot double-convert (M-1) |
 | P9 (3) | Signing out clears the record binding but **not the buyer's work on screen** |
+| P10 (9) | The pre-authentication path: a null transport is never dereferenced, no raw internal error reaches the user, a sign-in failure is not labelled a save failure, and the assumption set is read lazily — see §57b |
 | P-ERR (1) | No JavaScript errors anywhere in the suite |
 
 ## 46–47. Total assertions and failures
 
-**401 assertions · 0 failures** (290 existing + 70 database + 41 client).
+**414 assertions · 0 failures** (290 existing + 74 database + 50 client).
 
 ## 48. Confirmation calculation mathematics unchanged
 
@@ -325,7 +328,7 @@ Clean, all Gate C work committed on the branch.
 
 `phase3/gate-c-supabase-persistence`. **Not merged to `main`. Not deployed.**
 
-## 57. A defect found and fixed during Gate C — read this one
+## 57a. A defect found and fixed during Gate C — read this one
 
 The first version of the client wrote negotiation rounds by **deleting every round for the scenario and re-inserting them**. That is a common and normally harmless pattern. Against this schema it is not.
 
@@ -343,6 +346,81 @@ ERROR: negotiation_round may only be deleted while the parent scenario is
 Five assertions pin this permanently (D12a–e), including **D12a, which asserts the old strategy still fails** so the regression cannot silently return.
 
 A second, smaller ordering defect was found the same way: `attachAutosave()` ran only on the successful boot path, and boot's failure handler could clobber a transport installed while it was still waiting on the CDN. Autosave listeners now attach unconditionally before any network work — `scheduleSave()` is inert without a session, so this is safe — and boot no longer publishes or resets a transport it did not create. Whether a buyer's edits are eligible for autosave must not depend on how long a CDN took to answer.
+
+## 57b. The defect your first live sign-in found
+
+You clicked **Email me a link** and got:
+
+```
+Save failed — Cannot read properties of null (reading 'signIn')
+```
+
+Nothing about that message is accurate. Nothing was being saved, and the real
+problem was two steps upstream. Three defects in one chain:
+
+**1. The root cause — a chicken-and-egg on the pre-authentication path.**
+`boot()` read `program_assumption_set` to cache the current assumption set.
+That table is granted to the `authenticated` role only — deliberately, and
+correctly. But at boot **nobody is signed in yet**, so the browser is the
+`anon` role. Reproduced against the real schema:
+
+```
+ERROR: permission denied for table program_assumption_set
+```
+
+**You could not sign in, because signing in required already being signed in.**
+
+**2. A working transport was thrown away.** That denied read landed in `boot()`'s
+catch, which treats any failure as *the library never loaded* and sets the
+transport to `null`. The Supabase client was fine. One optional lookup failed
+and took the whole thing down with it.
+
+**3. A raw internal error reached you.** The sign-in handler then called
+`db.signIn(email)` on that null transport, and the resulting `TypeError` was
+caught by a handler that labels everything *Save failed*.
+
+### The fix
+
+- **`boot()` now awaits exactly one thing: `getSession()`**, which reads local
+  storage and touches no privileged table. Sign-in can never again depend on a
+  privileged read.
+- **The assumption set is resolved lazily**, on the first save, once a session
+  exists — and `ensureCtx()` backfills it so the NOT NULL column is still
+  satisfied. It is also cleared on every auth change, so a second user
+  re-resolves rather than inheriting the first user's value.
+- **The sign-in handler no longer dereferences a null transport.** If there is
+  no transport it says *Not connected*, with the tooltip "Saving is unavailable
+  — the tool is working normally and nothing has been lost."
+- **A sign-in failure is now its own state.** It reads *Sign-in failed — <reason>*,
+  not *Save failed*. Telling someone their work failed to save when it never
+  left their screen is the kind of message that makes people stop trusting a tool.
+
+**I did not widen the grant.** Letting `anon` read reference tables would have
+made the error go away and made your security surface larger. The client had
+the ordering wrong; the schema was right.
+
+### Why the tests missed it
+
+`persistence-db.test.js` always set the role to `authenticated` — it was testing
+the owner path. `persistence-client.test.js` injected a mock transport that
+never failed. **The anonymous boot path against a real backend was the one
+combination neither suite exercised.** That gap is now closed from both sides:
+
+| Test | What it pins |
+|---|---|
+| **D13a** (2) | `anon` is denied the assumption set *and* buyer data — the grant stays tight |
+| **D13b** (2) | `boot()` contains no privileged read and awaits only `getSession()` |
+| **P10** (9) | A null transport is never dereferenced; no raw internal error reaches the user; a sign-in failure is never labelled a save failure; the assumption set is read only after a session exists |
+
+Both D13b assertions **fail against the previous build and pass against this
+one**, and P10 reproduces your error message character-for-character:
+
+```
+FAIL  P10 the chip never shows a raw internal error to the user
+      Save failed — Cannot read properties of null (reading 'signIn')
+```
+
+That is the regression pinned by the exact symptom you reported.
 
 ## 58. What is NOT proven, and exactly what you need to do
 
@@ -403,7 +481,7 @@ Until you have run these, treat §6, §7, §37 and §38 as **unverified**.
 | Different-user access is denied | **Met at the database layer; awaiting your §58 test 3** |
 | Autosave cannot overwrite newer state | **Met** — single-flight with queued latest, proven |
 | Network failure fails safely | **Met** — proven |
-| Regression suite green | **Met** — 401 / 401 |
+| Regression suite green | **Met** — 414 / 414 |
 | No privileged secrets exposed or committed | **Met** — repository-wide scan clean; only the public URL and publishable key appear |
 | Calculation mathematics unchanged | **Met** — two insertions, zero deletions; engine region byte-identical to `540ccbe` |
 
@@ -420,7 +498,8 @@ Until you have run these, treat §6, §7, §37 and §38 as **unverified**.
 - No FL millage was integrated. The Comfort Calculator was not touched.
 - **No secret of any kind was created, requested, committed, or written into documentation.** A repository-wide scan for service-role keys, database passwords and connection strings returns nothing.
 - **Nothing was deployed.** No production, no preview, no Netlify. `localhost:8080` only.
-- A real defect was found before shipping, proved against the real database, fixed, and pinned with a test that asserts the broken version stays broken.
+- Two real defects were found — one before shipping, one by Doug's first live sign-in. Both were reproduced against the real schema, fixed, and pinned with tests that fail against the broken build and pass against the fixed one.
+- The security surface was **not** widened to make an error message disappear. The schema was right; the client's ordering was wrong, and the client was what changed.
 - Work stopped here because the next three things require you.
 
 ---

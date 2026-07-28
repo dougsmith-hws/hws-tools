@@ -46,6 +46,9 @@ window.__transport = {
   async signOut(){ window.__mock.calls.push(['signOut']); window.__mock.session = null; },
   onAuthChange(fn){ window.__mock.authCb = fn; },
   async currentAssumptionSetId(){
+    window.__mock.calls.push(['currentAssumptionSetId']);
+    // the live schema grants this table to \`authenticated\` only
+    if(!window.__mock.session) throw new Error('permission denied for table program_assumption_set');
     return { id: 'aaaaaaaa-1111-4111-8111-aaaaaaaaaaaa', version_label: '2026.07-baseline' };
   },
   async save(rows){
@@ -70,6 +73,12 @@ window.__transport = {
 };
 window.__install = function(signedIn){
   BSEPersistence.__setTransport(window.__transport, signedIn === false ? null : window.__mock.session);
+};
+// install with NO pre-seeded assumption set, so the lazy lookup is observable
+window.__installBare = function(signedIn){
+  const bare = Object.assign({}, window.__transport);
+  delete bare.assumptionSetId;
+  BSEPersistence.__setTransport(bare, signedIn === false ? null : window.__mock.session);
 };
 `;
 
@@ -122,6 +131,83 @@ const SIGNED_IN_ID = '11111111-1111-4111-8111-111111111111';
     p1b.state === 'signed-out' && p1b.authenticated === false &&
     p1b.r.ok === false && /not authenticated/.test(p1b.r.reason) && p1b.saves === 0,
     JSON.stringify(p1b));
+
+  /* ---------------- P10: the pre-authentication path ----------------
+     The first live sign-in attempt failed with
+       "Save failed — Cannot read properties of null (reading 'signIn')"
+     Three separate defects in one chain:
+       1. boot() read program_assumption_set, which is granted to
+          `authenticated` only. Before sign-in the browser is `anon`, so it
+          came back "permission denied" — you could not sign in because
+          signing in required being signed in.
+       2. That failure took boot's catch, which nulled out a transport that
+          worked perfectly.
+       3. The sign-in handler then dereferenced the null transport and put a
+          raw TypeError in front of the user, labelled "Save failed" when
+          nothing was being saved.
+     P10 pins all three. */
+  await fresh();
+  const p10 = await page.evaluate(async () => {
+    // boot() ran offline, so db is null — exactly the state the live bug hit.
+    const before = BSEPersistence.status();
+    document.getElementById('bseEmail').value = 'doug@example.test';
+    document.getElementById('bseSignIn').click();
+    await new Promise(r => setTimeout(r, 60));
+    const chip = document.getElementById('bseSaveStatus');
+    return { transport: before.transport, chipText: chip.textContent,
+             chipTitle: chip.title, status: BSEPersistence.status() };
+  });
+  check('P10 clicking sign-in with no transport does not throw and does not crash the page',
+    pageErrors.length === 0, pageErrors.slice(0, 2).join(' | '));
+  check('P10 the chip never shows a raw internal error to the user',
+    !/Cannot read propert|undefined|TypeError|null/i.test(p10.chipText), p10.chipText);
+  check('P10 the chip does not claim a SAVE failed when the user was signing in',
+    !/Save failed/.test(p10.chipText), p10.chipText);
+  check('P10 it says the tool is simply not connected, and reassures the user',
+    p10.chipText === 'Not connected' && /nothing has been lost/.test(p10.chipTitle),
+    JSON.stringify(p10));
+
+  const p10b = await page.evaluate(async () => {
+    // a transport whose sign-in genuinely fails must be reported as sign-in,
+    // not as a save, and must not disturb the buyer's work
+    window.__install(false);
+    window.__transport.signIn = async () => { throw new Error('rate limit exceeded'); };
+    document.getElementById('bseEmail').value = 'doug@example.test';
+    document.getElementById('bseSignIn').click();
+    await new Promise(r => setTimeout(r, 60));
+    const chip = document.getElementById('bseSaveStatus');
+    return { text: chip.textContent, cls: chip.className,
+             hasResult: !!BSEModel.buildResultSummary().recommended_program };
+  });
+  check('P10 a real sign-in failure is reported as a SIGN-IN failure and names the reason',
+    /^Sign-in failed — /.test(p10b.text) && /rate limit exceeded/.test(p10b.text), p10b.text);
+  check('P10 a sign-in failure still renders as an error and leaves the tool working',
+    /failed/.test(p10b.cls) && p10b.hasResult, JSON.stringify(p10b));
+
+  await fresh();
+  const p10c = await page.evaluate(async () => {
+    window.__mock.session = { user: { id: '11111111-1111-4111-8111-111111111111' } };
+    window.__mock.calls.length = 0;
+    // signed OUT, transport present — the exact live pre-sign-in state
+    window.__installBare(false);
+    const beforeSignIn = window.__mock.calls.map(c => c[0]);
+    // now a session arrives and the user saves
+    window.__installBare(true);
+    const afterSignIn = window.__mock.calls.map(c => c[0]);
+    const r = await BSEPersistence.saveNow();
+    const afterSave = window.__mock.calls.map(c => c[0]);
+    const rows = window.__mock.saves[window.__mock.saves.length - 1];
+    return { beforeSignIn, afterSignIn, afterSave, ok: r.ok,
+             asId: rows ? rows.property_scenario.assumption_set_id : null };
+  });
+  check('P10 the assumption set is NEVER read before a session exists — the root cause',
+    !p10c.beforeSignIn.includes('currentAssumptionSetId') &&
+    !p10c.afterSignIn.includes('currentAssumptionSetId'),
+    JSON.stringify({ before: p10c.beforeSignIn, after: p10c.afterSignIn }));
+  check('P10 it IS read lazily on the first save, once a session exists',
+    p10c.afterSave.includes('currentAssumptionSetId'), JSON.stringify(p10c.afterSave));
+  check('P10 the lazily-resolved assumption set reaches the row, so the NOT NULL column is satisfied',
+    p10c.ok === true && p10c.asId === 'aaaaaaaa-1111-4111-8111-aaaaaaaaaaaa', JSON.stringify(p10c));
 
   // ---------------- P2: a manual save writes one coherent row set ----------------
   await fresh({ fields: { price: '450000', income: '9500', debts: '650', ownFunds: '40000',

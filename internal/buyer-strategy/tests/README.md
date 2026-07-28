@@ -1,6 +1,6 @@
 # Buyer Strategy Engine — test suites
 
-Nine suites, **401 assertions**. All drive the real application in headless
+Nine suites, **414 assertions**. All drive the real application in headless
 Chromium; none stubs, mocks, or re-implements a calculation inside the
 application. The only mock anywhere is the *network transport* in
 `persistence-client.test.js` — the mapping and the orchestration it exercises are
@@ -15,8 +15,8 @@ the application's own code, running in the page.
 | **Model authority** | `model-authority.test.js` | 12 | Gate B.5/B.75: `BSEModel` is the only economic source of truth; no legacy DOM path survives |
 | **Persistence contract** | `persistence-contract.test.js` | 40 | Gate B.75: blank ≠ zero, authored vs resolved, `result_summary` non-authoritative |
 | **Cross-tool R-47** | `r47-cross-tool.test.js` | 4 | The documented $115,338 Comfort Calculator vs BSE gap (audit C-6) |
-| **Persistence — client** | `persistence-client.test.js` | 41 | Gate C: save/load orchestration, debounce, single-flight, failure safety, status truthfulness. **No database required** |
-| **Persistence — schema/RLS** | `persistence-db.test.js` | 70 | Gate C: the migrations, RLS enable+force, cross-user denial, constraint enforcement, canonical round-trip identity, repeat-save strategy. **Requires PostgreSQL** |
+| **Persistence — client** | `persistence-client.test.js` | 50 | Gate C: save/load orchestration, debounce, single-flight, failure safety, status truthfulness, the pre-authentication path. **No database required** |
+| **Persistence — schema/RLS** | `persistence-db.test.js` | 74 | Gate C: the migrations, RLS enable+force, cross-user denial, constraint enforcement, canonical round-trip identity, repeat-save strategy, anonymous pre-auth surface. **Requires PostgreSQL** |
 
 ## Running them
 

@@ -440,6 +440,59 @@ const CASES = [
     'delete from negotiation_round where property_scenario_id=$1 and round_number > 1', [D12.scId],
     /may only be deleted while the parent scenario is draft/);
 
+  /* ---------- D13 the ANONYMOUS pre-authentication surface ----------
+     The first live sign-in attempt failed because the client read
+     program_assumption_set at boot. That table is granted to `authenticated`
+     only, and before sign-in the browser is `anon` — so the read was denied,
+     the transport was discarded, and the sign-in button had nothing to call.
+     You could not sign in because signing in required already being signed in.
+
+     D13a pins the grant as intentionally tight: anon must NOT be able to read
+     it. D13b states the consequence the client now honours — nothing on the
+     pre-authentication path may touch this table. */
+  await db.query(`do $$ begin
+      if not exists (select 1 from pg_roles where rolname='anon') then create role anon nologin; end if;
+    end $$`);
+  await db.query('grant usage on schema public to anon');
+
+  async function asAnon(fn) {
+    await db.query('begin');
+    await db.query('set local role anon');
+    await db.query("select set_config('request.jwt.claim.role', 'anon', true)");
+    try { const r = await fn(); await db.query('commit'); return r; }
+    catch (e) { await db.query('rollback'); throw e; }
+  }
+
+  let anonMsg = null;
+  try {
+    await asAnon(async () => {
+      await db.query('select id from program_assumption_set where is_current limit 1');
+    });
+  } catch (e) { anonMsg = e.message; }
+  check('D13a an anonymous visitor cannot read the assumption set — the grant is deliberately tight',
+    anonMsg !== null && /permission denied/i.test(anonMsg),
+    anonMsg ? anonMsg.slice(0, 140) : 'the read SUCCEEDED — the security surface widened');
+
+  let anonBuyer = null;
+  try {
+    await asAnon(async () => {
+      await db.query('select count(*) from buyer_profile');
+    });
+  } catch (e) { anonBuyer = e.message; }
+  check('D13a an anonymous visitor cannot reach buyer data either',
+    anonBuyer !== null && /permission denied/i.test(anonBuyer),
+    anonBuyer ? anonBuyer.slice(0, 140) : 'the read SUCCEEDED');
+
+  const bootReads = require('fs').readFileSync(APP, 'utf8')
+    .split('async function boot()')[1] || '';
+  const bootBody = bootReads.split('\n  return {')[0];
+  check('D13b boot() performs no privileged read — it never calls currentAssumptionSetId',
+    !/currentAssumptionSetId/.test(bootBody),
+    'boot() still references a table anon cannot read');
+  check('D13b boot() awaits only getSession(), which reads local storage',
+    (bootBody.match(/await (transport|db)\.\w+/g) || []).every(c => /getSession/.test(c)),
+    JSON.stringify(bootBody.match(/await (transport|db)\.\w+/g)));
+
   // ---------- D11 assumption sets are immutable ----------
   let updBlocked = false, delBlocked = false;
   try { await db.query("update program_assumption_set set notes='edited' where version_label='2026.07-baseline'"); }

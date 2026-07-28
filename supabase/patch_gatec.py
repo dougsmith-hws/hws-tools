@@ -339,15 +339,24 @@ const BSEPersistence = (function(){
 
   /* ---------------- save status ---------------- */
   const LABEL = { 'no-save':'Not connected', 'signed-out':'Sign in to save',
-                  idle:'Saved', saving:'Saving…', saved:'Saved', failed:'Save failed' };
+                  idle:'Saved', saving:'Saving…', saved:'Saved',
+                  failed:'Save failed', 'signin-failed':'Sign-in failed' };
+  /* A sign-in failure and a save failure are different events and must not
+     share a message. "Save failed" while the buyer is trying to sign in is
+     both wrong and alarming — nothing was being saved. */
   function setState(s, err){
     state = s; lastError = err || null;
     const el = document.getElementById('bseSaveStatus');
-    if(el){
-      el.textContent = (s === 'failed' && err) ? ('Save failed — ' + String(err.message || err)) : LABEL[s];
-      el.className = 'bse-save ' + s;
-      el.title = s === 'failed' ? 'Your work is still here. Fix the connection and press Save.' : '';
-    }
+    if(!el) return;
+    const reason = err ? String(err.message || err) : '';
+    el.textContent = (s === 'failed' && err)        ? ('Save failed — ' + reason)
+                   : (s === 'signin-failed' && err) ? ('Sign-in failed — ' + reason)
+                   : LABEL[s];
+    el.className = 'bse-save ' + (s === 'signin-failed' ? 'failed' : s);
+    el.title = s === 'failed'        ? 'Your work is still here. Fix the connection and press Save.'
+             : s === 'signin-failed' ? 'Your work is still here. You can keep using the tool without an account.'
+             : s === 'no-save'       ? 'Saving is unavailable — the tool is working normally and nothing has been lost.'
+             : '';
   }
 
   /* ---------------- save / load ---------------- */
@@ -357,8 +366,22 @@ const BSEPersistence = (function(){
           Math.floor(Math.random()*16).toString(16));
   }
 
+  /* The assumption set lives on a reference table granted to `authenticated`
+     only. It therefore CANNOT be read before someone signs in, and nothing on
+     the pre-authentication path is allowed to depend on it. It is resolved
+     lazily, once, on the first save after a session exists. */
+  async function ensureAssumptionSet(){
+    if(assumptionSetId) return assumptionSetId;
+    if(!db || !session) return null;
+    const row = await db.currentAssumptionSetId();
+    assumptionSetId = row ? row.id : null;
+    return assumptionSetId;
+  }
+
   function ensureCtx(){
-    if(ctx) return ctx;
+    // A ctx built before the assumption set resolved must pick it up, or the
+    // NOT NULL column would be written as null.
+    if(ctx){ if(!ctx.assumption_set_id) ctx.assumption_set_id = assumptionSetId; return ctx; }
     ctx = { owner_user_id: session && session.user ? session.user.id : null,
             buyer_profile_id: newId(), shopping_plan_id: newId(),
             property_id: newId(), property_scenario_id: newId(),
@@ -380,6 +403,7 @@ const BSEPersistence = (function(){
     const rev = ++revision;
     setState('saving');
     try {
+      await ensureAssumptionSet();      // requires a session; safe here, not at boot
       const model = BSEModel.capture();
       const summary = BSEModel.buildResultSummary();   // recomputed, cache only
       const rows = serializeRows(model, ensureCtx(), summary);
@@ -520,8 +544,11 @@ const BSEPersistence = (function(){
     document.getElementById('bseSignIn').addEventListener('click', async () => {
       const email = (document.getElementById('bseEmail').value || '').trim();
       if(!email) return;
+      /* No transport means the library never loaded. Say that plainly instead
+         of dereferencing null and showing the buyer a raw TypeError. */
+      if(!db){ setState('no-save'); return; }
       try { await db.signIn(email); setState(state); alert('Check ' + email + ' for the sign-in link.'); }
-      catch(e){ setState('failed', e); }
+      catch(e){ setState('signin-failed', e); }
     });
     document.getElementById('bseSave').addEventListener('click', () => saveNow());
     document.getElementById('bseSignOut').addEventListener('click', async () => {
@@ -553,14 +580,19 @@ const BSEPersistence = (function(){
       const mod = await import(BSE_SUPABASE.libraryUrl);
       const client = mod.createClient(BSE_SUPABASE.url, BSE_SUPABASE.publishableKey);
       const transport = supabaseTransport(client);
+      /* getSession() reads local storage. It is the ONLY thing boot is allowed
+         to await that touches the backend surface, because everything else on
+         this schema requires the `authenticated` role — and at boot nobody is
+         authenticated yet. Reading the assumption set here would fail with
+         "permission denied", take the catch below, and null out a transport
+         that works perfectly, leaving the user unable to sign in at all.
+         Sign-in must never depend on a privileged read. */
       const s = await transport.getSession();
-      const asRow = await transport.currentAssumptionSetId();
-      /* Nothing is published to the module until every step above succeeded,
-         and never over a transport that was installed while we were waiting. */
+      /* Never publish over a transport installed while we were waiting. */
       if(transportInjected){ booted = true; return; }
       db = transport; session = s;
-      assumptionSetId = asRow ? asRow.id : null;
-      db.onAuthChange(s2 => { session = s2; ctx = null; renderAuthUI(); setState(s2 ? 'idle' : 'signed-out'); });
+      db.onAuthChange(s2 => { session = s2; ctx = null; assumptionSetId = null;
+                              renderAuthUI(); setState(s2 ? 'idle' : 'signed-out'); });
       renderAuthUI();
       setState(session ? 'idle' : 'signed-out');
     } catch(e){
