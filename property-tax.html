@@ -654,15 +654,33 @@ function calculate() {
   /* CARD 4: Potential Escrow Change (only if current bill entered) */
   if (hasCurrent) {
     const deltaSign = escrowDelta >= 0 ? '+' : '';
-    const deltaClass = escrowDelta > 50 ? 'increase' : escrowDelta < -50 ? 'decrease' : '';
     const deltaDisplay = `${deltaSign}${dispRound(escrowDelta)}/mo`;
+    const reassessClass = escrowDelta > escrowFlagThreshold ? 'increase' : escrowDelta < -escrowFlagThreshold ? 'decrease' : '';
+
+    // Third column: After Homestead if applicable, otherwise Difference
+    let col3Html;
+    if (hasHomestead) {
+      const hseClass = homesteadTotal / 12 < currentBill / 12 ? 'decrease' : '';
+      col3Html = `
+        <div class="escrow-col">
+          <div class="escrow-col-label">After Homestead${hasPortability ? ' &amp; Port.' : ''}</div>
+          <div class="escrow-col-val" style="color:#15803d;">${dispMonthRound(homesteadTotal)}</div>
+        </div>`;
+    } else {
+      const diffClass = escrowDelta > 50 ? 'increase' : escrowDelta < -50 ? 'decrease' : '';
+      col3Html = `
+        <div class="escrow-col">
+          <div class="escrow-col-label">Difference</div>
+          <div class="escrow-col-val ${diffClass}">${deltaDisplay}</div>
+        </div>`;
+    }
 
     let msgHtml;
     if (escrowDelta > escrowFlagThreshold) {
       msgHtml = `
       <div class="escrow-msg warn">
         <span class="escrow-msg-icon">⚠️</span>
-        <span>If your lender establishes escrow using the current county tax bill, the monthly escrow payment could increase after reassessment. Discuss this possibility with your borrower before closing.</span>
+        <span>If your lender establishes escrow using the current county tax bill, the monthly escrow payment could increase by an estimated <strong>${deltaDisplay}</strong> after reassessment. Discuss this possibility with your borrower before closing.</span>
       </div>`;
     } else if (escrowDelta < -escrowFlagThreshold) {
       msgHtml = `
@@ -678,16 +696,6 @@ function calculate() {
       </div>`;
     }
 
-    // Homestead recovery note: show the expected escrow once homestead kicks in
-    let recoveryHtml = '';
-    if (hasHomestead && escrowDelta > escrowFlagThreshold) {
-      recoveryHtml = `
-      <div class="homestead-recovery">
-        <span>🏠</span>
-        <span>Once homestead${hasPortability ? ' and portability are' : ' is'} applied, taxes are projected to decrease to <strong>${dispMonthRound(homesteadTotal)}</strong>.</span>
-      </div>`;
-    }
-
     html += `
     <div class="rc-escrow">
       <div class="rc-escrow-label">Potential Escrow Change</div>
@@ -697,16 +705,12 @@ function calculate() {
           <div class="escrow-col-val">${dispMonthExact(currentBill)}</div>
         </div>
         <div class="escrow-col">
-          <div class="escrow-col-label">Projected Monthly</div>
-          <div class="escrow-col-val">${dispMonthRound(reassessTotal)}</div>
+          <div class="escrow-col-label">At Reassessment</div>
+          <div class="escrow-col-val ${reassessClass}">${dispMonthRound(reassessTotal)}</div>
         </div>
-        <div class="escrow-col">
-          <div class="escrow-col-label">Difference</div>
-          <div class="escrow-col-val ${deltaClass}">${deltaDisplay}</div>
-        </div>
+        ${col3Html}
       </div>
       ${msgHtml}
-      ${recoveryHtml}
     </div>`;
   }
 
