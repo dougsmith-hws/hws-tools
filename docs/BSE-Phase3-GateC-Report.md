@@ -15,13 +15,13 @@ Date: **July 28, 2026**
 
 > ## STATUS
 >
-> **437 assertions, 0 failures.** Schema and RLS live in `hws-buyer-strategy`. The client persistence layer is implemented; Gate C.5 adds saved-buyer retrieval.
+> **453 assertions, 0 failures.** Schema and RLS live in `hws-buyer-strategy`. The client persistence layer is implemented; Gate C.5 adds saved-buyer retrieval.
 >
 > **Manually verified against the live project (§58a):** magic-link authentication end to end, manual Save, all four row types written and correctly linked, `result_summary` populated, `resolved_inputs` NULL, `engine_version = bse-2.0.0`, `status = draft`, and autosave firing on its own.
 >
 > **Gate C is NOT complete.** Retrieval and cross-user isolation have not been manually verified yet — §58b, tests D–H. Gate C.5 exists precisely because those tests had nothing to run against.
 >
-> **Three defects were found and fixed across Gate C and C.5** — §57a (round writes), §57b (pre-authentication chicken-and-egg), §57d (session teardown). One issue was configuration, not code — §57c.
+> **Four defects were found and fixed across Gate C, C.5 and C.5a** — §57a (round writes), §57b (pre-authentication chicken-and-egg), §57d (session teardown in a button handler), §57e (a token refresh orphaning the active buyer). One issue was configuration, not code — §57c. Every one is pinned by a test that fails against the build that had it.
 >
 > **Nothing was deployed.** No production, no preview, no Netlify. `localhost:8080` only, and `main` is untouched.
 
@@ -37,7 +37,7 @@ Date: **July 28, 2026**
 
 ## 3. Ending commit
 
-`99472f5` — "Gate C — Supabase auth, RLS and cross-device persistence"; then the pre-authentication fix in §57b (`d7dbbcf` was the interim stop). The BSE application file is now **`6d5aa41ec2593f42a2a155265d5734da`**, up from Gate B.75's `90bcc96f62feb7f90c34c8407ddeacd0`. `main` still points at `540ccbe` and has not been touched.
+`99472f5` — "Gate C — Supabase auth, RLS and cross-device persistence"; then the pre-authentication fix in §57b (`d7dbbcf` was the interim stop). The BSE application file is now **`4dec9aada934ee5bdb8fba83dc80d11b`**, up from Gate B.75's `90bcc96f62feb7f90c34c8407ddeacd0`. `main` still points at `540ccbe` and has not been touched.
 
 ## 4. Files changed
 
@@ -50,14 +50,14 @@ Date: **July 28, 2026**
 | `supabase/README.md` | Added |
 | `supabase/mapping/canonical-to-db.js` | **Added, then deleted** — see §9. The now-empty `supabase/mapping/` directory could not be removed through the device bridge; git does not track directories, so this has no effect on the repository |
 | `internal/buyer-strategy/tests/persistence-db.test.js` | Added — 74 assertions against a real PostgreSQL 16.13 database |
-| `internal/buyer-strategy/tests/persistence-client.test.js` | Added — 73 assertions, no database and no network required |
+| `internal/buyer-strategy/tests/persistence-client.test.js` | Added — 89 assertions, no database and no network required |
 | `internal/buyer-strategy/tests/README.md` | Updated — nine suites, 437 assertions, coverage limits restated |
 
 The full application diff:
 
 ```
-3395a3396,4125      (the persistence block)
-3423a4154,4155      (the boot call)
+3395a3396,4146      (the persistence block)
+3423a4175,4176      (the boot call)
 ```
 
 Verified line by line: **every single line of the Gate B.75 file still appears, in
@@ -292,11 +292,12 @@ Not one number moved.
 | P9 (3) | Signing out clears the record binding but **not the buyer's work on screen** |
 | P10 (9) | The pre-authentication path: a null transport is never dereferenced, no raw internal error reaches the user, a sign-in failure is not labelled a save failure, and the assumption set is read lazily — see §57b |
 | P11 (23) | Gate C.5 — saved-buyer retrieval, record identity across repeated saves, cross-user isolation, and status-chip truthfulness |
+| P12 (16) | Gate C.5a — a token refresh must not orphan the active buyer (§57e) |
 | P-ERR (1) | No JavaScript errors anywhere in the suite |
 
 ## 46–47. Total assertions and failures
 
-**437 assertions · 0 failures** (290 existing + 74 database + 73 client).
+**453 assertions · 0 failures** (290 existing + 74 database + 89 client).
 
 ## 48. Confirmation calculation mathematics unchanged
 
@@ -534,6 +535,97 @@ schema or RLS change. No borrower login, no sharing, no deployment, no merge.
 The application diff against Gate B.75 is still **two insertions with zero
 deletions**, and every Gate B.75 line was verified to survive in order.
 
+## 57e. GATE C.5a — a token refresh must not orphan the active buyer
+
+Doug's live `property_scenario` table showed four rows where he expected one.
+The query settled that question: **four distinct `buyer_profile_id` values, one
+scenario each.** Three were historical records from earlier Gate C sessions, and
+the Gate C.5 autosave had correctly updated Test Sample's existing scenario to
+$460,000 without duplicating anything. **No duplication had occurred.**
+
+But reading the code to answer the question surfaced a defect that simply had
+not been triggered yet.
+
+### The defect
+
+Both Gate C and Gate C.5 tore down the active binding on **every** Supabase auth
+event:
+
+```js
+db.onAuthChange(s2 => { session = s2; endSessionUI(); ... });
+```
+
+`onAuthStateChange` fires for `INITIAL_SESSION`, `SIGNED_IN`, **`TOKEN_REFRESHED`**,
+`USER_UPDATED` and `SIGNED_OUT`. Only the last of those — and a switch to a
+genuinely different user — ends a working session. `TOKEN_REFRESHED` fires on a
+timer and on tab focus, **while the officer is sitting there working.**
+
+When it fired, `ctx` went null. The next autosave then minted fresh UUIDs and
+wrote a **whole new buyer / plan / property / scenario set**, while the screen
+still showed the buyer they believed they were editing. Gate C.5 made the visible
+symptom worse: `endSessionUI()` also blanked the buyer-name field and reset the
+marker to *New buyer* mid-session.
+
+**What it would have cost.** Not lost data — the old record stays. Something
+worse in this business: a buyer's file silently forking in two. Half the
+negotiation history under one record, half under another, with no indication
+which is current. The longer a session ran, the more forks. An officer working a
+single file across a morning could have ended up with four versions of the same
+buyer and no way to tell them apart.
+
+### The fix
+
+Compare the user. Same user means keep working — adopt the refreshed credentials
+and touch nothing else:
+
+```js
+function handleAuthChange(s2){
+  const prevUser = session && session.user ? session.user.id : null;
+  const nextUser = s2 && s2.user ? s2.user.id : null;
+  session = s2;                                   // always adopt the new token
+  if(nextUser && nextUser === prevUser) return;   // same officer, same buyer
+  endSessionUI();
+  setState(nextUser ? 'unsaved' : 'signed-out');
+  if(nextUser) refreshBuyerList();
+}
+```
+
+Sign-out and a different user still end the session, exactly as before.
+
+### Proof, both directions
+
+A differential run against the committed Gate C.5 build (`c8ec788`) and this one,
+each given a saved buyer, one token refresh, and one autosave:
+
+```
+BEFORE fix (committed c8ec788)  buyer_profile rows after refresh+autosave: 2   binding preserved: false
+AFTER  fix (this build)         buyer_profile rows after refresh+autosave: 1   binding preserved: true
+```
+
+**P12 — 16 new assertions**, and they discriminate: the committed build scores
+**73 pass / 15 fail**; this build scores **89 / 0**.
+
+| Group | Proves |
+|---|---|
+| P12a (5) | A token refresh leaves the binding, the marker, the name field, the buyer list, the chip and the officer's inputs untouched |
+| P12b (3) | The autosave *after* a refresh creates **no** new records and writes to the same four ids |
+| P12c (2) | Five consecutive same-user events, including a `USER_UPDATED`-shaped one, still yield exactly one buyer |
+| P12d (2) | A switch to a different user **does** end the session and clear the list |
+| P12e (2) | A sign-out **does** end the session, and the tool still calculates afterwards |
+
+One test premise of my own was wrong and got corrected: P12e originally asserted
+that a recommendation still existed after sign-out. By that point the scenario is
+$523,500 on $9,500 income, where eliminating every program is the **correct**
+engine behaviour. The assertion now checks that the engine still runs and returns
+a summary, which is what it was always meant to check.
+
+### Scope
+
+One function changed, plus a test hook that now registers the real handler so the
+suite exercises the registered path rather than a test-only shim. No calculation,
+qualification, recommendation or scoring change. No schema or RLS change. The
+historical test rows were **not** deleted, per instruction.
+
 ## 58a. Manual tests PASSED against the live project
 
 Verified by Doug on 2026-07-29 at `http://localhost:8080`:
@@ -686,7 +778,7 @@ there was no interface to prove them through.
 | Autosave cannot overwrite newer state | **Met** — single-flight with queued latest |
 | Network failure fails safely | **Met by test.** Live check still outstanding |
 | Save status is truthful | **Met** — Gate C.5 (§57d) |
-| Regression suite green | **Met** — 437 / 437 |
+| Regression suite green | **Met** — 453 / 453 |
 | No privileged secrets exposed or committed | **Met** — repository-wide scan clean |
 | Calculation mathematics unchanged | **Met** — two insertions, zero deletions; every Gate B.75 line survives in order; engine region byte-identical to `540ccbe` |
 

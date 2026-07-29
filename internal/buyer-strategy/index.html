@@ -4024,6 +4024,29 @@ const BSEPersistence = (function(){
       nameEl.value = ctx.display_name;
   }
 
+  /* Supabase fires onAuthStateChange for INITIAL_SESSION, SIGNED_IN,
+     TOKEN_REFRESHED, USER_UPDATED and SIGNED_OUT. Only the last of those — and
+     a switch to a genuinely different user — ends a working session.
+
+     TOKEN_REFRESHED in particular fires on a timer and on tab focus while the
+     officer is sitting there working. An earlier version tore down the binding
+     on EVERY one of these events, which meant a routine token refresh silently
+     orphaned the active buyer: the next autosave minted fresh ids and wrote a
+     whole new buyer/plan/property/scenario set, while the screen still showed
+     the buyer they thought they were editing.
+
+     So: compare the user. Same user means keep working — adopt the new token
+     and touch nothing else. */
+  function handleAuthChange(s2){
+    const prevUser = session && session.user ? session.user.id : null;
+    const nextUser = s2 && s2.user ? s2.user.id : null;
+    session = s2;                       // always adopt the refreshed credentials
+    if(nextUser && nextUser === prevUser) return;   // same officer, same buyer
+    endSessionUI();
+    setState(nextUser ? 'unsaved' : 'signed-out');
+    if(nextUser) refreshBuyerList();
+  }
+
   function buyerListStale(){
     const sel = document.getElementById('bseBuyerList');
     if(!sel || !ctx) return false;
@@ -4083,10 +4106,7 @@ const BSEPersistence = (function(){
       /* Never publish over a transport installed while we were waiting. */
       if(transportInjected){ booted = true; return; }
       db = transport; session = s;
-      db.onAuthChange(s2 => { session = s2;
-                              endSessionUI();          // every session change starts clean
-                              setState(s2 ? 'unsaved' : 'signed-out');
-                              refreshBuyerList(); });
+      db.onAuthChange(handleAuthChange);
       renderAuthUI();
       setState(session ? 'unsaved' : 'signed-out');
       refreshBuyerList();
@@ -4109,6 +4129,7 @@ const BSEPersistence = (function(){
                                 db = t; session = s || null;
                                 endSessionUI();
                                 assumptionSetId = t && t.assumptionSetId || null;
+                                if(t && t.onAuthChange) t.onAuthChange(handleAuthChange);
                                 setState(s ? 'unsaved' : 'signed-out'); },
     __setContext: c => { ctx = c; },
     __context: () => ctx,

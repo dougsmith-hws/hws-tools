@@ -19,6 +19,7 @@
      P9  signing out clears the binding; it does not clear the buyer's work
      P10 the pre-authentication path never dereferences a null transport
      P11 Gate C.5 — saved-buyer retrieval, record identity, status truthfulness
+     P12 auth events: a token refresh must not orphan the active buyer
 
    Usage: node tests/persistence-client.test.js <app.html>
    ===================================================================== */
@@ -656,6 +657,191 @@ const SIGNED_IN_ID = '11111111-1111-4111-8111-111111111111';
     p11g.chip === 'Not saved', p11g.chip);
   check('P11g even asking for another user\'s record by id returns nothing',
     p11g.stolenOk === false && /not found/.test(p11g.stolenReason), JSON.stringify(p11g));
+
+  /* ================= P12: auth events must not orphan the binding =========
+     Doug's live Supabase data showed four property_scenario rows. Three were
+     historical, and the query confirmed no duplication had actually occurred —
+     but reading the code to answer that question surfaced a real defect that
+     had simply not been triggered yet.
+
+     BSEPersistence tore down the active binding on EVERY Supabase auth event.
+     Supabase fires onAuthStateChange for INITIAL_SESSION, SIGNED_IN,
+     TOKEN_REFRESHED, USER_UPDATED and SIGNED_OUT. TOKEN_REFRESHED fires on a
+     timer and on tab focus, while the officer is mid-session. When it did, ctx
+     went null, and the very next autosave minted fresh ids and wrote a whole
+     new buyer/plan/property/scenario set — while the screen still showed the
+     buyer they believed they were editing.
+
+     P12 pins the rule: only a sign-out, or a switch to a genuinely different
+     user, may end a working session. */
+
+  await fresh({ fields: { price: '400000', income: '9500', debts: '650',
+                          ownFunds: '40000', score: '740' } });
+
+  const p12setup = await page.evaluate(async () => {
+    window.__mock.db = {}; window.__mock.store = null; window.__mock.calls.length = 0;
+    window.__mock.session = { user: { id: '11111111-1111-4111-8111-111111111111' },
+                              access_token: 'token-ONE' };
+    window.__install(true);
+    document.getElementById('bseBuyerName').value = 'Refresh Test Buyer';
+    await BSEPersistence.saveNow();
+    const c = BSEPersistence.__context();
+    return { ids: [c.buyer_profile_id, c.shopping_plan_id, c.property_id, c.property_scenario_id],
+             rows: Object.keys(window.__mock.db).length,
+             chip: document.getElementById('bseSaveStatus').textContent,
+             registered: typeof window.__mock.authCb === 'function' };
+  });
+  check('P12 the application registers its own auth-change handler (test uses the real one)',
+    p12setup.registered === true);
+  if (!p12setup.registered) {
+    // Without the handler the rest of P12 cannot be executed. Fail every
+    // remaining assertion explicitly rather than throwing — a build that does
+    // not register the handler is exactly the broken build P12 exists to catch.
+    ['P12a a token refresh does NOT clear the active buyer binding',
+     'P12a the buyer stays identified on screen through a token refresh',
+     'P12a the saved-buyer list is not emptied by a token refresh',
+     'P12a the status chip is not reset to "Not saved" by a token refresh',
+     "P12a the officer's work is untouched and the session is still live",
+     'P12b the autosave after a token refresh creates NO new records',
+     'P12b it writes to the SAME four record ids as before the refresh',
+     'P12b the edited value lands in that same existing scenario',
+     'P12c five consecutive auth events for the same user still produce ONE buyer',
+     'P12c the last edit still lands in the original scenario',
+     'P12d a switch to a DIFFERENT user does end the session and clear the binding',
+     "P12d the new user sees none of the previous user's buyers",
+     'P12e a sign-out event ends the session and empties the list',
+     'P12e signing out still leaves the tool calculating'
+    ].forEach(n => check(n, false, 'no auth-change handler registered — cannot run'));
+  } else {
+  check('P12 a buyer is saved and bound before the refresh',
+    p12setup.rows === 1 && p12setup.chip === 'Saved', JSON.stringify(p12setup));
+
+  // ---- P12a: TOKEN_REFRESHED for the SAME user must change nothing
+  const p12a = await page.evaluate(async () => {
+    // exactly what supabase-js delivers on a token refresh: same user, new JWT
+    window.__mock.session = { user: { id: '11111111-1111-4111-8111-111111111111' },
+                              access_token: 'token-TWO' };
+    window.__mock.authCb(window.__mock.session);
+    await new Promise(r => setTimeout(r, 50));
+    const c = BSEPersistence.__context();
+    return { ctx: c && [c.buyer_profile_id, c.shopping_plan_id, c.property_id, c.property_scenario_id],
+             chip: document.getElementById('bseSaveStatus').textContent,
+             marker: document.getElementById('bseCurrentBuyer').textContent,
+             nameField: document.getElementById('bseBuyerName').value,
+             listLen: document.getElementById('bseBuyerList').options.length,
+             price: document.getElementById('price').value,
+             token: BSEPersistence.status().authenticated };
+  });
+  check('P12a a token refresh does NOT clear the active buyer binding',
+    p12a.ctx !== null && JSON.stringify(p12a.ctx) === JSON.stringify(p12setup.ids),
+    JSON.stringify({ before: p12setup.ids, after: p12a.ctx }));
+  check('P12a the buyer stays identified on screen through a token refresh',
+    p12a.marker === 'Refresh Test Buyer' && p12a.nameField === 'Refresh Test Buyer',
+    JSON.stringify(p12a));
+  check('P12a the saved-buyer list is not emptied by a token refresh',
+    p12a.listLen === 2, String(p12a.listLen));
+  check('P12a the status chip is not reset to "Not saved" by a token refresh',
+    p12a.chip === 'Saved', p12a.chip);
+  check('P12a the officer\'s work is untouched and the session is still live',
+    p12a.price === '400000' && p12a.token === true, JSON.stringify(p12a));
+
+  // ---- P12b: the autosave AFTER a refresh must update, not duplicate
+  const p12b = await page.evaluate(async () => {
+    const el = document.getElementById('price');
+    el.value = '512000'; el.dispatchEvent(new Event('input', { bubbles: true }));
+    await new Promise(r => setTimeout(r, BSEPersistence.AUTOSAVE_DEBOUNCE_MS + 400));
+    const c = BSEPersistence.__context();
+    const keys = Object.keys(window.__mock.db);
+    const rows = keys.map(k => window.__mock.db[k]);
+    return { buyers: keys.length,
+             plans: new Set(rows.map(r => r.shopping_plan.id)).size,
+             props: new Set(rows.map(r => r.property.id)).size,
+             scens: new Set(rows.map(r => r.property_scenario.id)).size,
+             ids: [c.buyer_profile_id, c.shopping_plan_id, c.property_id, c.property_scenario_id],
+             persisted: String(window.__mock.db[c.buyer_profile_id].property_scenario.list_price),
+             chip: document.getElementById('bseSaveStatus').textContent };
+  });
+  check('P12b the autosave after a token refresh creates NO new records',
+    p12b.buyers === 1 && p12b.plans === 1 && p12b.props === 1 && p12b.scens === 1,
+    JSON.stringify(p12b));
+  check('P12b it writes to the SAME four record ids as before the refresh',
+    JSON.stringify(p12b.ids) === JSON.stringify(p12setup.ids),
+    JSON.stringify({ before: p12setup.ids, after: p12b.ids }));
+  check('P12b the edited value lands in that same existing scenario',
+    p12b.persisted === '512000' && p12b.chip === 'Saved', JSON.stringify(p12b));
+
+  // ---- P12c: repeated refreshes, and a USER_UPDATED-shaped event, are inert
+  const p12c = await page.evaluate(async () => {
+    for (let i = 3; i <= 6; i++) {
+      window.__mock.session = { user: { id: '11111111-1111-4111-8111-111111111111' },
+                                access_token: 'token-' + i };
+      window.__mock.authCb(window.__mock.session);
+      await new Promise(r => setTimeout(r, 20));
+    }
+    // USER_UPDATED: same id, extra profile fields
+    window.__mock.authCb({ user: { id: '11111111-1111-4111-8111-111111111111',
+                                   email: 'doug@example.test' }, access_token: 'token-7' });
+    await new Promise(r => setTimeout(r, 50));
+    const el = document.getElementById('price');
+    el.value = '523500'; el.dispatchEvent(new Event('input', { bubbles: true }));
+    await new Promise(r => setTimeout(r, BSEPersistence.AUTOSAVE_DEBOUNCE_MS + 400));
+    const c = BSEPersistence.__context();
+    return { buyers: Object.keys(window.__mock.db).length,
+             ids: [c.buyer_profile_id, c.shopping_plan_id, c.property_id, c.property_scenario_id],
+             persisted: String(window.__mock.db[c.buyer_profile_id].property_scenario.list_price) };
+  });
+  check('P12c five consecutive auth events for the same user still produce ONE buyer',
+    p12c.buyers === 1 && JSON.stringify(p12c.ids) === JSON.stringify(p12setup.ids),
+    JSON.stringify(p12c));
+  check('P12c the last edit still lands in the original scenario',
+    p12c.persisted === '523500', p12c.persisted);
+
+  // ---- P12d: a DIFFERENT user must still end the session
+  const p12d = await page.evaluate(async () => {
+    window.__mock.session = { user: { id: '22222222-2222-4222-8222-222222222222' },
+                              access_token: 'other-user' };
+    window.__mock.authCb(window.__mock.session);
+    await new Promise(r => setTimeout(r, 80));
+    return { ctx: BSEPersistence.__context(),
+             marker: document.getElementById('bseCurrentBuyer').textContent,
+             nameField: document.getElementById('bseBuyerName').value,
+             listIds: Array.from(document.getElementById('bseBuyerList').options)
+                        .map(o => o.value).filter(Boolean),
+             chip: document.getElementById('bseSaveStatus').textContent };
+  });
+  check('P12d a switch to a DIFFERENT user does end the session and clear the binding',
+    p12d.ctx === null && p12d.marker === 'New buyer' && p12d.nameField === '',
+    JSON.stringify(p12d));
+  check('P12d the new user sees none of the previous user\'s buyers',
+    p12d.listIds.length === 0 && p12d.chip === 'Not saved', JSON.stringify(p12d));
+
+  // ---- P12e: SIGNED_OUT must still end the session
+  const p12e = await page.evaluate(async () => {
+    window.__mock.session = null;
+    window.__mock.authCb(null);
+    await new Promise(r => setTimeout(r, 60));
+    return { ctx: BSEPersistence.__context(),
+             chip: document.getElementById('bseSaveStatus').textContent,
+             listIds: Array.from(document.getElementById('bseBuyerList').options)
+                        .map(o => o.value).filter(Boolean),
+             marker: document.getElementById('bseCurrentBuyer').textContent,
+             // NB: assert the engine still RUNS, not that a program qualifies.
+             // By this point the scenario is $523,500 on $9,500 income, which
+             // may legitimately eliminate every program — that is the engine
+             // working, not failing.
+             summary: BSEModel.buildResultSummary(),
+             recalcThrew: (() => { try { recalc(); return false; } catch(e){ return String(e); } })() };
+  });
+  check('P12e a sign-out event ends the session and empties the list',
+    p12e.ctx === null && p12e.chip === 'Sign in to save' && p12e.listIds.length === 0,
+    JSON.stringify(p12e));
+  check('P12e signing out still leaves the tool calculating',
+    p12e.recalcThrew === false && p12e.summary !== null &&
+    typeof p12e.summary === 'object' && p12e.summary.assumption_set_version === '2026.07-baseline',
+    JSON.stringify({ threw: p12e.recalcThrew, program: p12e.summary && p12e.summary.recommended_program,
+                     binding: p12e.summary && p12e.summary.binding_constraint }));
+
+  }
 
   check('P-ERR no JavaScript errors in the application during the whole client suite',
     pageErrors.length === 0, pageErrors.slice(0, 3).join(' | '));
