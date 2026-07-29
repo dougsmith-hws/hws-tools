@@ -24,7 +24,7 @@ Last updated: **2026-07-29** (Gate D IN PROGRESS — code complete, preview veri
 | **Phase 3 — Gate C** | Supabase schema, auth, RLS, persistence | **COMPLETE / CLOSED** 2026-07-29 — nine manual validation tests against the live project, all PASS. See `BSE-Phase3-GateC-Report.md` §58a |
 | **Phase 3 — Gate C.5** | Saved-buyer retrieval + save-status truthfulness | **COMPLETE / CLOSED** 2026-07-29 — retrieval, existing-record update, cross-user isolation and account-switch persistence verified live. See report §57d |
 | **Phase 3 — Gate C.5a** | Auth-event binding stability | **COMPLETE / CLOSED** 2026-07-29 — `TOKEN_REFRESHED` no longer orphans the active buyer; differential proof and 16 pinned assertions. See report §57e |
-| **Phase 3 — Gate D** | Production deployment readiness | **PARTIALLY READY — NOT CLOSED.** 500 assertions / 0 failures. Config validation, vendored Supabase client, session-expiry-mid-edit handling, error classification, BSE-scoped security headers, and a blocking responsive fix are all done and verified locally. **Preview verification is BLOCKED** — no route to Netlify from the session. Production NOT deployed. See `BSE-Phase3-GateD-Report.md` |
+| **Phase 3 — Gate D** | Production deployment readiness | **PARTIALLY READY — NOT CLOSED.** 500 assertions / 0 failures. Config validation, vendored Supabase client, session-expiry-mid-edit handling, error classification, BSE-scoped security headers, and a blocking responsive fix are all done and verified locally. **Preview verification is BLOCKED** — no route to Netlify from the session; re-confirmed at Gate D.1 (`git ls-remote` → 403 from proxy). HSTS resolved: host-only, no `includeSubDomains`, no `preload`. Production NOT deployed. See `BSE-Phase3-GateD-Report.md` |
 
 Phases 0, 1, and 2 were audit and design only — no source was modified in any of them. Application source was first modified in **Gate A** (three unit-toggle functions plus an additive canonical-unit layer) and extended in **Gate B** (a purely additive canonical application-state layer). The calculation engine, lines 526–1060, is byte-identical to `540ccbe` throughout.
 
@@ -166,6 +166,9 @@ The full record is `BSE-Phase3-GateC-Report.md` §58a.
    — pushing a non-production branch does not deploy to production, since Netlify
    production-deploys only from `main`. Then confirm branch deploys are enabled and
    send me the preview URL. Gate D report §21.
+   The Netlify site is **`hws-tools`** (established at Gate D.1 from the CNAME), so
+   the expected preview host is
+   `https://phase3-gate-d-deployment-readiness--hws-tools.netlify.app`.
 2. **Add the preview URL to Supabase → Authentication → Redirect URLs** before
    signing in on it, or magic links will not return. Report §9.
 

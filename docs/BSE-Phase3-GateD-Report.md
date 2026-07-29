@@ -247,19 +247,42 @@ gate. It is listed in §23 as a deferred item.
 financial data should not sit in a shared browser cache. The vendored library is
 immutable and version-pinned, so it gets `max-age=31536000, immutable`.
 
-### 12.3 — HSTS
+### 12.3 — HSTS — RESOLVED at Gate D.1
 
-Site-wide by necessity — HSTS is host-level and cannot be path-scoped.
-`Strict-Transport-Security: max-age=31536000`, no more.
+**Final: `Strict-Transport-Security: max-age=31536000` — host-only. No
+`includeSubDomains`, no `preload`. No change to what Gate D already shipped.**
 
-**Deliberately not set**, both for you to decide:
+Investigated by DNS inspection of the live deployment:
 
-- **`includeSubDomains`** — I cannot enumerate the subdomains of this host from
-  here, and an HTTP-only subdomain would break.
-- **`preload`** — effectively irreversible, and not this gate's call.
+```
+tools.homewealthsolutions.com  ->  CNAME hws-tools.netlify.app
+                                   2600:1f18:16e:df01::258 / ::259
+```
 
-The site already 301s HTTP→HTTPS for every tool, so this records an existing
-guarantee rather than imposing a new constraint.
+| Probe | Result |
+|---|---|
+| Wildcard `*.tools.homewealthsolutions.com` (two random labels) | **no record** — no wildcard |
+| 12 plausible subdomains (`www api app dev staging test admin preview beta docs cdn assets`) | **no record** for any |
+| `homewealthsolutions.com`, `www.homewealthsolutions.com` | resolve — but these are the **parent and a sibling**, which an HSTS header on `tools.` cannot affect in either direction |
+
+The evidence points toward `includeSubDomains` being harmless: nothing appears to
+live under `*.tools.homewealthsolutions.com`, and Netlify branch previews live on
+`*.netlify.app`, which is a different registrable domain entirely.
+
+**It is still not set, and that is deliberate.** Twelve negative DNS guesses and
+no wildcard is inductive evidence, not positive proof — a subdomain I did not
+guess would not have shown up. The authorization is explicit that
+`includeSubDomains` goes in only if safety can be *positively established*, and
+that uncertainty resolves toward the narrow policy.
+
+The trade is also lopsided. With no subdomains to protect, the benefit is
+approximately zero; the cost of being wrong is an HTTP-only subdomain that stops
+loading, with a one-year browser-cached memory of the mistake. `preload` is worse
+still: it requires `includeSubDomains`, is submitted to a list baked into browser
+binaries, and is removed on a timescale of months.
+
+Host-only HSTS on a site that already 301s HTTP→HTTPS captures essentially all of
+the real security benefit at none of that risk.
 
 ### 12.4 — Pre-existing observation, deliberately not changed
 
@@ -431,6 +454,21 @@ $523,500 on $9,500 income eliminating every program is the correct engine
 behaviour. They now assert the engine **runs** and returns a summary. I made this
 same mistake at Gate C.5a; it is recorded here so the pattern is visible.
 
+## 20.1 Gate D.1 — baseline re-verification
+
+Re-run at the start of Gate D.1, before anything was touched:
+
+| Check | Result |
+|---|---|
+| Branch | `phase3/gate-d-deployment-readiness` |
+| HEAD | `ccab37c` |
+| `main` | `540ccbe` |
+| Working tree | clean |
+| Application MD5 | `99a82a680e74953782aa9c2ce1802fc4` — git object and working tree identical |
+| Automated suite | **500 assertions, 0 failures** |
+| Protected engine | `96e6bea541a19e1ac3ec3f82cd45525c` — byte-identical to `540ccbe` |
+| Secret scan | **clean** — the single pattern match is the literal fixture `sb_secret_abcdefghijklmnopqrstuvwxyz` inside the test that asserts secret keys are *rejected* |
+
 ## 21. Preview validation — BLOCKED
 
 **I cannot create a preview deployment, and I did not try to work around it.**
@@ -441,6 +479,22 @@ same mistake at Gate C.5a; it is recorded here so the pattern is visible.
 | Netlify MCP connector | **not available** |
 | `device_bash` network | **none** |
 | Push credentials for `github.com/dougsmith-hws/hws-tools` | **none, and I will not ask for any** |
+| `git ls-remote` from the device (re-tested at Gate D.1) | **`403 from proxy after CONNECT`** — the device bridge has no network by design |
+
+**Netlify site identified at Gate D.1 without any Netlify access:**
+`tools.homewealthsolutions.com` is a CNAME to **`hws-tools.netlify.app`**, and
+that hostname serves the identical site (verified by fetching `TOOL-MANIFEST.md`
+from both). The site name is therefore **`hws-tools`**, which fixes the expected
+branch-deploy hostname:
+
+```
+https://phase3-gate-d-deployment-readiness--hws-tools.netlify.app
+```
+
+Netlify slugifies the branch name for the subdomain (`/` → `-`), giving a
+34-character label, inside Netlify's 37-character limit — so no truncation is
+expected. This is a prediction from the naming rule, not an observation, and must
+be confirmed against the real deploy.
 
 **This is a §26 stop condition and I am reporting it rather than routing around
 it.** Creating the preview is an action only you can take.
