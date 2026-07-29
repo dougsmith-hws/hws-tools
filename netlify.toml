@@ -9,3 +9,106 @@
   from = "/r/:id"
   to = "/buyer/strategy-builder.html?id=:id"
   status = 200
+
+# =====================================================================
+# GATE D — Buyer Strategy Engine deployment readiness
+#
+# Everything below was added by Gate D. Nothing above this line was
+# changed, and no rule below alters the routing of any existing tool.
+# =====================================================================
+
+# ---------------------------------------------------------------------
+# 1. REPOSITORY CONTENT THAT MUST NOT BE PUBLISHED
+#
+# The publish directory is the repository root — verified live:
+# https://tools.homewealthsolutions.com/TOOL-MANIFEST.md returns the raw
+# file. Merging the Phase 3 branch to main would therefore publish
+# docs/ and supabase/ to the open web:
+#
+#   /docs/BSE-Phase0-1-Forensic-Audit.md   the full forensic audit
+#   /docs/BSE-Phase2-Architecture.md       the complete data model
+#   /docs/BSE-Phase3-GateC-Report.md       every defect found, in detail
+#   /supabase/migrations/0001_bse_schema.sql   schema AND every RLS policy
+#   /internal/buyer-strategy/tests/*        the whole test suite
+#
+# These contain no credentials — the secret scan is clean — but publishing
+# the exact text of the authorization boundary tells an attacker precisely
+# what to probe, and the audit documents describe the tool's internals in
+# depth. There is no reason for any of it to be on the public web.
+#
+# 404 is deliberate rather than 403: a 403 confirms the path exists.
+# ---------------------------------------------------------------------
+[[redirects]]
+  from = "/docs/*"
+  to = "/404.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/supabase/*"
+  to = "/404.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/internal/buyer-strategy/tests/*"
+  to = "/404.html"
+  status = 404
+  force = true
+
+# ---------------------------------------------------------------------
+# 2. SECURITY HEADERS
+#
+# Scoped to the BSE path only. The site currently sends NO security
+# headers at all, so a site-wide policy would change behaviour for every
+# other tool at once and is out of Gate D scope. Applying these to
+# /internal/buyer-strategy/* alone cannot affect any other tool.
+#
+# CSP is written against the endpoints the application genuinely uses:
+#   'self'                     the vendored Supabase client and the page
+#   https://<ref>.supabase.co  REST, Auth and Realtime for this project
+#   wss://<ref>.supabase.co    Realtime's websocket transport
+# It is NOT weakened to silence errors. 'unsafe-inline' for script-src is
+# required because the application is a single self-contained HTML file
+# with an inline <script> — that is the existing architecture, not a
+# concession, and it is recorded as a known limitation in the Gate D
+# report rather than quietly accepted.
+# ---------------------------------------------------------------------
+[[headers]]
+  for = "/internal/buyer-strategy/*"
+  [headers.values]
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; connect-src 'self' https://oxvtuvoguulphgycgixg.supabase.co wss://oxvtuvoguulphgycgixg.supabase.co; frame-ancestors 'none'; form-action 'self'; base-uri 'self'; object-src 'none'; upgrade-insecure-requests"
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "no-referrer"
+    Permissions-Policy = "geolocation=(), microphone=(), camera=(), payment=(), usb=(), interest-cohort=()"
+    Cross-Origin-Opener-Policy = "same-origin"
+    Cache-Control = "no-store, max-age=0"
+
+# The vendored Supabase client is immutable and version-pinned in its
+# filename, so it may be cached hard. Its integrity is recorded in the
+# Gate D report.
+[[headers]]
+  for = "/internal/buyer-strategy/vendor/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+    X-Content-Type-Options = "nosniff"
+
+# ---------------------------------------------------------------------
+# 3. HSTS
+#
+# Site-wide by necessity — HSTS is a host-level policy and cannot be
+# scoped to a path. Netlify already serves HTTPS for every tool on this
+# domain and the redirect at the top of this file already forces it, so
+# this records an existing guarantee rather than imposing a new one.
+#
+# Deliberately NOT set:
+#   includeSubDomains — I cannot enumerate the subdomains of this host
+#                       from here, and an HTTP-only subdomain would break.
+#   preload           — effectively irreversible, and not Gate D's call.
+# Both are recommendations in the Gate D report for you to decide on.
+# ---------------------------------------------------------------------
+[[headers]]
+  for = "/*"
+  [headers.values]
+    Strict-Transport-Security = "max-age=31536000"

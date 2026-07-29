@@ -3,7 +3,7 @@
 
 **HomeWealth Solutions LLC** · Company NMLS #2742458 · FL OFR Mortgage Broker License #MBR8082
 Owner: Doug Smith, President & Broker, CMA®
-Last updated: **2026-07-29** (Gate C and Gate C.5 CLOSED — manual validation complete)
+Last updated: **2026-07-29** (Gate D IN PROGRESS — code complete, preview verification blocked)
 
 > **This is the controlling status document for the Buyer Strategy Engine redesign.**
 > Any new Cowork session working on the BSE should read this file first, then the two documents referenced below. Do not reconstruct prior phases from memory or summary — the full detail is on disk.
@@ -24,6 +24,7 @@ Last updated: **2026-07-29** (Gate C and Gate C.5 CLOSED — manual validation c
 | **Phase 3 — Gate C** | Supabase schema, auth, RLS, persistence | **COMPLETE / CLOSED** 2026-07-29 — nine manual validation tests against the live project, all PASS. See `BSE-Phase3-GateC-Report.md` §58a |
 | **Phase 3 — Gate C.5** | Saved-buyer retrieval + save-status truthfulness | **COMPLETE / CLOSED** 2026-07-29 — retrieval, existing-record update, cross-user isolation and account-switch persistence verified live. See report §57d |
 | **Phase 3 — Gate C.5a** | Auth-event binding stability | **COMPLETE / CLOSED** 2026-07-29 — `TOKEN_REFRESHED` no longer orphans the active buyer; differential proof and 16 pinned assertions. See report §57e |
+| **Phase 3 — Gate D** | Production deployment readiness | **PARTIALLY READY — NOT CLOSED.** 500 assertions / 0 failures. Config validation, vendored Supabase client, session-expiry-mid-edit handling, error classification, BSE-scoped security headers, and a blocking responsive fix are all done and verified locally. **Preview verification is BLOCKED** — no route to Netlify from the session. Production NOT deployed. See `BSE-Phase3-GateD-Report.md` |
 
 Phases 0, 1, and 2 were audit and design only — no source was modified in any of them. Application source was first modified in **Gate A** (three unit-toggle functions plus an additive canonical-unit layer) and extended in **Gate B** (a purely additive canonical application-state layer). The calculation engine, lines 526–1060, is byte-identical to `540ccbe` throughout.
 
@@ -159,8 +160,23 @@ The full record is `BSE-Phase3-GateC-Report.md` §58a.
 | Calculation engine | **byte-identical to `540ccbe`** — `96e6bea541a19e1ac3ec3f82cd45525c` |
 | Deployed | **Nothing.** `localhost:8080` only |
 
-**Nothing is authorized to begin.** The next phase has not been scoped or
-approved. Do not start one.
+**Gate D is IN PROGRESS and is NOT closed.** Two actions are needed, both yours:
+
+1. **Create the Netlify preview.** `git push -u origin phase3/gate-d-deployment-readiness`
+   — pushing a non-production branch does not deploy to production, since Netlify
+   production-deploys only from `main`. Then confirm branch deploys are enabled and
+   send me the preview URL. Gate D report §21.
+2. **Add the preview URL to Supabase → Authentication → Redirect URLs** before
+   signing in on it, or magic links will not return. Report §9.
+
+**Production deployment is NOT authorized and has not happened.** The full
+checklist is Gate D report §24; the rollback plan is §25.
+
+**Read Gate D report §12.1 before merging anything.** The repository root is the
+public web root — verified live — so merging this branch as-is would have
+published `docs/` and `supabase/` to the open web, including the full text of
+every RLS policy. Blocking rules are now in `netlify.toml`; they affect only
+paths that do not exist in `main` today.
 
 **Deferred, carried forward** — none of these blocked closeout:
 
@@ -201,6 +217,13 @@ approved. Do not start one.
    buyer list, the name field and the marker — it does not delete, archive or
    orphan any record. Verified live by signing into a second account and back
    into the first, with the original buyer intact.
+8. **A workspace may only ever be saved by the account that authored it.**
+   `workspaceOwner` is checked on every save and every autosave; a different
+   signed-in user is refused outright (Gate D §13). A session that ends mid-edit
+   parks the buyer binding rather than destroying it, and hands it back only to
+   the same user id.
+9. **The Supabase client is vendored, pinned and served from our own origin.**
+   No CDN is contacted at runtime (Gate D §11).
 
 To run the suites, see `internal/buyer-strategy/tests/README.md`.
 

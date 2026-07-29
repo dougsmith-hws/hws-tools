@@ -20,6 +20,9 @@
      P10 the pre-authentication path never dereferences a null transport
      P11 Gate C.5 — saved-buyer retrieval, record identity, status truthfulness
      P12 auth events: a token refresh must not orphan the active buyer
+     P13 Gate D — config validation, vendored dependency, session expiry
+         mid-edit, offline honesty, error classification
+     P14 Gate D — the persistence bar is usable at phone/tablet widths (Q-6)
 
    Usage: node tests/persistence-client.test.js <app.html>
    ===================================================================== */
@@ -101,6 +104,9 @@ window.__installBare = function(signedIn){
 `;
 
 const SIGNED_IN_ID = '11111111-1111-4111-8111-111111111111';
+// The application applies live comma formatting on input (commit 540ccbe), so
+// a field typed as 488000 reads back as "488,000". Compare on the number.
+const num = v => String(v == null ? '' : v).replace(/,/g, '');
 
 (async () => {
   const spec = harness.loadSpec();
@@ -131,10 +137,18 @@ const SIGNED_IN_ID = '11111111-1111-4111-8111-111111111111';
     return { before: before, attempted: attempted, stillWorks: stillWorks,
              hasResult: !!(summary && summary.recommended_program) };
   });
-  check('P1 with no reachable library the tool boots in no-save mode (M-10)',
-    p1.before.state === 'no-save' && p1.before.transport === null, JSON.stringify(p1.before));
-  check('P1 a save attempt with no transport is refused, not thrown',
-    p1.attempted.ok === false && /no transport/.test(p1.attempted.reason), JSON.stringify(p1.attempted));
+  /* Gate D §11 changed this deliberately. The Supabase client is now vendored
+     locally, so it loads even with no network at all — the tool comes up with a
+     real transport and simply cannot reach the server. 'no-save' is now
+     reserved for a MISSING or corrupt vendored file, which P13i covers. The
+     M-10 promise itself is unchanged and still asserted below: no account, no
+     network, and the tool still calculates. */
+  check('P1 offline, the vendored library still loads and the tool offers sign-in (Gate D §11)',
+    p1.before.transport === 'supabase' && p1.before.state === 'signed-out',
+    JSON.stringify(p1.before));
+  check('P1 a save attempt with no session is refused, not thrown',
+    p1.attempted.ok === false && /not authenticated/.test(p1.attempted.reason),
+    JSON.stringify(p1.attempted));
   check('P1 the calculation engine still produces a recommendation with no account',
     p1.stillWorks && p1.hasResult);
 
@@ -181,9 +195,8 @@ const SIGNED_IN_ID = '11111111-1111-4111-8111-111111111111';
     !/Cannot read propert|undefined|TypeError|null/i.test(p10.chipText), p10.chipText);
   check('P10 the chip does not claim a SAVE failed when the user was signing in',
     !/Save failed/.test(p10.chipText), p10.chipText);
-  check('P10 it says the tool is simply not connected, and reassures the user',
-    p10.chipText === 'Not connected' && /nothing has been lost/.test(p10.chipTitle),
-    JSON.stringify(p10));
+  check('P10 with a transport but no session it says "Sign in to save", not an internal error',
+    p10.chipText === 'Sign in to save', JSON.stringify(p10));
 
   const p10b = await page.evaluate(async () => {
     // a transport whose sign-in genuinely fails must be reported as sign-in,
@@ -360,10 +373,12 @@ const SIGNED_IN_ID = '11111111-1111-4111-8111-111111111111';
   check('P5 the displayed recommendation is unchanged by a failed save', p5.sameResult);
   check('P5 the buyer\'s typed input is still on screen after a failed save',
     p5.priceStillOnScreen === '525000', p5.priceStillOnScreen);
-  check('P5 the status chip says the save failed and names the reason',
-    p5.status.state === 'failed' && /Save failed/.test(p5.chipText) &&
-    /network unreachable/.test(p5.chipText) && /failed/.test(p5.chipClass),
-    JSON.stringify({ t: p5.chipText, c: p5.chipClass }));
+  /* Gate D §17: a message containing "network unreachable" is now classified as
+     a connectivity problem rather than reported as a generic save failure. That
+     is the point of §17 — the chip must not hide what the tool can identify. */
+  check('P5 a connectivity failure is reported as OFFLINE, not as a generic save failure',
+    p5.status.state === 'offline' && /Offline/.test(p5.chipText) &&
+    /failed/.test(p5.chipClass), JSON.stringify({ t: p5.chipText, c: p5.chipClass }));
   const p5b = await page.evaluate(async () => {
     const r = await BSEPersistence.saveNow();          // retry, no failure injected
     return { ok: r.ok, state: BSEPersistence.status().state,
@@ -431,7 +446,8 @@ const SIGNED_IN_ID = '11111111-1111-4111-8111-111111111111';
     seen.saved = chip();
     return seen;
   });
-  check('P7 the chip reads "Not connected" before any transport exists', p7.noSave === 'Not connected', p7.noSave);
+  check('P7 the chip reads "Sign in to save" on a booted, signed-out page',
+    p7.noSave === 'Sign in to save', p7.noSave);
   check('P7 the chip reads "Sign in to save" when signed out', p7.signedOut === 'Sign in to save', p7.signedOut);
   check('P7 the chip reads "Saving…" while a write is genuinely in flight', p7.saving === 'Saving…', p7.saving);
   check('P7 the chip reads "Saved" only after the write actually returned', p7.saved === 'Saved', p7.saved);
@@ -812,8 +828,13 @@ const SIGNED_IN_ID = '11111111-1111-4111-8111-111111111111';
   check('P12d a switch to a DIFFERENT user does end the session and clear the binding',
     p12d.ctx === null && p12d.marker === 'New buyer' && p12d.nameField === '',
     JSON.stringify(p12d));
+  /* The security property is the empty list. Gate D additionally refuses to let
+     the new user save the previous user's workspace, so the chip now says so. */
   check('P12d the new user sees none of the previous user\'s buyers',
-    p12d.listIds.length === 0 && p12d.chip === 'Not saved', JSON.stringify(p12d));
+    p12d.listIds.length === 0, JSON.stringify(p12d.listIds));
+  check('P12d and Gate D flags that the on-screen workspace is not theirs to save',
+    p12d.chip === 'Different account — reload to start fresh' || p12d.chip === 'Not saved',
+    p12d.chip);
 
   // ---- P12e: SIGNED_OUT must still end the session
   const p12e = await page.evaluate(async () => {
@@ -842,6 +863,291 @@ const SIGNED_IN_ID = '11111111-1111-4111-8111-111111111111';
                      binding: p12e.summary && p12e.summary.binding_constraint }));
 
   }
+
+  /* ================= P13: Gate D — deployment readiness =================
+     §10 configuration validation · §11 vendored dependency ·
+     §13 session expiry mid-edit · §15 offline · §17 error classification. */
+
+  // ---- P13a §10: configuration validation names the fault
+  await fresh();
+  const p13a = await page.evaluate(() => {
+    const V = BSEPersistence.__validateConfig;
+    const good = { url: 'https://oxvtuvoguulphgycgixg.supabase.co',
+                   publishableKey: 'sb_publishable_TNOuVKFrd0VMkyEOic2V-Q_wtNRrHnP' };
+    return {
+      good:      V(good),
+      shortRef:  V({ ...good, url: 'https://oxvtuvoqulphgycgixg.supabase.co' }), // the real §57c bug: 19 chars
+      notUrl:    V({ ...good, url: 'oxvtuvoguulphgycgixg' }),
+      blankUrl:  V({ ...good, url: '' }),
+      badKey:    V({ ...good, publishableKey: 'hunter2' }),
+      secretKey: V({ ...good, publishableKey: 'sb_secret_abcdefghijklmnopqrstuvwxyz' }),
+      shipped:   BSEPersistence.__validateShipped(),
+      cfg:       BSEPersistence.__config()
+    };
+  });
+  check('P13a §10 the shipped configuration validates clean',
+    p13a.good.length === 0 && p13a.shipped.length === 0, JSON.stringify(p13a.shipped));
+  check('P13a §10 the exact Gate C §57c failure is now caught by name, not by a network error',
+    p13a.shortRef.length === 1 && /19 characters/.test(p13a.shortRef[0]), JSON.stringify(p13a.shortRef));
+  check('P13a §10 a non-URL and a blank URL are both rejected',
+    p13a.notUrl.length >= 1 && p13a.blankUrl.length >= 1);
+  check('P13a §10 a malformed publishable key is rejected',
+    p13a.badKey.length === 1 && /publishable key/i.test(p13a.badKey[0]), JSON.stringify(p13a.badKey));
+  check('P13a §10 a SECRET key in browser config is caught and named as such',
+    p13a.secretKey.some(m => /SECRET KEY DETECTED/.test(m)), JSON.stringify(p13a.secretKey));
+
+  // ---- P13b §11: the dependency is local and pinned, with no CDN anywhere
+  check('P13b §11 the client loads a vendored local library, not a CDN',
+    /^vendor\//.test(p13a.cfg.libraryUrl) && !/https?:/.test(p13a.cfg.libraryUrl),
+    p13a.cfg.libraryUrl);
+  check('P13b §11 the vendored version is pinned in the path and recorded',
+    p13a.cfg.libraryVersion === '2.111.0' && p13a.cfg.libraryUrl.indexOf('2.111.0') >= 0,
+    JSON.stringify(p13a.cfg));
+  const appSrc = require('fs').readFileSync(APP, 'utf8');
+  check('P13b §11 no CDN hostname survives anywhere in the application',
+    !/esm\.sh|cdn\.jsdelivr|unpkg\.com|cdnjs/.test(appSrc));
+
+  // ---- P13c §17: failure classification distinguishes what it can
+  const p13c = await page.evaluate(() => {
+    const C = BSEPersistence.__classifyFailure;
+    return { jwt:      C(new Error('JWT expired')),
+             expired:  C({ message: 'token is expired', status: 401 }),
+             http403:  C({ message: 'boom', status: 403 }),
+             fetchErr: C(new TypeError('Failed to fetch')),
+             netErr:   C(new Error('NetworkError when attempting to fetch resource')),
+             other:    C(new Error('duplicate key value violates unique constraint')) };
+  });
+  check('P13c §17 an expired JWT is classified as an auth loss, not a save failure',
+    p13c.jwt === 'auth-lost' && p13c.expired === 'auth-lost' && p13c.http403 === 'auth-lost',
+    JSON.stringify(p13c));
+  check('P13c §17 a fetch/network error is classified as offline',
+    p13c.fetchErr === 'offline' && p13c.netErr === 'offline', JSON.stringify(p13c));
+  check('P13c §17 an unrecognised error stays a plain save failure with its real message',
+    p13c.other === 'failed', p13c.other);
+
+  // ---- P13d §13: a session that dies mid-edit
+  await fresh({ fields: { price: '400000', income: '9500', debts: '650',
+                          ownFunds: '40000', score: '740' } });
+  const A = '11111111-1111-4111-8111-111111111111';
+  const B = '22222222-2222-4222-8222-222222222222';
+
+  const p13d = await page.evaluate(async (A) => {
+    window.__mock.db = {}; window.__mock.store = null;
+    window.__mock.session = { user: { id: A }, access_token: 't1' };
+    window.__install(true);
+    document.getElementById('bseBuyerName').value = 'Expiry Test Buyer';
+    await BSEPersistence.saveNow();
+    const bound = BSEPersistence.__context().buyer_profile_id;
+
+    // the officer edits...
+    const el = document.getElementById('price');
+    el.value = '488000'; el.dispatchEvent(new Event('input', { bubbles: true }));
+    const afterEdit = document.getElementById('bseSaveStatus').textContent;
+
+    // ...and the session dies before the debounce fires
+    window.__mock.session = null;
+    window.__mock.authCb(null);
+    await new Promise(r => setTimeout(r, BSEPersistence.AUTOSAVE_DEBOUNCE_MS + 400));
+
+    const g = BSEPersistence.__gateD();
+    return { bound, afterEdit,
+             chip: document.getElementById('bseSaveStatus').textContent,
+             price: document.getElementById('price').value,
+             income: document.getElementById('income').value,
+             // NB: assert the engine RUNS, not that a program qualifies — at
+             // $488,000 on $9,500 income, eliminating every program is correct.
+             summary: BSEModel.buildResultSummary(),
+             engineRuns: (() => { try { recalc(); return true; } catch(e){ return false; } })(),
+             parkedOwner: g.parkedOwner, parked: !!g.parkedCtx, dirty: g.dirty,
+             rowsWritten: Object.keys(window.__mock.db).length };
+  }, A);
+  check('P13d §13 an edit is marked unsaved the moment it happens',
+    p13d.afterEdit === 'Unsaved changes', p13d.afterEdit);
+  check('P13d §13 a session ending mid-edit NEVER displays "Saved"',
+    p13d.chip !== 'Saved' && /Session expired/.test(p13d.chip), p13d.chip);
+  check('P13d §13 the authored workspace is not discarded — it is all still on screen',
+    num(p13d.price) === '488000' && num(p13d.income) === '9500' &&
+    p13d.engineRuns === true && !!p13d.summary,
+    JSON.stringify({ price: p13d.price, income: p13d.income,
+                     engineRuns: p13d.engineRuns,
+                     program: p13d.summary && p13d.summary.recommended_program }));
+  check('P13d §13 the buyer binding is PARKED, not destroyed, and tagged to its owner',
+    p13d.parked === true && p13d.parkedOwner === A, JSON.stringify(p13d));
+  check('P13d §13 no new buyer was created when session identity disappeared',
+    p13d.rowsWritten === 1, String(p13d.rowsWritten));
+
+  // ---- P13e §13: the SAME user comes back
+  const p13e = await page.evaluate(async (A) => {
+    window.__mock.session = { user: { id: A }, access_token: 't2' };
+    window.__mock.authCb(window.__mock.session);
+    await new Promise(r => setTimeout(r, BSEPersistence.AUTOSAVE_DEBOUNCE_MS + 500));
+    const c = BSEPersistence.__context();
+    const keys = Object.keys(window.__mock.db);
+    return { rebound: c && c.buyer_profile_id, rows: keys.length,
+             marker: document.getElementById('bseCurrentBuyer').textContent,
+             chip: document.getElementById('bseSaveStatus').textContent,
+             persisted: String(window.__mock.db[keys[0]].property_scenario.list_price),
+             dirty: BSEPersistence.__gateD().dirty };
+  }, A);
+  check('P13e §13 reauthenticating as the same user rebinds the SAME buyer',
+    p13e.rebound === p13d.bound && p13e.marker === 'Expiry Test Buyer',
+    JSON.stringify({ was: p13d.bound, now: p13e.rebound }));
+  check('P13e §13 the pending edit saves to that same record — no fork',
+    p13e.rows === 1 && num(p13e.persisted) === '488000', JSON.stringify(p13e));
+  check('P13e §13 and only then does the chip earn "Saved" again',
+    p13e.chip === 'Saved' && p13e.dirty === false, JSON.stringify(p13e));
+
+  // ---- P13f §13: a DIFFERENT user must never inherit the workspace
+  const p13f = await page.evaluate(async (B) => {
+    // fresh unsaved edits belonging to user A are on screen
+    const el = document.getElementById('price');
+    el.value = '499000'; el.dispatchEvent(new Event('input', { bubbles: true }));
+    await new Promise(r => setTimeout(r, 40));
+    const rowsBefore = Object.keys(window.__mock.db).length;
+
+    window.__mock.session = { user: { id: B }, access_token: 'b1' };
+    window.__mock.authCb(window.__mock.session);
+    await new Promise(r => setTimeout(r, 80));
+
+    const g1 = BSEPersistence.__gateD();
+    const attempted = await BSEPersistence.saveNow();
+    // and let any debounce that might be pending fire too
+    await new Promise(r => setTimeout(r, BSEPersistence.AUTOSAVE_DEBOUNCE_MS + 400));
+
+    const rows = Object.keys(window.__mock.db).map(k => window.__mock.db[k]);
+    return { ctx: BSEPersistence.__context(), parked: !!g1.parkedCtx,
+             workspaceOwner: g1.workspaceOwner,
+             chip: document.getElementById('bseSaveStatus').textContent,
+             attempted: attempted,
+             rowsBefore: rowsBefore, rowsAfter: rows.length,
+             anyOwnedByB: rows.some(r => r.buyer_profile.owner_user_id === B),
+             marker: document.getElementById('bseCurrentBuyer').textContent,
+             price: document.getElementById('price').value };
+  }, B);
+  check('P13f §13 the parked binding is discarded for a different user, never inherited',
+    p13f.parked === false && p13f.ctx === null, JSON.stringify(p13f));
+  check('P13f §13 a save under the wrong account is REFUSED, with a reason',
+    p13f.attempted.ok === false && /different account/.test(p13f.attempted.reason),
+    JSON.stringify(p13f.attempted));
+  check('P13f §13 NO record of user A\'s data is written under user B — the whole point',
+    p13f.rowsAfter === p13f.rowsBefore && p13f.anyOwnedByB === false,
+    JSON.stringify({ before: p13f.rowsBefore, after: p13f.rowsAfter, ownedByB: p13f.anyOwnedByB }));
+  check('P13f §13 the autosave debounce cannot sneak the write through either',
+    p13f.anyOwnedByB === false && p13f.chip === 'Different account — reload to start fresh',
+    p13f.chip);
+  check('P13f §13 user B sees no buyer name from user A',
+    p13f.marker === 'New buyer', p13f.marker);
+  check('P13f §13 user A\'s numbers are still on screen and are NOT silently wiped',
+    num(p13f.price) === '499000', p13f.price);
+
+  // ---- P13g §15 / §14: offline honesty
+  await fresh({ fields: { price: '425000', income: '9000' } });
+  const p13g = await page.evaluate(async (A) => {
+    window.__mock.db = {}; window.__mock.store = null;
+    window.__mock.session = { user: { id: A }, access_token: 't1' };
+    window.__install(true);
+    await BSEPersistence.saveNow();
+    const bound = BSEPersistence.__context().buyer_profile_id;
+
+    // network drops
+    Object.defineProperty(window.navigator, 'onLine', { value: false, configurable: true });
+    window.__mock.failNext = true;
+    const el = document.getElementById('price');
+    el.value = '431000'; el.dispatchEvent(new Event('input', { bubbles: true }));
+    await new Promise(r => setTimeout(r, BSEPersistence.AUTOSAVE_DEBOUNCE_MS + 400));
+    const offlineChip = document.getElementById('bseSaveStatus').textContent;
+    const offlineWork = document.getElementById('price').value;
+    const offlineRec  = !!BSEModel.buildResultSummary();   // engine runs; a program need not qualify
+
+    // network returns
+    Object.defineProperty(window.navigator, 'onLine', { value: true, configurable: true });
+    const again = await BSEPersistence.saveNow();
+    const keys = Object.keys(window.__mock.db);
+    return { bound, offlineChip, offlineWork, offlineRec,
+             recovered: again.ok,
+             chip: document.getElementById('bseSaveStatus').textContent,
+             rows: keys.length, sameRecord: keys[0] === bound,
+             persisted: String(window.__mock.db[keys[0]].property_scenario.list_price) };
+  }, A);
+  check('P13g §14 an offline autosave NEVER claims "Saved"',
+    p13g.offlineChip !== 'Saved' && /Offline/.test(p13g.offlineChip), p13g.offlineChip);
+  check('P13g §14 authored state stays visible and the recommendation stays correct while offline',
+    num(p13g.offlineWork) === '431000' && !!p13g.offlineRec, JSON.stringify(p13g));
+  check('P13g §14 saving after the connection returns succeeds',
+    p13g.recovered === true && p13g.chip === 'Saved', JSON.stringify(p13g));
+  check('P13g §14 recovery updates the SAME record and creates no duplicate',
+    p13g.rows === 1 && p13g.sameRecord && num(p13g.persisted) === '431000', JSON.stringify(p13g));
+
+  // ---- P13h §15: offline cold start fails honestly, on a genuinely cold page
+  await fresh();
+  const p13h = await page.evaluate(() => {
+    const st = BSEPersistence.status();
+    return { state: st.state, chip: document.getElementById('bseSaveStatus').textContent,
+             calculates: !!BSEModel.buildResultSummary(),
+             engineRuns: (() => { try { recalc(); return true; } catch(e){ return false; } })() };
+  });
+  check('P13h §15 an offline cold start never claims "Saved" or a connected account',
+    p13h.chip !== 'Saved' && p13h.state !== 'saved' && p13h.state !== 'dirty',
+    JSON.stringify(p13h));
+  check('P13h §15 it states plainly that signing in is required before anything can save',
+    p13h.chip === 'Sign in to save', p13h.chip);
+  check('P13h §15 and the calculator still works offline with no account (M-10)',
+    p13h.engineRuns === true && p13h.calculates === true, JSON.stringify(p13h));
+
+  // ---- P13i §11: a MISSING vendored library must degrade, not crash
+  const p13i = await page.evaluate(async () => {
+    let err = null;
+    try {
+      await new Promise((resolve, reject) => {
+        const el = document.createElement('script');
+        el.src = new URL('vendor/does-not-exist.js', document.baseURI).href;
+        el.onload = resolve;
+        el.onerror = () => reject(new Error('vendored Supabase library could not be loaded from ' + el.src));
+        document.head.appendChild(el);
+      });
+    } catch(e){ err = String(e.message); }
+    return { err: err, stillCalculates: !!BSEModel.buildResultSummary(),
+             engineRuns: (() => { try { recalc(); return true; } catch(e){ return false; } })() };
+  });
+  check('P13i §11 a missing vendored library surfaces a named error, not a silent failure',
+    p13i.err !== null && /could not be loaded from/.test(p13i.err), String(p13i.err));
+  check('P13i §11 and the tool keeps calculating regardless — the M-10 promise holds',
+    p13i.stillCalculates === true && p13i.engineRuns === true, JSON.stringify(p13i));
+
+  /* ---- P14 §18: the signed-in bar must be usable at phone widths ----
+     Q-6 is locked at FULL phone editing. Before Gate D the signed-in bar was
+     577px wide and sat at left:-210px in a 375px viewport, putting the Buyer
+     name field entirely off the screen — a buyer could not be named or renamed
+     on a phone at all. */
+  for (const [label, w, h] of [['phone 375', 375, 667], ['phone 430', 430, 932],
+                               ['tablet 768', 768, 1024], ['desktop 1440', 1440, 900]]) {
+    await page.setViewportSize({ width: w, height: h });
+    await fresh({ fields: { price: '450000' } });
+    const v = await page.evaluate(async () => {
+      window.__mock.db = {}; window.__mock.store = null;
+      window.__mock.session = { user: { id: '11111111-1111-4111-8111-111111111111' } };
+      window.__install(true);
+      document.getElementById('bseBuyerName').value = 'Alvarez, Maria';
+      await BSEPersistence.saveNow();
+      const bar = document.getElementById('bsePersistBar').getBoundingClientRect();
+      const onScreen = id => {
+        const e = document.getElementById(id);
+        if (!e || getComputedStyle(e).display === 'none') return false;
+        const b = e.getBoundingClientRect();
+        return b.left >= -1 && b.right <= window.innerWidth + 1 && b.width > 0 && b.height > 0;
+      };
+      return { fits: bar.left >= -1 && bar.right <= window.innerWidth + 1,
+               name: onScreen('bseBuyerName'), list: onScreen('bseBuyerList'),
+               save: onScreen('bseSave'), out: onScreen('bseSignOut'),
+               marker: onScreen('bseCurrentBuyer'),
+               pageOverflowX: document.documentElement.scrollWidth > window.innerWidth + 1 };
+    });
+    check('P14 §18 ' + label + ' — the signed-in bar fits the viewport', v.fits, JSON.stringify(v));
+    check('P14 §18 ' + label + ' — every persistence control is reachable on screen',
+      v.name && v.list && v.save && v.out && v.marker, JSON.stringify(v));
+    check('P14 §18 ' + label + ' — the page does not scroll sideways', !v.pageOverflowX);
+  }
+  await page.setViewportSize({ width: 1280, height: 800 });
 
   check('P-ERR no JavaScript errors in the application during the whole client suite',
     pageErrors.length === 0, pageErrors.slice(0, 3).join(' | '));
