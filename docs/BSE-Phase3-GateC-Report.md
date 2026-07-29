@@ -1,29 +1,41 @@
 <!--
-BUYER STRATEGY ENGINE — PHASE 3, GATE C REPORT
+BUYER STRATEGY ENGINE — PHASE 3, GATE C + GATE C.5 REPORT
 File: docs/BSE-Phase3-GateC-Report.md
-Status: Gate C code-complete and verified. STOPPED before live-auth verification
-        and before any deployment, per authorization.
-Origin: Cowork session of 2026-07-28.
+Status: CLOSED. Gate C and Gate C.5 formally closed by Doug Smith on 2026-07-29
+        on the basis of the manual validation recorded in section 58a.
+        Nothing deployed. Not merged to main.
+Origin: Cowork session of 2026-07-28 / 2026-07-29.
 -->
 
-# BUYER STRATEGY ENGINE — PHASE 3, GATE C
-## Supabase + Auth + Cross-Device Persistence — Report
+# BUYER STRATEGY ENGINE — PHASE 3, GATE C + GATE C.5
+## Supabase + Auth + Persistence + Saved-Buyer Retrieval — CLOSEOUT REPORT
 
 **HomeWealth Solutions LLC** · Company NMLS #2742458 · FL OFR Mortgage Broker License #MBR8082
 Prepared for: Doug Smith, President & Broker, CMA®
-Date: **July 28, 2026**
+Date: **July 29, 2026**
 
-> ## STATUS
+> ## GATE C AND GATE C.5 ARE CLOSED
 >
-> **453 assertions, 0 failures.** Schema and RLS live in `hws-buyer-strategy`. The client persistence layer is implemented; Gate C.5 adds saved-buyer retrieval.
+> **Closed by Doug Smith on 2026-07-29** on the basis of eight manual validation
+> tests against the live `hws-buyer-strategy` Supabase project, all PASS. The
+> full record is §58a.
 >
-> **Manually verified against the live project (§58a):** magic-link authentication end to end, manual Save, all four row types written and correctly linked, `result_summary` populated, `resolved_inputs` NULL, `engine_version = bse-2.0.0`, `status = draft`, and autosave firing on its own.
+> **453 automated assertions, 0 failures**, re-run against the final committed
+> application `4dec9aada934ee5bdb8fba83dc80d11b` at commit **`b0524b5`**.
 >
-> **Gate C is NOT complete.** Retrieval and cross-user isolation have not been manually verified yet — §58b, tests D–H. Gate C.5 exists precisely because those tests had nothing to run against.
+> **Four defects were found and fixed** — §57a round writes, §57b the
+> pre-authentication chicken-and-egg, §57d session teardown in a button handler,
+> §57e a token refresh orphaning the active buyer. Each is pinned by a test that
+> fails against the build that had it. A fifth issue was configuration, not code
+> (§57c).
 >
-> **Four defects were found and fixed across Gate C, C.5 and C.5a** — §57a (round writes), §57b (pre-authentication chicken-and-egg), §57d (session teardown in a button handler), §57e (a token refresh orphaning the active buyer). One issue was configuration, not code — §57c. Every one is pinned by a test that fails against the build that had it.
+> **The calculation engine is byte-identical to the pre-Phase-3 baseline `540ccbe`.**
+> All 3,449 lines of the approved Gate B.75 file survive in order; the change is
+> two insertions with zero deletions.
 >
-> **Nothing was deployed.** No production, no preview, no Netlify. `localhost:8080` only, and `main` is untouched.
+> **Nothing was deployed. `main` was not merged or modified — it still points at
+> `540ccbe`.** The three historical Gate C test workspaces remain in the database,
+> untouched, per instruction.
 
 ---
 
@@ -626,163 +638,233 @@ suite exercises the registered path rather than a test-only shim. No calculation
 qualification, recommendation or scoring change. No schema or RLS change. The
 historical test rows were **not** deleted, per instruction.
 
-## 58a. Manual tests PASSED against the live project
+## 58a. MANUAL VALIDATION — COMPLETE, ALL PASS
 
-Verified by Doug on 2026-07-29 at `http://localhost:8080`:
+Performed by Doug Smith against the live `hws-buyer-strategy` Supabase project at
+`http://localhost:8080`, 2026-07-28 / 2026-07-29. These are live-system results,
+not test-harness results.
 
-| Test | Result |
+### 1. Magic-link authentication — **PASS**
+
+Email magic link arrived; authentication completed; the BSE recognised the
+authenticated user.
+
+### 2. Manual persistence — **PASS**
+
+| Check | Result |
 |---|---|
-| Magic-link authentication, end to end | **PASS** — email delivered, link returned to the tool, session adopted |
-| Manual **Save** | **PASS** |
-| `buyer_profile` | **PASS** — exactly one linked row |
-| `shopping_plan` | **PASS** — one row; `plan_label` = "Original Plan", `is_active` = true, `target_payment` matched the interface |
-| `property` | **PASS** — exactly one linked row |
-| `property_scenario` | **PASS** — one correctly linked row |
-| `result_summary` | **PASS** — populated |
-| `resolved_inputs` | **PASS** — NULL, as designed |
-| `engine_version` | **PASS** — `bse-2.0.0` |
-| `status` | **PASS** — `draft` |
-| Autosave | **PASS** — Target PITI Comfort $3,200 → $3,250 with no click produced *Saving…* → *Saved* |
+| `buyer_profile` row created | PASS |
+| `shopping_plan` row created | PASS |
+| `property` row created | PASS |
+| `property_scenario` row created | PASS |
+| Relationships verified in Table Editor | PASS |
+| `result_summary` populated | PASS |
+| `resolved_inputs` remained NULL as designed | PASS |
+| `engine_version` = `bse-2.0.0` | PASS |
+| `status` = `draft` | PASS |
 
-That closes §27, §28, §29, §30, §32 and the write half of §6/§7 with live evidence
-rather than test evidence.
+`resolved_inputs` staying NULL is the live confirmation of the Gate B.75 rule
+that a resolved default is never written into an authored record.
 
-## 58b. What is STILL NOT proven — the manual tests to run now
+### 3. Autosave — **PASS**
 
-Tests 1, 4 and 5 below are already covered by §58a or remain outstanding as
-noted. **Tests D through H are the ones Gate C.5 was built for and none has been
-run yet.**
+Editing an input produced *Unsaved changes* → *Saving…* → *Saved* with no click.
 
-**Serve the tool** — the redirect URL is registered for `http://localhost:8080`,
-so it must be served from that exact origin, not opened as a file. **Restart the
-server and hard-refresh (⌘⇧R)** so you get the new build:
+### 4. Saved-buyer retrieval — **PASS**
 
-```bash
-cd ~/Tools/Live/internal/buyer-strategy
-python3 -m http.server 8080
+`Test Sample` appeared in **Open saved buyer…**. Closing and reopening the
+browser, then loading `Test Sample`, restored the saved inputs, and the
+calculation engine recomputed the scenario after loading.
+
+This is the live confirmation that **load recomputes rather than trusting the
+stored `result_summary`**.
+
+### 5. Existing-record update — **PASS**
+
+`Test Sample` was changed $450,000 → $460,000 → $470,000. Autosave completed.
+Reloading restored $470,000. **The existing buyer remained the active record**
+rather than a new buyer being created.
+
+### 6. Duplicate investigation — **PASS / NO GATE C.5 DUPLICATION**
+
+Supabase initially showed four `property_scenario` rows. The diagnostic query
+resolved it definitively:
+
+| Rows | Origin | Disposition |
+|---|---|---|
+| **Three** — distinct `buyer_profile_id`, one scenario each, `analysis_mode = shopping`, `list_price` NULL | **Historical Gate C test workspaces.** Created during earlier Gate C manual sessions, when each fresh sign-in or reload legitimately produced a new workspace (the documented pre-Gate-C.5 behaviour, §59 item 5) | **Left untouched**, per instruction |
+| **One** — `Test Sample`, `analysis_mode = property`, `list_price` populated | **The live Gate C.5 record.** Exactly one scenario; autosave updated it in place to $460,000 and later $470,000 | Active |
+
+All four rows belonged to **four distinct `buyer_profile_id` values**, and no
+buyer held more than one scenario. **Gate C.5 created no duplicates.**
+
+### 7. Auth-event binding defect — **FOUND, FIXED, VALIDATED**
+
+Investigating item 6 surfaced a latent defect that had not yet fired in
+production use — §57e. A `TOKEN_REFRESHED` event for the *same* user was tearing
+down the active binding, so the next autosave would have written a whole new
+record set.
+
+- Differential testing proved the pre-fix build forked a buyer after a token
+  refresh: **2 rows before the fix, 1 after**, under identical conditions.
+- 16 new assertions (P12) prove same-user auth events preserve the binding. They
+  discriminate: the pre-fix build scores 73 pass / 15 fail.
+- Fixed in commit **`b0524b5`**.
+- **Post-fix manual validation passed** — autosave and reload of `Test Sample`
+  at $470,000.
+
+### 8. Cross-user security / RLS — **PASS**
+
+Signed out of the original account and signed in with a different email address.
+**Open saved buyer…** contained no `Test Sample` record. The second user could
+not see the first user's saved buyer.
+
+This closes §38 with live end-to-end evidence through Supabase Auth and
+PostgREST, not just database-layer evidence.
+
+## 58b. Deferred manual checks
+
+Two Gate C items were never blocking and remain unrun. Neither affects closeout.
+
+**Network failure.** Signed in, wi-fi off, change an input, wait two seconds.
+Expected: *Save failed — …* in red, with your numbers and the recommendation
+still on screen. Proven by test (P5), not yet live.
+
+**The offline promise (M-10).** Cold start with wi-fi off. Expected: the tool
+calculates normally and reads *Not connected*. Proven by test (P1), not yet live.
+
+## 58c. Final automated verification at closeout
+
+Re-run against the final committed application
+`4dec9aada934ee5bdb8fba83dc80d11b` (commit `b0524b5`), confirmed identical to the
+committed git object:
+
+| # | Suite | Result |
+|---|---|---|
+| 1 | Permanent numerical regression (47 audit scenarios) | **68 / 68**, 1 not executable |
+| 2 | Gate A — M-1 canonical units | **80 / 80** |
+| 3 | Gate B — canonical application state | **22 / 22** |
+| 4 | Gate B.5 — C-4b presentation integrity | **64 / 64** |
+| 5 | Gate B.5 — model authority | **12 / 12** |
+| 6 | Gate B.75 — persistence contract | **40 / 40** |
+| 7 | Cross-tool R-47 | **4 / 4** |
+| 8 | Gate C / C.5 / C.5a — client orchestration | **89 / 89** |
+| 9 | Gate C — schema and RLS on PostgreSQL 16.13 | **74 / 74** |
+| | **TOTAL** | **453 assertions · 0 failures** |
+
+**Protected calculation engine — unchanged:**
+
+```
+pre-Phase-3 baseline (540ccbe)   96e6bea541a19e1ac3ec3f82cd45525c
+Gate B.75 approved               96e6bea541a19e1ac3ec3f82cd45525c
+FINAL committed (b0524b5)        96e6bea541a19e1ac3ec3f82cd45525c
 ```
 
-### A. Save Buyer A
+**Application diff versus the approved Gate B.75 file:** two insertions,
+**zero** lines removed or changed. All **3,449** Gate B.75 lines verified present,
+in order.
 
-Sign in. The chip must read **Not saved** — not *Saved*. Type a name in the
-**Buyer name** field, e.g. `Test Buyer A`. Fill in price, income, monthly debts,
-own funds and credit score. **Write down the price and the recommended program.**
-Click **Save**.
+**Protected files unchanged:** `property-tax.html` `1cd00523…`,
+`buyer/comfort-calculator.html` `772de6d1…`, Staging BSE `01830ac6…`.
 
-*Expected:* chip → *Saving…* → **Saved**. The marker shows **Test Buyer A** in
-blue, and the buyer appears in the **Open saved buyer…** list.
+**Schema and RLS unchanged during Gate C.5, C.5a and closeout:**
+`supabase/migrations/` was last modified at commit `d7dbbcf` (Gate C) and has not
+been touched since.
 
-### B. Close and reopen the browser
+**Secrets scan:** clean. No service-role key, database password or connection
+string anywhere in the repository or documentation.
 
-Quit the browser completely — not just the tab — and reopen
-`http://localhost:8080/index.html`.
+## 59. Known limitations and deferred items
 
-### C. Sign back in
+Carried forward into whatever comes next. None of these blocked closeout.
 
-*Expected:* you are either still signed in, or one magic link returns you. The
-chip reads **Not saved**, because a fresh workspace has saved nothing yet. The
-marker reads **New buyer**.
+**Retrieval**
 
-*This is correct behaviour, not a bug:* reopening gives you a blank workspace,
-and you pick up a buyer deliberately in step D.
+1. **The buyer picker is a flat list.** Every active buyer, by name, with no
+   search, sort, paging or archive control. It will get unwieldy past a few dozen
+   records.
+2. **No "new buyer" button.** Starting a fresh workspace means reloading the page
+   or signing out and back in.
+3. **A buyer saved before Gate C.5 carries an auto-generated `Buyer <date time>`
+   label.** Open it, type a name, and the next save renames that same record.
+4. **Three historical Gate C test workspaces remain in the database**, deliberately
+   untouched. They are shopping-mode, `list_price` NULL, and are distinguishable
+   from real records by that shape alone. Deleting them is a one-statement job
+   whenever you want it.
 
-### D. Select Buyer A
+**Persistence**
 
-Open the **Open saved buyer…** dropdown. *Expected:* `Test Buyer A` is listed.
-Select it.
+5. **The Supabase library loads from a public CDN (`esm.sh`) at runtime.** A CDN
+   outage means no-save mode, not a broken tool — but it is an external
+   dependency. Vendoring it is a reasonable future change.
+6. **No offline queue.** A save attempted while offline fails, says so, and
+   retries only when the user edits again or presses Save. Deliberate: a silent
+   offline queue can resurrect stale numbers.
+7. **`numeric` returns as a string from PostgREST.** The deserializer parses every
+   numeric column explicitly. Any future code path that skips that will silently
+   compare `"6.750"` to `6.75`.
+8. **Session expiry behaviour is inspection-only.** Token refresh is now proven
+   safe (§57e), but what the officer sees when a session genuinely expires
+   mid-edit has not been exercised live.
+9. **Two manual checks deferred** — live network-failure behaviour and the live
+   offline cold start (§58b). Both are proven by test.
 
-### E. Confirm inputs restore and calculations recompute
+**Carried forward unchanged from earlier gates**
 
-*Expected:* every input comes back — price, income, debts, funds, score. The
-recommendation and payment figures match what you wrote down in step A. The
-marker reads **Test Buyer A**. The chip reads **Saved**.
+10. `num()` coercion (M-4) · the floating `%` concession base (M-13) ·
+    Shopping-Mode unit reinterpretation · PMI band `c` unreachable end-to-end ·
+    `BSEModel.capture()` on every `recalc()` · 1,157 REQUIRES-REVIEW baseline
+    fields that are change detectors, not correctness claims · R-13d not
+    executable through the UI · FL property tax **not** integrated · the
+    Comfort Calculator **not** retired · no iPad or phone validation · no live
+    buyer call · the git device-bridge lock limitation.
 
-*Report:* any field that came back blank, wrong, or with a different recommendation.
+## 60. Gate C and Gate C.5 — CLOSED
 
-### F. Change one input and let autosave run
-
-Change the price. *Expected:* the chip switches to **Unsaved changes**
-immediately, then to *Saving…* → **Saved** about two seconds later, with no click.
-
-Now check Supabase → **Table Editor** → `buyer_profile`. *Expected:* **still
-exactly one row.** Same for `shopping_plan`, `property` and `property_scenario`.
-
-*Report:* if any table now has two rows, stop and tell me — that is a duplicate-record defect.
-
-### G. Reload Buyer A and confirm the change persisted
-
-Select **Open saved buyer…** → `Test Buyer A` again (or reload the page first).
-*Expected:* the **changed** price is what comes back.
-
-### H. Sign in as a different user
-
-Click **Sign out**. *Expected, immediately:* the buyer dropdown empties, the name
-field clears, and the marker returns to **New buyer**. Nothing from Buyer A stays
-on screen.
-
-Sign in with a **different email address** — a second account.
-
-*Expected:* the chip reads **Not saved**, and the **Open saved buyer…** dropdown
-is empty. `Test Buyer A` must not appear.
-
-*Report:* if the second account can see `Test Buyer A` in any form, that is a
-security finding and I need to know immediately.
-
-### Still outstanding from Gate C
-
-**Network failure.** Signed in, turn off wi-fi, change the price, wait two
-seconds. *Expected:* chip reads *Save failed — …* in red, and your numbers and
-recommendation stay on screen. Turn wi-fi back on, click **Save** → *Saved*.
-
-**The offline promise (M-10).** Open the tool with wi-fi off from a cold start.
-*Expected:* it calculates normally and reads *Not connected*. The tool must never
-require an account to do its job.
-
-Until D–H pass, treat §37 and §38 as **unverified** and Gate C as **not complete**.
-
-## 59. Known limitations
-
-1. **Magic-link delivery and the write path are now proven live (§58a).** Session persistence across a browser restart, and expiry handling, are still inspection-only — §58b steps B–C.
-2. **RLS is proven on PostgreSQL 16 and confirmed enabled+forced on Supabase, but end-to-end denial through PostgREST is not proven.** §58b step H.
-3. **`local-verify/00_auth_stub.sql` must never be applied to Supabase** — labelled in the file and the README.
-4. **The Supabase library loads from a public CDN (`esm.sh`) at runtime.** A CDN outage means no-save mode, not a broken tool — but it is an external dependency you should know about. Vendoring it is a reasonable future change.
-5. **Retrieval is a flat list, and one buyer at a time.** Gate C.5 added the picker (§57d). It lists every active buyer by name with no search, sort, paging or archive control, which will get unwieldy past a few dozen records. There is also no "new buyer" button — signing out and back in, or reloading, gives you a fresh workspace. Both are deliberate omissions, not oversights: they were outside the Gate C.5 scope you set.
-5b. **A buyer with no name saved before Gate C.5** carries an auto-generated `Buyer <date time>` label. Open it and type a name to fix it; the next save renames that same record.
-6. **No offline queue.** A save attempted while offline fails, says so, and is retried only when the user edits again or clicks Save. Deliberate — a silent offline queue can resurrect stale numbers.
-7. **`numeric` returns as a string.** The deserializer parses every numeric column explicitly. Any future code path that skips that will silently compare `"6.750"` to `6.75`.
-8. Carried forward and unchanged: `num()` coercion (M-4), the floating `%` concession base (M-13), Shopping-Mode unit reinterpretation, PMI band `c` unreachable, `BSEModel.capture()` on every `recalc()`, 1,157 review fields, no human validation, and the git device-bridge lock limitation.
-
-## 60. Is Gate C ready for approval?
-
-**No — and I am not going to say otherwise until steps D–H in §58b actually pass.**
-
-The write half is now proven live (§58a). The retrieval half and cross-user
-isolation have been proven only by test, and Gate C.5 exists because until today
-there was no interface to prove them through.
+**Closed by Doug Smith on 2026-07-29**, on the authority of the manual validation
+in §58a.
 
 | Requirement | Status |
 |---|---|
-| Supabase schema exists and is reproducible | **Met** — live, and re-verified on real Postgres every test run |
-| Authentication works | **Met — verified live** (§58a) |
-| RLS is active and tested | **Met** at the database layer, live and local. End-to-end awaits §58b step H |
-| Buyer Profiles / Shopping Plans / Property / Scenario persist | **Met — verified live** (§58a) |
-| Authored NULL survives round trip | **Met** |
-| Explicit zero survives round trip | **Met** |
-| Canonical value/unit pairs survive round trip | **Met** — enforced by CHECK constraints, rebuilt from authored values on load |
-| `result_summary` remains non-authoritative | **Met** at three boundaries; `resolved_inputs` NULL confirmed live |
-| Load always recomputes | **Met by test.** Awaits §58b step E |
-| Saved buyers can be retrieved | **Built (Gate C.5), proven by test.** Awaits §58b step D |
-| Reloading does not duplicate records | **Met by test** (P11d). Awaits §58b step F |
-| Same-user cross-session access works | **Awaits §58b steps B–E** |
-| Different-user access is denied | **Met at the database layer; awaits §58b step H** |
-| Autosave cannot overwrite newer state | **Met** — single-flight with queued latest |
-| Network failure fails safely | **Met by test.** Live check still outstanding |
-| Save status is truthful | **Met** — Gate C.5 (§57d) |
-| Regression suite green | **Met** — 453 / 453 |
-| No privileged secrets exposed or committed | **Met** — repository-wide scan clean |
-| Calculation mathematics unchanged | **Met** — two insertions, zero deletions; every Gate B.75 line survives in order; engine region byte-identical to `540ccbe` |
+| Supabase schema exists and is reproducible | **MET** — live, and re-verified on real PostgreSQL every test run |
+| Authentication works | **MET — verified live** |
+| RLS is active and tested | **MET — verified live end to end** (§58a item 8) plus database-layer proof |
+| Buyer Profile / Shopping Plan / Property / Scenario persist | **MET — verified live** |
+| Authored NULL survives round trip | **MET** |
+| Explicit zero survives round trip | **MET** |
+| Canonical (value, unit) pairs survive round trip | **MET** — enforced by CHECK constraints, rebuilt from authored values on load |
+| `result_summary` remains non-authoritative | **MET** — three code boundaries; `resolved_inputs` NULL confirmed live |
+| Load always recomputes | **MET — verified live** (§58a item 4) |
+| Saved buyers can be retrieved | **MET — verified live** (§58a item 4) |
+| Editing a loaded buyer updates it, no duplicates | **MET — verified live** (§58a items 5, 6) |
+| Same-user auth events preserve the binding | **MET** — fixed and pinned (§57e), post-fix validation passed |
+| Same-user cross-session access works | **MET — verified live** (browser closed and reopened) |
+| Different-user access is denied | **MET — verified live** (§58a item 8) |
+| Autosave cannot overwrite newer state | **MET** — single-flight with queued latest |
+| Network failure fails safely | **MET by test.** Live check deferred (§58b) |
+| Save status is truthful | **MET** — Gate C.5 (§57d) |
+| Regression suite green | **MET** — 453 / 453 |
+| No privileged secrets exposed or committed | **MET** — repository-wide scan clean |
+| Calculation mathematics unchanged | **MET** — engine byte-identical to `540ccbe`; two insertions, zero deletions; all 3,449 Gate B.75 lines present in order |
 
-## GATE C COMPLIANCE STATEMENT
+### Commit history
+
+| Commit | Content |
+|---|---|
+| `98bfd3c` | Gate B.75 baseline (starting point) |
+| `d7dbbcf` | Gate C partial — schema, migrations, local verification |
+| `99472f5` | Gate C — auth, RLS, persistence |
+| `80e695c` | Gate C report — commit hash recorded |
+| `e71c26d` | Gate C fix — sign-in must not depend on a privileged read (§57b) |
+| `a06d690` | Gate C — corrected Supabase project URL (§57c) |
+| `c8ec788` | Gate C.5 — saved buyer retrieval (§57d) |
+| `b0524b5` | Gate C.5a — token refresh must not orphan the active buyer (§57e) |
+| *this commit* | Documentation closeout |
+
+Branch `phase3/gate-c-supabase-persistence`. **`main` remains `540ccbe`, not
+merged, not modified.**
+
+## GATE C / GATE C.5 COMPLIANCE STATEMENT
 
 - The Gate B.75 baseline was verified before any file was written, and the patch script **refuses to run** against any other input hash.
 - The Phase 2 seven-table architecture was implemented as specified — not collapsed, not redesigned.
@@ -793,10 +875,11 @@ there was no interface to prove them through.
 - No FL millage was integrated. The Comfort Calculator was not touched.
 - **No secret of any kind was created, requested, committed, or written into documentation.** A repository-wide scan for service-role keys, database passwords and connection strings returns nothing.
 - **Nothing was deployed.** No production, no preview, no Netlify. `localhost:8080` only.
-- **Three real defects were found and fixed** — the round write strategy (§57a), the pre-authentication chicken-and-egg (§57b), and session teardown living in a button handler (§57d). Each was reproduced first, then fixed, then pinned with a test. A fourth issue was configuration, not code (§57c).
-- Gate C.5 stayed inside its scope: no calculation, qualification, recommendation or scoring change; no schema or RLS change; no borrower login; no sharing; no deployment; no merge. The one addition beyond the written scope — a buyer name field — is called out in §57d rather than slipped in.
+- **Four real defects were found and fixed** — the round write strategy (§57a), the pre-authentication chicken-and-egg (§57b), session teardown living in a button handler (§57d), and a token refresh orphaning the active buyer (§57e). Each was reproduced first, then fixed, then pinned with a test that fails against the build that had it. A fifth issue was configuration, not code (§57c).
 - The security surface was **not** widened to make an error message disappear. The schema was right; the client's ordering was wrong, and the client was what changed.
-- Work stopped here because the next three things require you.
+- Gate C.5 and C.5a stayed inside their stated scope: no calculation, qualification, recommendation, scoring, tax or financing change; no schema or RLS change; no borrower login; no sharing; no deployment; no merge. The one addition beyond the written scope — a buyer name field — is called out in §57d rather than slipped in.
+- **Closeout changed documentation only.** No application file, migration, RLS policy or test was modified during closeout; the application md5 is identical before and after.
+- The three historical test workspaces were **left in place**, as instructed.
 
 ---
 

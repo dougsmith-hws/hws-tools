@@ -3,7 +3,7 @@
 
 **HomeWealth Solutions LLC** · Company NMLS #2742458 · FL OFR Mortgage Broker License #MBR8082
 Owner: Doug Smith, President & Broker, CMA®
-Last updated: **2026-07-28** (Gate C — code complete, awaiting live-auth verification by Doug)
+Last updated: **2026-07-29** (Gate C and Gate C.5 CLOSED — manual validation complete)
 
 > **This is the controlling status document for the Buyer Strategy Engine redesign.**
 > Any new Cowork session working on the BSE should read this file first, then the two documents referenced below. Do not reconstruct prior phases from memory or summary — the full detail is on disk.
@@ -21,7 +21,9 @@ Last updated: **2026-07-28** (Gate C — code complete, awaiting live-auth verif
 | **Phase 3 — Gate B** | Numerical baseline + canonical application-state architecture | **COMPLETE** — see `BSE-Phase3-GateB-Report.md` |
 | **Phase 3 — Gate B.5** | Pre-persistence hardening — C-4b, `gatherInputs()` cutover, review-field classification | **COMPLETE** — see `BSE-Phase3-GateB5-Report.md` |
 | **Phase 3 — Gate B.75** | Persistence contract lock — legacy path removed, blank inheritance, pending fields reconciled, `result_summary` non-authoritative | **COMPLETE** — see `BSE-Phase3-GateB75-Report.md` |
-| **Phase 3 — Gate C** | Supabase schema, auth, RLS, persistence | **CODE COMPLETE — awaiting Doug's live-auth tests.** Schema and RLS live in Supabase; client persistence layer plus Gate C.5 saved-buyer retrieval, 453 assertions, 0 failures. Magic-link sign-in, cross-device and cross-user denial need a human inbox and a second device. See `BSE-Phase3-GateC-Report.md` §58 |
+| **Phase 3 — Gate C** | Supabase schema, auth, RLS, persistence | **COMPLETE / CLOSED** 2026-07-29 — eight manual validation tests against the live project, all PASS. See `BSE-Phase3-GateC-Report.md` §58a |
+| **Phase 3 — Gate C.5** | Saved-buyer retrieval + save-status truthfulness | **COMPLETE / CLOSED** 2026-07-29 — retrieval, existing-record update and cross-user isolation verified live. See report §57d |
+| **Phase 3 — Gate C.5a** | Auth-event binding stability | **COMPLETE / CLOSED** 2026-07-29 — `TOKEN_REFRESHED` no longer orphans the active buyer; differential proof and 16 pinned assertions. See report §57e |
 
 Phases 0, 1, and 2 were audit and design only — no source was modified in any of them. Application source was first modified in **Gate A** (three unit-toggle functions plus an additive canonical-unit layer) and extended in **Gate B** (a purely additive canonical application-state layer). The calculation engine, lines 526–1060, is byte-identical to `540ccbe` throughout.
 
@@ -40,7 +42,7 @@ Any session beginning implementation work must verify these before touching anyt
 
 **Pre-Phase-3 git baseline: `540ccbe`** — "Live comma formatting on input with cursor-position restore", 2026-07-27, branch `main`. `main` still points here.
 
-**Current work: branch `phase3/gate-c-supabase-persistence`.** The production BSE is now `4dec9aada934ee5bdb8fba83dc80d11b` (Gate A produced `d5c16fde…`, Gate B `f8b2b9b5…`, Gate B.5 `1f4cde6c…`, Gate B.75 `90bcc96f…`). Gate C's change is **two insertions with zero deletions** — `diff` against Gate B.75 reports `3395a3396,4146` and `3423a4175,4176` and nothing else. The table above remains the correct baseline for `main` and for the three untouched files.
+**Current work: branch `phase3/gate-c-supabase-persistence`.** The production BSE is now `4dec9aada934ee5bdb8fba83dc80d11b` at commit `b0524b5` (Gate A produced `d5c16fde…`, Gate B `f8b2b9b5…`, Gate B.5 `1f4cde6c…`, Gate B.75 `90bcc96f…`). Gate C's change is **two insertions with zero deletions** — `diff` against Gate B.75 reports `3395a3396,4146` and `3423a4175,4176` and nothing else. The table above remains the correct baseline for `main` and for the three untouched files.
 
 Verification command:
 
@@ -92,7 +94,7 @@ These are locked and carry forward into every future session.
 | `docs/BSE-Phase0-1-Forensic-Audit.md` | Complete Phase 0/1 forensic audit: function inventory, all 54 findings with risk classifications, regression baseline scenarios, protected functions, Live vs Staging divergence, FL property-tax findings, persistence audit, field classifications |
 | `docs/BSE-Phase2-Architecture.md` | Complete Phase 2 architecture: 7-table model, all schemas and field definitions, DDL, assumption-set and reproducibility design, tax method architecture, `qualifying_tax_basis`, closing/occupancy dates, DTI override, `organization_id`, canonical-value design, all 13 locked decisions, all 6 resolved questions, migration risks, phase sequencing |
 | `docs/BSE-Phase3-GateA-Report.md` | Gate A completion report — M-1 failure path, the fix, tests, regression results, Gate B findings |
-| `docs/BSE-Phase3-GateC-Report.md` | Gate C progress report and STOP — schema, RLS, canonical↔database mapping, and exactly what Supabase access is missing |
+| `docs/BSE-Phase3-GateC-Report.md` | **Gate C + Gate C.5 closeout report** — schema, RLS, auth, persistence, saved-buyer retrieval, the four defects found and fixed, the full manual validation record (§58a), and the final automated verification (§58c) |
 | `docs/BSE-Phase3-GateB75-Report.md` | Gate B.75 completion report — the locked persistence contract: one source of truth, blank inheritance, reconciled scenario fields, `result_summary` cache-only |
 | `docs/BSE-Phase3-GateB5-Report.md` | Gate B.5 completion report — the C-4b failure path and fix, the `gatherInputs()` cutover, the 1,532-field classification, the safe `result_summary` set, Gate C readiness |
 | `docs/BSE-Phase3-GateB-Report.md` | Gate B completion report — Checkpoint B1, the permanent baseline and how its expected values were established, the canonical state layer, limitations, Gate C findings |
@@ -141,43 +143,60 @@ Also note: `Tools/_to_delete/phase3-cleanup-20260728/` contains a zero-byte prob
 
 ## 7. IMMEDIATE NEXT ACTION
 
-**Gate C is code complete. Three things remain, and all three require Doug.**
+**Gate C, Gate C.5 and Gate C.5a are CLOSED** as of 2026-07-29, on the authority
+of eight manual validation tests against the live Supabase project — all PASS.
+The full record is `BSE-Phase3-GateC-Report.md` §58a.
 
-Serve the tool from the exact origin registered as the Supabase redirect URL:
+**Final state**
 
-```
-cd ~/Tools/Live/internal/buyer-strategy
-python3 -m http.server 8080
-# then open http://localhost:8080/index.html
-```
+| | |
+|---|---|
+| Branch | `phase3/gate-c-supabase-persistence` |
+| HEAD | `b0524b5` (application) + the closeout documentation commit |
+| Application | `4dec9aada934ee5bdb8fba83dc80d11b` |
+| `main` | **`540ccbe` — not merged, not modified** |
+| Automated | **453 assertions, 0 failures** across nine suites |
+| Calculation engine | **byte-identical to `540ccbe`** — `96e6bea541a19e1ac3ec3f82cd45525c` |
+| Deployed | **Nothing.** `localhost:8080` only |
 
-Then run the five tests in `BSE-Phase3-GateC-Report.md` §58 and report the results:
+**Nothing is authorized to begin.** The next phase has not been scoped or
+approved. Do not start one.
 
-1. **Magic-link sign-in** — did the email arrive, did the link return you to the tool, what does the status chip say?
-2. **Cross-session and cross-device** — does the session survive closing the tab, and does a second device see the same buyer?
-3. **Cross-user denial** — sign in with a second email address. It must see nothing. Anything else is a security finding.
-4. **Network failure** — turn wi-fi off mid-edit. Your numbers and the recommendation must stay on screen.
-5. **The offline promise (M-10)** — cold start with wi-fi off. The tool must calculate normally and read *Not connected*.
+**Deferred, carried forward** — none of these blocked closeout:
 
-Until those are run, treat report §6, §7, §37 and §38 as unverified.
+1. Live network-failure and offline cold-start checks (proven by test, not yet live).
+2. The three historical Gate C test workspaces remain in the database, untouched
+   and deliberately so. They are shopping-mode with `list_price` NULL; the live
+   record `Test Sample` is property-mode with a price. A one-statement cleanup
+   when wanted.
+3. The buyer picker is a flat list — no search, sort, paging or archive, and no
+   "new buyer" button.
+4. The Supabase library loads from a public CDN at runtime; vendoring it removes
+   an external dependency.
+5. Session-expiry behaviour mid-edit is inspection-only. Token refresh is proven
+   safe; genuine expiry is not.
+6. FL property tax is **not** integrated. The Comfort Calculator is **not**
+   retired. Both remain out of scope and untouched.
 
-**Not deployed.** No production, no preview, no Netlify. `localhost:8080` only. The branch is not merged to `main`.
+**Locked decisions, now enforced by the database as well as the application:**
 
-**Two defects were found and fixed during Gate C.** The round write strategy would have silently broken every autosave for any buyer in active negotiation (report §57a). Doug's first live sign-in attempt then exposed a pre-authentication chicken-and-egg: `boot()` read a table granted to `authenticated` only, so you could not sign in because signing in required already being signed in (report §57b). Both are pinned by tests that fail against the broken build.
-
-A third issue was configuration, not code: the Supabase project URL supplied was 19 characters instead of 20 and did not resolve, producing `Sign-in failed — Failed to fetch`. Corrected to `https://oxvtuvoguulphgycgixg.supabase.co` (report §57c). No code changed.
-
-**Test 1 in §58 still has not succeeded and is the next action.**
-
-Gate B.75 remains complete and approved.
-
-All four Gate B.5 carry-forward items are discharged. **Locked persistence-contract decisions**, now enforced by the database as well as the application:
-
-1. **BSEModel is the sole authoritative economic state.** The DOM is an interface. There is one `gatherInputs()` and it delegates to the model. Gate C added no second mapping — the canonical↔row translation lives in the application and the tests call it inside the page.
-2. **Blank ≠ zero.** A blank authored value is NULL and inherits per L-1 — ultimately from the assumption set (rates 6.750 / 6.250 / 6.125, closing costs 3.00%). An explicit 0 is an authored zero and wins. The resolved default is **never** written back into the authored record, and `resolved_inputs` is persisted as NULL unconditionally.
-3. **Concession-before-price and mode-before-round are first-class Property Scenario state** — `offer_concession_value` / `offer_concession_unit` / `negotiation_mode`. A `negotiation_round` requires a price; scenario-level negotiation intent does not.
-4. **`result_summary` is cache-only and mechanically non-authoritative.** It is stripped on restore, never returned into canonical state at all, always rebuilt from a fresh engine run, and a disagreeing cache is discarded and reported. Recompute always wins.
-5. **Persistence never runs from `recalc()`.** Autosave listens on its own `input`/`change` handlers, debounced 1500 ms, single-flight with a queued latest snapshot.
+1. **BSEModel is the sole authoritative economic state.** The DOM is an interface.
+   One `gatherInputs()`, delegating to the model. The canonical↔row mapping lives
+   in the application and the tests call it inside the page — no second source of
+   truth.
+2. **Blank ≠ zero.** A blank authored value is NULL and inherits per L-1. An
+   explicit 0 is an authored zero and wins. The resolved default is never written
+   back; `resolved_inputs` is persisted as NULL — confirmed live.
+3. **Concession-before-price and mode-before-round are first-class Property
+   Scenario state.** A `negotiation_round` requires a price; negotiation intent
+   does not.
+4. **`result_summary` is cache-only and mechanically non-authoritative.** Stripped
+   on restore, never returned into canonical state, always rebuilt from a fresh
+   engine run — confirmed live by retrieval recomputing the scenario.
+5. **Persistence never runs from `recalc()`.** Autosave listens on its own
+   handlers, debounced 1500 ms, single-flight with a queued latest snapshot.
+6. **Only a sign-out or a genuinely different user ends a working session.** A
+   token refresh preserves the active buyer binding (Gate C.5a).
 
 To run the suites, see `internal/buyer-strategy/tests/README.md`.
 
