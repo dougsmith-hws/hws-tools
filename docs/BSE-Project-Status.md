@@ -21,7 +21,7 @@ Last updated: **2026-07-28** (Gate C — code complete, awaiting live-auth verif
 | **Phase 3 — Gate B** | Numerical baseline + canonical application-state architecture | **COMPLETE** — see `BSE-Phase3-GateB-Report.md` |
 | **Phase 3 — Gate B.5** | Pre-persistence hardening — C-4b, `gatherInputs()` cutover, review-field classification | **COMPLETE** — see `BSE-Phase3-GateB5-Report.md` |
 | **Phase 3 — Gate B.75** | Persistence contract lock — legacy path removed, blank inheritance, pending fields reconciled, `result_summary` non-authoritative | **COMPLETE** — see `BSE-Phase3-GateB75-Report.md` |
-| **Phase 3 — Gate C** | Supabase schema, auth, RLS, persistence | **CODE COMPLETE — awaiting Doug's live-auth tests.** Schema and RLS live in Supabase; client persistence layer built and tested (414 assertions, 0 failures). Magic-link sign-in, cross-device and cross-user denial need a human inbox and a second device. See `BSE-Phase3-GateC-Report.md` §58 |
+| **Phase 3 — Gate C** | Supabase schema, auth, RLS, persistence | **CODE COMPLETE — awaiting Doug's live-auth tests.** Schema and RLS live in Supabase; client persistence layer plus Gate C.5 saved-buyer retrieval, 437 assertions, 0 failures. Magic-link sign-in, cross-device and cross-user denial need a human inbox and a second device. See `BSE-Phase3-GateC-Report.md` §58 |
 
 Phases 0, 1, and 2 were audit and design only — no source was modified in any of them. Application source was first modified in **Gate A** (three unit-toggle functions plus an additive canonical-unit layer) and extended in **Gate B** (a purely additive canonical application-state layer). The calculation engine, lines 526–1060, is byte-identical to `540ccbe` throughout.
 
@@ -40,7 +40,7 @@ Any session beginning implementation work must verify these before touching anyt
 
 **Pre-Phase-3 git baseline: `540ccbe`** — "Live comma formatting on input with cursor-position restore", 2026-07-27, branch `main`. `main` still points here.
 
-**Current work: branch `phase3/gate-c-supabase-persistence`.** The production BSE is now `f4466ff69519203968119e4380ab9519` (Gate A produced `d5c16fde…`, Gate B `f8b2b9b5…`, Gate B.5 `1f4cde6c…`, Gate B.75 `90bcc96f…`). Gate C's change is **two insertions with zero deletions** — `diff` against Gate B.75 reports `3395a3396,3998` and `3423a4027,4028` and nothing else. The table above remains the correct baseline for `main` and for the three untouched files.
+**Current work: branch `phase3/gate-c-supabase-persistence`.** The production BSE is now `6d5aa41ec2593f42a2a155265d5734da` (Gate A produced `d5c16fde…`, Gate B `f8b2b9b5…`, Gate B.5 `1f4cde6c…`, Gate B.75 `90bcc96f…`). Gate C's change is **two insertions with zero deletions** — `diff` against Gate B.75 reports `3395a3396,4125` and `3423a4154,4155` and nothing else. The table above remains the correct baseline for `main` and for the three untouched files.
 
 Verification command:
 

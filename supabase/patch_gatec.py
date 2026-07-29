@@ -64,7 +64,7 @@ const BSEPersistence = (function(){
   let inFlight = false, pending = false;
   let debounceTimer = null;
   let lastError = null;
-  let state = 'no-save';      // no-save | signed-out | idle | saving | saved | failed
+  let state = 'no-save';      // no-save | signed-out | unsaved | dirty | saving | saved | failed
   let booted = false;         // boot() has reached a terminal state
   let transportInjected = false;  // a transport was installed outside boot()
 
@@ -338,8 +338,13 @@ const BSEPersistence = (function(){
   }
 
   /* ---------------- save status ---------------- */
+  /* Gate C.5: 'Saved' is a claim about the database, not about the session.
+     It may appear ONLY after a successful write, or after a successful load
+     with no local edits since. Signing in saves nothing, so it does not earn
+     the word. */
   const LABEL = { 'no-save':'Not connected', 'signed-out':'Sign in to save',
-                  idle:'Saved', saving:'Saving…', saved:'Saved',
+                  unsaved:'Not saved', dirty:'Unsaved changes',
+                  saving:'Saving…', saved:'Saved',
                   failed:'Save failed', 'signin-failed':'Sign-in failed' };
   /* A sign-in failure and a save failure are different events and must not
      share a message. "Save failed" while the buyer is trying to sign in is
@@ -356,6 +361,8 @@ const BSEPersistence = (function(){
     el.title = s === 'failed'        ? 'Your work is still here. Fix the connection and press Save.'
              : s === 'signin-failed' ? 'Your work is still here. You can keep using the tool without an account.'
              : s === 'no-save'       ? 'Saving is unavailable — the tool is working normally and nothing has been lost.'
+             : s === 'unsaved'       ? 'Nothing has been written to your account yet. Press Save, or just keep typing.'
+             : s === 'dirty'         ? 'You have changes that have not been written yet.'
              : '';
   }
 
@@ -386,7 +393,7 @@ const BSEPersistence = (function(){
             buyer_profile_id: newId(), shopping_plan_id: newId(),
             property_id: newId(), property_scenario_id: newId(),
             assumption_set_id: assumptionSetId,
-            display_name: 'Buyer ' + new Date().toISOString().slice(0,10),
+            display_name: currentBuyerName() || ('Buyer ' + new Date().toISOString().replace('T',' ').slice(0,16)),
             property_label: 'Property 1' };
     return ctx;
   }
@@ -404,6 +411,8 @@ const BSEPersistence = (function(){
     setState('saving');
     try {
       await ensureAssumptionSet();      // requires a session; safe here, not at boot
+      const typedName = currentBuyerName();
+      if(typedName) ensureCtx().display_name = typedName;
       const model = BSEModel.capture();
       const summary = BSEModel.buildResultSummary();   // recomputed, cache only
       const rows = serializeRows(model, ensureCtx(), summary);
@@ -412,6 +421,11 @@ const BSEPersistence = (function(){
       inFlight = false;
       if(pending){ pending = false; return saveNow(); }
       setState('saved');
+      renderCurrentBuyer();
+      /* Re-read the list only when it is actually stale — a new buyer or a
+         rename. Otherwise a 1.5-second autosave would also mean a list query
+         every 1.5 seconds. */
+      if(buyerListStale()) await refreshBuyerList();
       return { ok:true, revision: rev };
     } catch(e){
       inFlight = false;
@@ -507,6 +521,8 @@ const BSEPersistence = (function(){
      is scheduled separately on its own listener and debounced. */
   function scheduleSave(){
     if(!session || !db) return;
+    // The moment the buyer's state diverges from what is stored, say so.
+    if(state === 'saved' || state === 'unsaved') setState('dirty');
     if(debounceTimer) clearTimeout(debounceTimer);
     debounceTimer = setTimeout(() => { debounceTimer = null; saveNow(); }, AUTOSAVE_DEBOUNCE_MS);
   }
@@ -529,6 +545,11 @@ const BSEPersistence = (function(){
       'background:#fff;border:1px solid #E2E8F0;border-radius:10px;padding:6px 10px;font-size:12px;' +
       'box-shadow:0 2px 10px rgba(0,0,0,.12);font-family:-apple-system,BlinkMacSystemFont,sans-serif}' +
       '#bsePersistBar input{border:1px solid #E2E8F0;border-radius:7px;padding:5px 7px;font-size:12px;width:170px}' +
+      '#bsePersistBar select{border:1px solid #E2E8F0;border-radius:7px;padding:5px 7px;font-size:12px;max-width:210px}' +
+      '#bseCurrentBuyer{font-weight:700;color:#0F172A;max-width:210px;overflow:hidden;text-overflow:ellipsis;' +
+      'white-space:nowrap;padding:3px 8px;background:#EAF6FE;border:1px solid #3BB1ED;border-radius:7px}' +
+      '#bseCurrentBuyer.none{font-weight:600;color:#6B7280;background:#F8FAFC;border-color:#E2E8F0}' +
+      '.bse-save.dirty{color:#B45309}.bse-save.unsaved{color:#6B7280}' +
       '#bsePersistBar button{border:1px solid #3BB1ED;background:#3BB1ED;color:#fff;border-radius:7px;' +
       'padding:5px 9px;font-size:12px;font-weight:600;cursor:pointer}' +
       '#bsePersistBar button.ghost{background:#fff;color:#3BB1ED}' +
@@ -538,6 +559,9 @@ const BSEPersistence = (function(){
       '<span class="bse-save" id="bseSaveStatus">Not connected</span>' +
       '<input id="bseEmail" type="email" placeholder="you@example.com" autocomplete="email">' +
       '<button id="bseSignIn" type="button">Email me a link</button>' +
+      '<span id="bseCurrentBuyer" class="none" style="display:none">New buyer</span>' +
+      '<input id="bseBuyerName" type="text" placeholder="Buyer name" style="display:none;width:150px">' +
+      '<select id="bseBuyerList" style="display:none"><option value="">Open saved buyer…</option></select>' +
       '<button id="bseSave" class="ghost" type="button" style="display:none">Save</button>' +
       '<button id="bseSignOut" class="ghost" type="button" style="display:none">Sign out</button>';
     document.body.appendChild(bar);
@@ -551,9 +575,102 @@ const BSEPersistence = (function(){
       catch(e){ setState('signin-failed', e); }
     });
     document.getElementById('bseSave').addEventListener('click', () => saveNow());
-    document.getElementById('bseSignOut').addEventListener('click', async () => {
-      await db.signOut(); session = null; ctx = null; renderAuthUI(); setState('signed-out');
+    /* Renaming is a save-time concern only. It must not schedule an autosave on
+       its own — the name is not economic state, and typing a name should never
+       look to the rest of the system like a calculation change. */
+    document.getElementById('bseBuyerName').addEventListener('input', () => {
+      if(ctx) ctx.display_name = currentBuyerName() || ctx.display_name;
     });
+    document.getElementById('bseBuyerList').addEventListener('change', async (ev) => {
+      const id = ev.target.value;
+      if(!id) return;
+      const r = await loadBuyer(id);
+      if(!r.ok) ev.target.value = ctx ? ctx.buyer_profile_id : '';
+    });
+    document.getElementById('bseSignOut').addEventListener('click', async () => {
+      if(db) await db.signOut();
+      session = null; endSessionUI(); setState('signed-out');
+    });
+  }
+
+  /* ---------------- Gate C.5: saved-buyer retrieval ----------------
+
+     Session teardown lives HERE, not in the Sign out button's handler. A
+     session can end without anyone pressing that button — an expired token, a
+     refresh failure, onAuthChange firing with null — and when it does, the
+     previous officer's buyer NAMES must not stay on screen. RLS would still
+     refuse to load those records, but a list of client names left visible to
+     whoever sits down next is its own problem. */
+  function endSessionUI(){
+    ctx = null; assumptionSetId = null;
+    const nameEl = document.getElementById('bseBuyerName');
+    if(nameEl) nameEl.value = '';
+    renderBuyerList([]);
+    renderCurrentBuyer();
+    renderAuthUI();
+  }
+
+  function currentBuyerName(){
+    const el = document.getElementById('bseBuyerName');
+    return el && el.value.trim() ? el.value.trim() : null;
+  }
+
+  /* The list is exactly what the database returned for THIS session. There is
+     no client-side owner filtering here and there must never be: RLS is the
+     boundary, and a filter in this function would only hide a policy failure. */
+  function renderBuyerList(rows){
+    const sel = document.getElementById('bseBuyerList');
+    if(!sel) return;
+    const keep = ctx ? ctx.buyer_profile_id : '';
+    sel.innerHTML = '<option value="">Open saved buyer…</option>';
+    (rows || []).forEach(r => {
+      const o = document.createElement('option');
+      o.value = r.id; o.textContent = r.display_name || 'Untitled buyer';
+      sel.appendChild(o);
+    });
+    if(keep && Array.prototype.some.call(sel.options, o => o.value === keep)) sel.value = keep;
+  }
+
+  async function refreshBuyerList(){
+    if(!db || !session){ renderBuyerList([]); return []; }
+    try { const rows = await db.listBuyers(); renderBuyerList(rows); renderCurrentBuyer(); return rows; }
+    catch(e){ renderBuyerList([]); return []; }
+  }
+
+  function renderCurrentBuyer(){
+    const el = document.getElementById('bseCurrentBuyer');
+    if(!el) return;
+    const bound = !!(ctx && ctx.buyer_profile_id);
+    el.textContent = bound ? (ctx.display_name || 'Untitled buyer') : 'New buyer';
+    el.className = bound ? '' : 'none';
+    el.title = bound ? ('Working on saved buyer: ' + (ctx.display_name || 'Untitled buyer'))
+                     : 'Nothing has been saved to your account yet.';
+    const sel = document.getElementById('bseBuyerList');
+    if(sel && bound && Array.prototype.some.call(sel.options, o => o.value === ctx.buyer_profile_id))
+      sel.value = ctx.buyer_profile_id;
+    const nameEl = document.getElementById('bseBuyerName');
+    if(nameEl && bound && ctx.display_name && nameEl.value !== ctx.display_name)
+      nameEl.value = ctx.display_name;
+  }
+
+  function buyerListStale(){
+    const sel = document.getElementById('bseBuyerList');
+    if(!sel || !ctx) return false;
+    const opt = Array.prototype.filter.call(sel.options, o => o.value === ctx.buyer_profile_id)[0];
+    return !opt || opt.textContent !== (ctx.display_name || 'Untitled buyer');
+  }
+
+  /* Selecting a buyer goes through the SAME load() the tests exercise: restore
+     canonical state, then recompute. A stored result_summary is never trusted. */
+  async function loadBuyer(id){
+    setState('saving');
+    let r;
+    try { r = await load(id); }
+    catch(e){ setState('failed', e); return { ok:false, error:String(e.message || e) }; }
+    if(!r.ok){ setState('failed', new Error(r.reason || 'load failed')); return r; }
+    renderCurrentBuyer();
+    setState('saved');          // loaded, and unchanged since — this one is earned
+    return r;
   }
 
   function renderAuthUI(){
@@ -564,6 +681,10 @@ const BSEPersistence = (function(){
     g('bseSignIn').style.display = signedIn ? 'none' : '';
     g('bseSave').style.display   = signedIn ? '' : 'none';
     g('bseSignOut').style.display= signedIn ? '' : 'none';
+    g('bseBuyerList').style.display   = signedIn ? '' : 'none';
+    g('bseBuyerName').style.display   = signedIn ? '' : 'none';
+    g('bseCurrentBuyer').style.display= signedIn ? '' : 'none';
+    if(signedIn) renderCurrentBuyer();
   }
 
   /* ---------------- boot ---------------- */
@@ -591,10 +712,13 @@ const BSEPersistence = (function(){
       /* Never publish over a transport installed while we were waiting. */
       if(transportInjected){ booted = true; return; }
       db = transport; session = s;
-      db.onAuthChange(s2 => { session = s2; ctx = null; assumptionSetId = null;
-                              renderAuthUI(); setState(s2 ? 'idle' : 'signed-out'); });
+      db.onAuthChange(s2 => { session = s2;
+                              endSessionUI();          // every session change starts clean
+                              setState(s2 ? 'unsaved' : 'signed-out');
+                              refreshBuyerList(); });
       renderAuthUI();
-      setState(session ? 'idle' : 'signed-out');
+      setState(session ? 'unsaved' : 'signed-out');
+      refreshBuyerList();
     } catch(e){
       // M-10: no library, no network, no account — the tool still works, it just
       // cannot save. Nothing about the calculation path depends on this.
@@ -611,14 +735,17 @@ const BSEPersistence = (function(){
                      booted: booted, transport: db ? db.kind : null }),
     // testing surface: inject a transport and a session without a network
     __setTransport: (t, s) => { transportInjected = true;
-                                db = t; session = s || null; ctx = null;
+                                db = t; session = s || null;
+                                endSessionUI();
                                 assumptionSetId = t && t.assumptionSetId || null;
-                                renderAuthUI(); setState(s ? 'idle' : 'signed-out'); },
+                                setState(s ? 'unsaved' : 'signed-out'); },
     __setContext: c => { ctx = c; },
     __context: () => ctx,
     __serializeRows: (model, c, cache) => serializeRows(model, c, cache),
     __deserializeRows: (rows, presentation, ui) => deserializeRows(rows, presentation, ui),
     __presentationFrom: presentationFrom,
+    __refreshBuyerList: refreshBuyerList,
+    __loadBuyer: loadBuyer,
     AUTOSAVE_DEBOUNCE_MS: AUTOSAVE_DEBOUNCE_MS
   };
 })();

@@ -17,6 +17,8 @@
      P7  the save-status chip reports each state truthfully
      P8  presentationFrom() rebuilds display from AUTHORED values only (M-1)
      P9  signing out clears the binding; it does not clear the buyer's work
+     P10 the pre-authentication path never dereferences a null transport
+     P11 Gate C.5 — saved-buyer retrieval, record identity, status truthfulness
 
    Usage: node tests/persistence-client.test.js <app.html>
    ===================================================================== */
@@ -36,6 +38,10 @@ const check = (name, ok, detail) => {
 const MOCK = `
 window.__mock = {
   calls: [], saves: [], failNext: false, stallMs: 0, store: null,
+  // db: every row set ever written, keyed by buyer_profile_id. listBuyers and
+  // load filter it by owner the way RLS does on the real backend, so a
+  // cross-user test here fails for the same reason it would fail live.
+  db: {},
   session: { user: { id: '11111111-1111-4111-8111-111111111111' } }
 };
 window.__transport = {
@@ -57,19 +63,30 @@ window.__transport = {
     if(window.__mock.failNext){ window.__mock.failNext = false; throw new Error('network unreachable'); }
     window.__mock.saves.push(JSON.parse(JSON.stringify(rows)));
     window.__mock.store = JSON.parse(JSON.stringify(rows));
+    window.__mock.db[rows.buyer_profile.id] = JSON.parse(JSON.stringify(rows));
     return true;
   },
   async load(id){
     window.__mock.calls.push(['load', id]);
     if(window.__mock.failNext){ window.__mock.failNext = false; throw new Error('network unreachable'); }
-    var s = window.__mock.store;
+    var s = window.__mock.db[id] || window.__mock.store;
     if(!s) return null;
+    // RLS: a row you do not own does not exist as far as you are concerned
+    var me = window.__mock.session && window.__mock.session.user.id;
+    if(s.buyer_profile.owner_user_id !== me) return null;
     return { buyer_profile: s.buyer_profile, shopping_plan: s.shopping_plan,
              property: s.property, property_scenario: s.property_scenario,
              negotiation_rounds: s.negotiation_rounds,
              assumption_set_version: '2026.07-baseline' };
   },
-  async listBuyers(){ return []; }
+  async listBuyers(){
+    window.__mock.calls.push(['listBuyers']);
+    var me = window.__mock.session && window.__mock.session.user.id;
+    return Object.keys(window.__mock.db)
+      .map(function(k){ return window.__mock.db[k].buyer_profile; })
+      .filter(function(b){ return b.owner_user_id === me && b.status === 'active'; })
+      .map(function(b){ return { id: b.id, display_name: b.display_name, updated_at: null }; });
+  }
 };
 window.__install = function(signedIn){
   BSEPersistence.__setTransport(window.__transport, signedIn === false ? null : window.__mock.session);
@@ -362,12 +379,16 @@ const SIGNED_IN_ID = '11111111-1111-4111-8111-111111111111';
     await BSEPersistence.saveNow();
     const truth = BSEModel.buildResultSummary();
     const buyerId = window.__mock.store.buyer_profile.id;
-    // poison the stored cache with a different, wrong recommendation
-    window.__mock.store.property_scenario.result_summary = {
+    // poison the stored cache with a different, wrong recommendation.
+    // The mock now serves load() from db[id], so poison the row load() will
+    // actually return — otherwise the test proves nothing.
+    const poison = {
       cache_only: true, authoritative: false, recommended_program: 'va',
       recommended_scenario_dp: 0, piti: 1, cash_to_close: 1, max_price: 1,
       binding_constraint: 'Nonsense', assumption_set_version: 'bogus', engine_version: 'bogus'
     };
+    window.__mock.store.property_scenario.result_summary = poison;
+    if(window.__mock.db[buyerId]) window.__mock.db[buyerId].property_scenario.result_summary = poison;
     // wipe the live session so the load has to reconstruct everything
     document.getElementById('price').value = '';
     document.getElementById('income').value = '';
@@ -454,6 +475,187 @@ const SIGNED_IN_ID = '11111111-1111-4111-8111-111111111111';
     p9.price === p9.priceBefore && p9.price === '437000' && p9.hasResult, JSON.stringify(p9));
   check('P9 after signing out a save is refused and the chip says so',
     p9.r.ok === false && p9.chip === 'Sign in to save', JSON.stringify(p9.r));
+
+  /* ================= P11: Gate C.5 — saved-buyer retrieval =================
+     Everything here is about the loan officer getting back to a buyer they
+     saved earlier, and about the chip never claiming more than it can prove. */
+
+  // ---- P11a: an authenticated but unsaved workspace must NOT claim "Saved"
+  await fresh({ fields: { price: '400000', income: '9500', debts: '650', ownFunds: '40000' } });
+  const p11a = await page.evaluate(async () => {
+    window.__mock.db = {}; window.__mock.store = null;
+    window.__mock.session = { user: { id: '11111111-1111-4111-8111-111111111111' } };
+    window.__install(true);
+    const chip = document.getElementById('bseSaveStatus');
+    const marker = document.getElementById('bseCurrentBuyer');
+    return { chip: chip.textContent, state: BSEPersistence.status().state,
+             marker: marker.textContent, markerClass: marker.className,
+             listLen: document.getElementById('bseBuyerList').options.length,
+             ctx: BSEPersistence.__context() };
+  });
+  check('P11a a fresh authenticated workspace says "Not saved", never "Saved"',
+    p11a.chip === 'Not saved' && p11a.state === 'unsaved', JSON.stringify(p11a));
+  check('P11a nothing is bound yet, and the UI says so',
+    p11a.ctx === null && p11a.marker === 'New buyer' && /none/.test(p11a.markerClass),
+    JSON.stringify(p11a));
+  check('P11a the selector holds only its placeholder when nothing is saved',
+    p11a.listLen === 1, String(p11a.listLen));
+
+  // ---- P11b: saving earns "Saved" and puts the buyer in the selector
+  const p11b = await page.evaluate(async () => {
+    document.getElementById('bseBuyerName').value = 'Alvarez, Maria';
+    const r = await BSEPersistence.saveNow();
+    const sel = document.getElementById('bseBuyerList');
+    const ctx = BSEPersistence.__context();
+    return { ok: r.ok, chip: document.getElementById('bseSaveStatus').textContent,
+             options: Array.from(sel.options).map(o => o.textContent),
+             selected: sel.value, ctxId: ctx.buyer_profile_id,
+             marker: document.getElementById('bseCurrentBuyer').textContent,
+             storedName: window.__mock.store.buyer_profile.display_name };
+  });
+  check('P11b a successful write earns the word "Saved"',
+    p11b.ok === true && p11b.chip === 'Saved', JSON.stringify(p11b));
+  check('P11b the typed buyer name reaches the database row',
+    p11b.storedName === 'Alvarez, Maria', p11b.storedName);
+  check('P11b the new buyer appears in the selector and is the selected entry',
+    p11b.options.includes('Alvarez, Maria') && p11b.selected === p11b.ctxId,
+    JSON.stringify(p11b.options));
+  check('P11b the currently loaded buyer is identifiable in the UI',
+    p11b.marker === 'Alvarez, Maria', p11b.marker);
+
+  // ---- P11c: an edit revokes the "Saved" claim immediately
+  const p11c = await page.evaluate(async () => {
+    const el = document.getElementById('price');
+    el.value = '455000'; el.dispatchEvent(new Event('input', { bubbles: true }));
+    const immediate = document.getElementById('bseSaveStatus').textContent;
+    await new Promise(r => setTimeout(r, BSEPersistence.AUTOSAVE_DEBOUNCE_MS + 400));
+    return { immediate, settled: document.getElementById('bseSaveStatus').textContent };
+  });
+  check('P11c typing revokes "Saved" at once and says there are unsaved changes',
+    p11c.immediate === 'Unsaved changes', p11c.immediate);
+  check('P11c the autosave then earns "Saved" back',
+    p11c.settled === 'Saved', p11c.settled);
+
+  // ---- P11d: repeated save/autosave must not create duplicate records
+  const p11d = await page.evaluate(async () => {
+    const ids = () => { const c = BSEPersistence.__context();
+      return [c.buyer_profile_id, c.shopping_plan_id, c.property_id, c.property_scenario_id].join('|'); };
+    const first = ids();
+    for (const v of ['460000', '465000', '470000']) {
+      const el = document.getElementById('price');
+      el.value = v; el.dispatchEvent(new Event('input', { bubbles: true }));
+      await new Promise(r => setTimeout(r, BSEPersistence.AUTOSAVE_DEBOUNCE_MS + 300));
+    }
+    await BSEPersistence.saveNow();
+    await BSEPersistence.saveNow();
+    const rows = Object.keys(window.__mock.db).map(k => window.__mock.db[k]);
+    return { stable: first === ids(), buyers: Object.keys(window.__mock.db).length,
+             plans: new Set(rows.map(r => r.shopping_plan.id)).size,
+             props: new Set(rows.map(r => r.property.id)).size,
+             scens: new Set(rows.map(r => r.property_scenario.id)).size,
+             writes: window.__mock.saves.length };
+  });
+  check('P11d the record ids never change across repeated autosaves and manual saves',
+    p11d.stable === true);
+  check('P11d repeated writes create no duplicate buyer, plan, property or scenario rows',
+    p11d.buyers === 1 && p11d.plans === 1 && p11d.props === 1 && p11d.scens === 1,
+    JSON.stringify(p11d));
+
+  // ---- P11e: selecting a buyer restores it AND recomputes
+  const p11e = await page.evaluate(async () => {
+    const buyerA = BSEPersistence.__context().buyer_profile_id;
+    // save a second, different buyer so the selector has a real choice
+    BSEPersistence.__setContext(null);
+    document.getElementById('bseBuyerName').value = 'Okafor, Daniel';
+    document.getElementById('price').value = '325000';
+    document.getElementById('income').value = '7200';
+    recalc();
+    await BSEPersistence.saveNow();
+    const buyerB = BSEPersistence.__context().buyer_profile_id;
+    const bSummary = BSEModel.buildResultSummary();
+
+    // poison A's cached summary, then go back to A through the SELECTOR
+    window.__mock.db[buyerA].property_scenario.result_summary = {
+      cache_only: true, authoritative: false, recommended_program: 'va',
+      recommended_scenario_dp: 0, piti: 1, cash_to_close: 1, max_price: 1,
+      binding_constraint: 'Nonsense', assumption_set_version: 'bogus', engine_version: 'bogus'
+    };
+    const sel = document.getElementById('bseBuyerList');
+    sel.value = buyerA;
+    sel.dispatchEvent(new Event('change', { bubbles: true }));
+    await new Promise(r => setTimeout(r, 250));
+    const aSummary = BSEModel.buildResultSummary();
+    return { buyerA, buyerB,
+             options: Array.from(sel.options).filter(o => o.value).map(o => o.textContent),
+             boundTo: BSEPersistence.__context().buyer_profile_id,
+             marker: document.getElementById('bseCurrentBuyer').textContent,
+             chip: document.getElementById('bseSaveStatus').textContent,
+             price: document.getElementById('price').value,
+             income: document.getElementById('income').value,
+             aProgram: aSummary.recommended_program, aPiti: String(aSummary.piti),
+             bProgram: bSummary.recommended_program, bPiti: String(bSummary.piti) };
+  });
+  check('P11e the selector lists both saved buyers by name',
+    p11e.options.length === 2 && p11e.options.includes('Alvarez, Maria') &&
+    p11e.options.includes('Okafor, Daniel'), JSON.stringify(p11e.options));
+  check('P11e selecting a buyer loads that exact record and rebinds to it',
+    p11e.boundTo === p11e.buyerA && p11e.marker === 'Alvarez, Maria', JSON.stringify(p11e));
+  check('P11e the loaded buyer\'s own inputs are restored, not the other buyer\'s',
+    p11e.price === '470000' && p11e.income === '9500',
+    JSON.stringify({ price: p11e.price, income: p11e.income }));
+  check('P11e the load recomputes through the engine rather than trusting the cache',
+    p11e.aProgram !== 'va' && p11e.aPiti !== '1', JSON.stringify(p11e));
+  check('P11e the two buyers genuinely differ, so the restore proves something',
+    p11e.aPiti !== p11e.bPiti, JSON.stringify({ a: p11e.aPiti, b: p11e.bPiti }));
+  check('P11e a completed load may say "Saved" — loaded and unchanged',
+    p11e.chip === 'Saved', p11e.chip);
+
+  // ---- P11f: editing a LOADED buyer autosaves back to the same record
+  const p11f = await page.evaluate(async () => {
+    const before = BSEPersistence.__context().buyer_profile_id;
+    const beforeCount = Object.keys(window.__mock.db).length;
+    const el = document.getElementById('price');
+    el.value = '481500'; el.dispatchEvent(new Event('input', { bubbles: true }));
+    await new Promise(r => setTimeout(r, BSEPersistence.AUTOSAVE_DEBOUNCE_MS + 400));
+    return { sameRecord: BSEPersistence.__context().buyer_profile_id === before,
+             noNewRows: Object.keys(window.__mock.db).length === beforeCount,
+             persisted: String(window.__mock.db[before].property_scenario.list_price),
+             chip: document.getElementById('bseSaveStatus').textContent };
+  });
+  check('P11f editing a loaded buyer autosaves back to the SAME record',
+    p11f.sameRecord && p11f.noNewRows && p11f.chip === 'Saved', JSON.stringify(p11f));
+  check('P11f the edited value is what actually landed in that record',
+    p11f.persisted === '481500', p11f.persisted);
+
+  // ---- P11g: a second user sees none of the first user's buyers
+  const p11g = await page.evaluate(async () => {
+    const otherId = '22222222-2222-4222-8222-222222222222';
+    const victim = Object.keys(window.__mock.db)[0];
+    await window.__transport.signOut();
+    BSEPersistence.__setTransport(window.__transport, null);
+    const afterSignOut = { list: document.getElementById('bseBuyerList').options.length,
+                           marker: document.getElementById('bseCurrentBuyer').textContent,
+                           ctx: BSEPersistence.__context() };
+    window.__mock.session = { user: { id: otherId } };
+    BSEPersistence.__setTransport(window.__transport, window.__mock.session);
+    await BSEPersistence.__refreshBuyerList();
+    const sel = document.getElementById('bseBuyerList');
+    // and a direct attempt to open someone else's record by id
+    const stolen = await BSEPersistence.load(victim);
+    return { afterSignOut, victim,
+             options: Array.from(sel.options).map(o => o.value).filter(Boolean),
+             chip: document.getElementById('bseSaveStatus').textContent,
+             stolenOk: stolen.ok, stolenReason: stolen.reason };
+  });
+  check('P11g signing out empties the selector and clears the binding',
+    p11g.afterSignOut.list === 1 && p11g.afterSignOut.ctx === null &&
+    p11g.afterSignOut.marker === 'New buyer', JSON.stringify(p11g.afterSignOut));
+  check('P11g a different user sees NONE of the first user\'s saved buyers',
+    p11g.options.length === 0, JSON.stringify(p11g.options));
+  check('P11g a different user starts at "Not saved", not "Saved"',
+    p11g.chip === 'Not saved', p11g.chip);
+  check('P11g even asking for another user\'s record by id returns nothing',
+    p11g.stolenOk === false && /not found/.test(p11g.stolenReason), JSON.stringify(p11g));
 
   check('P-ERR no JavaScript errors in the application during the whole client suite',
     pageErrors.length === 0, pageErrors.slice(0, 3).join(' | '));
