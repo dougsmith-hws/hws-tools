@@ -21,8 +21,8 @@ Last updated: **2026-07-29** (Gate C and Gate C.5 CLOSED — manual validation c
 | **Phase 3 — Gate B** | Numerical baseline + canonical application-state architecture | **COMPLETE** — see `BSE-Phase3-GateB-Report.md` |
 | **Phase 3 — Gate B.5** | Pre-persistence hardening — C-4b, `gatherInputs()` cutover, review-field classification | **COMPLETE** — see `BSE-Phase3-GateB5-Report.md` |
 | **Phase 3 — Gate B.75** | Persistence contract lock — legacy path removed, blank inheritance, pending fields reconciled, `result_summary` non-authoritative | **COMPLETE** — see `BSE-Phase3-GateB75-Report.md` |
-| **Phase 3 — Gate C** | Supabase schema, auth, RLS, persistence | **COMPLETE / CLOSED** 2026-07-29 — eight manual validation tests against the live project, all PASS. See `BSE-Phase3-GateC-Report.md` §58a |
-| **Phase 3 — Gate C.5** | Saved-buyer retrieval + save-status truthfulness | **COMPLETE / CLOSED** 2026-07-29 — retrieval, existing-record update and cross-user isolation verified live. See report §57d |
+| **Phase 3 — Gate C** | Supabase schema, auth, RLS, persistence | **COMPLETE / CLOSED** 2026-07-29 — nine manual validation tests against the live project, all PASS. See `BSE-Phase3-GateC-Report.md` §58a |
+| **Phase 3 — Gate C.5** | Saved-buyer retrieval + save-status truthfulness | **COMPLETE / CLOSED** 2026-07-29 — retrieval, existing-record update, cross-user isolation and account-switch persistence verified live. See report §57d |
 | **Phase 3 — Gate C.5a** | Auth-event binding stability | **COMPLETE / CLOSED** 2026-07-29 — `TOKEN_REFRESHED` no longer orphans the active buyer; differential proof and 16 pinned assertions. See report §57e |
 
 Phases 0, 1, and 2 were audit and design only — no source was modified in any of them. Application source was first modified in **Gate A** (three unit-toggle functions plus an additive canonical-unit layer) and extended in **Gate B** (a purely additive canonical application-state layer). The calculation engine, lines 526–1060, is byte-identical to `540ccbe` throughout.
@@ -144,7 +144,7 @@ Also note: `Tools/_to_delete/phase3-cleanup-20260728/` contains a zero-byte prob
 ## 7. IMMEDIATE NEXT ACTION
 
 **Gate C, Gate C.5 and Gate C.5a are CLOSED** as of 2026-07-29, on the authority
-of eight manual validation tests against the live Supabase project — all PASS.
+of nine manual validation tests against the live Supabase project — all PASS.
 The full record is `BSE-Phase3-GateC-Report.md` §58a.
 
 **Final state**
@@ -197,6 +197,10 @@ approved. Do not start one.
    handlers, debounced 1500 ms, single-flight with a queued latest snapshot.
 6. **Only a sign-out or a genuinely different user ends a working session.** A
    token refresh preserves the active buyer binding (Gate C.5a).
+7. **Session teardown is presentation only.** Signing out clears the binding, the
+   buyer list, the name field and the marker — it does not delete, archive or
+   orphan any record. Verified live by signing into a second account and back
+   into the first, with the original buyer intact.
 
 To run the suites, see `internal/buyer-strategy/tests/README.md`.
 

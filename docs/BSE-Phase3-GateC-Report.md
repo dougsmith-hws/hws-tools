@@ -16,7 +16,7 @@ Date: **July 29, 2026**
 
 > ## GATE C AND GATE C.5 ARE CLOSED
 >
-> **Closed by Doug Smith on 2026-07-29** on the basis of eight manual validation
+> **Closed by Doug Smith on 2026-07-29** on the basis of nine manual validation
 > tests against the live `hws-buyer-strategy` Supabase project, all PASS. The
 > full record is §58a.
 >
@@ -641,8 +641,8 @@ historical test rows were **not** deleted, per instruction.
 ## 58a. MANUAL VALIDATION — COMPLETE, ALL PASS
 
 Performed by Doug Smith against the live `hws-buyer-strategy` Supabase project at
-`http://localhost:8080`, 2026-07-28 / 2026-07-29. These are live-system results,
-not test-harness results.
+`http://localhost:8080`, 2026-07-28 / 2026-07-29. **Nine tests, all PASS.** These
+are live-system results, not test-harness results.
 
 ### 1. Magic-link authentication — **PASS**
 
@@ -721,6 +721,28 @@ not see the first user's saved buyer.
 
 This closes §38 with live end-to-end evidence through Supabase Auth and
 PostgREST, not just database-layer evidence.
+
+### 9. Account-switch persistence — **PASS**
+
+After confirming the second account could not see `Test Sample`, signed out of
+the second account and signed back into the **original** account. `Test Sample`
+was **still saved and still accessible**.
+
+This is the other half of item 8, and it matters more than it first looks. RLS
+denial and session teardown are supposed to change *what you can see*, never
+*what exists*. This test separates the two:
+
+- `endSessionUI()` clears the binding, the buyer list, the name field and the
+  marker on sign-out (§57d). This confirms that teardown is **presentation only**
+  — it did not delete, archive, orphan or reassign the record.
+- The RLS policies hide another user's rows rather than destroying them. The
+  first officer's buyer survived a full sign-out → different-user session →
+  sign-in cycle intact.
+
+Together, items 8 and 9 establish the full property: **your buyers are invisible
+to everyone else and still there for you.** Either half alone would have been an
+incomplete result — item 8 passing while item 9 failed would have meant data
+loss dressed up as security.
 
 ## 58b. Deferred manual checks
 
@@ -840,6 +862,7 @@ in §58a.
 | Same-user auth events preserve the binding | **MET** — fixed and pinned (§57e), post-fix validation passed |
 | Same-user cross-session access works | **MET — verified live** (browser closed and reopened) |
 | Different-user access is denied | **MET — verified live** (§58a item 8) |
+| Denial hides data without destroying it | **MET — verified live** (§58a item 9) — the original account's buyer survived a full account-switch cycle |
 | Autosave cannot overwrite newer state | **MET** — single-flight with queued latest |
 | Network failure fails safely | **MET by test.** Live check deferred (§58b) |
 | Save status is truthful | **MET** — Gate C.5 (§57d) |
