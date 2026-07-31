@@ -49,10 +49,13 @@ window.__apply = function(sc, defaults){
 window.__capture = function(){
   var t = function(id){ var e=document.getElementById(id); return e ? (e.innerText||'').replace(/\\s+/g,' ').trim() : null; };
   var inp = gatherInputs();
+  /* WP-3 — pickBestOverall() was deleted from the engine. The capture keeps a
+     bestOverall key so the frozen baseline's shape does not change, and it now
+     holds the priority-aware pick: the ONE selector that remains. */
   var res = null, pick = null, prio = null;
   try { res = Engine.run(inp, A_CONST); } catch(e){ res = { error: String(e) }; }
-  try { pick = (res && res.scenarios) ? Engine.pickBestOverall(res.scenarios, inp) : null; } catch(e){ pick = { error:String(e) }; }
   try { prio = (res && res.scenarios) ? Engine.priorityPick(res.scenarios, inp) : null; } catch(e){ prio = { error:String(e) }; }
+  pick = prio;
   var slim = function(s){
     var o = {};
     ['id','label','name','dp','price','down','baseLoan','loanAmount','ltv','rate','financedFee','feePct','feeLabel',

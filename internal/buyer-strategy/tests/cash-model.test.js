@@ -61,7 +61,7 @@ const near = (a, b, eps) => Math.abs(a - b) <= (eps === undefined ? 0.01 : eps);
 const BASE = {
   price: '500,000', score: '760', ownFunds: '200,000', gift: '0',
   dpTarget: '', target: '4,500', income: '18,000', debts: '0',
-  stay: '7', priority: 'balanced', rateConv: '6.750', rateFha: '6.250',
+  stay: '7', priority: 'payment', rateConv: '6.750', rateFha: '6.250',
   rateVa: '6.125', ccPct: '3', ccOverride: '', taxRate: '1.20',
   hoi: '150', hoa: '0', cdd: '0', flood: '0',
   desiredReserves: '', escrowDeposit: '', earnestMoney: '',
@@ -122,10 +122,9 @@ const BASE = {
       const inp = Object.assign(JSON.parse(JSON.stringify(gatherInputs())), over);
       const out = engineRun(inp);
       const s = out.scenarios[0];
-      /* The recommendation is pickBestOverall() — the function WP-2 extracted
-         the reserve floor out of — so the reserve assertions read it directly
-         rather than through a renderer. */
-      const bestS = out.scenarios.length ? Engine.pickBestOverall(out.scenarios.slice(), inp) : null;
+      /* WP-3 — pickBestOverall was deleted. Selection now runs through
+         priorityPick, which needs a STATED priority; these probes state one. */
+      const bestS = out.scenarios.length ? Engine.priorityPick(out.scenarios.slice(), inp) : null;
       return {
         s: { dp: s.dp, down: s.down, closing: s.closing, cashToClose: s.cashToClose,
              cashRemaining: s.cashRemaining, maxPrice: s.maxPrice },
@@ -134,20 +133,20 @@ const BASE = {
       };
     };
     /* Reserve-floor probe. The scenario set comes from a real engine run; the
-       pick is then made with an explicit floor. A down-payment target is set on
-       the pick input ONLY so that pickBestOverall's lowest-tier filter stands
-       down — otherwise it narrows the field to a single scenario and there is
-       nothing left for a reserve floor to decide. This is the situation the
-       field exists for: "I want to put 10% down and keep six figures in the
-       bank." */
-    window.__pick = function (fields, floor) {
+       pick is then made with an explicit priority and floor.
+       WP-3 changed where the floor bites: it is a constraint on the RESERVES
+       priority, not a veto applied over the top of whatever the advisor asked
+       for. A buyer who states "lowest payment" gets the lowest payment even if
+       it misses their reserve goal — and the card says so. That is the whole
+       point of retiring Best Overall. */
+    window.__pick = function (fields, floor, priority) {
       window.__cash(fields, { dpUnit: 'pct' });
       const inp = gatherInputs();
       const scen = engineRun(inp).scenarios;
-      const t = Object.assign({}, inp,
-        { dpTarget: { isPct: true, pct: 10, dollar: null }, reserveFloor: floor });
-      const b = Engine.pickBestOverall(scen.slice(), t);
-      return { pick: b ? { dp: b.dp, name: b.name, rem: b.cashRemaining } : null,
+      const t = Object.assign({}, inp, { priority: priority || 'reserves', reserveFloor: floor });
+      const b = Engine.priorityPick(scen.slice(), t);
+      return { pick: b ? { dp: b.dp, name: b.name, rem: b.cashRemaining,
+                           floorApplied: b._floorApplied, reason: b._reason } : null,
                set: scen.map(x => ({ dp: x.dp, rem: Math.round(x.cashRemaining) })) };
     };
   });
@@ -383,21 +382,24 @@ const BASE = {
   }
   {
     const CASE = { price: '500,000', ownFunds: '150,000', dpTarget: '', target: '4,500' };
-    const P = (floor) => page.evaluate(([b, o, f]) => window.__pick(Object.assign({}, b, o), f),
-                                       [BASE, CASE, floor]);
+    const P = (floor, prio) => page.evaluate(([b, o, f, p]) => window.__pick(Object.assign({}, b, o), f, p),
+                                             [BASE, CASE, floor, prio || null]);
     const lo = await P(500);
     const hi = await P(50000);
     const impossible = await P(500000);
-    ok('F2 a reserve goal changes which scenario is recommended',
-       lo.pick && hi.pick && lo.pick.dp !== hi.pick.dp,
-       { at500: lo.pick && lo.pick.dp, at50k: hi.pick && hi.pick.dp, set: lo.set });
-    ok('F2b the recommendation under the goal actually clears it',
-       hi.pick && hi.pick.rem >= 50000, hi.pick);
-    ok('F2c the default floor recommends the scenario that fails the higher goal',
-       lo.pick && lo.pick.rem < 50000, lo.pick);
-    ok('F2d a goal no scenario can meet does not leave the buyer with nothing',
-       impossible.pick !== null && impossible.pick.dp === lo.pick.dp,
+    const payment = await P(50000, 'payment');
+    const best = lo.set.reduce((m, x) => x.rem > m.rem ? x : m, lo.set[0]);
+    ok('F2 the reserves priority selects the scenario leaving the most behind',
+       lo.pick && lo.pick.rem === best.rem, { pick: lo.pick, set: lo.set });
+    ok('F2b with a real goal the pick clears it, and says the floor was applied',
+       hi.pick && hi.pick.rem >= 50000 && hi.pick.floorApplied === true, hi.pick);
+    ok('F2c a goal no scenario can meet still returns an answer, and admits it',
+       impossible.pick !== null && impossible.pick.floorApplied === false &&
+       /no eligible option reaches/.test(impossible.pick.reason || ''),
        { pick: impossible.pick, set: impossible.set });
+    ok('F2d WP-3 — a STATED payment priority is not overridden by the reserve goal',
+       payment.pick && payment.pick.rem < 50000 && payment.pick.dp !== lo.pick.dp,
+       { statedPayment: payment.pick, reservesWouldPick: lo.pick });
   }
   {
     const blank = await F({ desiredReserves: '' });
@@ -424,7 +426,7 @@ const BASE = {
     const r = await page.evaluate(() => {
       window.__cash({ price: '500,000', score: '760', ownFunds: '200,000', gift: '0',
                       dpTarget: '150,000', target: '4,500', income: '18,000', debts: '0',
-                      stay: '7', priority: 'balanced', rateConv: '6.750', ccPct: '3',
+                      stay: '7', priority: 'payment', rateConv: '6.750', ccPct: '3',
                       taxRate: '1.20', hoi: '150', hoa: '0', cdd: '0', flood: '0',
                       desiredReserves: '55,000', escrowDeposit: '7,250', earnestMoney: '5,000' },
                     { cashIsTotal: true });
@@ -464,7 +466,7 @@ const BASE = {
     const r = await page.evaluate(() => {
       window.__cash({ price: '500,000', score: '760', ownFunds: '200,000', gift: '0',
                       dpTarget: '150,000', target: '4,500', income: '18,000', debts: '0',
-                      stay: '7', priority: 'balanced', rateConv: '6.750', ccPct: '3',
+                      stay: '7', priority: 'payment', rateConv: '6.750', ccPct: '3',
                       taxRate: '1.20', hoi: '150', hoa: '0', cdd: '0', flood: '0',
                       desiredReserves: '55,000', escrowDeposit: '7,250', earnestMoney: '5,000' },
                     { cashIsTotal: true });

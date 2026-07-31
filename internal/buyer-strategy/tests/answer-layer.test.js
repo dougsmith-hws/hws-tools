@@ -43,7 +43,7 @@ function ok(label, cond, detail) {
 
 const DEFAULTS = {
   price: '', score: '740', ownFunds: '40,000', gift: '0', dpTarget: '',
-  target: '3,200', income: '9,500', debts: '650', stay: '7', priority: 'balanced',
+  target: '3,200', income: '9,500', debts: '650', stay: '7', priority: 'payment',
   rateConv: '6.750', rateFha: '6.250', rateVa: '6.125', ccPct: '3', ccOverride: '',
   taxRate: '1.20', hoi: '150', hoa: '0', cdd: '0', flood: '0',
   offerPrice: '', offerConc: '0', counterPrice: '', counterConc: '0', counterLoan: 'auto'
@@ -339,7 +339,8 @@ function scanBad(text) {
   console.log('\n--- 7 · persistent buyer goal bar ---');
   await setBuyer({ price: '', target: '3,450', ownFunds: '55,000', gift: '10,000', dpTarget: '12' });
   let gb = await goalText();
-  ok('the goal bar shows the active goal', /Balanced/i.test(gb), gb);
+  /* WP-3 — the bar states the buyer's STATED priority. 'Balanced' is retired. */
+  ok('the goal bar shows the stated priority', /Stay near Comfort Payment/i.test(gb), gb);
   ok('the goal bar shows the target payment', /\$3,450\/mo/.test(gb), gb);
   ok('the goal bar shows the preferred down payment', /12%/.test(gb), gb);
   ok('the goal bar shows total available funds including gift', /\$65,000/.test(gb), gb);
@@ -373,7 +374,7 @@ function scanBad(text) {
      ================================================================ */
   console.log('\n--- 8 · the existing analysis is untouched ---');
   await page.evaluate(() => {
-    const s = document.getElementById('priority'); s.value = 'balanced';
+    const s = document.getElementById('priority'); s.value = 'payment';
     s.dispatchEvent(new Event('change', { bubbles: true }));
   });
   await setBuyer({ price: '461,000', target: '3,000', ownFunds: '200,000', income: '11,000', debts: '400' });

@@ -38,6 +38,33 @@ const src = fs.readFileSync(path.resolve(appPath), 'utf8');
    | 1   | a6e73d694b462cd10983f8ec59eb5f4f   | 529   | Pre-Phase-3 540ccbe, unchanged through Gates A–D |
    | 2   | ff76f4057ba51cbbf1f87a70a7e770a5   | 565   | Phase 4 "Hole 2", approved in writing by Doug Smith, 2026-07-29 |
    | 3   | 2fffd616df3438a8183b6df2efd16a85   | 591   | WP-2 cash model, approved in writing by Doug Smith, 2026-07-31 |
+   | 4   | 5f1cb5842bd7459a244e4cc55f7a0183   | 616   | WP-3 retire Best Overall, approved in writing by Doug Smith, 2026-07-31 |
+
+   REVISION 4 — WP-3. This revision REMOVES a selector. It adds no
+   arithmetic, changes no formula, and moves no computed value.
+
+     pickBestOverall()   DELETED. It auto-optimised toward the lowest down
+                         payment unless the priority was exactly 'payment';
+                         its `near` comparator was pairwise and therefore
+                         non-transitive, so Array.sort could return different
+                         winners for the same set in a different order; and it
+                         hard-coded a priority by planned stay length.
+     optimalSplit()      DELETED. Exported, never called, dead since Gate B.
+     priorityPick()      REWRITTEN. Four buyer-stated priorities, one sort key
+                         each, ties broken on the scenario's original index so
+                         the result cannot depend on array order. Returns null
+                         when no priority has been stated — the engine does not
+                         choose one.
+     reasonFor()         KEPT, and told which priority it is explaining rather
+                         than inferring one from the planned stay.
+     programCards()      the FHA family representative comes from priorityPick,
+                         and the flag is `matchesPriority`, not `recommended`.
+
+   PROOF NO NUMBER MOVED: bse-regression re-run against the frozen file with
+   4,000 EXPECTED VALUE VERIFIED fields — zero drift. The re-pin of the REVIEW
+   (change-detector) blocks was applied by a script that refuses to write
+   anything at all if a single VERIFIED field differs, so this is enforced,
+   not asserted.
 
    REVISION 3 — WP-2. Four touches, each named in the approved Final BSE
    Build Plan, and each verified against the 47-scenario numerical baseline
@@ -84,10 +111,11 @@ const src = fs.readFileSync(path.resolve(appPath), 'utf8');
    row without written approval and a re-run of the numerical baseline.
    ===================================================================== */
 const FROZEN = {
-  engineIIFE:          '2fffd616df3438a8183b6df2efd16a85',   // rev 3 — 591 lines, WP-2
+  engineIIFE:          '5f1cb5842bd7459a244e4cc55f7a0183',   // rev 4 — 616 lines, WP-3
+  engineIIFE_rev3:     '2fffd616df3438a8183b6df2efd16a85',   // rev 3 — 591 lines, WP-2
   engineIIFE_rev2:     'ff76f4057ba51cbbf1f87a70a7e770a5',   // rev 2 — 565 lines, for the record
   engineIIFE_rev1:     'a6e73d694b462cd10983f8ec59eb5f4f',   // rev 1 — 529 lines, for the record
-  engineLines:         591,
+  engineLines:         616,
   maxPriceForScenario: null   // asserted structurally instead — see §2 below
 };
 
@@ -233,6 +261,32 @@ check('VA still generates exactly one 0%-down scenario',
 check('the engine block does not reference A_CONST directly',
       /A_CONST/.test(engineBlock), false,
       'assumptions enter the engine as the `A` parameter, never as a global');
+
+/* ---- 5 · WP-3 rev 4 — the retired selectors stay retired ---- */
+check('pickBestOverall is gone from the engine',
+      /function pickBestOverall\s*\(/.test(engineBlock), false,
+      'it was deleted by approval; re-adding it re-introduces the non-transitive comparator');
+check('optimalSplit is gone from the engine',
+      /function optimalSplit\s*\(/.test(engineBlock), false,
+      'dead since Gate B and deleted in WP-3');
+check('no `near` tolerance window survives in any selector',
+      /const near\s*=\s*\(stay/.test(engineBlock), false,
+      'the pairwise near-tie test is the non-transitivity defect — it must not come back');
+check('priorityPick refuses to choose without a stated priority',
+      /if\(PRIORITIES\.indexOf\(inp\.priority\) < 0\) return null;/.test(engineBlock), true,
+      'a default here would be the engine picking a priority for the buyer');
+check('exactly four priorities are recognised',
+      /const PRIORITIES = \['payment', 'cash', 'reserves', 'power'\];/.test(engineBlock), true);
+check('every priority sorts on ONE metric, with no secondary cascade',
+      /PRIORITY_SORT = \{[\s\S]*?payment:[\s\S]*?a\.piti - b\.piti[\s\S]*?cash:[\s\S]*?a\.cashToClose - b\.cashToClose[\s\S]*?reserves:[\s\S]*?b\.cashRemaining - a\.cashRemaining[\s\S]*?power:[\s\S]*?b\.maxPrice - a\.maxPrice/.test(engineBlock), true);
+check('ties break on the original index, so selection cannot depend on array order',
+      /return d !== 0 \? d : \(order\.get\(a\) - order\.get\(b\)\);/.test(engineBlock), true,
+      'this is what makes the deleted comparator\'s order-dependence impossible by construction');
+check('the reserves priority still honours the WP-2 reserve floor',
+      /inp\.reserveFloor != null \? inp\.reserveFloor : 500/.test(engineBlock), true);
+check('reasonFor survived the deletion',
+      /function reasonFor\(best, pool, inp, gapMode\)/.test(engineBlock), true,
+      'the narrative was the one thing worth keeping from Best Overall');
 
 console.log('');
 console.log('=========================================================');

@@ -8,7 +8,7 @@ const APP = 'file://' + path.resolve(process.argv[2] || 'index.html');
    Implementation-Report Addendum B5. */
 const PROFILE = {
   price: '499,900', score: '788', ownFunds: '200,000', gift: '0', dpTarget: '150,000',
-  target: '3,000', income: '9,500', debts: '40', stay: '7', priority: 'balanced',
+  target: '3,000', income: '9,500', debts: '40', stay: '7', priority: 'payment',
   rateConv: '6.875', rateFha: '6.250', rateVa: '6.125', ccPct: '3', ccOverride: '',
   taxRate: '582', hoi: '250', hoa: '0', cdd: '0', flood: '0',
   offerPrice: '', offerConc: '0', counterPrice: '', counterConc: '0'

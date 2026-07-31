@@ -42,7 +42,7 @@ window.__setRaw = function(map){
 };
 window.__headline = function(){
   var i = gatherInputs(), res = Engine.run(i, A_CONST);
-  var pick = res.scenarios.length ? Engine.pickBestOverall(res.scenarios, i) : null;
+  var pick = res.scenarios.length ? Engine.priorityPick(res.scenarios, i) : null;  // WP-3
   return { rates: i.rates, ccPct: i.ccPct,
            scenarios: res.scenarios.map(function(s){ return {id:s.id, dp:s.dp, piti:s.piti,
              cashToClose:s.cashToClose, maxPrice:s.maxPrice, binding:s.binding}; }),
@@ -269,7 +269,7 @@ window.__headline = function(){
     const afterModel = BSEModel.capture();
     return { truth, loaded, cacheInCanonical: 'result_summary' in afterModel,
              engineNow: (function(){ const i = gatherInputs(), r = Engine.run(i, A_CONST);
-                                     const p = Engine.pickBestOverall(r.scenarios, i);
+                                     const p = Engine.priorityPick(r.scenarios, i);   // WP-3
                                      return { id: p.id, piti: p.piti }; })() };
   });
   check('P5-2 a stale cached summary is discarded on load and never enters canonical state',

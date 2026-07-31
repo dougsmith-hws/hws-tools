@@ -61,7 +61,7 @@ const near = (a, b, eps) => Math.abs(a - b) <= (eps === undefined ? 0.01 : eps);
 /* Doug's buyer. Tax defaults to the $/YR equivalent of $582.26/mo. */
 const BUYER = {
   price: '', score: '788', ownFunds: '200,000', gift: '0', dpTarget: '150,000',
-  target: '3,000', income: '9,500', debts: '40', stay: '7', priority: 'balanced',
+  target: '3,000', income: '9,500', debts: '40', stay: '7', priority: 'payment',
   rateConv: '6.750', rateFha: '6.250', rateVa: '6.125', ccPct: '3', ccOverride: '',
   taxRate: '6,987.12', hoi: '250', hoa: '0', cdd: '0', flood: '0',
   offerPrice: '', offerConc: '0', counterPrice: '', counterConc: '0', counterLoan: 'auto'

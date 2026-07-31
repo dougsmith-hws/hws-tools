@@ -66,6 +66,7 @@ run "job1 rate impact"                 node tests/job1-rate-impact.test.js "$APP
 run "job2 property strategy"           node tests/job2-property-strategy.test.js "$APP"
 run "fl-tax (WP-1 FL/homestead)"       node tests/fl-tax.test.js "$APP"
 run "cash-model (WP-2 cash/CTC)"       node tests/cash-model.test.js "$APP"
+run "buyer-priority (WP-3)"            node tests/buyer-priority.test.js "$APP"
 if [ -f "$BASELINE" ]; then
   run "m1-canonical-units"            node tests/m1-canonical-units.test.js "$BASELINE" "$APP"
 else

@@ -13,7 +13,7 @@
       "income": "9,500",
       "debts": "650",
       "stay": "7",
-      "priority": "balanced",
+      "priority": "payment",
       "rateConv": "6.750",
       "rateFha": "6.250",
       "rateVa": "6.125",
@@ -643,13 +643,13 @@
     {
       "id": "R-38",
       "name": "Buyer priority x 4",
-      "setup": "R-1 at balanced / payment / cash / power",
+      "setup": "R-1 at each buyer priority (WP-3: balanced retired, reserves added)",
       "subcases": [
         {
           "id": "R-38a",
-          "label": "balanced",
+          "label": "reserves",
           "fields": {
-            "priority": "balanced"
+            "priority": "reserves"
           }
         },
         {

@@ -44,7 +44,14 @@ window.__set = function(sc){
      have meant one dollar twenty per month). PITI assumptions are pinned here, matching
      the values the baseline file shipped with, and a case may still override
      any of them. This pins the test's INTENT, not its outcome. */
-  var PINNED = { taxRate:'1.20', hoi:'150', hoa:'0', cdd:'0', flood:'0' };
+  /* WP-3 added a priority control, for exactly the reason this block exists.
+     The baseline file defaults the buyer priority to 'balanced'; the file under
+     test has no default at all, because WP-3 made the priority mandatory and
+     buyer-stated. Left unpinned, every case would diverge on a control neither
+     side's scenario set even depends on. 'payment' is the documented migration
+     of 'balanced' and is valid in BOTH files, so this pins the test's intent
+     and not its outcome — same as the four PITI assumptions beside it. */
+  var PINNED = { taxRate:'1.20', hoi:'150', hoa:'0', cdd:'0', flood:'0', priority:'payment' };
   var f = Object.assign({}, PINNED, sc.fields || {});
   Object.keys(f).forEach(function(id){
     var el = document.getElementById(id); if(!el) return;
@@ -70,8 +77,28 @@ window.__set = function(sc){
   if(sc.counter){ recalcCounter(); }
   return true;
 };
+/* ---- APPROVED RENAMES ------------------------------------------------
+   The differential compares rendered TEXT against a frozen pre-Phase-3 file.
+   A work package that renames a label by approval would otherwise fail here
+   forever, for a reason that has nothing to do with M-1. Each rename is listed
+   explicitly, applied to BOTH sides, and is a pure label substitution — it can
+   never mask a moved NUMBER, because no number is touched. Anything not on
+   this list still fails.
+
+     WP-3  "★ Start here"  ->  "Matches your stated priority"
+           The badge stopped being a recommendation and became a statement of
+           which structure the buyer's stated priority points at.
+   -------------------------------------------------------------------- */
+window.__renames = function(s){
+  if(s == null) return s;
+  return String(s)
+    .replace(/★ Start here/gi, 'PRIORITY-MATCH BADGE')
+    .replace(/★ START HERE/g,  'PRIORITY-MATCH BADGE')
+    .replace(/Matches your stated priority/gi, 'PRIORITY-MATCH BADGE')
+    .replace(/MATCHES YOUR STATED PRIORITY/g,  'PRIORITY-MATCH BADGE');
+};
 window.__fingerprint = function(){
-  var t = function(id){ var e=document.getElementById(id); return e ? (e.innerText||'').replace(/\\s+/g,' ').trim() : null; };
+  var t = function(id){ var e=document.getElementById(id); return e ? window.__renames((e.innerText||'').replace(/\\s+/g,' ').trim()) : null; };
   return {
     inputs: JSON.parse(JSON.stringify(gatherInputs())),
     modeBadge: t('modeBadge'),
@@ -105,7 +132,7 @@ async function openPage(browser, file) {
 
 /* ---------- PART A scenarios: economic-input regression ----------
    Defaults: score 740, own funds 40,000, gift 0, target 3,200, income 9,500,
-   debts 650, stay 7, priority balanced, rates 6.750/6.250/6.125, ccPct 3,
+   debts 650, stay 7, priority payment (WP-3 pinned), rates 6.750/6.250/6.125, ccPct 3,
    tax 1.20%, HOI 150, HOA/CDD/flood 0 with N/A checked.                       */
 const SCENARIOS = [
   { id:'A-01 Shopping Range — defaults, no price', fields:{ price:'' } },

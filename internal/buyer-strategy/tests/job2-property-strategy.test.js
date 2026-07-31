@@ -56,7 +56,7 @@ const near = (a, b, eps) => Math.abs(a - b) <= (eps === undefined ? 0.51 : eps);
 /* The verified profile, at the 6.875% conventional rate of Addendum B5. */
 const BASE = {
   price: '499,900', score: '788', ownFunds: '200,000', gift: '0', dpTarget: '150,000',
-  target: '3,000', income: '9,500', debts: '40', stay: '7', priority: 'balanced',
+  target: '3,000', income: '9,500', debts: '40', stay: '7', priority: 'payment',
   rateConv: '6.875', rateFha: '6.250', rateVa: '6.125', ccPct: '3', ccOverride: '',
   taxRate: '582', hoi: '250', hoa: '0', cdd: '0', flood: '0',
   offerPrice: '', offerConc: '0', counterPrice: '', counterConc: '0', counterLoan: 'auto'
@@ -445,10 +445,10 @@ const scanBad = t => (t.match(BAD) || []);
      H · NEGOTIATION COUNTER — the same goal test against new terms
      ================================================================ */
   console.log('\n--- H · seller counter reruns the same goal test ---');
-  await set({ priority: 'balanced', dpTarget: '150,000', ownFunds: '200,000',
+  await set({ priority: 'payment', dpTarget: '150,000', ownFunds: '200,000',
               income: '9,500', debts: '40', offerPrice: '', offerConc: '0' });
   const atList = await goal();
-  await set({ price: '479,900', priority: 'balanced', dpTarget: '150,000', ownFunds: '200,000',
+  await set({ price: '479,900', priority: 'payment', dpTarget: '150,000', ownFunds: '200,000',
               income: '9,500', debts: '40' });
   const atCounter = await goal();
   ok('H updated property terms rerun the same goal test',
@@ -536,11 +536,20 @@ const scanBad = t => (t.match(BAD) || []);
      /GOAL ACHIEVABLE|GOAL NOT ACHIEVABLE/i.test(t), t.slice(0, 300));
   ok('no NaN under a maximum-price goal', scanBad(t).length === 0, scanBad(t));
 
-  /* reserves / custom are NOT offered — they are reported deferred, not faked. */
+  /* WP-3 — the enum MOVED, by approval. 'balanced' is retired (it was the label
+     under which the engine made the tradeoff itself) and 'reserves' is now a
+     real, selectable priority. The placeholder carries no value, because the
+     advisor has to state one. */
   const opts = await page.evaluate(() =>
     Array.from(document.getElementById('priority').options).map(o => o.value));
-  ok('the buyer_priority enum is unchanged — reserves and custom are not offered',
-     opts.join(',') === 'balanced,payment,cash,power', opts);
+  ok('the buyer_priority enum is the WP-3 set, with no pre-selected default',
+     opts.join(',') === ',payment,cash,reserves,power', opts);
+  const preselected = await page.evaluate(() => {
+    const s = document.getElementById('priority');
+    s.selectedIndex = -1; s.value = '';   // as the page loads it
+    return document.getElementById('priority').value;
+  });
+  ok('no priority is chosen for the buyer on load', preselected === '', preselected);
 
   /* ================================================================
      THE BANNER AND THE CONSTRAINT NEVER CONTRADICT EACH OTHER
@@ -555,7 +564,7 @@ const scanBad = t => (t.match(BAD) || []);
     { name: 'low credit',        f: { score: '560', ownFunds: '400,000', income: '20,000', debts: '0', target: '3,000', dpTarget: '' } }
   ];
   for (const c of MATRIX) {
-    await set(Object.assign({ price: '499,900', priority: 'balanced' }, c.f));
+    await set(Object.assign({ price: '499,900', priority: 'payment' }, c.f));
     const gg = await goal();
     const tt = await body();
     const saysYes = /✅ GOAL (ACHIEVABLE|ALREADY ACHIEVED)/i.test(tt);
@@ -579,7 +588,7 @@ const scanBad = t => (t.match(BAD) || []);
      only their own body, and the accept bar is updated in place. */
   console.log('\n--- interaction ---');
   await set({ price: '499,900', dpTarget: '150,000', ownFunds: '200,000', income: '9,500',
-              debts: '40', target: '3,000', priority: 'balanced',
+              debts: '40', target: '3,000', priority: 'payment',
               offerPrice: '', offerConc: '0', counterPrice: '', counterConc: '0' });
   for (const id of ['j2RateBox', 'j2AltBox', 'debtLever']) {
     await page.click('#' + id + ' > summary');

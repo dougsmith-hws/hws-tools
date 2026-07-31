@@ -57,7 +57,7 @@ const near = (a, b, eps) => Math.abs(a - b) <= (eps === undefined ? 0.01 : eps);
    so any drift here is drift the numerical suite would also see. */
 const DEFAULTS = {
   price: '', score: '740', ownFunds: '40,000', gift: '0', dpTarget: '',
-  target: '3,200', income: '9,500', debts: '650', stay: '7', priority: 'balanced',
+  target: '3,200', income: '9,500', debts: '650', stay: '7', priority: 'payment',
   rateConv: '6.750', rateFha: '6.250', rateVa: '6.125', ccPct: '3', ccOverride: '',
   taxRate: '1.20', hoi: '150', hoa: '0', cdd: '0', flood: '0',
   offerPrice: '', offerConc: '0', counterPrice: '', counterConc: '0', counterLoan: 'auto'

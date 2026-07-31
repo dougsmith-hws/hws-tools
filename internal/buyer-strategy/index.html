@@ -722,6 +722,13 @@
 .resv-ok{color:#166534;font-weight:700}
 .resv-short{color:#991b1b;font-weight:700}
 
+/* ---- WP-3 mandatory priority ---- */
+.req{font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:#b45309;background:#fffbeb;border:1px solid #fde68a;border-radius:4px;padding:1px 5px;margin-left:5px;vertical-align:1px}
+.gb-item.unset .gb-v{color:#b45309;font-weight:800}
+.nopriority{border-left:4px solid #f59e0b;background:#fffbeb;padding:11px 14px;border-radius:0 7px 7px 0;margin-bottom:11px;font-size:12.5px;line-height:1.5}
+.nopriority b{display:block;margin-bottom:3px}
+.pw.notlimit .pw-v{font-size:15px;font-weight:800;color:#166534;letter-spacing:-.1px}
+
 </style>
 </head>
 <body>
@@ -769,13 +776,17 @@
             <option value="10">10 years</option><option value="15">15 years</option>
             <option value="20">20 years</option><option value="30">30 years</option>
           </select><div class="sub"></div></div>
-        <div class="fld"><label>Buyer priority</label>
+        <!-- WP-3 — the buyer states the priority. BSE does not infer one, and
+             "Balanced" is gone because it was the label under which the engine
+             made the tradeoff itself. No option is pre-selected. -->
+        <div class="fld"><label>Buyer priority <span class="req">required</span></label>
           <select id="priority">
-            <option value="balanced" selected>Balanced</option>
-            <option value="payment">Lowest Monthly Payment</option>
+            <option value="" selected>— select a priority —</option>
+            <option value="payment">Stay near Comfort Payment</option>
             <option value="cash">Lowest Cash to Close</option>
+            <option value="reserves">Preserve Reserves</option>
             <option value="power">Maximum Buying Power</option>
-          </select><div class="sub"></div></div>
+          </select><div class="sub" id="prioritySub"></div></div>
       </div>
       <div class="toggles">
         <label class="tg"><input type="checkbox" id="tgFthb"> First-time homebuyer <span style="font-weight:500;color:var(--sub)">(Conv 3%)</span></label>
@@ -1371,83 +1382,126 @@ const Engine = (function(){
     return {scenarios, eliminated, dpDimmed};
   }
 
-  /* ---------- decision hierarchy: pick Best Overall ---------- */
-  function pickBestOverall(viable, inp){
+  /* ---------- WP-3 — the engine stops choosing for the buyer ----------
+     pickBestOverall() lived here. It has been DELETED, for three verified
+     reasons:
+
+       1. It silently auto-optimised toward the lowest down-payment tier unless
+          the priority was exactly 'payment' — the engine making a cash-vs-
+          payment tradeoff on the buyer's behalf, which the locked workflow
+          prohibits.
+       2. Its comparator used a pairwise `near` tolerance, which is not
+          transitive. Array.sort is free to compare in any order, so the same
+          set of scenarios could produce different winners depending on the
+          order they arrived in. A recommendation that depends on array order
+          is not a recommendation.
+       3. It hard-coded a priority by planned stay length — short stay means
+          preserve cash, long stay means lowest total cost. That is the buyer's
+          call to state, not the engine's to assume. Fernando's own file makes
+          the point: Doug's recommendation was NOT to buy the rate down.
+
+     optimalSplit() has been deleted alongside it — exported, never called,
+     dead since Gate B, and its only documented reference point was "Best
+     Overall", which no longer exists.
+
+     reasonFor() SURVIVES. It is now told which priority it is explaining
+     instead of inferring one from the planned stay.
+
+     What replaces them is deliberately dull: sort on the ONE metric the
+     advisor stated, break ties deterministically, and return null when nothing
+     was stated. The engine reports; the advisor decides.                      */
+  const PRIORITIES = ['payment', 'cash', 'reserves', 'power'];
+
+  /* Deterministic single-metric selection. NO tolerance windows, NO secondary
+     cascade, NO tiebreaker that reintroduces an opinion — a tie on the stated
+     metric is broken by the scenario's original position, so the same set
+     always returns the same scenario regardless of the order it arrives in.
+     That is the non-transitivity defect gone by construction. */
+  const PRIORITY_SORT = {
+    payment:  function(a, b){ return a.piti - b.piti; },                 // lowest payment
+    cash:     function(a, b){ return a.cashToClose - b.cashToClose; },   // least cash at the table
+    reserves: function(a, b){ return b.cashRemaining - a.cashRemaining; },// most left afterwards
+    power:    function(a, b){ return b.maxPrice - a.maxPrice; }          // most house
+  };
+
+  function priorityPick(viable, inp){
     if(!viable.length) return null;
-    // Cash preservation (default): when no down-payment target is set, prefer the
-    // lowest eligible down-payment tier. A higher-dp scenario only survives if the
-    // buyer priority is explicitly 'payment' AND it saves >$150/mo AND the extra
-    // down payment is recovered in under 36 months of that saving. When a dp target
-    // IS set, the down-payment filter already narrows the field — skip this.
-    if(!inp.dpTarget){
-      const lowestDpViable = viable.reduce((best, s) => s.dp < best.dp ? s : best, viable[0]);
-      viable = viable.filter(s => {
-        if(s.dp <= lowestDpViable.dp) return true;
-        if(inp.priority !== 'payment') return false;
-        const extraCash = (s.dp - lowestDpViable.dp) / 100 * s.price;
-        const paymentSavings = lowestDpViable.piti - s.piti;
-        return paymentSavings > 150 && extraCash / paymentSavings < 36;
-      });
+    /* MANDATORY. An unstated priority selects nothing — every caller renders
+       "no priority stated" rather than a number nobody asked for. */
+    if(PRIORITIES.indexOf(inp.priority) < 0) return null;
+
+    let pool = viable.slice(), floorApplied = false;
+    if(inp.priority === 'reserves'){
+      /* The reserve floor extracted in WP-2. A scenario that leaves less than
+         the buyer said they need is not "preserving reserves" — but if none
+         clears the floor, keep the full set rather than returning nothing, and
+         let reasonFor() say so. */
+      const floor = (inp.reserveFloor != null ? inp.reserveFloor : 500);
+      const clears = pool.filter(function(s){ return s.cashRemaining >= floor; });
+      if(clears.length){ pool = clears; floorApplied = true; }
     }
-    // Cash-reserve floor: a scenario that leaves under $500 after closing (often a
-    // high-down-payment option whose price was forced down by limited funds) is not
-    // something an advisor would lead with. Drop those, but only if a viable option
-    // with real reserves exists — otherwise keep the full set.
-    /* WP-2 — the floor is now authored. It defaults to the $500 that was
-       hard-coded here, so an un-authored buyer behaves exactly as before. This
-       extraction exists so WP-3 can delete pickBestOverall without losing it. */
-    const floorNow = (inp.reserveFloor != null ? inp.reserveFloor : 500);
-    const withReserve = viable.filter(s=>s.cashRemaining>=floorNow);
-    const base = withReserve.length ? withReserve : viable;
-    // Rule 2: prefer scenarios meeting comfort
-    let pool = base.filter(s=>s.piti <= inp.target+0.5);
-    let gapMode=false;
-    if(!pool.length){ pool = base.slice(); gapMode=true; }
 
-    const stay = inp.stayYears;
-    const progRank = id => id==='va'?0 : id==='conv'?1 : 2; // Rule 4 simplicity: VA<Conv<FHA
+    const order = new Map(pool.map(function(s, i){ return [s, i]; }));
+    const cmp = PRIORITY_SORT[inp.priority];
+    const pick = pool.slice().sort(function(a, b){
+      const d = cmp(a, b);
+      return d !== 0 ? d : (order.get(a) - order.get(b));
+    })[0];
 
-    const scored = pool.slice().sort((a,b)=>{
-      // Primary metric by stay length (Rule 5)
-      let pa, pb;
-      if(stay<=3){ pa=-a.cashRemaining; pb=-b.cashRemaining; }          // preserve cash
-      else if(stay<=7){ pa=a.piti; pb=b.piti; }                          // balanced -> payment
-      else { pa=a.totalCostHorizon; pb=b.totalCostHorizon; }             // long-term cost
-      const near = (stay<=3) ? Math.abs(a.cashRemaining-b.cashRemaining)<250
-                 : (stay<=7) ? Math.abs(a.piti-b.piti)<=50
-                 : Math.abs(a.totalCostHorizon-b.totalCostHorizon) < 2500;
-      if(!near) return pa-pb;
-      // ---- Tiebreaker cascade (Fix 1): a near-tie on the primary metric does NOT
-      // mean equal outcomes. Resolve in strict order — cash, then financing cost,
-      // then (only if all three are near-equal) Rule 4 program simplicity. ----
-      // 1) Cash to close: a gap > $2,000 wins regardless of program simplicity.
-      const dCash = a.cashToClose - b.cashToClose;
-      if(Math.abs(dCash) > 2000) return dCash;                 // lower cash to close first
-      // 2) Financing cost over the stay: a gap > $2,500 wins.
-      const dFin = a.totalCostHorizon - b.totalCostHorizon;
-      if(Math.abs(dFin) > 2500) return dFin;                   // lower financing cost
-      // 3) Payment, cash AND financing all near-equal → Rule 4 simplicity (VA<Conv<FHA).
-      const ra=progRank(a.id), rb=progRank(b.id);
-      if(ra!==rb) return ra-rb;
-      return pa-pb;
-    });
-
-    const best = scored[0];
-    best._gapMode = gapMode;
-    best._reason = reasonFor(best, pool, inp, gapMode);
-    return best;
+    /* gapMode is a STATEMENT ABOUT THE SET, not about the pick: it means no
+       eligible option lands at or under the comfort payment. */
+    const gapMode = !viable.some(function(s){ return s.piti <= inp.target + 0.5; });
+    pick._gapMode = gapMode;
+    pick._floorApplied = floorApplied;
+    pick._reason = reasonFor(pick, viable, inp, gapMode);
+    return pick;
   }
 
+  /* ---------- why THIS scenario, given what the advisor stated ----------
+     WP-3: the sentence now explains the STATED priority. It no longer infers a
+     goal from the planned stay, because inferring one was the defect. Stay
+     length still appears where it is genuinely explanatory, as context — never
+     as the reason. */
   function reasonFor(best, pool, inp, gapMode){
-    const stay=inp.stayYears;
-    const bits=[];
-    if(best.id==='va') bits.push('VA is available and needs no down payment or monthly MI — the simplest, lowest-cost structure here');
-    if(stay>=8){ bits.push('over a '+stay+'-year hold this carries the lowest total financing cost'); if(best.id==='conv' && pool.some(s=>s.id==='fha')) bits.push('and avoids FHA life-of-loan MIP'); }
-    else if(stay<=3) bits.push('for a short '+stay+'-year stay it preserves the most cash and keeps options open');
-    else bits.push('it balances a manageable payment against cash preserved for a '+stay+'-year hold');
-    if(!gapMode) bits.push('and lands at or under the comfort payment');
-    let out = bits.join(', ').replace(/^,\s*/,'');
-    if(gapMode) out += '. Note: no option clears the comfort payment, so this is the smallest gap — see the Gap Solver';
+    const stay = inp.stayYears;
+    const bits = [];
+    const others = pool.filter(function(s){ return s !== best; });
+    const money0 = function(n){ return '$' + fmt0(n); };
+
+    if(inp.priority === 'payment'){
+      const worst = others.length ? others.reduce(function(m, s){ return s.piti > m.piti ? s : m; }, others[0]) : null;
+      bits.push('lowest monthly payment of the eligible structures at ' + money0(best.piti) + '/mo');
+      if(worst && worst.piti - best.piti >= 1)
+        bits.push(money0(worst.piti - best.piti) + '/mo under the highest option here');
+    } else if(inp.priority === 'cash'){
+      const worst = others.length ? others.reduce(function(m, s){ return s.cashToClose > m.cashToClose ? s : m; }, others[0]) : null;
+      bits.push('least cash at the closing table at ' + money0(best.cashToClose));
+      if(worst && worst.cashToClose - best.cashToClose >= 1)
+        bits.push(money0(worst.cashToClose - best.cashToClose) + ' less than the highest option here');
+    } else if(inp.priority === 'reserves'){
+      bits.push('leaves the most in reserve after closing at ' + money0(best.cashRemaining));
+      if(inp.reserveFloor != null && best.cashRemaining < inp.reserveFloor)
+        bits.push('though no eligible option reaches the ' + money0(inp.reserveFloor) + ' the buyer asked to keep');
+    } else if(inp.priority === 'power'){
+      /* In Shopping Range maxPrice IS the range. On a specific property it is
+         that structure's ceiling, which may sit below the list price — saying
+         "reaches" there would be wrong out loud on a call. */
+      bits.push(inp.shopping
+        ? 'reaches the highest price the buyer can support at ' + money0(best.maxPrice)
+        : 'carries the highest ceiling of the eligible structures, ' + money0(best.maxPrice));
+    } else {
+      bits.push('no buyer priority has been stated, so nothing has been selected');
+      return bits[0];
+    }
+
+    if(best.id === 'va') bits.push('and VA needs no down payment and carries no monthly MI');
+    else if(best.id === 'fha' && best.mipLife) bits.push('note that FHA MIP runs for the life of this loan');
+    else if(best.id === 'conv' && best.cancelMonth && stay * 12 > best.cancelMonth)
+      bits.push('and its PMI cancels at month ' + best.cancelMonth + ', inside the ' + stay + '-year hold');
+
+    let out = bits.join(', ');
+    if(gapMode) out += '. No option clears the comfort payment — this is a selection, not a solution; see the Gap Solver';
+    else out += ', and it lands at or under the comfort payment';
     return out;
   }
 
@@ -1478,30 +1532,6 @@ const Engine = (function(){
              newCash, newCashRemaining:inp.funds-newCash, over, monthlySaving, breakeven };
   }
 
-  /* ---------- optimal split (only computed on explicit request) ----------
-     Cover the reference scenario's cash shortfall first (capped at its actual
-     closing costs and the total available), then send every remaining dollar to
-     the rate buydown to minimize the payment gap. Reference = Best Overall. */
-  function optimalSplit(refScenario, inp, total){
-    if(!refScenario || total<=0) return {buydown:0, costs:0};
-    const cashShort = Math.max(0, refScenario.cashToClose - inp.funds);
-    const costs = cashShort>0 ? Math.min(total, refScenario.closing, cashShort) : 0;
-    return { buydown: total - costs, costs };
-  }
-
-  /* ---------- priority-aware pick (which scenario the Buyer Priority points at) ----------
-     Balanced defers to the full Best Overall hierarchy; the other priorities are a
-     single dominant metric. Used to decide which program family is recommended. */
-  function priorityPick(viable, inp){
-    if(!viable.length) return null;
-    switch(inp.priority){
-      case 'payment': return viable.slice().sort((a,b)=>a.piti-b.piti)[0];
-      case 'cash':    return viable.slice().sort((a,b)=>a.cashToClose-b.cashToClose)[0];
-      case 'power':   return viable.slice().sort((a,b)=>b.maxPrice-a.maxPrice)[0];
-      default:        return pickBestOverall(viable, inp);
-    }
-  }
-
   /* ---------- program-family cards (Section 2) ----------
      One card per eligible program family (FHA, Conventional, VA), max four.
        • FHA  → best eligible FHA scenario (only one tier is generated per score
@@ -1510,14 +1540,20 @@ const Engine = (function(){
                 order (FTHB starts at Conv 3%, otherwise Conv 5%; steps up to 5/10/20
                 when a lower tier is eliminated). A note explains any skipped tier.
        • VA   → VA 0%, only when vaOn.
-     The recommended family (priorityPick across all viable — honors the Buyer
-     Priority dropdown, defaulting to Best Overall) is ordered first and flagged. */
+     WP-3: no family is "best". The family the STATED priority points at is
+     ordered first and flagged as matching that priority. With no priority
+     stated nothing is flagged and the families render in their natural order —
+     the advisor is looking at three structures, not a leaderboard. */
   function programCards(viable, eliminated, inp){
     eliminated = eliminated || [];
     const cards=[];
     // FHA — best eligible FHA scenario
     const fha = viable.filter(s=>s.id==='fha');
-    if(fha.length) cards.push({familyId:'fha', s:pickBestOverall(fha, inp), note:null});
+    /* WP-3 — the representative FHA scenario. With a priority stated it is the
+       one that priority points at; with none stated it is simply the lowest
+       eligible down-payment tier, which is a neutral fact rather than a pick. */
+    if(fha.length) cards.push({familyId:'fha',
+      s: priorityPick(fha, inp) || fha.slice().sort(function(a,b){ return a.dp-b.dp; })[0], note:null});
     // Conventional — one card, lowest eligible tier by ascending-down preference
     const conv = viable.filter(s=>s.id==='conv');
     if(conv.length){
@@ -1560,19 +1596,19 @@ const Engine = (function(){
       const va = viable.filter(s=>s.id==='va');
       if(va.length) cards.push({familyId:'va', s:va[0], note:null});
     }
-    // recommended family via the priority-aware pick
+    /* Which family the STATED priority points at. Null when none is stated. */
     const rec = priorityPick(viable, inp);
     const recId = rec ? rec.id : null;
     const fam={fha:1, conv:2, va:3};
-    cards.forEach(c=>{ c.recommended = recId!=null && c.familyId===recId; });
-    cards.sort((a,b)=> (a.recommended!==b.recommended) ? (a.recommended?-1:1) : fam[a.familyId]-fam[b.familyId]);
+    cards.forEach(c=>{ c.matchesPriority = recId!=null && c.familyId===recId; });
+    cards.sort((a,b)=> (a.matchesPriority!==b.matchesPriority) ? (a.matchesPriority?-1:1) : fam[a.familyId]-fam[b.familyId]);
     return cards.slice(0,4);
   }
 
   return { N, pmt, balanceAfter, monthToBalance, round125, scoreBucket, pmiRate, pmiBand,
            fhaMipRate, closingCost, concessionLimitPct, computeScenario, maxPriceForScenario,
-           priorityPick, programCards,
-           run, pickBestOverall, applyConcession, optimalSplit, dpMatches, programEliminations, PROGRAMS, PMI, fmt0 };
+           priorityPick, PRIORITIES, programCards, reasonFor,
+           run, applyConcession, dpMatches, programEliminations, PROGRAMS, PMI, fmt0 };
 })();
 
 /* =====================================================================
@@ -1620,7 +1656,7 @@ const offerConcUnit = { v:'dollar' };
 /* ---------- concession split state ----------
    buydown + costs always sum to the total concession. By default (`auto:true`)
    the allocation follows the buyer priority directly via priorityAlloc()
-   (payment → rate buydown; cash / balanced / power → closing costs). Doug can
+   (payment → rate buydown; cash / reserves / power → closing costs). Doug can
    click "Adjust split manually" to override; editing either field sets
    `auto:false` and the engine stays passive. `anchor` records which field he
    edited last so re-normalizing to a changed total preserves his intent. */
@@ -2138,6 +2174,23 @@ function updateInlineHints(inp){
   /* The total-out-of-pocket toggle is meaningless in percent mode. */
   const cmw = $('cashModeWrap');
   if(cmw) cmw.classList.toggle('hide', unitState.dp !== 'dollar');
+  /* WP-3 — the priority sub-label states what the current selection changes. */
+  const psub = $('prioritySub');
+  if(psub){
+    if(!priorityStated(inp)){
+      psub.className = 'sub warn';
+      psub.textContent = 'Required — BSE will not choose for the buyer.';
+    } else {
+      psub.className = 'sub info';
+      psub.textContent = ({
+        payment:  'Selects the lowest total monthly payment.',
+        cash:     'Selects the least cash at the closing table.',
+        reserves: 'Selects the most cash left after closing' +
+                  (inp.desiredReserves != null ? ', against the ' + money(inp.desiredReserves) + ' goal.' : '.'),
+        power:    'Selects the highest supportable purchase price.'
+      })[inp.priority] || '';
+    }
+  }
   $('scoreSub').textContent = inp.score>=580&&inp.score<620 ? 'FHA/VA only' : (inp.score<580&&inp.score>=500?'FHA 10% only':(inp.score<500?'Below program mins':''));
   $('priceSub').textContent = inp.shopping ? 'Shopping Range Mode' : '';
   $('priceSub').className = 'sub info';
@@ -2789,10 +2842,30 @@ function powerSnapshot(inp){
            shopTo:P.controlling.price, controlling:P.controlling };
 }
 
+/* =====================================================================
+   WP-3 — BUYER PRIORITY IS MANDATORY
+   =====================================================================
+   'balanced' was retired. It is still on disk in every buyer saved before
+   today, so it is migrated wherever a stored value re-enters the application:
+   on capture, on deserialize, and on restore. It maps to 'payment', because
+   Best Overall's own comfort filter made payment its effective default — that
+   is the reading that changes the fewest existing files.
+
+   An UNSTATED priority is a real state, not an error. Numbers still compute
+   and still render; nothing is selected, nothing is flagged, and the interface
+   says so. The engine does not pick one to fill the gap.
+   ===================================================================== */
+const PRIORITY_VALUES = ['payment', 'cash', 'reserves', 'power'];
+function migratePriority(v){
+  if(v === 'balanced') return 'payment';
+  return PRIORITY_VALUES.indexOf(v) >= 0 ? v : null;
+}
+function priorityStated(inp){ return PRIORITY_VALUES.indexOf(inp.priority) >= 0; }
+
 /* ---------- persistent buyer goal bar ---------- */
 const PRIORITY_LABEL = {
-  balanced:'Balanced', payment:'Lowest payment', cash:'Lowest cash to close',
-  power:'Maximum purchasing power', reserves:'Preserve reserves', custom:'Custom'
+  payment:'Stay near Comfort Payment', cash:'Lowest cash to close',
+  reserves:'Preserve reserves', power:'Maximum buying power'
 };
 function renderGoalBar(inp){
   const bar = $('goalBar');
@@ -2809,7 +2882,9 @@ function renderGoalBar(inp){
     '<span class="gb-item' + (cls ? ' ' + cls : '') + '"><span class="gb-k">' + k +
     '</span><span class="gb-v">' + v + '</span></span>';
   let h = '<span class="gb-who">' + esc(who) + '</span>';
-  h += item('Goal', PRIORITY_LABEL[inp.priority] || inp.priority, 'goal');
+  h += priorityStated(inp)
+    ? item('Priority', PRIORITY_LABEL[inp.priority], 'goal')
+    : item('Priority', 'not stated', 'goal unset');
   h += item('Target payment', money(inp.target) + '/mo');
   h += item('Preferred down', dp);
   h += item('Available funds', money(inp.funds));
@@ -2837,10 +2912,25 @@ function job1HTML(inp){
                : (inp.dpTarget && inp.dpTarget.isPct
                     ? (Number.isInteger(inp.dpTarget.pct) ? inp.dpTarget.pct : inp.dpTarget.pct.toFixed(1)) + '% down'
                     : C.lowDp.name + ' down');
+  /* WP-3 · LIVE-CALL DESIGN STANDARD — a correct number can still be an
+     unhelpful one. When cash is nowhere near binding, the theoretical
+     cash-limited price is a distraction sitting in the same type size as the
+     two figures Doug actually says out loud, and on a strong-cash buyer it can
+     read in the millions. The useful information in that situation is four
+     words: cash is not the limit. The number is still there, in the sub-line,
+     for the moment someone asks. It is suppressed as a HEADLINE only — never
+     from the constraint arithmetic, which still ranks it in powerCeilings(). */
+  const cashBinds = isCtrl('Cash to Close');
+  const cashNear  = cashKnown && isFinite(snap.shopTo) && snap.shopTo > 0 &&
+                    snap.cash <= snap.shopTo * 1.25;      // within 25% of where they are shopping
+  const cashHeadline = cashBinds || cashNear;
   const cashSub = !cashKnown ? 'no cash constraint at these inputs'
-    : (isCtrl('Cash to Close')
+    : (cashBinds
         ? money(inp.funds) + ' available with ' + dpDesc + ' — <b>this is the limit</b>'
-        : money(inp.funds) + ' available with ' + dpDesc + ' — not the limiting factor');
+        : cashNear
+          ? money(inp.funds) + ' available with ' + dpDesc + ' — close to binding, worth watching'
+          : money(inp.funds) + ' available with ' + dpDesc + ' reaches ' + money(snap.cash) +
+            ', well above where they are shopping');
 
   let h = '<div class="pw3">';
   h += pwCard('comfort', 'Comfort Shopping Max', snap.comfort,
@@ -2848,8 +2938,10 @@ function job1HTML(inp){
   h += pwCard('qual', 'Maximum Purchasing Power', snap.qual,
               'What they could qualify for at ' + ((C.qualTop.ratios && C.qualTop.ratios.back) || 45) +
               '% back-end DTI', isCtrl('DTI'));
-  h += pwCard('cash', 'Cash-Limited Buying Power', cashKnown ? snap.cash : null,
-              cashSub, isCtrl('Cash to Close'));
+  h += cashHeadline
+    ? pwCard('cash', 'Cash-Limited Buying Power', snap.cash, cashSub, cashBinds)
+    : pwCardText('cash notlimit', 'Cash-Limited Buying Power',
+                 cashKnown ? 'Not the limiting factor' : '\u2014', cashSub);
   h += '</div>';
 
   /* --- the sentence Doug says out loud --- */
@@ -2933,6 +3025,15 @@ function job1EmptyHTML(inp){
     'See <b>Reason for Elimination</b> in the Qualification Snapshot below.');
 }
 
+/* WP-3 — the same card with a STATEMENT where the number goes. Used when a
+   ceiling is real but so far from binding that showing it as a headline would
+   put the wrong figure in the middle of a live conversation. */
+function pwCardText(cls, label, text, sub){
+  return '<div class="pw ' + cls + '">' +
+         '<div class="pw-k">' + label + '</div>' +
+         '<div class="pw-v">' + text + '</div>' +
+         '<div class="pw-s">' + sub + '</div></div>';
+}
 function pwCard(cls, label, value, sub, controls){
   const v = (value === null || !isFinite(value)) ? '—' : money(value);
   return '<div class="pw ' + cls + (controls ? ' controls' : '') + (value === null ? ' na' : '') + '">' +
@@ -2968,7 +3069,7 @@ function controllingSentence(inp, snap){
    `secondary` value they need is now supplied by powerCeilings(). */
 function whyBoxHTML(inp, snap){
   const C = snap.C, ctrl = snap.controlling;
-  const best = Engine.pickBestOverall(snap.bp.slice(), snap.inp);
+  const best = representativeScenario(snap.bp.slice(), snap.inp);
   const ctx = {
     inp: snap.inp, viable: snap.bp, best: best,
     lowDp: C.lowDp, qualTop: C.qualTop, cashPrice: C.cashPrice,
@@ -2976,6 +3077,7 @@ function whyBoxHTML(inp, snap){
   };
   const acts = strategyActionsFor(ctrl.why, ctx);
   let body = powerBadge(ctrl.why);
+  if(!priorityStated(inp)) body += noPriorityHTML('which structure to lead with');
   body += acts.length
     ? strategyActionsList(acts)
     : strategyOkCard('No blocking constraint to work around at these inputs.');
@@ -3821,7 +3923,7 @@ function propertyStrategiesHTML(inp, res, ref, bind){
      Engine.computeScenario()  via dpScenarioAt() for a rate probe
      engineRun()               the Shopping/Property dispatcher
      debtAdjustedInputs()      the debt-payoff input transform
-     analyzeNegotiation()      the negotiation engine (pickBestOverall /
+     analyzeNegotiation()      the negotiation engine (priorityPick /
                                optimalConcAlloc / financing-cost analysis)
      concessionToCloseGap()    the rate/concession gap solver
      priceToHitTarget(), dtiPrice()
@@ -3833,12 +3935,15 @@ function propertyStrategiesHTML(inp, res, ref, bind){
    ===================================================================== */
 
 /* The buyer's goal, expressed from buyer_priority. There is deliberately no
-   parallel buyer_goal concept — §3. `balanced` and `payment` both resolve to
-   the payment target, which is what job2HTML already did. */
+   parallel buyer_goal concept — §3. WP-3 removed 'balanced'; a stored one has
+   already migrated to 'payment' by the time it reaches here. */
 function job2Goal(inp){
-  if (inp.priority === 'cash')  return { key:'cash',    label:'Minimise cash to close' };
-  if (inp.priority === 'power') return { key:'power',   label:'Maximum purchase price within qualification' };
-  return { key:'payment', label:'Keep total PITI at or under ' + money(inp.target) + '/mo' };
+  if (inp.priority === 'cash')     return { key:'cash',     label:'Minimise cash to close' };
+  if (inp.priority === 'reserves') return { key:'reserves', label:'Keep the most cash in reserve after closing' };
+  if (inp.priority === 'power')    return { key:'power',    label:'Maximum purchase price within qualification' };
+  if (inp.priority === 'payment')  return { key:'payment',  label:'Keep total PITI at or under ' + money(inp.target) + '/mo' };
+  /* WP-3 — no priority stated. Job 2 still runs; it just has no goal to state. */
+  return { key:'none', label:'No buyer priority stated' };
 }
 
 /* The buyer's PLANNED down payment in dollars at this price, resolved from the
@@ -4175,7 +4280,7 @@ function propDebtOutHTML(inp){
 /* ---- NEGOTIABLE SELLER VALUE, GOAL-FIRST ----------------------------
    §8. The negotiation engine is NOT rebuilt. analyzeNegotiation() has already
    scored price reduction / concession / split across every eligible program
-   using pickBestOverall(), optimalConcAlloc() and the financing-cost analysis.
+   using priorityPick(), optimalConcAlloc() and the financing-cost analysis.
    This states its answer in terms of the buyer's goal and nothing else. */
 function job2SellerValueHTML(inp, neg){
   /* Negotiable seller value is the requested price adjustment PLUS any explicit
@@ -4380,7 +4485,12 @@ function job2HTML(inp, res, neg){
 
   /* The DEFAULT structure — what this buyer gets at this price if nothing
      changes. This is what Section 2's Recommendation Engine leads with. */
+  /* WP-3 — the structure the STATED priority points at. With none stated this
+     is null, and the neutral representative (lowest eligible down-payment tier)
+     stands in for the descriptive blocks only. It is never called a
+     recommendation and never carries a badge. */
   let defaultRef = viable.length ? priorityScenario(viable, inp) : null;
+  if (!defaultRef && viable.length) defaultRef = representativeScenario(viable, inp);
   if (!defaultRef && offerActive(inp)) defaultRef = refAtListIgnoringCash(inp);
 
   /* The ANSWER structure — the one that actually accomplishes the goal. For a
@@ -4393,19 +4503,41 @@ function job2HTML(inp, res, neg){
   const goal = goalObj.key;
   let ansHTML, fitRef = null, fitLabel = null, sol = null, st = null, statusHTML = '';
 
-  if (goal === 'cash') {
+  if (goal === 'none') {
+    /* WP-3 — no priority stated. Every number on this screen is still computed
+       and still correct; there is simply no goal to measure them against, and
+       BSE will not invent one. */
+    ansHTML = noPriorityHTML('the structure for this property');
+    statusHTML = '';
+  } else if (goal === 'cash' || goal === 'reserves') {
+    /* At ONE price these are the same arithmetic — cash remaining is available
+       funds minus cash to close — so they share a solver and differ only in how
+       the answer is stated. That is a fact, not a shortcut. */
     ansHTML = answerMinimiseCash(inp, res, defaultRef);
     const lo = viable.slice().sort((a, b) => a.cashToClose - b.cashToClose)[0];
-    if (lo) { fitRef = lo; fitLabel = lo.name + ' — the lowest-cash structure'; }
+    const resvGoal = goal === 'reserves';
+    if (lo) { fitRef = lo; fitLabel = lo.name + (resvGoal ? ' — leaves the most in reserve' : ' — the lowest-cash structure'); }
     if (lo) {
-      const ok = lo.cashToClose <= inp.funds + 0.5 && lo.back <= lo.ratios.back + 0.05;
+      const left = inp.funds - lo.cashToClose;
+      const want = inp.desiredReserves;
+      const ok = lo.cashToClose <= inp.funds + 0.5 && lo.back <= lo.ratios.back + 0.05 &&
+                 (!resvGoal || want == null || left >= want);
       statusHTML = goalStatusHTML(ok ? 'yes' : 'no',
         ok ? 'Goal achievable' : 'Goal not achievable with current structure',
-        ok ? 'The lowest cash to close on this property is <b>' + money(lo.cashToClose) +
-             '</b> on ' + lo.name + ', leaving <b>' + money(inp.funds - lo.cashToClose) +
-             '</b> after closing.'
-           : 'Even the lowest-cash structure on this property (' + lo.name + ') needs <b>' +
-             money(lo.cashToClose) + '</b> to close against <b>' + money(inp.funds) + '</b> available.');
+        !resvGoal
+          ? (ok ? 'The lowest cash to close on this property is <b>' + money(lo.cashToClose) +
+                  '</b> on ' + lo.name + ', leaving <b>' + money(left) + '</b> after closing.'
+                : 'Even the lowest-cash structure on this property (' + lo.name + ') needs <b>' +
+                  money(lo.cashToClose) + '</b> to close against <b>' + money(inp.funds) + '</b> available.')
+          : (ok ? 'The most this buyer can keep on this property is <b>' + money(left) + '</b>, on ' +
+                  lo.name + ' at <b>' + money(lo.cashToClose) + '</b> to close' +
+                  (want != null ? ' — clearing the ' + money(want) + ' they asked to keep' : '') + '.'
+                : (lo.cashToClose > inp.funds + 0.5
+                     ? 'Even the lowest-cash structure (' + lo.name + ') needs <b>' + money(lo.cashToClose) +
+                       '</b> against <b>' + money(inp.funds) + '</b> available — nothing is left to reserve.'
+                     : 'The most this buyer can keep on this property is <b>' + money(left) +
+                       '</b>, short of the <b>' + money(want) + '</b> they asked to keep by <b>' +
+                       money(want - left) + '</b>.')));
     } else {
       statusHTML = goalStatusHTML('hard', 'Goal not achievable with current structure',
         'No eligible structure exists at this price — see the constraint below.');
@@ -4490,16 +4622,26 @@ function job2HTML(inp, res, neg){
   /* Only when the two structures materially differ. A name-only difference —
      "Conv 5%" against "Conventional at 5.0% down" — is the same structure and
      produced a tradeoff line reading "$0 less". */
-  const dPay0 = defaultRef && fitRef ? defaultRef.piti - fitRef.piti : 0;
-  const dCash0 = defaultRef && fitRef ? fitRef.cashToClose - defaultRef.cashToClose : 0;
-  if (defaultRef && fitRef && (Math.abs(dCash0) > 500 || Math.abs(dPay0) > 5)) {
+  /* WP-3 — the cash side of this tradeoff is the LOWEST-CASH eligible structure,
+     which is a fact about the option set. It used to be whatever the selector
+     had picked, so when the stated priority already points at the goal structure
+     the two collapsed into one and the line vanished — losing the single most
+     useful sentence on the screen at exactly the moment the advisor is holding
+     the tradeoff in their head. The cash reference is never badged and never
+     called a recommendation. */
+  const cashRef = viable.length
+    ? viable.slice().sort((a, b) => a.cashToClose - b.cashToClose)[0]
+    : defaultRef;
+  const dPay0 = cashRef && fitRef ? cashRef.piti - fitRef.piti : 0;
+  const dCash0 = cashRef && fitRef ? fitRef.cashToClose - cashRef.cashToClose : 0;
+  if (cashRef && fitRef && (Math.abs(dCash0) > 500 || Math.abs(dPay0) > 5)) {
     const dPay = dPay0, dCash = dCash0;
     h += '<div class="tradeoff"><span class="to-k">Tradeoff</span><span class="to-b">' +
-         'If the buyer would rather keep cash, <b>' + defaultRef.name + '</b> needs only <b>' +
-         money(defaultRef.cashToClose) + '</b> to close — ' + money(Math.abs(dCash)) + ' less — but the payment is <b>' +
-         money(defaultRef.piti) + '/mo</b>' +
-         (defaultRef.piti > inp.target + 0.5
-            ? ', ' + money(defaultRef.piti - inp.target) + '/mo above the ' + money(inp.target) + ' target.'
+         'If the buyer would rather keep cash, <b>' + cashRef.name + '</b> needs only <b>' +
+         money(cashRef.cashToClose) + '</b> to close — ' + money(Math.abs(dCash)) + ' less — but the payment is <b>' +
+         money(cashRef.piti) + '/mo</b>' +
+         (cashRef.piti > inp.target + 0.5
+            ? ', ' + money(cashRef.piti - inp.target) + '/mo above the ' + money(inp.target) + ' target.'
             : ', still at or under target.') +
          (dPay > 0.5 ? ' The goal structure buys ' + money(dPay) + '/mo of payment for ' +
                        money(Math.abs(dCash)) + ' of cash.' : '') +
@@ -4664,8 +4806,8 @@ function refreshDebtRows(){
    NEGOTIATION STRATEGY ENGINE
    Evaluates three deployments of the negotiable seller value — Price Reduction,
    Seller Concession, Split — each scored across ALL eligible loan types with the
-   existing decision hierarchy (pickBestOverall / buyer priority) plus unused
-   seller value as a tiebreaker. Never anchors to Best Overall.
+   existing decision hierarchy (priorityPick / buyer priority) plus unused
+   seller value as a tiebreaker. Never anchors to a selected scenario.
    ===================================================================== */
 // Financing cost (interest + MI + financed fee) at an arbitrary rate over the horizon.
 function financingCostAt(loanAmount, annualR, horizon, miCostHorizon, financedFee){
@@ -4686,8 +4828,10 @@ function mkOutcome(fields){ return Object.assign({ totalCostHorizon:fields.finan
 
 /* ---------- priorityAlloc: concession allocation follows buyer priority ----------
    No auto-split, no remainder logic, single clean purpose:
-     • payment                  → 100% of the concession to a rate buydown
-     • cash / balanced / power  → 100% of the concession to closing costs
+     • payment                        → 100% of the concession to a rate buydown
+     • cash / reserves / power        → 100% of the concession to closing costs
+   (WP-3: 'reserves' joins the cash side — a closing-cost credit is the only
+   allocation that leaves more money in the buyer's account.)
    (Buying power is a cash story, so it goes to closing costs too.) The engine
    only calculates consequences; a closing-cost credit is capped at actual closing
    costs inside applyConcession. */
@@ -4765,7 +4909,7 @@ function pathOutcome(baseS, inp, pathKey, negRoom){
 }
 // Pick the winning outcome — buyer priority first, in every mode including Compare.
 // Matches the Gap Solver's priority-first logic: cash → lowest net cash to close,
-// payment → lowest PITI, balanced / power → lowest financing cost over the hold.
+// payment → lowest PITI, reserves → most cash left, power → lowest financing cost.
 // Each priority carries secondary tiebreakers (with small tolerances) so that when
 // the primary metric ties, the strictly-better outcome wins; a final tiebreak prefers
 // deploying more of the adjustment.
@@ -4777,7 +4921,10 @@ function pickPathWinner(outs, inp){
   const seq = ({
     cash:    [['cashToClose',1500],['totalCostHorizon',100],['piti',1]],
     payment: [['piti',1],['cashToClose',2],['totalCostHorizon',100]],
-    balanced:[['totalCostHorizon',100],['piti',1],['cashToClose',2]],
+    /* WP-3 — 'reserves' and 'cash' coincide here by arithmetic, not by
+       assumption: at a fixed price, cash remaining is available funds minus
+       cash to close, so minimising one maximises the other. */
+    reserves:[['cashToClose',1500],['totalCostHorizon',100],['piti',1]],
     power:   [['totalCostHorizon',100],['piti',1],['cashToClose',2]]
   })[inp.priority] || [['totalCostHorizon',100],['piti',1],['cashToClose',2]];
   const rank = {concession:0, split:1, reduction:2};
@@ -4943,18 +5090,20 @@ function renderCards(inp, res){
 
   let html=''; let topCount=0;
   if(viable.length){
-    const best = Engine.pickBestOverall(viable, inp);
-    // One card per eligible program family (FHA / Conventional / VA). The
-    // recommended family (priority-aware) leads with the ★ badge; the rest follow.
+    const best = representativeScenario(viable, inp);
+    // One card per eligible program family (FHA / Conventional / VA). The family
+    // matching the STATED priority leads; with no priority stated, none leads.
+    if(!priorityStated(inp)) html += '<div style="grid-column:1/-1">' +
+      noPriorityHTML('between these structures') + '</div>';
     const cards = Engine.programCards(viable, res.eliminated, inp);
     topCount = cards.length;
     // Attach each card's comparison scenario for the conversation guide: the
     // recommended card is explained against the strongest runner-up program; every
     // other card is explained against the recommended program.
-    const recCard = cards.find(c=>c.recommended) || cards[0];
+    const recCard = cards.find(c=>c.matchesPriority) || cards[0];
     const others = cards.filter(c=>c!==recCard);
-    const runnerS = others.length ? Engine.pickBestOverall(others.map(c=>c.s), inp) : null;
-    cards.forEach(c=>{ c.altS = c.recommended ? runnerS : (recCard ? recCard.s : null); });
+    const runnerS = others.length ? representativeScenario(others.map(c=>c.s), inp) : null;
+    cards.forEach(c=>{ c.altS = c.matchesPriority ? runnerS : (recCard ? recCard.s : null); });
     html += cards.map(c=>familyCardHTML(c, inp, best)).join('');
   } else {
     html += '<div class="noviable" style="grid-column:1/-1">No scenario matches the '+dpLabel(inp)+' down-payment target — the options below are dimmed for reference.</div>';
@@ -4999,15 +5148,30 @@ function dpDimmedCardHTML(s, inp){
   h+='</div>';
   return h;
 }
-// The scenario the current priority points at (shared by cards + Gap Solver).
+/* WP-3 — ONE selector. This used to be a second copy of priorityPick's switch
+   that fell through to Best Overall; two copies of a selection rule is exactly
+   how the two disagree. It now delegates. */
 function priorityScenario(viable, inp){
-  if(!viable.length) return null;
-  switch(inp.priority){
-    case 'payment': return viable.slice().sort((a,b)=>a.piti-b.piti)[0];
-    case 'cash':    return viable.slice().sort((a,b)=>a.cashToClose-b.cashToClose)[0];
-    case 'power':   return viable.slice().sort((a,b)=>b.maxPrice-a.maxPrice)[0];
-    default:        return Engine.pickBestOverall(viable, inp);
-  }
+  return (viable && viable.length) ? Engine.priorityPick(viable, inp) : null;
+}
+
+/* Panels that must render SOMETHING even before a priority is stated (the
+   comparison target on a family card, the auto loan type in Section 4) take the
+   neutral representative: the lowest eligible down-payment tier. It is a fact
+   about the program set, not a recommendation, and it is never badged. */
+function representativeScenario(viable, inp){
+  if(!viable || !viable.length) return null;
+  return priorityScenario(viable, inp) ||
+         viable.slice().sort((a,b)=>a.dp-b.dp)[0];
+}
+
+/* The banner every panel shows in place of a recommendation until the advisor
+   states what the buyer is optimising for. */
+function noPriorityHTML(what){
+  return '<div class="nopriority"><b>No buyer priority stated.</b>' +
+         'BSE will not choose ' + what + ' on the buyer\u2019s behalf. Pick a priority in the ' +
+         'buyer panel \u2014 Stay near Comfort Payment, Lowest Cash to Close, Preserve Reserves, ' +
+         'or Maximum Buying Power \u2014 and the selection appears here.</div>';
 }
 
 const FAMILY_LABEL = { conv:'Conventional', fha:'FHA', va:'VA' };
@@ -5061,8 +5225,11 @@ function familyCardHTML(c, inp, best){
   const subPrefix = (bp && bp._pathKey==='concession') ? 'before concession' : 'before offer';
   const mini = t => '<div class="sub-mini">'+t+'</div>';
 
-  let h='<div class="scard'+(c.recommended?' primary':'')+'">';
-  if(c.recommended) h+='<div class="badge">★ Start here</div>';
+  let h='<div class="scard'+(c.matchesPriority?' primary':'')+'">';
+  /* WP-3 — "★ Start here" was a recommendation the engine had no standing to
+     make. The card now states the fact: this structure is the one the stated
+     priority points at. */
+  if(c.matchesPriority) h+='<div class="badge">Matches your stated priority</div>';
   h+='<div class="arch">'+s.name+'</div>';
   h+='<div class="prog">'+FAMILY_LABEL[s.id]+(s.lowScore?' · 500–579 score tier':'')+'</div>';
   if(c.note) h+='<div class="cnote">'+c.note+'</div>';
@@ -5077,7 +5244,15 @@ function familyCardHTML(c, inp, best){
   // Cash to close — post-concession primary with the pre-concession as a sub-label.
   h+='<div class="k">Cash to close</div><div class="v">'+money(dCash)+((post && Math.abs(dCash-s.cashToClose)>=1)?mini(subPrefix+': '+money(s.cashToClose)):'')+'</div>';
   // Cash remaining — post-concession.
-  h+='<div class="k">Cash remaining</div><div class="v '+(dCashRem<0?'gap-red':'')+'">'+money(dCashRem)+((post && Math.abs(dCashRem-s.cashRemaining)>=1)?mini(subPrefix+': '+money(s.cashRemaining)):'')+'</div>';
+  /* WP-3 — the reserve goal is tested on the card the advisor is actually
+     looking at, not only on the Section 1 snapshot. A stated priority is never
+     overridden by the goal; the card just says when the two disagree. */
+  const wantR = inp.desiredReserves;
+  const rCls = wantR == null ? '' : (dCashRem >= wantR ? 'resv-ok' : 'resv-short');
+  h+='<div class="k">Cash remaining</div><div class="v '+(dCashRem<0?'gap-red':rCls)+'">'+money(dCashRem)+((post && Math.abs(dCashRem-s.cashRemaining)>=1)?mini(subPrefix+': '+money(s.cashRemaining)):'')+'</div>';
+  if(wantR != null && dCashRem < wantR)
+    h+='<div class="k"></div><div class="v"><span class="sub-mini" style="color:#991b1b;font-weight:700">'+
+       money(wantR-dCashRem)+' short of the '+money(wantR)+' reserve goal</span></div>';
   if(s.monthlyMI>0){
     let mi = s.miMode==='fha' ? (s.mipLife?'life of loan':'drops mo '+s.mipDropMonth) : (s.cancelMonth?'drops mo '+s.cancelMonth:'—');
     h+='<div class="k">MI ('+money(s.monthlyMI)+')</div><div class="v" style="font-size:11px">'+mi+'</div>';
@@ -5119,12 +5294,12 @@ function offerNoteText(bp){
 
 // Conversation guide: states the SPECIFIC reason this program was recommended over
 // the alternative (or, on a non-recommended card, the specific tradeoff vs. the
-// recommended program). Mirrors the pickBestOverall tiebreaker: cash → financing
+// program the priority points at). States the deciding axis: cash → financing
 // → simplicity. Never generic ("cleanest long-term structure") — always a number.
 function familyGuide(c, inp){
   const s=c.s, alt=c.altS, stay=inp.stayYears;
   // VA winner — its own clear story.
-  if(s.id==='va' && c.recommended)
+  if(s.id==='va' && c.matchesPriority)
     return 'VA requires no down payment and no monthly MI — lowest cash to close and lowest total financing cost of any eligible program.';
   if(!alt) return soloGuide(s);
   const F=FAMILY_LABEL[s.id], A=FAMILY_LABEL[alt.id];
@@ -5133,8 +5308,8 @@ function familyGuide(c, inp){
   const dPay =s.piti-alt.piti;
   const samePay=Math.abs(dPay)<=50;
 
-  if(c.recommended){
-    // This program WON. Explain the deciding axis where it beats the runner-up.
+  if(c.matchesPriority){
+    // This program is the one the stated priority points at. Explain the axis.
     if(samePay && dCash < -2000)
       return F+' produces '+money(-dCash)+' lower cash to close than '+A+' for the same payment — the right call when funds are the constraint.';
     if(dFin < -2500){
@@ -5303,9 +5478,9 @@ function gsPayment(inp, res, best){
     if(need.over) h+=sol('⚠','The '+money(need.dollars)+' needed exceeds the '+money(best.concLimit)+' allowable max for '+best.name+' ('+best.concLimitPct+'%) — cap the ask and combine with another lever.', false);
   }
   // Alternative program with a naturally lower payment — respecting the same cash-
-  // preservation rule as pickBestOverall(): a higher down-payment tier (e.g. Conv 10%
-  // / 20%) is only surfaced when priority is 'payment' AND the extra down is recovered
-  // within 36 months of the payment saving. For cash / balanced, never suggest one.
+  // preservation rule programCards() applies: a higher down-payment tier (e.g. Conv
+  // 10% / 20%) is only surfaced when the buyer has STATED 'payment' AND the extra down
+  // is recovered within 36 months of the saving. Never otherwise.
   let altCands = res.scenarios.filter(s=>s.id!==best.id && s.piti<best.piti);
   if(!inp.dpTarget && altCands.length){
     const lowDp = res.scenarios.reduce((m,s)=>s.dp<m.dp?s:m, res.scenarios[0]);
@@ -5384,13 +5559,14 @@ function concessionVsPrice(inp, best, gap, opts){
   // Winner is decided by BUYER PRIORITY first:
   //   cash    → lower net cash to close wins
   //   payment → lower PITI wins
-  //   balanced / power → lower financing cost over the stay wins
+  //   reserves → lower net cash to close wins
+  //   power    → lower financing cost over the stay wins
   const concFin = financingCostAt(best.loanAmount, conc.newRate, stayM, best.miCostHorizon, best.financedFee);
   const concAmt = money(conc.total);
   // Recommendation states the EXACT savings on the deciding metric, and always
   // shows both paths' figures in parentheses (winner first) for the call.
   let concWins, recTxt;
-  if(inp.priority==='cash'){
+  if(inp.priority==='cash' || inp.priority==='reserves'){
     concWins = conc.newCash <= prScn.cashToClose + 0.5;
     const save = money(Math.abs(prScn.cashToClose - conc.newCash));
     recTxt = concWins
@@ -5402,7 +5578,7 @@ function concessionVsPrice(inp, best, gap, opts){
     recTxt = concWins
       ? 'Offer '+money(concPrice)+' with a '+concAmt+' seller concession — saves '+save+'/mo vs. a price reduction ('+money(conc.newPITI)+' vs. '+money(prScn.piti)+'/mo).'
       : 'Offer '+money(prPrice)+' — saves '+save+'/mo vs. a seller concession ('+money(prScn.piti)+' vs. '+money(conc.newPITI)+'/mo).';
-  } else { // balanced / power → financing cost
+  } else { // power, or no priority stated → financing cost over the hold
     concWins = concFin <= prScn.totalCostHorizon + 0.5;
     const save = money(Math.abs(concFin - prScn.totalCostHorizon));
     recTxt = concWins
@@ -5534,7 +5710,7 @@ function fmtVal(id,v){
   if(id==='dpTarget'){ const n=parseFloat(v.replace(/[^0-9.\-]/g,'')); return isNaN(n)?v:(unitState.dp==='dollar'?money(n):n+'%'); }
   if(id==='rateConv'||id==='rateFha'||id==='rateVa'||id==='ccPct') return v+'%';
   if(id==='stay') return v+' yrs';
-  if(id==='priority') return ({balanced:'Balanced',payment:'Lowest Monthly Payment',cash:'Lowest Cash to Close',power:'Maximum Buying Power'})[v]||v;
+  if(id==='priority') return PRIORITY_LABEL[migratePriority(v)] || 'not stated';
   return v;
 }
 function logChanges(){
@@ -5589,7 +5765,7 @@ function recalc(){
   updateInlineHints(inp);
   renderFlPanel(inp);        // WP-1 — Florida tax derivation panel
   // Concession allocation. By default it follows the buyer priority directly
-  // (payment → rate buydown; cash / balanced / power → closing costs). Doug can
+  // (payment → rate buydown; cash / reserves / power → closing costs). Doug can
   // override via "Adjust split manually"; while manual (auto=false) his split is
   // preserved and only re-normalized to the deployed total.
   if(inp.concessionOn && appliedConcTotal>0 && concSplit.auto){
@@ -5662,7 +5838,7 @@ function counterScenario(inp, price){
   if(loanVal==='auto'){
     const res = Engine.run(baseInp, A_CONST);
     const viable = res.scenarios.slice();
-    if(viable.length) return { s:Engine.pickBestOverall(viable, baseInp), auto:true, noEligible:false };
+    if(viable.length) return { s:representativeScenario(viable, baseInp), auto:true, noEligible:false };
     return { s:Engine.computeScenario(baseInp, A_CONST, Engine.PROGRAMS.conv, {dp:5,name:'Conv 5%'}, price), auto:true, noEligible:true };
   }
   const lt = LOAN_TYPES[loanVal];
@@ -5670,7 +5846,7 @@ function counterScenario(inp, price){
 }
 
 // Evaluate a structure = (price, concession $) with the concession allocated per buyer
-// priority (cash/balanced/power → closing costs; payment → rate buydown).
+// priority (cash/reserves/power → closing costs; payment → rate buydown).
 function evalStructure(inp, price, concAmt){
   const sc = counterScenario(inp, price), s = sc.s;
   let conc = null;
@@ -5691,7 +5867,7 @@ function evalStructure(inp, price, concAmt){
 function coMetric(inp, e){
   if(inp.priority==='cash') return e.cash;
   if(inp.priority==='payment') return e.piti;
-  return e.financing;   // balanced / power → financing cost
+  return e.financing;   // power, or unstated → financing cost
 }
 
 // Optimal restructure: redistribute the SAME net seller value between price
@@ -5945,7 +6121,7 @@ function attachConcessionHandlers(){
   // "Adjust split manually" — reveal the fields and take manual control.
   $('btnManualSplit').addEventListener('click',()=>{ concSplit.auto=false; renderSplitFields(false); });
   // "Use priority default" — collapse the fields and hand allocation back to the
-  // priority-based default (payment → buydown; cash / balanced / power → costs).
+  // priority-based default (payment → buydown; cash / reserves / power → costs).
   $('btnBackAuto').addEventListener('click',()=>{ concSplit.auto=true; recalc(); });
   // manual concession split. Editing a field takes manual control; the engine is
   // passive after that — no re-suggestions.
@@ -6278,7 +6454,9 @@ const BSEModel = (function(){
       dp_target_value: blank('dpTarget') ? null : num('dpTarget'),
       dp_target_unit: blank('dpTarget') ? null : UNIT[unitState.dp],
       planned_stay_years: parseInt($('stay').value) || 7,
-      buyer_priority: $('priority').value,
+      // WP-3 — a stored 'balanced' migrates on the way in; an unstated
+      // priority stays null and is not silently defaulted.
+      buyer_priority: migratePriority($('priority').value),
       // L-1 / §13.5 — Shopping Plans are flat_rate. No millage, ever, at this layer.
       tax_method: 'flat_rate',
       tax_rate_pct:      taxUnit === 'percent' ? taxRaw : null,
@@ -6493,7 +6671,7 @@ const BSEModel = (function(){
       dp_target_value: sc.dp_target_unit !== null ? sc.dp_target_value : sp.dp_target_value,
       dp_target_unit:  sc.dp_target_unit !== null ? sc.dp_target_unit  : sp.dp_target_unit,
       planned_stay_years: pick(sc.planned_stay_years, sp.planned_stay_years),
-      buyer_priority: pick(sc.buyer_priority, sp.buyer_priority),
+      buyer_priority: migratePriority(pick(sc.buyer_priority, sp.buyer_priority)),
       tax_method: pick(sc.tax_method, sp.tax_method, 'flat_rate'),
       tax_rate_pct: sc.tax_method !== null ? sc.tax_rate_pct : sp.tax_rate_pct,
       tax_annual_amount: sc.tax_method !== null ? sc.tax_annual_amount : sp.tax_annual_amount,
@@ -6638,7 +6816,7 @@ const BSEModel = (function(){
       shopping: shopping, dpTarget: dpTarget,
       taxRate: taxRate, taxMonthly: taxMonthly, taxFixed: taxFixed,
       // WP-2 — cash model. reserveFloor defaults to the 500 that used to be
-      // hard-coded inside pickBestOverall, so unauthored behaviour is unchanged.
+      // hard-coded inside the retired pickBestOverall, so unauthored behaviour is unchanged.
       escrowDeposit: escrowDeposit, earnestMoney: earnestMoney,
       cashIsTotal: cashIsTotal, cashAuthoredTotal: cashAuthoredTotal,
       desiredReserves: bp.desired_reserves,
@@ -6657,7 +6835,7 @@ const BSEModel = (function(){
       floodNA: r.flood.status === 'confirmed_none',
       fthb: bp.is_first_time_buyer, vaOn: bp.va_eligible,
       vaUse: bp.va_use || 'first', vaExempt: bp.va_funding_fee_exempt,
-      priority: r.buyer_priority,
+      priority: r.buyer_priority,          // WP-3 — null when unstated; never defaulted
       offerPrice: offerP, negotiatingRoom: negReq, sellerConcession: sellerConcession,
       negotiationMode: (buyerRound && buyerRound.negotiation_mode)
                        || r.negotiation_mode || 'concession',
@@ -6700,7 +6878,9 @@ const BSEModel = (function(){
   function buildResultSummary(){
     const inp = toInputs(capture());
     const res = Engine.run(inp, A_CONST);
-    const pick = res.scenarios.length ? Engine.pickBestOverall(res.scenarios, inp) : null;
+    /* WP-3 — the cached summary reflects the STATED priority, and is null when
+       none is stated. It was never authoritative and still is not. */
+    const pick = res.scenarios.length ? Engine.priorityPick(res.scenarios, inp) : null;
     return {
       cache_only: true, authoritative: false,
       recommended_program: pick ? pick.id : null,
@@ -6997,7 +7177,8 @@ const BSEPersistence = (function(){
       shopping_plan: {
         plan_label: s.plan_label, is_active: s.is_active, target_payment: n(s.target_payment),
         dp_target_value: n(s.dp_target_value), dp_target_unit: s.dp_target_unit,
-        planned_stay_years: s.planned_stay_years, buyer_priority: s.buyer_priority,
+        planned_stay_years: s.planned_stay_years,
+        buyer_priority: migratePriority(s.buyer_priority),   // WP-3 — legacy 'balanced' rows
         tax_method: s.tax_method, tax_rate_pct: n(s.tax_rate_pct),
         tax_annual_amount: n(s.tax_annual_amount), tax_input_unit: s.tax_input_unit,
         hoi_monthly: n(s.hoi_monthly),
@@ -7026,7 +7207,8 @@ const BSEPersistence = (function(){
         escrow_deposit: n(sc.escrow_deposit), earnest_money: n(sc.earnest_money),   // WP-2
         target_payment: n(sc.target_payment),
         dp_target_value: n(sc.dp_target_value), dp_target_unit: sc.dp_target_unit,
-        planned_stay_years: sc.planned_stay_years, buyer_priority: sc.buyer_priority,
+        planned_stay_years: sc.planned_stay_years,
+        buyer_priority: migratePriority(sc.buyer_priority),  // WP-3 — legacy 'balanced' rows
         dti_override_enabled: sc.dti_override_enabled,
         dti_override_front: n(sc.dti_override_front), dti_override_back: n(sc.dti_override_back),
         dti_override_source: sc.dti_override_source,
@@ -7336,7 +7518,7 @@ const BSEPersistence = (function(){
       dpTarget: str(dpValue), target: str(s.target_payment),
       income: str(rows.buyer_profile.qualifying_income_monthly),
       debts: str(rows.buyer_profile.monthly_debts), stay: str(s.planned_stay_years),
-      priority: s.buyer_priority, rateConv: str(s.rate_conv), rateFha: str(s.rate_fha),
+      priority: migratePriority(s.buyer_priority) || '', rateConv: str(s.rate_conv), rateFha: str(s.rate_fha),
       rateVa: str(s.rate_va), ccPct: str(s.closing_cost_pct),
       ccOverride: str(sc.closing_cost_override_amount), taxRate: str(taxVal),
       hoi: str(s.hoi_monthly), hoa: str(s.hoa_monthly), cdd: str(s.cdd_monthly),
