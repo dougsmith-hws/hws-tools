@@ -254,6 +254,9 @@ const scanBad = t => (t.match(BAD) || []);
   ok('A there is no blocking constraint', g.constraint === null, g);
 
   t = await body();
+  /* REFINEMENT §3/§4 — the hero is now the fit summary, which states the
+     required down payment inside the MORE DOWN lever. The verdict still comes
+     first. */
   ok('A the verdict is stated before any figure',
      t.indexOf('GOAL ACHIEVABLE') > -1 &&
      t.indexOf('GOAL ACHIEVABLE') < t.indexOf('REQUIRED DOWN PAYMENT'), t.slice(0, 500));
@@ -645,14 +648,15 @@ const scanBad = t => (t.match(BAD) || []);
   await set({ price: '499,900', offerPrice: '489,900', offerConc: '5,000',
               counterPrice: '494,900', dpTarget: '150,000', ownFunds: '200,000' });
   const legacy = await page.evaluate(() => ({
-    snap: (document.getElementById('snapBody').innerText || '').length,
+    snapExists: !!document.getElementById('snapBody'),
     cards: (document.getElementById('cardsBody').innerText || '').length,
     gap: !!document.getElementById('gsPanel'),
     neg: (document.getElementById('negMount').innerText || '').length,
     counter: (document.getElementById('counterBody').innerText || '').length,
     sec2visible: document.getElementById('propFull').style.display !== 'none'
   }));
-  ok('Section 1 Qualification Snapshot still renders', legacy.snap > 50, legacy);
+  /* REFINEMENT §1 — Section 1 was the duplicate; it is deleted by approval. */
+  ok('the duplicate Qualification Snapshot is gone', legacy.snapExists === false, legacy);
   ok('2a Recommendation Engine still renders', legacy.cards > 50, legacy);
   ok('2b Negotiation Strategy still renders', legacy.neg > 50, legacy);
   ok('2c Gap Solver is still mounted', legacy.gap, legacy);

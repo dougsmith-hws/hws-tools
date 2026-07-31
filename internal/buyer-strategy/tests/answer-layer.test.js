@@ -383,11 +383,14 @@ function scanBad(text) {
   });
   await setBuyer({ price: '461,000', target: '3,000', ownFunds: '200,000', income: '11,000', debts: '400' });
   const legacy = await page.evaluate(() => ({
-    snap: window.__txt('snapBody').length, cards: window.__txt('cardsBody').length,
+    snapExists: !!document.getElementById('snapBody'),
+    cards: window.__txt('cardsBody').length,
     gs: window.__txt('gsPanel').length, co: window.__txt('coPanels').length,
     propFullShown: document.getElementById('propFull').style.display !== 'none'
   }));
-  ok('Section 1 still renders', legacy.snap > 50, legacy);
+  /* REFINEMENT §1 — the lower Qualification Snapshot is deleted; it restated the
+     three figures the answer layer already leads with. */
+  ok('the duplicate Qualification Snapshot is gone', legacy.snapExists === false, legacy);
   ok('the Recommendation Engine still renders', legacy.cards > 50, legacy);
   ok('the Gap Solver still renders', legacy.gs > 20, legacy);
   ok('the Counter Offer Analyzer still renders', legacy.co > 20, legacy);
@@ -396,8 +399,8 @@ function scanBad(text) {
   const noSectionClass = await page.evaluate(() =>
     !document.getElementById('answerLayer').classList.contains('section') &&
     !document.getElementById('goalBar').classList.contains('section') &&
-    document.querySelectorAll('.section').length === 2);
-  ok('the answer layer is not a .section — collapsed-state capture is unaffected', noSectionClass);
+    document.querySelectorAll('.section').length === 1);   // REFINEMENT §1 — sec1 deleted
+  ok('the answer layer is not a .section, and only Property Strategy remains', noSectionClass);
 
   /* ================================================================
      9 · RESPONSIVE — the goal bar must not break the phone layout

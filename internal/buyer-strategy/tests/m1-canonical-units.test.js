@@ -98,6 +98,25 @@ window.__set = function(sc){
                this differential is for.
      CLEANUP   "Recommendation."  ->  "Where your stated priority points."
                BSE stopped recommending a strategy.
+
+   APPROVED DELETION
+     REFINEMENT  the lower "Qualification Snapshot" panel (#snapBody) was
+                 DELETED. It restated Comfort Purchase Price, Max Qualifying
+                 Price and DTI at Comfort Price, which the answer layer already
+                 leads with. A panel that no longer exists cannot be compared,
+                 so it drops out of the differential on BOTH sides rather than
+                 failing every case.
+
+                 WHAT REPLACES THAT COVERAGE, so this is not a quiet loss:
+                   · bse-regression still captures rendered.snapBody as a
+                     change-detector — it is now pinned as absent, so a
+                     re-appearance fails there.
+                   · live-call C1–C8 pin the three figures, the DTI arithmetic
+                     and the constraint sentence against Doug's worked example.
+                   · job2-property-strategy pins $484,259 / $674,670 / 32.0%
+                     and the elimination reasons.
+                 Every other panel in this fingerprint is still compared
+                 byte-for-byte.
    -------------------------------------------------------------------- */
 window.__renames = function(s){
   if(s == null) return s;
@@ -146,7 +165,7 @@ window.__fingerprint = function(){
   return {
     inputs: JSON.parse(JSON.stringify(gatherInputs())),
     modeBadge: t('modeBadge'),
-    snapBody:  t('snapBody'),
+    /* snapBody: DELETED BY APPROVAL — see APPROVED DELETION above. */
     cardsBody: t('cardsBody'),
     gsPanel:   t('gsPanel'),
     negMount:  t('negMount'),

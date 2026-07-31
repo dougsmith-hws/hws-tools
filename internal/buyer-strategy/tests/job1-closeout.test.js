@@ -64,8 +64,10 @@ window.__fresh = function(){
 };
 window.__sections = function(){
   var out = {};
+  /* REFINEMENT §1 — sec1 (Qualification Snapshot) was deleted; sec2 remains. */
   ['sec1','sec2'].forEach(function(id){
-    var el = document.getElementById(id), body = el.querySelector('.sec-body');
+    var el = document.getElementById(id); if(!el) return;
+    var body = el.querySelector('.sec-body');
     out[id] = { collapsed: el.classList.contains('collapsed'),
                 bodyHeight: body.getBoundingClientRect().height,
                 headerVisible: el.querySelector('.sec-head').getBoundingClientRect().height > 10,
@@ -73,6 +75,7 @@ window.__sections = function(){
                 inert: body.hasAttribute('inert') };
   });
   out.answerLayerIsSection = document.getElementById('answerLayer').classList.contains('section');
+  out.sec1Exists = !!document.getElementById('sec1');
   out.sectionCount = document.querySelectorAll('.section').length;
   out.capturedCollapsed = BSEState.capture().uiState ? null : null;
   return out;
@@ -194,31 +197,28 @@ window.__roundTripUnit = function(value, unit){
   await fresh2.waitForTimeout(400);
   const sec = await fresh2.evaluate(() => window.__sections());
 
-  ok('Qualification Snapshot is collapsed on load', sec.sec1.collapsed === true, sec.sec1);
-  ok('  …its body measures 0px — genuinely collapsed', sec.sec1.bodyHeight === 0, sec.sec1);
-  ok('  …its header is still visible and clickable', sec.sec1.headerVisible === true, sec.sec1);
-  ok('  …its content is STILL RENDERED, so the frozen captures survive',
-     sec.sec1.innerTextLength > 50, sec.sec1);
-  ok('  …and it is inert, so clipped content is out of the tab order',
-     sec.sec1.inert === true, sec.sec1);
+  /* REFINEMENT §1 — the lower Qualification Snapshot is DELETED. It restated
+     the three figures the answer layer already leads with. */
+  ok('the duplicate Qualification Snapshot section is gone', sec.sec1 === undefined, sec.sec1);
+  ok('  …and no element is left carrying its id', sec.sec1Exists === false, sec.sec1Exists);
 
   ok('Property Strategy is collapsed on load in Shopping Range Mode', sec.sec2.collapsed === true, sec.sec2);
   ok('  …its body measures 0px', sec.sec2.bodyHeight === 0, sec.sec2);
   ok('  …and its inputs are inert', sec.sec2.inert === true, sec.sec2);
 
   ok('the answer layer is NOT a .section — it can never be collapsed away',
-     sec.answerLayerIsSection === false && sec.sectionCount === 2, sec);
+     sec.answerLayerIsSection === false && sec.sectionCount === 1, sec);
 
-  /* Expanding still works. */
-  await fresh2.click('#sec1 .sec-head');
+  /* Expanding still works on the section that remains. */
+  await fresh2.click('#sec2 .sec-head');
   const expanded = await fresh2.evaluate(() => window.__sections());
-  ok('clicking the header expands Qualification Snapshot',
-     expanded.sec1.collapsed === false && expanded.sec1.bodyHeight > 20, expanded.sec1);
-  ok('  …and expanding clears inert', expanded.sec1.inert === false, expanded.sec1);
-  await fresh2.click('#sec1 .sec-head');
+  ok('clicking the header expands Property Strategy',
+     expanded.sec2.collapsed === false && expanded.sec2.bodyHeight > 20, expanded.sec2);
+  ok('  …and expanding clears inert', expanded.sec2.inert === false, expanded.sec2);
+  await fresh2.click('#sec2 .sec-head');
   const recollapsed = await fresh2.evaluate(() => window.__sections());
   ok('clicking again re-collapses it and restores inert',
-     recollapsed.sec1.collapsed === true && recollapsed.sec1.inert === true, recollapsed.sec1);
+     recollapsed.sec2.collapsed === true && recollapsed.sec2.inert === true, recollapsed.sec2);
   await fresh2.close();
 
   /* ================================================================

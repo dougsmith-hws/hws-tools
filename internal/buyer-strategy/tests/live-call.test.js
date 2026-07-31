@@ -85,6 +85,11 @@ const FERN = {
         if (box) box.checked = !(+String(val).replace(/[^0-9.]/g, '') > 0);
       });
       ['tgFthb', 'tgVa', 'vaExempt'].forEach(i => { const e = document.getElementById(i); if (e) e.checked = false; });
+      /* The Florida panel is sticky by design, so a case that turned it on would
+         otherwise leak an extra tax figure into every case after it. */
+      ['flTaxOn', 'flHomestead'].forEach(i => { const e = document.getElementById(i); if (e) e.checked = false; });
+      ['flMillage', 'flNonAdVal', 'flPriorMkt', 'flPriorAssessed'].forEach(i => {
+        const e = document.getElementById(i); if (e) e.value = ''; });
       document.getElementById('priority').value = priority || '';
       unitState.dp = dpUnit || 'dollar';
       unitState.tax = taxUnit || 'pct';
@@ -224,10 +229,13 @@ const FERN = {
        /SHOP UP TO \$484,259/i.test(r.answer), r.answer.slice(0, 400));
   }
   {
-    /* It is not simply deleted — it still appears when it is genuinely news. */
+    /* REFINEMENT §1 — the Limiting Factor CARD lived in the deleted section. The
+       constraint itself is not lost: the answer layer names it in the sentence
+       under SHOP UP TO, which is where it was always more useful. */
     const r = await L(DOUG, { dpTarget: '', income: '4,200', debts: '900' }, 'payment', 'pct', 'dollarMo');
-    ok('C8 the Limiting Factor card DOES appear when qualifying income is the constraint',
-       /LIMITING FACTOR/i.test(r.snap) && /DTI/i.test(r.snap), r.snap.slice(0, 300));
+    ok('C8 a genuine qualifying-income constraint is still named, in the answer layer',
+       /Qualifying income is the limit/i.test(r.answer), r.answer.slice(0, 400));
+    ok('C8b and the deleted panel is not where it comes from', r.snap === '', JSON.stringify(r.snap).slice(0, 120));
   }
 
   /* =================================================================
@@ -243,9 +251,15 @@ const FERN = {
     ok('D3 the additional down payment required is answered',
        /REQUIRED DOWN PAYMENT/i.test(r.answer) && /ADDITIONAL NEEDED/i.test(r.answer),
        r.answer.slice(0, 700));
+    /* REFINEMENT §3/§4 — both levers now sit in one fit summary. */
     ok('D4 the required rate is answered, in the primary view',
-       /RATE THAT WOULD REACH THE COMFORT PAYMENT/i.test(r.answer) &&
-       /RATE NEEDED TO REACH \$3,000/i.test(r.answer), r.answer.slice(0, 900));
+       /REQUIRED RATE[\s\S]{0,20}6\.309%/i.test(r.answer) &&
+       /RATE CHANGE NEEDED[\s\S]{0,20}−0\.441%/i.test(r.answer), r.answer.slice(0, 1200));
+    ok('D4b the two levers are stated as parallel alternatives, holding each other constant',
+       /MORE DOWN · RATE HELD AT 6\.750%/i.test(r.answer) &&
+       /LOWER RATE · DOWN PAYMENT HELD AT \$150,000/i.test(r.answer), r.answer.slice(0, 1200));
+    ok('D4c and the required rate is flagged as a target, not a quote',
+       /not a quote, not an available rate/i.test(r.answer), r.answer.slice(0, 1400));
     ok('D5 offer and concession levers are available to discuss',
        /concession|offer/i.test(r.answer), r.answer.slice(0, 400));
     ok('D6 and nothing declares which lever to use',
@@ -328,7 +342,9 @@ const FERN = {
     ok('E8 when the escrow floor alone exceeds comfort, it says no rate reaches it',
        r.rr && r.rr.reachable === false, r.rr);
     ok('E8b and the screen says so rather than printing a nonsense rate',
-       /No rate reaches/i.test(r.answer), r.answer.slice(0, 600));
+       /No rate reaches/i.test(r.answer) ||
+       /already above the \$2,000 target before a dollar of principal or interest/i.test(r.answer),
+       r.answer.slice(0, 600));
   }
   {
     const r = await L(FERN, { target: '4,000' }, 'payment', 'dollar', 'dollarMo');
@@ -386,6 +402,91 @@ const FERN = {
     ok('G2 Year 1 and Year 2 are still two different figures', r.y1 > r.y2, r);
     ok('G3 the portability saving is still about $269/mo', near(r.saving, 269, 3), r.saving);
     ok('G4 every recurring-cost field is still present', r.fields === true, r.fields);
+  }
+
+  /* =================================================================
+     I — UI REFINEMENT: the fit summary, the two levers, and sensitivity
+     ================================================================= */
+  console.log('\n--- I. Property fit summary and rate sensitivity ---');
+  {
+    const r = await L(FERN, {}, 'payment', 'dollar', 'dollarMo');
+    const a = r.answer;
+    ok('I1 the duplicate lower Qualification Snapshot is gone',
+       await page.evaluate(() => !document.getElementById('snapBody')), 'snapBody');
+    ok('I2 the desired purchase price is the bridge into property strategy',
+       await page.evaluate(() => {
+         const l = document.querySelector('label');
+         return Array.from(document.querySelectorAll('label'))
+           .some(x => /desired purchase price/i.test(x.textContent));
+       }), 'label');
+    ok('I3 the fit summary states the problem in one line',
+       /Make \$499,900 fit the \$3,000 comfort payment/i.test(a), a.slice(0, 500));
+    ok('I4 the current structure is stated: payment, down, rate, gap',
+       /CURRENT PAYMENT[\s\S]{0,20}\$3,102/i.test(a) &&
+       /CURRENT DOWN PAYMENT[\s\S]{0,20}\$150,000/i.test(a) &&
+       /CURRENT RATE[\s\S]{0,20}6\.750%/i.test(a) &&
+       /\$102\/mo over target/i.test(a), a.slice(0, 900));
+    ok('I5 LEVER A holds the rate and solves the down payment',
+       /MORE DOWN · RATE HELD AT 6\.750%/i.test(a) &&
+       /REQUIRED DOWN PAYMENT[\s\S]{0,20}\$165,700/i.test(a) &&
+       /ADDITIONAL DOWN REQUIRED[\s\S]{0,20}\+\$15,700/i.test(a), a.slice(0, 1100));
+    ok('I6 LEVER B holds the down payment and solves the rate',
+       /LOWER RATE · DOWN PAYMENT HELD AT \$150,000/i.test(a) &&
+       /REQUIRED RATE[\s\S]{0,20}6\.309%/i.test(a) &&
+       /RATE CHANGE NEEDED[\s\S]{0,20}−0\.441%/i.test(a), a.slice(0, 1300));
+    ok('I7 both levers state the SAME resulting payment — they converge',
+       (a.match(/RESULTING PAYMENT\s*\$3,000\/mo/gi) || []).length === 2,
+       (a.match(/RESULTING PAYMENT\s*\$[0-9,]+\/mo/gi) || []).join(' | '));
+    ok('I8 neither lever is declared the winner',
+       !/best option|recommended strategy|put more down|buy the rate down/i.test(a) &&
+       /not a recommendation/i.test(a), a.slice(0, 1500));
+  }
+  {
+    /* Rate sensitivity: this home only, three rows, and the arithmetic checked
+       against the engine rather than against itself. */
+    const r = await page.evaluate(([f]) => {
+      Object.keys(f).forEach(id => { const e = document.getElementById(id); if (e) e.value = f[id]; });
+      ['hoaNA','cddNA','floodNA'].forEach(i => document.getElementById(i).checked = true);
+      ['tgFthb','tgVa','vaExempt'].forEach(i => document.getElementById(i).checked = false);
+      document.getElementById('priority').value = 'payment';
+      unitState.dp = 'dollar'; unitState.tax = 'dollarMo'; renderUnitToggles(); recalc();
+      const inp = gatherInputs();
+      const ref = engineRun(inp).scenarios.find(s => Math.abs(s.down - 150000) < 2);
+      const at = rate => propRateAt(inp, ref.id, inp.price, ref.dp, rate).piti;
+      return { text: (document.getElementById('answerBody').innerText || '').replace(/\s+/g,' '),
+               base: ref.piti, down: at(ref.rate - 0.25), up: at(ref.rate + 0.25),
+               rows: document.querySelectorAll('table.prt tbody tr').length,
+               moreOpen: (document.getElementById('moreRates') || {}).open };
+    }, [FERN]);
+    ok('I9 rate sensitivity is on THIS home', /RATE SENSITIVITY ON THIS HOME/i.test(r.text), r.text.slice(0, 200));
+    ok('I10 exactly three rows are shown outright', r.rows === 3, r.rows);
+    ok('I11 the rest sit behind "More rate scenarios", closed by default',
+       /More rate scenarios/i.test(r.text) && !r.moreOpen, r.moreOpen);
+    ok('I12 −0.25% produces the engine\'s payment',
+       new RegExp('6\\.500%\\s*\\$' + Math.round(r.down).toLocaleString('en-US') + '/mo').test(r.text),
+       { expected: Math.round(r.down), text: r.text.slice(r.text.indexOf('RATE SENSITIVITY'), r.text.indexOf('RATE SENSITIVITY') + 320) });
+    ok('I13 the current rate row is the engine\'s payment and is labelled current',
+       new RegExp('6\\.750%\\s*\\$' + Math.round(r.base).toLocaleString('en-US') + '/mo\\s*CURRENT').test(r.text),
+       { expected: Math.round(r.base) });
+    ok('I14 +0.25% produces the engine\'s payment',
+       new RegExp('7\\.000%\\s*\\$' + Math.round(r.up).toLocaleString('en-US') + '/mo').test(r.text),
+       { expected: Math.round(r.up) });
+    ok('I15 the change column is stated against the CURRENT payment',
+       new RegExp('−\\$' + Math.round(r.base - r.down).toLocaleString('en-US') + '/mo').test(r.text) &&
+       new RegExp('\\+\\$' + Math.round(r.up - r.base).toLocaleString('en-US') + '/mo').test(r.text),
+       { down: Math.round(r.base - r.down), up: Math.round(r.up - r.base) });
+    ok('I16 no shopping-power output appears in the property view',
+       !/shop up to/i.test(r.text.slice(r.text.indexOf('RATE SENSITIVITY'))) &&
+       !/buying power/i.test(r.text) && !/controlling/i.test(r.text),
+       r.text.slice(r.text.indexOf('RATE SENSITIVITY'), r.text.indexOf('RATE SENSITIVITY') + 400));
+  }
+  {
+    /* §10 — Shopping Range keeps its own, different rate question. */
+    const r = await L(DOUG, {}, 'payment', 'dollar', 'dollarMo');
+    ok('I17 Shopping Range still offers its own rate impact on the RANGE',
+       /What would a rate change mean\?/i.test(r.answer), r.answer.slice(0, 600));
+    ok('I18 and Shopping Range shows no property rate-sensitivity table',
+       !/RATE SENSITIVITY ON THIS HOME/i.test(r.answer), r.answer.slice(0, 400));
   }
 
   ok('Z1 no page errors during the suite', pageErrors.length === 0, pageErrors.join(' | '));

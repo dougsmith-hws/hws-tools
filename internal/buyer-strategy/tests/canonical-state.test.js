@@ -235,7 +235,9 @@ window.__roundTrip = function(cycles){
                                         p: before.property_scenario, n: before.negotiation_rounds });
     const m = JSON.parse(JSON.stringify(before));
     m.ui_state.gap_tab = 'cash';
-    m.ui_state.collapsed_sections = ['sec1'];
+    /* REFINEMENT §1 — sec1 (the Qualification Snapshot) was deleted. sec2 is the
+       remaining collapsible section and exercises the same round-trip. */
+    m.ui_state.collapsed_sections = ['sec2'];
     m.ui_state.manual_split_open = true;
     BSEModel.apply(m);
     const after = BSEModel.capture();
@@ -246,7 +248,7 @@ window.__roundTrip = function(cycles){
   });
   check('C9 changing presentation state leaves every economic field untouched', uiTest.same, JSON.stringify(uiTest));
   check('C9 presentation state itself did change (the test is not vacuous)',
-    uiTest.gap === 'cash' && uiTest.collapsed.indexOf('sec1') >= 0, JSON.stringify(uiTest));
+    uiTest.gap === 'cash' && uiTest.collapsed.indexOf('sec2') >= 0, JSON.stringify(uiTest));
 
   // C10 — M-1 after Gate B
   const m1 = await page.evaluate(() => {
