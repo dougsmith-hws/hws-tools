@@ -37,12 +37,30 @@ const src = fs.readFileSync(path.resolve(appPath), 'utf8');
    |-----|------------------------------------|-------|------------------|
    | 1   | a6e73d694b462cd10983f8ec59eb5f4f   | 529   | Pre-Phase-3 540ccbe, unchanged through Gates A–D |
    | 2   | ff76f4057ba51cbbf1f87a70a7e770a5   | 565   | Phase 4 "Hole 2", approved in writing by Doug Smith, 2026-07-29 |
+   | 3   | 2fffd616df3438a8183b6df2efd16a85   | 591   | WP-2 cash model, approved in writing by Doug Smith, 2026-07-31 |
 
-   Revision 2 is the ONLY approved change to the calculation engine since
-   the freeze was established, and it is confined to
-   PROGRAMS.conv.scenarios(). Nothing else in the IIFE was edited:
-   computeScenario(), maxPriceForScenario(), the PMI table, the MIP and VA
-   fee logic, concessionLimitPct(), pickBestOverall() and applyConcession()
+   REVISION 3 — WP-2. Four touches, each named in the approved Final BSE
+   Build Plan, and each verified against the 47-scenario numerical baseline
+   BEFORE this hash was recorded:
+
+     closingCost()          + authored escrow deposit; forceePct -> forcePct
+     computeScenario()      earnest money netted at cashToClose, floored at 0
+     maxPriceForScenario()  the cash ceiling now inverts cashToClose exactly,
+                            and honours ccOverride instead of always
+                            re-deriving from ccPct
+     pickBestOverall()      the $500 reserve floor is read from inp.reserveFloor
+                            (which defaults to 500) so WP-3 can delete this
+                            function without losing the floor
+
+   PROOF THE CHANGE IS INERT WHEN UNAUTHORED: with escrowDeposit = 0,
+   earnestMoney = 0, no ccOverride and reserveFloor = 500 — the state of every
+   pre-WP-2 buyer — bse-regression's 47 scenarios and every rendered panel are
+   byte-identical to the pre-WP-2 build. Verified before this row was added.
+
+   Revision 2 was confined to PROGRAMS.conv.scenarios(). Revision 3 is the
+   first change to computeScenario() and maxPriceForScenario() since the
+   freeze. The PMI table, the MIP and VA fee logic, concessionLimitPct()
+   and applyConcession()
    are all untouched.
 
    WHAT CHANGED, AND WHY IT MOVED NOTHING
@@ -66,9 +84,10 @@ const src = fs.readFileSync(path.resolve(appPath), 'utf8');
    row without written approval and a re-run of the numerical baseline.
    ===================================================================== */
 const FROZEN = {
-  engineIIFE:          'ff76f4057ba51cbbf1f87a70a7e770a5',   // rev 2 — 565 lines
+  engineIIFE:          '2fffd616df3438a8183b6df2efd16a85',   // rev 3 — 591 lines, WP-2
+  engineIIFE_rev2:     'ff76f4057ba51cbbf1f87a70a7e770a5',   // rev 2 — 565 lines, for the record
   engineIIFE_rev1:     'a6e73d694b462cd10983f8ec59eb5f4f',   // rev 1 — 529 lines, for the record
-  engineLines:         565,
+  engineLines:         591,
   maxPriceForScenario: null   // asserted structurally instead — see §2 below
 };
 
@@ -152,8 +171,20 @@ if (!mpfs) {
        /ceilings\.push\(\{\s*p:\s*priceForPITI\(inp\.target\)\s*,\s*why:\s*'Comfort Payment'/.test(mpfs)],
       ['the back-end DTI ceiling still uses ratios.back and subtracts debts',
        /prog\.ratios\.back\/100\*inp\.income\)\s*-\s*inp\.debts/.test(mpfs)],
-      ['the cash ceiling still divides funds by dpFrac + (1-dpFrac)*ccPct',
-       /cashDenom\s*=\s*dpFrac\s*\+\s*\(1-dpFrac\)\*inp\.ccPct\/100/.test(mpfs)],
+      /* WP-2 rev 3 — the ceiling must invert cashToClose exactly. The
+         price-scaling part of the denominator is unchanged; the fixed
+         components (escrow deposit, earnest money, a dollar ccOverride) moved
+         to the numerator, where they belong. With all three absent this
+         reduces to the rev-2 expression exactly — proven numerically by
+         bse-regression, and pinned structurally here. */
+      ['the cash ceiling still scales price by dpFrac + (1-dpFrac)*ccPct',
+       /dpFrac\s*\+\s*\(1-dpFrac\)\*inp\.ccPct\/100/.test(mpfs)],
+      ['the cash ceiling nets the escrow deposit and earnest money in the numerator',
+       /cashFixed\s*=\s*\(inp\.escrowDeposit[^)]*\)\s*-\s*\(inp\.earnestMoney/.test(mpfs)],
+      ['a dollar ccOverride leaves the denominator instead of being ignored',
+       /ccIsOverride\s*\?\s*dpFrac\s*:/.test(mpfs)],
+      ['the ceiling can never go negative',
+       /Math\.max\(0,\s*cashNumer\)/.test(mpfs)],
       ['front-end ratio is still NOT a price ceiling',
        !/ratios\.front\/100\*inp\.income/.test(mpfs)],
       ['PITI per $1 of price is still k = pf*L1 + miPer + taxPer',
