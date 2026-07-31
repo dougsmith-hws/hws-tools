@@ -86,9 +86,11 @@ window.__set = function(f, c, dpUnit, taxUnit){
   unitState.dp=dpUnit||'dollar'; unitState.tax=taxUnit||'dollarMo';
   renderUnitToggles(); recalc(); return true;
 };
+/* CORRECTION §2 — the desired-price block left its disclosure and is now in the
+   primary view, so the label to read is the field's own. */
 window.__whatIfLabel = function(){
-  var el = document.querySelector('#whatIfBox summary');
-  return el ? el.innerText.split('\\u2014')[0].trim() : null;
+  var el = document.querySelector('.dpfit .wi-target');
+  return el ? el.innerText.trim() : null;
 };
 window.__ask = function(price){
   whatIfPrice = price; answerUi.whatif = true; recalc(); refreshWhatIf();
@@ -228,8 +230,8 @@ window.__roundTripUnit = function(value, unit){
   for (const [entered, shown] of [['3,000', '$3,000'], ['3,500', '$3,500'], ['4,250', '$4,250']]) {
     await page.evaluate(t => window.__set({ target: t }, {}, 'dollar', 'dollarMo'), entered);
     const label = await page.evaluate(() => window.__whatIfLabel());
-    ok('target ' + shown + ' → "How much down to stay at ' + shown + '/mo?"',
-       label === 'How much down to stay at ' + shown + '/mo?', label);
+    ok('target ' + shown + ' → the prompt names the comfort payment',
+       label === 'what would it take to make this home fit the ' + shown + '/mo comfort payment?', label);
   }
   const stale = await page.evaluate(() => window.__whatIfLabel());
   ok('the old static wording is gone', !/want to spend more/i.test(stale), stale);
@@ -305,7 +307,7 @@ window.__roundTripUnit = function(value, unit){
   const body = await page.evaluate(() => window.__answer());
   /* CLEANUP §3/§5 — the third headline is DTI at Comfort Price. */
   const order = ['COMFORT PURCHASE PRICE', 'MAX QUALIFYING PRICE', 'DTI AT COMFORT PRICE',
-                 'SHOP UP TO', 'How much down to stay at', 'Why this number', 'Debt payoff lever'];
+                 'SHOP UP TO', 'DESIRED PURCHASE PRICE', 'Limiting factor', 'Debt payoff lever'];
   let lastIdx = -1, inOrder = true, offender = null;
   for (const token of order) {
     const i = body.indexOf(token);

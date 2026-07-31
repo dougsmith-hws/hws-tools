@@ -784,6 +784,14 @@ table.prt .prt-cur{font-size:9.5px;font-weight:800;text-transform:uppercase;lett
 .rs-f{font-size:10px;color:#94a3b8;margin-top:8px}
 .elimbox summary{cursor:pointer}
 
+/* ---- CORRECTION: desired-price property fit, in the primary view ---- */
+.dpfit{border:1px solid #e2e8f0;border-radius:10px;padding:14px;margin-bottom:12px;background:#fff}
+.dpfit .wi-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+.dpfit .wi-lab{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.55px;color:#3BB1ED}
+.dpfit .wi-target{font-size:11.5px;color:#64748b;flex:1 1 240px}
+.dpfit .fitsum{border:none;padding:0;margin-bottom:10px}
+.dpfit .ratesens{border:none;padding:0;margin-bottom:0;border-top:1px solid #e2e8f0;padding-top:11px}
+
 </style>
 </head>
 <body>
@@ -961,9 +969,9 @@ table.prt .prt-cur{font-size:9.5px;font-weight:800;text-transform:uppercase;lett
       <!-- full property strategy (shown once a list price is entered) -->
       <div class="propfull" id="propFull" style="display:none">
 
-        <!-- 2a — Recommendation Engine -->
+        <!-- 2a — Loan structures (CORRECTION §8: BSE does not recommend) -->
         <div class="substep">
-          <div class="substep-h"><span class="sx">2a</span><span class="st2">Recommendation Engine</span><span class="sq">— what do I recommend?</span></div>
+          <div class="substep-h"><span class="sx">2a</span><span class="st2">Loan Structures</span><span class="sq">— what are the options on this property?</span></div>
           <div class="cards" id="cardsBody"></div>
         </div>
 
@@ -2369,8 +2377,14 @@ function strategyActionsFor(why, ctx){
     else if(inp.vaOn && qualTop.id!=='va') acts.push('Use <b>VA</b> — residual-income based, no hard DTI cap.');
     if(!inp.shopping && inp.price>qualTop.qualPrice+1) acts.push('Lower list price by <b>'+money(inp.price-qualTop.qualPrice)+'</b> to fit the DTI ceiling.');
   } else if(why==='Comfort Payment'){
-    if(best) acts.push('Seller concession → <b>rate buydown</b> to bring the payment toward the '+money(inp.target)+' comfort target (up to '+money(best.concLimit)+' allowable).');
-    acts.push('Alternative loan structure with a lower payment — see the Recommendation Engine.');
+    /* CORRECTION §9 — LEVERS ONLY. The arithmetic that solves the gap (required
+       down, required rate) belongs to the property fit above; repeating it here
+       gives the advisor two places to read the same number and a chance for them
+       to disagree. This list names the moves and stops. */
+    acts.push('More down payment — the required figure is in the property fit above.');
+    acts.push('A lower rate — the required rate is in the property fit above.');
+    if(best) acts.push('Seller concession → <b>rate buydown</b> (up to '+money(best.concLimit)+' allowable on '+best.name+').');
+    acts.push('Alternative loan structure with a lower payment — compare the structures below.');
     const comfort = ctx.highestComfort;
     if(!inp.shopping && inp.price>comfort+1) acts.push('Lower list price by <b>'+money(inp.price-comfort)+'</b> to land at the comfort payment.');
   } else if(/Loan Limit/.test(why)){
@@ -2555,9 +2569,25 @@ function deriveBinding(inp,res,top){
    flag, rendered where the advisor is actually looking. Nothing new is
    computed: both strings come from the same functions the deleted section
    used. Silent when there is nothing to say. */
+/* CORRECTION §1 — AN UNTICKED BOX IS NOT A FAILURE.
+   Engine.run() pushes a VA row whenever VA eligibility is not indicated, and an
+   FTHB row whenever the Conv 3% tier is not available. Both are STATEMENTS OF
+   SCOPE: the advisor did not ask for that program, so it never participated.
+   Reporting them as eliminations tells the buyer they failed something they were
+   never assessed for, and it manufactures a "Programs not available" panel out
+   of nothing. Only a program that legitimately participated and was knocked out
+   for a financing or qualification reason belongs here.
+
+   The same filter already existed in two other places (the Job 2 property fit
+   and the constraint layer); re-homing the list in the refinement re-introduced
+   the raw version. It is now one shared predicate, so a third copy cannot drift. */
+function participatedAndFailed(e){
+  return !/VA eligibility not indicated|First-time homebuyer required/i.test(e.reason || '');
+}
+
 function answerElimHTML(inp, res){
   const r = res || Engine.run(Object.assign({}, inp, inp.shopping ? {shopping:true, price:0} : {}), A_CONST);
-  const elim = (r && r.eliminated) ? r.eliminated : [];
+  const elim = ((r && r.eliminated) ? r.eliminated : []).filter(participatedAndFailed);
   const flag = dpCreditFlag(inp);
   if(!elim.length && !flag) return '';
   return '<details class="lever elimbox" id="elimBox"' + (answerUi.elim ? ' open' : '') + '>' +
@@ -2749,7 +2779,7 @@ function sdProgramMinPct(inp, progId){
 
 /* The dollar-mode replacement for Engine.run() in Shopping Range. Returns the
    same shape — {scenarios, eliminated, dpDimmed} — so every downstream renderer,
-   including Section 1 and the Recommendation Engine, works unchanged. */
+   including Section 1 and the loan-structure cards, works unchanged. */
 function fixedDollarShoppingRun(inp, onlyId){
   const D = inp.dpTarget.dollar;
   /* CLEANUP §10 — the authored dollars ARE the down payment at every price. */
@@ -3062,7 +3092,7 @@ function job1EmptyHTML(inp){
   const res = engineRun(s.inp);
   const dimmed = res.dpDimmed || [];
   const elim = (res.eliminated || []).filter(e =>
-    !/VA eligibility not indicated|First-time homebuyer required/i.test(e.reason || ''));
+    participatedAndFailed(e));
   const box = (t, b) => '<div class="ans-block warn"><div class="ab-k">' + t + '</div>' +
                         '<div class="ab-s" style="margin-top:5px">' + b + '</div></div>';
 
@@ -3194,7 +3224,7 @@ function whyBoxHTML(inp, snap){
     ? strategyActionsList(acts)
     : strategyOkCard('No blocking constraint to work around at these inputs.');
   return '<details class="whybox" id="whyBox"' + (answerUi.why ? ' open' : '') + '>' +
-         '<summary>Why this number — and what moves it</summary>' +
+         '<summary>Limiting factor — and what moves it</summary>' +
          '<div class="why-b">' + body + '</div></details>';
 }
 
@@ -3230,20 +3260,57 @@ function whatIfInputs(inp){
   return Object.assign({}, inp, { ccOverride: 0 });
 }
 
+/* =====================================================================
+   CORRECTION §2/§3/§4 — THE DESIRED PURCHASE PRICE IS THE BRIDGE
+   =====================================================================
+   Job 1 answers "what should they shop for". The moment a specific house comes
+   up, the question changes to "what would make THAT house fit", and that is a
+   different price: the comfort shopping maximum is what the buyer can support,
+   the desired price is what they actually want.
+
+   This block used to be a collapsed disclosure titled "How much down to stay at
+   $3,000/mo?", which framed the whole thing as a down-payment question and hid
+   it behind a click. It is now IN THE PRIMARY VIEW, and it answers both
+   questions at the desired price:
+
+       OPTION 1  hold the RATE, solve the DOWN PAYMENT
+       OPTION 2  hold the DOWN PAYMENT, solve the RATE
+
+   Neither is labelled best, recommended, preferred or a winner. They are two
+   mathematical routes to the same payment. */
 function whatIfHTML(inp, snap){
-  const note = whatIfPrice > 0 ? money(whatIfPrice) : 'enter a price';
-  return '<details class="lever whatif" id="whatIfBox"' + (answerUi.whatif ? ' open' : '') + '>' +
-         '<summary>How much down to stay at ' + money(inp.target) + '/mo? ' +
-         '<span class="lv-note">— ' + note + '</span></summary>' +
-         '<div class="lever-b">' +
-           '<div class="wi-row">' +
-             '<label class="wi-lab" for="whatIfPrice">Desired purchase price</label>' +
-             '<span class="ia dollar wi-ia"><input id="whatIfPrice" type="text" inputmode="numeric" ' +
-               'placeholder="500,000" value="' + (whatIfPrice > 0 ? Math.round(whatIfPrice).toLocaleString('en-US') : '') + '"></span>' +
-             '<span class="wi-target">at the ' + money(inp.target) + '/mo comfort payment already entered</span>' +
-           '</div>' +
-           '<div id="whatIfOut">' + whatIfOutHTML(inp, snap) + '</div>' +
-         '</div></details>';
+  let h = '<div class="dpfit">';
+  h += '<div class="wi-row">' +
+         '<label class="wi-lab" for="whatIfPrice">Desired purchase price</label>' +
+         '<span class="ia dollar wi-ia"><input id="whatIfPrice" type="text" inputmode="numeric" ' +
+           'placeholder="500,000" value="' + (whatIfPrice > 0 ? Math.round(whatIfPrice).toLocaleString('en-US') : '') + '"></span>' +
+         '<span class="wi-target">what would it take to make this home fit the ' +
+           money(inp.target) + '/mo comfort payment?</span>' +
+       '</div>';
+  h += '<div id="whatIfOut">' + whatIfOutHTML(inp, snap) + '</div>';
+  return h + '</div>';
+}
+
+/* The structure the buyer is actually contemplating AT THE DESIRED PRICE: their
+   preferred down payment, at the rate entered. This is what the fit summary and
+   the property rate sensitivity are both measured against, and it is why every
+   figure below reads $499,900 and not the shopping maximum. */
+function desiredPriceInputs(inp){
+  return Object.assign({}, whatIfInputs(inp), { shopping:false, price:whatIfPrice });
+}
+
+function desiredPriceRef(inp){
+  if (!(whatIfPrice > 0)) return null;
+  const w = desiredPriceInputs(inp);
+  const planned = plannedDownAt(w, whatIfPrice);
+  const res = engineRun(w);
+  if (planned != null) {
+    const hit = res.scenarios.filter(function(s){ return Math.abs(s.down - planned) < 2; })[0];
+    if (hit) return hit;
+    const prog = res.scenarios[0] ? res.scenarios[0].id : 'conv';
+    try { return dpScenarioAt(w, prog, whatIfPrice, planned / whatIfPrice * 100); } catch(e){ /* fall through */ }
+  }
+  return representativeScenario(res.scenarios, w);
 }
 
 function whatIfOutHTML(inp, snap){
@@ -3251,8 +3318,16 @@ function whatIfOutHTML(inp, snap){
     return '<div class="answer-empty">Enter a price to see what it would take to keep the payment at ' +
            money(inp.target) + '/mo.</div>';
 
+  const w = desiredPriceInputs(inp);
   const sol = requiredDownForPayment(whatIfInputs(inp), whatIfPrice, inp.target);
   if (sol.error) return '<div class="answer-empty">' + sol.error + '</div>';
+
+  /* CORRECTION §2/§3 — both answers, at the DESIRED price, before anything else.
+     §6 — the required rate is the strategy-solving figure and comes first;
+     sensitivity is conversational context and follows it. */
+  const dref = desiredPriceRef(inp);
+  const fit  = dref ? propertyFitSummaryHTML(w, dref, sol) : '';
+  const sens = dref ? propRateSensitivityHTML(w, dref) : '';
 
   /* Context against the answer above — is this a stretch or not? */
   let ctx = '';
@@ -3264,7 +3339,7 @@ function whatIfOutHTML(inp, snap){
   }
 
   if (!sol.feasible) {
-    return ctx + '<div class="wi-head bad"><div class="wi-k">Not achievable at any down payment</div>' +
+    return ctx + fit + sens + '<div class="wi-head bad"><div class="wi-k">Not achievable at any down payment</div>' +
       '<div class="wi-s">Taxes, insurance and escrow on a ' + money(whatIfPrice) + ' property come to ' +
       money(sol.escrowFloor) + '/mo on their own — already above the ' + money(inp.target) +
       ' target before any principal or interest. The target or the price has to move.</div></div>';
@@ -3273,8 +3348,13 @@ function whatIfOutHTML(inp, snap){
   const r = sol.recommended;
   const fundsOk = r.fundsSufficient, qualOk = r.dtiOk && !r.overLoanLimit && r.eligible;
 
-  /* THE ANSWER — first, largest, alone. */
-  let h = ctx + '<div class="wi-head ' + (fundsOk && qualOk ? 'good' : 'warn') + '">' +
+  /* CORRECTION §2/§3/§6 — THE ANSWER IS BOTH OPTIONS, side by side, at the
+     desired price: hold the rate and solve the down payment, or hold the down
+     payment and solve the rate. Then, and only then, the rate sensitivity on
+     this same home as conversational context. The detail rows below are
+     supporting figures for the down-payment route. */
+  let h = ctx + fit + sens;
+  h += '<div class="wi-head ' + (fundsOk && qualOk ? 'good' : 'warn') + '">' +
     '<div class="wi-k">Required down payment</div>' +
     '<div class="wi-v">' + money(r.dpDollar) + '<span class="wi-pct">' + r.dpPct.toFixed(1) + '% down</span></div>' +
     (r.atMinimum
@@ -3349,11 +3429,6 @@ function refreshWhatIf(){
   if (!out) return;
   const inp = resolvedInputs();
   out.innerHTML = whatIfOutHTML(inp, powerSnapshot(inp));
-  const box = $('whatIfBox');
-  if (box) {
-    const n = box.querySelector('.lv-note');
-    if (n) n.textContent = '— ' + (whatIfPrice > 0 ? money(whatIfPrice) : 'enter a price');
-  }
 }
 
 /* =====================================================================
@@ -3473,15 +3548,22 @@ function rateImpactHTML(inp, snap){
     inner = '<div class="answer-empty">No eligible structure to test a rate change against.</div>';
   } else if (!answerUi.rate) {
     /* Not open — do not run seven Shopping Range solves for nothing. */
-    inner = '<div class="answer-empty">Expand to see what a rate change does to the payment and the shopping range.</div>';
+    inner = '<div class="answer-empty">Expand to see what a rate change does to the price this buyer can shop to.</div>';
   } else {
     /* Results and control are SEPARATE elements: only #rateResults is rebuilt
        while typing, so the input keeps focus and its literal text. */
     inner = '<div id="rateResults">' + rateImpactBody(inp, ref) + '</div>' +
             rateCustomControlHTML(inp, ref);
   }
+  /* CORRECTION §5 — name the SCOPE in the title. This panel is about the
+     SHOPPING RANGE: what a rate change does to what the buyer can shop for.
+     The payment on a specific house is a different question, and it is answered
+     in the property fit above, against the desired purchase price. Two titles
+     that both said "what would a rate change mean" is how $484,259 ended up
+     answering a question asked about $499,900. */
   return '<details class="lever rate" id="rateBox"' + (answerUi.rate ? ' open' : '') + '>' +
-         '<summary>What would a rate change mean? <span class="lv-note">— base ' + note + '</span></summary>' +
+         '<summary>What would a rate change do to the shopping range? ' +
+         '<span class="lv-note">— base ' + note + '</span></summary>' +
          '<div class="lever-b" id="rateOut">' + inner + '</div></details>';
 }
 
@@ -3803,7 +3885,7 @@ function bindingAtProperty(inp, res, ref){
        buyer is not a first-time buyer. Classifying on the raw reason list
        therefore reports "program limitation" for very nearly every case, which
        is how this was caught. Drop the structural noise first. */
-    const real = elim.filter(e => !/VA eligibility not indicated|First-time homebuyer required/i.test(e.reason || ''));
+    const real = elim.filter(participatedAndFailed);
     const reasons = real.map(e => e.reason || '').join(' || ');
 
     /* Rank by the SMALLEST change that unblocks something. A program blocked
@@ -4681,10 +4763,12 @@ function propertyFitSummaryHTML(inp, ref, sol){
 
   h += '</div>';
   /* §9 — say plainly that these are alternatives, not a recommendation. */
+  /* CORRECTION §3 — the two options are stated as alternatives and nothing more.
+     Naming specific negotiation levers here would drag Job 2 vocabulary into the
+     Shopping Range view, which is a boundary the suite deliberately enforces. */
   h += '<div class="fs-note">Two ways to close the same ' + money(gap) + '/mo gap. ' +
        'Each holds the other constant, and both land on ' + money(inp.target) + '/mo. ' +
-       'They are levers to discuss \u2014 more down, a seller concession funding a buydown, ' +
-       'a different property \u2014 not a recommendation.</div>';
+       'They are alternatives to weigh \u2014 neither is recommended over the other.</div>';
   return h + '</div>';
 }
 
@@ -4829,8 +4913,12 @@ let propRateRef = null;
 function job2RateHTML(inp, ref){
   if (!ref) { propRateRef = null; return ''; }
   propRateRef = ref;
+  /* CORRECTION §6 — the REQUIRED RATE is answered in the property fit above.
+     This lever is the different, later question: what buying that rate down
+     would COST against the allowable concession. Its title now says so, so the
+     two cannot be read as competing answers. */
   return '<details class="lever j2rate" id="j2RateBox"' + (answerUi.prate ? ' open' : '') + '>' +
-         '<summary>What rate would make this property work? ' +
+         '<summary>What would buying the rate down cost? ' +
          '<span class="lv-note">— base ' + ref.rate.toFixed(3) + '% ' + ref.label + '</span></summary>' +
          '<div class="lever-b" id="j2RateOut">' + (answerUi.prate ? job2RateBody(inp, ref) :
            '<div class="answer-empty">Expand to solve the rate that reaches the target and see the sensitivity table.</div>') +
@@ -4903,7 +4991,7 @@ function job2HTML(inp, res, neg){
   const viable = (res.scenarios || []).slice();
 
   /* The DEFAULT structure — what this buyer gets at this price if nothing
-     changes. This is what Section 2's Recommendation Engine leads with. */
+     changes. This is what Section 2's loan-structure cards lead with. */
   /* WP-3 — the structure the STATED priority points at. With none stated this
      is null, and the neutral representative (lowest eligible down-payment tier)
      stands in for the descriptive blocks only. It is never called a

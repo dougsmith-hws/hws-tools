@@ -401,7 +401,7 @@ window.__timing = function(n){
   const answer = await page.evaluate(() => window.__answer());
   /* CLEANUP §3/§5 — the third headline is DTI at Comfort Price. */
   const order = ['COMFORT PURCHASE PRICE', 'MAX QUALIFYING PRICE', 'DTI AT COMFORT PRICE',
-                 'SHOP UP TO', 'How much down to stay at', 'What would a rate change mean',
+                 'SHOP UP TO', 'DESIRED PURCHASE PRICE', 'What would a rate change do to the shopping range',
                  'Debt payoff lever'];
   let last = -1, inOrder = true, bad = null;
   for (const tok of order) {

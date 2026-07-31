@@ -98,6 +98,10 @@ window.__set = function(sc){
                this differential is for.
      CLEANUP   "Recommendation."  ->  "Where your stated priority points."
                BSE stopped recommending a strategy.
+     CORRECTION  "Recommendation Engine"  ->  "Loan Structures"
+               and its sub-title "— what do I recommend?" -> "— what are the
+               options on this property?". The panel never made a recommendation
+               after WP-3; its own name was the last thing that said otherwise.
 
    APPROVED DELETION
      REFINEMENT  the lower "Qualification Snapshot" panel (#snapBody) was
@@ -127,8 +131,12 @@ window.__renames = function(s){
     .replace(/MATCHES YOUR STATED PRIORITY/g,  'PRIORITY-MATCH BADGE')
     .replace(/\\s*★\\s*/g, '')
     .replace(/\\s*matches your priority\\s*/gi, '')
-    .replace(/Where your stated priority points\./gi, 'PRIORITY-POINTER HEADING')
-    .replace(/Recommendation\./g, 'PRIORITY-POINTER HEADING')
+    .replace(/Where your stated priority points\\./gi, 'PRIORITY-POINTER HEADING')
+    /* The panel rename must be matched BEFORE the generic "Recommendation."
+       rule below, which would otherwise consume the word on its own. */
+    .replace(/Recommendation Engine\\s*— what do I recommend\\?/g, 'STRUCTURES PANEL')
+    .replace(/Loan Structures\\s*— what are the options on this property\\?/g, 'STRUCTURES PANEL')
+    .replace(/Recommendation\\./g, 'PRIORITY-POINTER HEADING')
     .replace(/Engine\u2019s pick:/g, 'PRIORITY POINTER:')
     .replace(/Your stated priority points at/g, 'PRIORITY POINTER:');
 };

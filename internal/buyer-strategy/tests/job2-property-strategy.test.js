@@ -200,10 +200,15 @@ const scanBad = t => (t.match(BAD) || []);
   ok('DTI at Comfort Price reads 32.0%', /32\.0%/.test(shopTxt), shopTxt.slice(0, 300));
   ok('Cash-Limited Buying Power is no longer a headline',
      !/CASH-LIMITED BUYING POWER/i.test(shopTxt), shopTxt.slice(0, 300));
+  /* The deleted CARD carried an icon and a "— payment target is the binding
+     ceiling" sentence. The whyBox disclosure legitimately still names the
+     limiting factor; what must be gone is the redundant card. */
   ok('the redundant Limiting Factor card is gone when comfort is controlling',
-     !/LIMITING FACTOR/i.test(shopTxt), shopTxt.slice(0, 300));
-  ok('Job 1 still shows the required-down what-if', /How much down to stay at \$3,000\/mo\?/i.test(shopTxt));
-  ok('Job 1 still shows Rate Impact', /What would a rate change mean\?/i.test(shopTxt));
+     !/payment target is the binding ceiling/i.test(shopTxt), shopTxt.slice(0, 300));
+  ok('Job 1 still asks for a desired purchase price',
+     /DESIRED PURCHASE PRICE/i.test(shopTxt), shopTxt.slice(0, 400));
+  ok('Job 1 still shows its shopping-range rate impact',
+     /What would a rate change do to the shopping range\?/i.test(shopTxt));
   ok('Job 1 still shows the debt payoff lever', /Debt payoff lever/i.test(shopTxt));
   ok('Job 1 does not show any Job 2 block', !/GOAL ACHIEVABLE|REQUIRED DOWN PAYMENT|HOW ELSE COULD WE STRUCTURE IT/i.test(shopTxt),
      shopTxt.slice(0, 300));

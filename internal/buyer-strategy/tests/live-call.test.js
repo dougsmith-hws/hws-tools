@@ -260,8 +260,9 @@ const FERN = {
        /LOWER RATE · DOWN PAYMENT HELD AT \$150,000/i.test(r.answer), r.answer.slice(0, 1200));
     ok('D4c and the required rate is flagged as a target, not a quote',
        /not a quote, not an available rate/i.test(r.answer), r.answer.slice(0, 1400));
-    ok('D5 offer and concession levers are available to discuss',
-       /concession|offer/i.test(r.answer), r.answer.slice(0, 400));
+    ok('D5 the structuring levers are available to discuss',
+       /HOW ELSE COULD WE STRUCTURE IT\?/i.test(r.answer) &&
+       /What would buying the rate down cost\?/i.test(r.answer), r.answer.slice(-600));
     ok('D6 and nothing declares which lever to use',
        !/best strategy|you should/i.test(r.answer), r.answer.slice(0, 400));
   }
@@ -438,8 +439,8 @@ const FERN = {
        (a.match(/RESULTING PAYMENT\s*\$3,000\/mo/gi) || []).length === 2,
        (a.match(/RESULTING PAYMENT\s*\$[0-9,]+\/mo/gi) || []).join(' | '));
     ok('I8 neither lever is declared the winner',
-       !/best option|recommended strategy|put more down|buy the rate down/i.test(a) &&
-       /not a recommendation/i.test(a), a.slice(0, 1500));
+       !/best option|recommended strategy|put more down|buy the rate down|preferred option|winner/i.test(a) &&
+       /neither is recommended over the other/i.test(a), a.slice(0, 1500));
   }
   {
     /* Rate sensitivity: this home only, three rows, and the arithmetic checked
@@ -484,9 +485,126 @@ const FERN = {
     /* §10 — Shopping Range keeps its own, different rate question. */
     const r = await L(DOUG, {}, 'payment', 'dollar', 'dollarMo');
     ok('I17 Shopping Range still offers its own rate impact on the RANGE',
-       /What would a rate change mean\?/i.test(r.answer), r.answer.slice(0, 600));
+       /What would a rate change do to the shopping range\?/i.test(r.answer), r.answer.slice(0, 600));
     ok('I18 and Shopping Range shows no property rate-sensitivity table',
        !/RATE SENSITIVITY ON THIS HOME/i.test(r.answer), r.answer.slice(0, 400));
+  }
+
+  /* =================================================================
+     J — CORRECTION: VA noise, and the Desired Purchase Price driving BOTH
+     ================================================================= */
+  console.log('\n--- J. Correction pass ---');
+  {
+    /* §1 — an unticked box is a scope statement, not a failure. */
+    const off = await L(DOUG, {}, 'payment', 'dollar', 'dollarMo');
+    ok('J1 VA unchecked produces no VA elimination message',
+       !/VA eligibility not indicated/i.test(off.answer), off.answer.slice(0, 400));
+    ok('J2 and no empty "Programs not available" section is manufactured',
+       !/Programs not available to this buyer/i.test(off.answer), off.answer.slice(0, 400));
+    const on = await page.evaluate(([b]) => {
+      Object.keys(b).forEach(id => { const e = document.getElementById(id); if (e) e.value = b[id]; });
+      ['hoaNA','cddNA','floodNA'].forEach(i => document.getElementById(i).checked = true);
+      document.getElementById('tgVa').checked = true;
+      document.getElementById('vaUse').value = 'first';
+      document.getElementById('priority').value = 'payment';
+      unitState.dp = 'dollar'; unitState.tax = 'dollarMo'; renderUnitToggles(); recalc();
+      const inp = gatherInputs();
+      const res = engineRun(Object.assign({}, inp, {shopping:true, price:0}));
+      return { vaOn: inp.vaOn,
+               /* With $150,000 authored down, VA is DIMMED (above 20% down is
+                  modelled conventional-only), not eliminated for eligibility —
+                  which is exactly the distinction this correction is about. */
+               participates: res.scenarios.some(s => s.id === 'va') ||
+                             (res.dpDimmed || []).some(s => s.id === 'va'),
+               eligibilityElim: (res.eliminated || [])
+                 .some(e => /VA eligibility not indicated/i.test(e.reason || '')) };
+    }, [DOUG]);
+    ok('J3 VA checked still participates normally',
+       on.vaOn === true && on.participates === true && on.eligibilityElim === false, on);
+  }
+  {
+    /* §2/§3/§4 — the desired purchase price drives BOTH solvers, in Job 1's
+       primary view, at $499,900 and not at the shopping maximum. */
+    const r = await page.evaluate(([b]) => {
+      Object.keys(b).forEach(id => { const e = document.getElementById(id); if (e) e.value = b[id]; });
+      ['hoaNA','cddNA','floodNA'].forEach(i => document.getElementById(i).checked = true);
+      ['tgFthb','tgVa','vaExempt'].forEach(i => document.getElementById(i).checked = false);
+      document.getElementById('priority').value = 'payment';
+      unitState.dp = 'dollar'; unitState.tax = 'dollarMo'; renderUnitToggles(); recalc();
+      whatIfPrice = 499900; refreshWhatIf();
+      const inp = gatherInputs();
+      const w = desiredPriceInputs(inp);
+      const dref = desiredPriceRef(inp);
+      const rr = requiredRateForPayment(w, dref, inp.target);
+      const sol = requiredDownForPayment(whatIfInputs(inp), whatIfPrice, inp.target);
+      const snap = powerSnapshot(inp);
+      /* Independent engine probe at the SOLVED rate, at the desired price. */
+      const bumped = Object.assign({}, w, { rates: Object.assign({}, w.rates, { conv: rr.requiredRate }) });
+      const back = Engine.computeScenario(Object.assign({}, bumped, { dpTarget:null }), A_CONST,
+                     Engine.PROGRAMS[dref.id], { dp: dref.dp, name: dref.name }, 499900);
+      const text = (document.getElementById('answerBody').innerText || '').replace(/\s+/g, ' ');
+      const openDetails = Array.from(document.querySelectorAll('#answerBody details'))
+                               .filter(d => d.open).map(d => d.id);
+      /* Is the required rate inside ANY details element? */
+      const rrNode = Array.from(document.querySelectorAll('#answerBody .fc-l'))
+                          .filter(n => /required rate/i.test(n.textContent))[0];
+      return {
+        shopTo: snap.shopTo, comfort: snap.comfort,
+        refPrice: dref.price, refDown: dref.down, refPiti: dref.piti,
+        requiredDown: sol.recommended.dpDollar, downPiti: sol.recommended.piti,
+        requiredRate: rr.requiredRate, rateGap: rr.rateGap, ratePiti: rr.reachedPayment,
+        enginePiti: back.piti,
+        text: text, openDetails: openDetails,
+        rrInsideDetails: !!(rrNode && rrNode.closest('details'))
+      };
+    }, [DOUG]);
+
+    /* Doug's own worked figure, from the rounded $582/mo tax assumption. */
+    ok('J4 the shopping maximum is still $484,259 in Job 1', Math.abs(r.shopTo - 484259) < 2, r.shopTo);
+    ok('J5 but the property fit is computed at the DESIRED price, not the shopping maximum',
+       r.refPrice === 499900, r.refPrice);
+    /* The established Fernando figures are $165,700 and 6.309% at an exact
+       $582.26/mo tax; this fixture carries the rounded $582, which moves both by
+       a hair. The tolerances are wide enough to hold either and tight enough
+       that a real drift fails. */
+    ok('J6 REQUIRED DOWN is driven by the desired price', Math.abs(r.requiredDown - 165700) < 400, r.requiredDown);
+    ok('J7 REQUIRED RATE is driven by the desired price', Math.abs(r.requiredRate - 6.309) < 0.01, r.requiredRate);
+    ok('J8 required rate holds the down payment constant at $150,000',
+       Math.abs(r.refDown - 150000) < 2 && /LOWER RATE · DOWN PAYMENT HELD AT \$150,000/i.test(r.text),
+       { down: r.refDown });
+    ok('J9 required down holds the rate constant at 6.750%',
+       /MORE DOWN · RATE HELD AT 6\.750%/i.test(r.text), r.text.slice(0, 900));
+    ok('J10 required down converges on the comfort payment', Math.abs(r.downPiti - 3000) < 1, r.downPiti);
+    ok('J11 required rate converges on the comfort payment', Math.abs(r.ratePiti - 3000) < 1, r.ratePiti);
+    ok('J12 and the ENGINE agrees at the solved rate', Math.abs(r.enginePiti - 3000) < 1, r.enginePiti);
+    ok('J13 REQUIRED RATE is visible in the primary property fit',
+       /REQUIRED RATE[\s\S]{0,20}6\.3[01]\d%/i.test(r.text) &&
+       /RATE CHANGE NEEDED[\s\S]{0,20}−0\.4[34]\d%/i.test(r.text), r.text.slice(0, 1400));
+    ok('J14 and it is NOT buried inside a disclosure', r.rrInsideDetails === false,
+       { openDetails: r.openDetails });
+    ok('J15 the current structure at the desired price is $3,101/mo',
+       Math.abs(r.refPiti - 3101.70) < 1 && /CURRENT PAYMENT[\s\S]{0,20}\$3,101/i.test(r.text), r.refPiti);
+    ok('J16 property rate sensitivity uses the DESIRED price, not the shopping maximum',
+       /RATE SENSITIVITY ON THIS HOME[\s\S]{0,90}\$499,900/i.test(r.text) &&
+       !/RATE SENSITIVITY ON THIS HOME[\s\S]{0,90}\$484,219/i.test(r.text),
+       r.text.slice(r.text.indexOf('RATE SENSITIVITY'), r.text.indexOf('RATE SENSITIVITY') + 220));
+    ok('J17 it reports payment change, not shopping-power change',
+       /VS CURRENT PAYMENT/i.test(r.text) &&
+       !/shop up to[\s\S]{0,80}RATE SENSITIVITY/i.test(r.text),
+       r.text.slice(r.text.indexOf('RATE SENSITIVITY'), r.text.indexOf('RATE SENSITIVITY') + 400));
+    ok('J18 no "Recommendation Engine" language remains in the workflow',
+       !/Recommendation Engine/i.test(r.text), r.text.slice(0, 400));
+    ok('J19 no automatic winner is introduced',
+       !/best option|recommended strategy|winner|preferred option/i.test(r.text), r.text.slice(0, 400));
+  }
+  {
+    /* §8 — and none in Job 2 either. */
+    const r = await L(FERN, {}, 'payment', 'dollar', 'dollarMo');
+    const full = await page.evaluate(() => (document.getElementById('propFull').innerText || '').replace(/\s+/g, ' '));
+    ok('J20 Section 2a is no longer a "Recommendation Engine"',
+       !/Recommendation Engine/i.test(full) && /Loan Structures/i.test(full), full.slice(0, 200));
+    ok('J21 and the answer layer carries none of it either',
+       !/Recommendation Engine/i.test(r.answer), r.answer.slice(0, 300));
   }
 
   ok('Z1 no page errors during the suite', pageErrors.length === 0, pageErrors.join(' | '));
