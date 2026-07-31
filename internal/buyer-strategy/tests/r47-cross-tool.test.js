@@ -57,6 +57,14 @@ function check(name, ok, detail) {
     set('price', ''); set('score', c.score); set('ownFunds', c.cash); set('gift', '0');
     set('target', c.comfortPayment); set('income', String(c.annualIncome / 12));
     set('debts', c.monthlyDebt); set('rateConv', c.rate);
+    /* The audit C-6 comparison depends on BSE's PITI assumptions — 1.20% tax and
+       $150/mo insurance. These were previously inherited from the application's
+       initial field values; they are now pinned explicitly so the documented
+       cross-tool gap cannot silently re-interpret itself when a default display
+       unit changes ($/MO became the default property-tax mode). */
+    set('taxRate', '1.20'); set('hoi', '150');
+    unitState.tax = 'pct';
+    renderUnitToggles();
     recalc();
     const res = Engine.run(gatherInputs(), A_CONST);
     const conv5 = res.scenarios.find(s => s.id === 'conv' && s.dp === 5);

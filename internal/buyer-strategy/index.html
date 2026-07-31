@@ -123,7 +123,15 @@
   .section>.sec-head .chev{margin-left:auto;font-size:13px;transition:transform .15s}
   .section.collapsed>.sec-head .chev{transform:rotate(-90deg)}
   .section>.sec-body{padding:12px 14px}
-  .section.collapsed>.sec-body{display:none}
+  /* Collapse by CLIPPING rather than `display:none`.
+     `display:none` removes the content from innerText, which blanks every
+     frozen render capture the 47-scenario regression suite compares against —
+     collapsing Sections 1 and 2 by default failed all 68 cases for purely
+     presentational reasons. Clipping keeps the content rendered and therefore
+     still verifiable, while being genuinely collapsed on screen (the body
+     measures 0px). The `inert` attribute, applied alongside the class, keeps
+     clipped inputs out of the tab order. */
+  .section.collapsed>.sec-body{max-height:0;overflow:hidden;padding-top:0;padding-bottom:0;border:0}
   /* Property Strategy layout (2a–2d sub-steps) */
   .propph{border:1px dashed var(--line);border-radius:10px;background:#f7fafc;padding:16px 18px;text-align:center}
   .propph-h{font-size:13px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;color:var(--blue)}
@@ -326,6 +334,368 @@
 
   .foot{font-size:10.5px;color:var(--dim);text-align:center;padding:14px 0 8px}
   .foot b{color:var(--sub)}
+  /* =====================================================================
+     PHASE 4 — ANSWER LAYER
+     The primary decision output. Sits above the existing analysis, which
+     becomes supporting detail. Deliberately does NOT use class "section", so
+     captureUiState() — which enumerates .section elements for collapsed state —
+     never treats the answer layer as a collapsible legacy section.
+     (The collapse mechanism itself was later changed from `display:none` to
+     clipping, for the reason documented at .section.collapsed above.)
+     ===================================================================== */
+
+  /* ---- persistent buyer goal bar ---- */
+  .goalbar{position:sticky;top:0;z-index:40;display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+           background:var(--headbg);color:#fff;border-radius:10px;padding:8px 12px;margin:0 0 10px;
+           box-shadow:0 2px 10px rgba(15,40,54,.18)}
+  .goalbar .gb-who{font-size:13px;font-weight:800;letter-spacing:.2px;margin-right:2px}
+  .goalbar .gb-item{display:flex;align-items:baseline;gap:5px;background:rgba(255,255,255,.10);
+                    border-radius:7px;padding:3px 9px}
+  .goalbar .gb-k{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#9fc7dd}
+  .goalbar .gb-v{font-size:13px;font-weight:800;font-variant-numeric:tabular-nums}
+  .goalbar .gb-item.goal{background:rgba(59,177,237,.26)}
+  .goalbar .gb-item.override{background:rgba(142,199,63,.28);box-shadow:inset 0 0 0 1px rgba(142,199,63,.55)}
+  .goalbar .gb-ovtag{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.4px;color:var(--green)}
+  .goalbar .gb-mode{margin-left:auto;font-size:10.5px;font-weight:800;text-transform:uppercase;
+                    letter-spacing:.5px;padding:3px 9px;border-radius:999px}
+  .goalbar .gb-mode.shop{background:rgba(59,177,237,.25);color:#bfe6fb}
+  .goalbar .gb-mode.prop{background:rgba(142,199,63,.25);color:#dcf0bd}
+
+  /* ---- the answer layer shell ---- */
+  .answer{background:var(--card);border:1px solid var(--line);border-radius:12px;margin:0 0 10px;
+          overflow:hidden;box-shadow:0 1px 3px rgba(18,32,43,.06)}
+  .answer-h{display:flex;align-items:center;gap:9px;padding:9px 14px;
+            background:linear-gradient(90deg,#12202b,#1d3a4d);color:#fff}
+  .answer-h .job{width:auto;padding:0 7px;height:20px;border-radius:6px;background:var(--blue);color:#04222f;
+                 display:flex;align-items:center;font-size:10px;font-weight:900;letter-spacing:.5px}
+  .answer-h .aq{font-size:14px;font-weight:800}
+  .answer-b{padding:13px 14px}
+
+  /* ---- the three buying-power figures ---- */
+  .pw3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+  .pw{border:1px solid var(--line);border-radius:10px;padding:11px 12px;background:#fbfdff;position:relative}
+  .pw .pw-k{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.45px;color:var(--sub)}
+  .pw .pw-v{font-size:27px;font-weight:800;margin-top:4px;font-variant-numeric:tabular-nums;line-height:1.05}
+  .pw .pw-s{font-size:11px;color:var(--sub);margin-top:4px;line-height:1.35}
+  .pw.comfort{border-top:3px solid var(--green)}
+  .pw.qual{border-top:3px solid var(--blue)}
+  .pw.cash{border-top:3px solid var(--amber)}
+  .pw.controls{background:#fffaf0;border-color:#f0d4a0;box-shadow:0 0 0 2px rgba(217,138,0,.14)}
+  .pw .pw-tag{position:absolute;top:-1px;right:9px;font-size:9px;font-weight:900;letter-spacing:.5px;
+              text-transform:uppercase;background:var(--amber);color:#fff;padding:2px 7px;border-radius:0 0 6px 6px}
+  .pw.na .pw-v{color:var(--dim)}
+
+  /* ---- the headline sentence ---- */
+  .shopline{margin-top:11px;display:flex;align-items:center;gap:11px;flex-wrap:wrap;
+            background:#0f2836;color:#fff;border-radius:10px;padding:11px 14px}
+  .shopline .sl-k{font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:#9fc7dd}
+  .shopline .sl-v{font-size:26px;font-weight:800;font-variant-numeric:tabular-nums}
+  .shopline .sl-why{font-size:12px;color:#cfe3ee;line-height:1.4;flex:1 1 260px}
+  .shopline .sl-why b{color:#fff}
+
+  /* ---- constraint explanation / strategy actions ---- */
+  .whybox{margin-top:10px;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+  .whybox>summary{list-style:none;cursor:pointer;padding:9px 13px;background:#f6f9fb;font-size:12px;
+                  font-weight:800;color:var(--ink);display:flex;align-items:center;gap:8px}
+  .whybox>summary::-webkit-details-marker{display:none}
+  .whybox>summary:after{content:'▾';margin-left:auto;font-size:11px;color:var(--sub);transition:transform .15s}
+  .whybox[open]>summary:after{transform:rotate(180deg)}
+  .whybox .why-b{padding:11px 13px;border-top:1px solid var(--line)}
+  .strat-actions{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:7px}
+  .strat-actions li{display:flex;gap:9px;align-items:flex-start;font-size:12.5px;line-height:1.45}
+  .strat-actions li .n{flex:0 0 19px;height:19px;border-radius:5px;background:var(--blue);color:#04222f;
+                       display:flex;align-items:center;justify-content:center;font-size:10.5px;font-weight:900;margin-top:1px}
+  .strat-card.ok{border:1px solid #cde6b4;background:var(--goodbg);border-radius:9px;padding:10px 12px}
+  .strat-ok{font-size:12.5px;font-weight:700;color:var(--good)}
+  .strat-badge-row{display:flex;align-items:center;gap:7px;margin-bottom:8px}
+  .strat-badge-lbl{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.4px;color:var(--sub)}
+  .strat-badge{font-size:11px;font-weight:800;padding:2px 9px;border-radius:999px;
+               border:1px solid var(--line);color:var(--ink)}
+  .strat-badge.dti{background:#e8f5fd;border-color:#b6ddf3;color:#0b5c86}
+  .strat-badge.cash{background:var(--amberbg);border-color:#f0d4a0;color:#8a5800}
+  .strat-badge.comfort{background:var(--goodbg);border-color:#cde6b4;color:#2c6b17}
+  .strat-badge.limit{background:var(--redbg);border-color:#f3c3bd;color:#a5291d}
+
+  /* ---- debt payoff lever ---- */
+  .lever{margin-top:10px;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+  .lever>summary{list-style:none;cursor:pointer;padding:9px 13px;background:#f6f9fb;font-size:12px;
+                 font-weight:800;display:flex;align-items:center;gap:8px}
+  .lever>summary::-webkit-details-marker{display:none}
+  .lever>summary:after{content:'▾';margin-left:auto;font-size:11px;color:var(--sub);transition:transform .15s}
+  .lever[open]>summary:after{transform:rotate(180deg)}
+  .lever>summary .lv-note{font-weight:600;color:var(--sub);font-size:11px}
+  .lever-b{padding:11px 13px;border-top:1px solid var(--line)}
+  .debt-row{display:grid;grid-template-columns:22px 1fr 108px 118px 30px;gap:7px;align-items:center;margin-bottom:6px}
+  .debt-row input[type=text]{width:100%;padding:6px 8px;border:1px solid var(--line);border-radius:7px;font:inherit;font-size:12.5px}
+  .debt-row input[type=checkbox]{width:15px;height:15px;accent-color:var(--blue)}
+  .debt-row .dr-x{border:none;background:none;color:var(--dim);cursor:pointer;font-size:15px;line-height:1;padding:2px}
+  .debt-row .dr-x:hover{color:var(--red)}
+  .debt-head{display:grid;grid-template-columns:22px 1fr 108px 118px 30px;gap:7px;font-size:9.5px;font-weight:800;
+             text-transform:uppercase;letter-spacing:.4px;color:var(--sub);margin-bottom:5px}
+  .debt-add{border:1px dashed var(--line);background:#fff;color:var(--blue);border-radius:7px;padding:6px 11px;
+            font:inherit;font-size:12px;font-weight:700;cursor:pointer;margin-top:2px}
+  .debt-add:hover{border-color:var(--blue);background:#f2fafe}
+  .debt-timing{display:flex;align-items:center;gap:13px;margin:10px 0 4px;font-size:12px;flex-wrap:wrap}
+  .debt-timing label{display:flex;align-items:center;gap:5px;cursor:pointer;font-weight:600}
+  .debt-timing input{accent-color:var(--blue)}
+  .debt-out{margin-top:10px;border-top:1px solid var(--line);padding-top:10px}
+  .dpo-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px}
+  .dpo{border:1px solid var(--line);border-radius:9px;padding:9px 11px;background:#fbfdff}
+  .dpo .k{font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.4px;color:var(--sub)}
+  .dpo .before{font-size:12px;color:var(--sub);font-variant-numeric:tabular-nums;margin-top:3px}
+  .dpo .after{font-size:19px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1.1}
+  .dpo .delta{font-size:11.5px;font-weight:800;margin-top:2px}
+  .dpo .delta.up{color:var(--good)}
+  .dpo .delta.down{color:var(--red)}
+  .dpo .delta.flat{color:var(--sub)}
+  .dpo-verdict{margin-top:9px;border-radius:9px;padding:10px 12px;font-size:12.5px;line-height:1.45}
+  .dpo-verdict.good{background:var(--goodbg);border:1px solid #cde6b4}
+  .dpo-verdict.bad{background:var(--redbg);border:1px solid #f3c3bd}
+  .dpo-verdict.mixed{background:var(--amberbg);border:1px solid #f0d4a0}
+  .dpo-verdict b{font-weight:800}
+  .dpo-flag{margin-top:8px;font-size:11.5px;color:var(--sub);line-height:1.45;display:flex;gap:7px}
+
+  /* ---- JOB 2 — property strategy ---- */
+  .prop-head{display:flex;align-items:baseline;gap:9px;margin-bottom:10px}
+  .prop-head .ph-k{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--sub)}
+  .prop-head .ph-v{font-size:20px;font-weight:800;font-variant-numeric:tabular-nums}
+  .ans-goal{display:flex;align-items:baseline;gap:9px;margin-bottom:8px;flex-wrap:wrap}
+  .ans-goal .ag-k{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--sub)}
+  .ans-goal .ag-v{font-size:14px;font-weight:800;color:var(--ink)}
+
+  .ans-block{border-radius:11px;padding:13px 15px;border:1px solid var(--line);background:#fbfdff}
+  .ans-block.good{background:var(--goodbg);border-color:#cde6b4}
+  .ans-block.warn{background:var(--amberbg);border-color:#f0d4a0}
+  .ans-block.bad{background:var(--redbg);border-color:#f3c3bd}
+  .ans-block .ab-k{font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--sub)}
+  .ans-block .ab-v{font-size:34px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1.08;
+                   margin-top:2px;display:flex;align-items:baseline;gap:11px;flex-wrap:wrap}
+  .ans-block .ab-pct{font-size:14px;font-weight:700;color:var(--sub)}
+  .ans-block .ab-s{font-size:12.5px;color:var(--ink);margin-top:6px;line-height:1.45}
+  .ans-block .ab-rows{margin-top:10px;display:flex;flex-direction:column;gap:4px;
+                      border-top:1px solid rgba(18,32,43,.10);padding-top:9px}
+  .ab-row{display:grid;grid-template-columns:150px auto 1fr;gap:9px;align-items:baseline;font-size:12.5px}
+  .ab-row .abr-k{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.4px;color:var(--sub)}
+  .ab-row .abr-v{font-weight:800;font-variant-numeric:tabular-nums}
+  .ab-row .abr-s{color:var(--sub);font-size:11.5px}
+  .v-ok{color:var(--good)} .v-bad{color:var(--red)}
+  .ans-block .ab-note{display:flex;gap:8px;margin-top:8px;font-size:11.5px;line-height:1.45;color:var(--ink)}
+  .ans-alts{margin-top:8px;font-size:11.5px;color:var(--sub);line-height:1.5}
+
+  .fit3{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-top:11px}
+  .fit{border:1px solid var(--line);border-radius:9px;padding:9px 11px;background:#fff}
+  .fit-ok{border-color:#cde6b4;background:var(--goodbg)}
+  .fit-warn{border-color:#f0d4a0;background:var(--amberbg)}
+  .fit-bad{border-color:#f3c3bd;background:var(--redbg)}
+  .fit .fit-k{font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.4px;color:var(--sub)}
+  .fit .fit-v{font-size:13px;font-weight:800;margin-top:3px}
+  .fit .fit-s{font-size:11px;color:var(--sub);margin-top:3px;line-height:1.4}
+
+  .bindline{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-top:11px;
+            background:#fff6e9;border:1px solid #f2d9a8;border-radius:9px;padding:10px 13px}
+  .bindline.ok{background:var(--goodbg);border-color:#cde6b4}
+  .bindline .bl-k{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--sub)}
+  .bindline .bl-v{font-size:13.5px;font-weight:800}
+  .bindline .bl-s{font-size:12px;color:var(--ink);flex:1 1 240px;line-height:1.4}
+  .bl-cash{color:var(--amber)} .bl-qualification{color:var(--red)}
+  .bl-payment{color:var(--amber)} .bl-program{color:var(--red)} .bl-none{color:var(--good)}
+
+  .strat-block{margin-top:10px;border:1px solid var(--line);border-radius:10px;padding:11px 13px;background:#fbfdff}
+  .strat-block .sb-h{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;
+                     color:var(--sub);margin-bottom:8px}
+  .fit-head{font-size:11px;color:var(--sub);margin:11px 0 -2px}
+  .fit-head b{color:var(--ink);font-weight:800}
+  .tradeoff{margin-top:10px;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap;
+            border-left:3px solid var(--blue);background:#f6fbfe;border-radius:0 9px 9px 0;padding:9px 13px}
+  .tradeoff .to-k{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--sub)}
+  .tradeoff .to-b{font-size:12.5px;line-height:1.5;flex:1 1 260px}
+  .negsum{margin-top:10px;border:1px solid #b6ddf3;background:#f2fafe;border-radius:10px;padding:11px 13px}
+  .negsum .ns-h{font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--sub)}
+  .negsum .ns-b{font-size:12.5px;line-height:1.5;margin-top:4px}
+  .negsum .ns-f{font-size:11px;color:var(--sub);margin-top:6px}
+
+  /* ---- Job 2 · feasibility-first ----
+     The verdict has to be readable from across a desk before any figure is. */
+  .goalstat{margin:10px 0 11px;border-radius:11px;padding:11px 14px;border:1px solid var(--line);background:#fbfdff}
+  .goalstat.yes{background:var(--goodbg);border-color:#cde6b4}
+  .goalstat.no{background:var(--amberbg);border-color:#f0d4a0}
+  .goalstat.hard{background:var(--redbg);border-color:#f3c3bd}
+  .goalstat .gs-v{font-size:15px;font-weight:900;letter-spacing:.4px;text-transform:uppercase;
+                  display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .goalstat.yes .gs-v{color:var(--good)}
+  .goalstat.no .gs-v{color:var(--amber)}
+  .goalstat.hard .gs-v{color:var(--red)}
+  .goalstat .gs-s{font-size:13px;line-height:1.5;margin-top:5px;color:var(--ink)}
+  .goalstat .gs-s b{font-weight:800}
+  .prop-head .ph-goal{font-size:11.5px;color:var(--sub);margin-left:auto}
+  .prop-head .ph-goal b{color:var(--ink);font-weight:800}
+  /* The secondary structuring area. Everything here is optional reading. */
+  .j2-alt{margin-top:14px;border-top:2px solid var(--line);padding-top:11px}
+  .j2-alt>.ja-h{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.55px;
+                color:var(--sub);margin-bottom:9px}
+  .lever.j2debt>summary{background:#f7f5fb;border-bottom:1px solid #e2ddef}
+  .lever.j2rate>summary{background:#fbf6ee;border-bottom:1px solid #eedfc6}
+  .lever.j2seller>summary{background:#f2fafe;border-bottom:1px solid #d6ecf9}
+  .j2-best{display:flex;flex-direction:column;gap:5px;margin-top:2px}
+  .j2-bl{display:grid;grid-template-columns:180px auto 1fr;gap:9px;align-items:baseline;font-size:12.5px}
+  .j2-bl.win{background:var(--goodbg);border-radius:7px;padding:3px 7px;margin:0 -7px}
+  .j2-bl .jb-k{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.4px;color:var(--sub)}
+  .j2-bl .jb-v{font-weight:800;font-variant-numeric:tabular-nums}
+  .j2-bl .jb-s{color:var(--sub);font-size:11.5px}
+  .j2-rec{margin-top:9px;border-left:3px solid var(--blue);background:#f6fbfe;border-radius:0 9px 9px 0;
+          padding:9px 12px;font-size:12.5px;line-height:1.5}
+  .j2-rec b{font-weight:800}
+  .j2-rt{width:100%;border-collapse:collapse;font-size:12px;margin-top:8px}
+  .j2-rt th,.j2-rt td{border-bottom:1px solid var(--line);padding:5px 7px;text-align:right;
+                      font-variant-numeric:tabular-nums}
+  .j2-rt th:first-child,.j2-rt td:first-child{text-align:left}
+  .j2-rt thead th{font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.4px;color:var(--sub)}
+  .j2-rt tr.base td{background:#f6f9fb;font-weight:800}
+  .j2-rt td.good{color:var(--good);font-weight:800}
+  .j2-rt td.bad{color:var(--red);font-weight:800}
+  @media(max-width:760px){
+    .j2-bl{grid-template-columns:1fr;gap:1px}
+    .prop-head .ph-goal{margin-left:0;flex:1 1 100%}
+  }
+  /* ---- Accepted / working structure ---- */
+  .acceptbar{margin-top:11px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+             border:1px solid var(--line);border-radius:9px;padding:8px 12px;background:#fbfdff}
+  .acceptbar.on{background:var(--goodbg);border-color:#cde6b4}
+  .acceptbar label{display:flex;align-items:center;gap:7px;font-size:12.5px;font-weight:800;cursor:pointer}
+  .acceptbar .ac-s{font-size:11.5px;color:var(--sub);flex:1 1 240px;line-height:1.4}
+
+  /* A field carrying a $ / % / per-period toggle needs room for BOTH the value
+     and the buttons. Without this the three-way tax toggle squeezes the input
+     to zero width and the amount disappears. */
+  .igrid .fld.wideunit{grid-column:span 2}
+  .urow .unit-tg.tax3 button{padding:0 6px;font-size:10px;letter-spacing:.1px}
+  @media(max-width:520px){
+    /* Below this the grid is one or two columns anyway; stack the toggle under
+       the value rather than letting them fight for the same row. */
+    .igrid .fld.wideunit{grid-column:span 1}
+    .fld.wideunit .urow{flex-wrap:wrap}
+    .fld.wideunit .urow .ia{flex:1 0 100%}
+    .fld.wideunit .urow .ia input{border-radius:7px}
+    .fld.wideunit .urow .unit-tg{margin-top:4px}
+    .fld.wideunit .urow .unit-tg button{border-left:1px solid var(--line);border-radius:7px;margin-right:3px;padding:3px 9px}
+  }
+  /* ---- Job 1 what-if: required down payment ---- */
+  .lever.whatif>summary{background:#f2fafe;border-bottom:1px solid #d6ecf9}
+  .wi-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:11px}
+  .wi-lab{font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.45px;color:var(--sub)}
+  .wi-ia{width:170px;flex:0 0 auto}
+  .wi-ia input{font-size:15px;font-weight:800}
+  .wi-target{font-size:11.5px;color:var(--sub)}
+  .wi-ctx{font-size:11.5px;color:var(--sub);line-height:1.5;margin-top:8px}
+  .wi-head{border-radius:11px;padding:12px 14px;border:1px solid var(--line);background:#fbfdff}
+  .wi-head.good{background:var(--goodbg);border-color:#cde6b4}
+  .wi-head.warn{background:var(--amberbg);border-color:#f0d4a0}
+  .wi-head.bad{background:var(--redbg);border-color:#f3c3bd}
+  .wi-head .wi-k{font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--sub)}
+  .wi-head .wi-v{font-size:32px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1.08;
+                 margin-top:2px;display:flex;align-items:baseline;gap:11px;flex-wrap:wrap}
+  .wi-head .wi-pct{font-size:13.5px;font-weight:700;color:var(--sub)}
+  .wi-head .wi-s{font-size:12.5px;margin-top:6px;line-height:1.45}
+  .wi-rows{margin-top:10px;display:flex;flex-direction:column;gap:4px}
+  .wi-r{display:grid;grid-template-columns:190px auto 1fr;gap:9px;align-items:baseline;font-size:12.5px}
+  .wi-rk{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.4px;color:var(--sub)}
+  .wi-rv{font-weight:800;font-variant-numeric:tabular-nums}
+  .wi-rs{color:var(--sub);font-size:11.5px}
+  .wi-checks{margin-top:11px;display:flex;flex-direction:column;gap:5px;border-top:1px solid var(--line);padding-top:10px}
+  .wi-chk{display:grid;grid-template-columns:18px 190px 1fr;gap:8px;align-items:baseline;font-size:12.5px}
+  .wi-chk .wi-ci{font-weight:900}
+  .wi-chk.ok .wi-ci{color:var(--good)}
+  .wi-chk.no .wi-ci{color:var(--red)}
+  .wi-chk .wi-cl{font-weight:800}
+  .wi-chk.no .wi-cl{color:var(--red)}
+  .wi-chk .wi-cd{color:var(--sub);font-size:11.5px}
+  @media(max-width:760px){
+    .wi-r{grid-template-columns:1fr;gap:1px}
+    .wi-chk{grid-template-columns:18px 1fr}
+    .wi-chk .wi-cd{grid-column:2}
+  }
+
+  /* ---- Job 1 rate impact ---- */
+  .lever.rate>summary{background:#fbf6ee;border-bottom:1px solid #eedfc6}
+  .ri-ref{font-size:11.5px;color:var(--sub);line-height:1.5;margin-bottom:10px}
+  .ri-ref b{color:var(--ink);font-weight:800}
+  .ri-sum{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .ri-card{border:1px solid var(--line);border-radius:10px;padding:11px 13px;background:#fbfdff}
+  .ri-card.up{background:var(--amberbg);border-color:#f0d4a0}
+  .ri-card.down{background:var(--goodbg);border-color:#cde6b4}
+  .ri-card .ri-k{font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.45px;color:var(--sub)}
+  .ri-card .ri-r{font-weight:700;text-transform:none;letter-spacing:0}
+  .ri-line{display:flex;align-items:baseline;gap:8px;margin-top:5px;flex-wrap:wrap}
+  .ri-line .ri-v{font-size:21px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1.1}
+  .ri-line .ri-l{font-size:11.5px;color:var(--sub)}
+  .ri-card .ri-s{font-size:12px;color:var(--sub);margin-top:5px}
+  .ri-tbl{margin-top:11px;border:1px solid var(--line);border-radius:9px;overflow:hidden}
+  .ri-tbl>summary{list-style:none;cursor:pointer;padding:8px 12px;background:#f6f9fb;font-size:11.5px;font-weight:800}
+  .ri-tbl>summary::-webkit-details-marker{display:none}
+  .ri-tbl>summary:after{content:'\25be';float:right;color:var(--sub);font-size:11px}
+  .ri-tbl[open]>summary:after{content:'\25b4'}
+  .ri-tbl-b{padding:10px 12px;border-top:1px solid var(--line)}
+  table.ri-t{width:100%;border-collapse:collapse;font-size:12.5px}
+  table.ri-t th{text-align:right;font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.35px;
+                color:var(--sub);padding:0 8px 6px;border-bottom:1px solid var(--line);vertical-align:bottom}
+  table.ri-t th:first-child,table.ri-t th:last-child{text-align:left}
+  table.ri-t th span{font-weight:600;text-transform:none;letter-spacing:0;font-size:9.5px}
+  table.ri-t td{padding:5px 8px;border-bottom:1px solid #f0f4f7}
+  table.ri-t tr.base{background:#eef7ff;font-weight:800}
+  table.ri-t tr.custom{background:#fdf7ff}
+  .ri-rate{font-weight:800;font-variant-numeric:tabular-nums}
+  .ri-num{text-align:right;font-variant-numeric:tabular-nums}
+  .ri-bind{font-size:11px;color:var(--sub)}
+  .ri-none{font-size:11.5px;color:var(--dim);font-style:italic}
+  .ri-up{color:var(--red);font-weight:800}
+  .ri-dn{color:var(--good);font-weight:800}
+  .ri-flat,.ri-cur{color:var(--sub);font-size:10.5px;font-weight:800}
+  .ri-tag{font-size:9px;font-weight:800;background:#e9d5f5;color:#6b2d8c;border-radius:4px;padding:1px 5px;
+          text-transform:uppercase;letter-spacing:.3px}
+  .ri-flag{margin-top:9px;display:flex;gap:8px;font-size:11.5px;line-height:1.45;color:var(--ink);
+           background:var(--amberbg);border:1px solid #f0d4a0;border-radius:9px;padding:9px 12px}
+  .ri-custom{margin-top:11px;display:flex;align-items:center;gap:9px;flex-wrap:wrap;
+             border-top:1px solid var(--line);padding-top:10px}
+  .ri-clab{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.4px;color:var(--sub)}
+  .ri-cia{width:110px;flex:0 0 auto}
+  .ri-cnote{font-size:11px;color:var(--sub)}
+  .ri-cres{flex:1 1 100%;font-size:12px;color:var(--ink);line-height:1.5;margin-top:2px}
+  .ri-cres b{font-weight:800}
+  @media(max-width:760px){
+    .ri-sum{grid-template-columns:1fr}
+    table.ri-t{font-size:11.5px}
+    table.ri-t td,table.ri-t th{padding-left:5px;padding-right:5px}
+    .ri-bind{display:none}
+    table.ri-t th:last-child{display:none}
+  }
+
+  .missingnote{margin-top:10px;display:flex;gap:9px;align-items:flex-start;font-size:12px;line-height:1.5;
+               background:var(--amberbg);border:1px solid #f0d4a0;border-radius:9px;padding:10px 13px;color:var(--ink)}
+  .dpline{margin-top:9px;font-size:11.5px;color:var(--sub);line-height:1.5;
+          padding:7px 12px;background:#f6f9fb;border:1px solid var(--line);border-radius:9px}
+  .dpline b{color:var(--ink);font-weight:800}
+  .taxnote{margin-top:10px;display:flex;gap:8px;align-items:flex-start;font-size:11.5px;line-height:1.5;
+           background:#f6f9fb;border:1px solid var(--line);border-radius:9px;padding:9px 12px;color:var(--ink)}
+
+  /* ---- empty / prompt states ---- */
+  .answer-empty{font-size:12.5px;color:var(--sub);line-height:1.5;padding:4px 0}
+
+  @media(max-width:900px){
+    .pw3{grid-template-columns:1fr}
+    .fit3{grid-template-columns:1fr}
+    .ab-row{grid-template-columns:1fr;gap:1px}
+    .ans-block .ab-v{font-size:27px}
+    .dpo-grid{grid-template-columns:1fr}
+    .debt-row,.debt-head{grid-template-columns:20px 1fr 84px 96px 26px;gap:5px}
+    .goalbar{position:static}
+    .shopline .sl-v{font-size:22px}
+  }
+  @media(max-width:520px){
+    .debt-row,.debt-head{grid-template-columns:18px 1fr 72px 80px 24px;gap:4px}
+    .debt-row input[type=text]{padding:5px 6px;font-size:11.5px}
+    .goalbar .gb-v{font-size:12px}
+    .pw .pw-v{font-size:23px}
+  }
 </style>
 </head>
 <body>
@@ -335,6 +705,11 @@
     <span class="tag">v2 · Internal · not client-facing</span>
     <span class="mode shop" id="modeBadge">Shopping Range Mode</span>
   </div>
+
+  <!-- ============ PERSISTENT BUYER GOAL BAR (Phase 4) ============
+       Always visible, every stage. Display-only: it reads resolved values
+       and never writes one back. -->
+  <div class="goalbar" id="goalBar"></div>
 
   <!-- ================= INPUTS ================= -->
   <div class="card inputs">
@@ -346,7 +721,7 @@
         <div class="fld"><label>Buyer's own funds</label><div class="ia dollar"><input id="ownFunds" type="text" inputmode="numeric" value="40,000"></div><div class="sub"></div></div>
         <div class="fld"><label>Gift amount</label><div class="ia dollar"><input id="gift" type="text" inputmode="numeric" value="0"></div><div class="sub" id="giftSub"></div></div>
         <div class="fld derived"><label>Total available funds</label><div class="ia dollar"><input id="totalFunds" type="text" readonly value="40,000"></div><div class="sub"></div></div>
-        <div class="fld"><label>Down payment (opt.)</label>
+        <div class="fld wideunit"><label>Down payment (opt.)</label>
           <div class="urow"><span class="ia pct" id="dpIa"><input id="dpTarget" type="text" inputmode="numeric" placeholder="amount"></span><span class="unit-tg" id="dpUnitTg"><button type="button" data-u="pct">%</button><button type="button" data-u="dollar">$</button></span></div>
           <div class="sub info" id="dpTargetSub"></div></div>
         <div class="fld"><label>Target PITI comfort</label><div class="ia dollar"><input id="target" type="text" inputmode="numeric" value="3,200"></div><div class="sub"></div></div>
@@ -396,8 +771,8 @@
     <div class="igroup">
       <div class="igroup-h">PITI Assumptions</div>
       <div class="igrid">
-        <div class="fld pitirow"><label>Property tax /yr</label>
-          <div class="urow"><span class="ia pct" id="taxIa"><input id="taxRate" type="text" inputmode="decimal" value="1.20" placeholder="amount"></span><span class="unit-tg" id="taxUnitTg"><button type="button" data-u="pct">%</button><button type="button" data-u="dollar">$</button></span></div>
+        <div class="fld pitirow wideunit"><label>Property tax</label>
+          <div class="urow"><span class="ia pct" id="taxIa"><input id="taxRate" type="text" inputmode="decimal" placeholder="e.g. 582"></span><span class="unit-tg tax3" id="taxUnitTg"><button type="button" data-u="pct">%</button><button type="button" data-u="dollarMo">$/MO</button><button type="button" data-u="dollar">$/YR</button></span></div>
           <div class="sub info" id="taxSub"></div></div>
         <div class="fld pitirow"><label>Home ins. $/mo</label><div class="ia dollar"><input id="hoi" type="text" inputmode="numeric" value="150"></div></div>
         <div class="fld pitirow"><label>HOA /mo <label class="na"><input type="checkbox" id="hoaNA" checked>N/A</label></label><div class="ia dollar"><input id="hoa" type="text" inputmode="numeric" value="0"></div><div class="sub" id="hoaSub"></div></div>
@@ -408,6 +783,14 @@
 
   </div>
 
+  <!-- ================= PHASE 4 — ANSWER LAYER =================
+       The primary decision output. Everything below it is supporting
+       detail. Rendered by renderAnswerLayer(); never uses class "section". -->
+  <div class="answer" id="answerLayer">
+    <div class="answer-h" id="answerHead"><span class="job">JOB 1</span><span class="aq" id="answerQ">What should this buyer shop for?</span></div>
+    <div class="answer-b" id="answerBody"></div>
+  </div>
+
   <!-- ================= ASSUMPTIONS CHANGED BANNER ================= -->
   <details class="changelog" id="changelog">
     <summary><span>Assumptions changed</span><span class="cl-latest" id="clLatest">— no changes yet this session</span></summary>
@@ -415,14 +798,14 @@
   </details>
 
   <!-- ================= SECTION 1 ================= -->
-  <div class="section" id="sec1">
-    <div class="sec-head" data-sec="sec1"><span class="num">1</span><span class="title">Qualification Snapshot</span><span class="q">Where does the buyer stand?</span><span class="chev">▾</span></div>
+  <div class="section collapsed" id="sec1">
+    <div class="sec-head" data-sec="sec1"><span class="num">1</span><span class="title">Qualification Snapshot</span><span class="q">supporting detail — DTI, eliminations, diagnostics</span><span class="chev">▾</span></div>
     <div class="sec-body" id="snapBody"></div>
   </div>
 
   <!-- ================= SECTION 2 — PROPERTY STRATEGY ================= -->
-  <div class="section" id="sec2">
-    <div class="sec-head" data-sec="sec2"><span class="num">2</span><span class="title">Property Strategy</span><span class="q">How do we win this specific property?</span><span class="chev">▾</span></div>
+  <div class="section collapsed" id="sec2">
+    <div class="sec-head" data-sec="sec2"><span class="num">2</span><span class="title">Property Strategy</span><span class="q">supporting detail — activates with a list price</span><span class="chev">▾</span></div>
     <div class="sec-body">
 
       <!-- placeholder shown until a list price is entered -->
@@ -613,11 +996,47 @@ const Engine = (function(){
         const a=[];
         if(i.fthb) a.push({dp:3,name:'Conv 3%',fthb:true});
         a.push({dp:5,name:'Conv 5%'},{dp:10,name:'Conv 10%'},{dp:20,name:'Conv 20%'});
-        // Down payment above 20% -> conventional only, any %, no MI (PMI is 0 below 80% LTV).
+        /* Authored conventional down payment (approved change, 2026-07-29).
+           Previously only an amount ABOVE 20.5% produced a tier, so an authored
+           15% matched none of 5 / 10 / 20 within dpMatches()'s ±1-point window
+           and every conventional tier dimmed — the buyer got no eligible
+           scenario at all. An authored percentage is now evaluated as its own
+           scenario whenever it is a legal conventional down payment and is not
+           already represented by a standard tier.
+
+           Deliberately narrow, so NO existing result moves anywhere:
+             • the >20.5% branch is preserved verbatim, for both units, so 21%
+               still yields BOTH Conv 20% (matched within tolerance) and
+               Conv 21%, exactly as before;
+             • the new below-20.5% branch applies ONLY to an explicitly authored
+               PERCENT. A dollar amount that happens to work out below 20.5% is
+               left exactly as it behaved before. This is what keeps R-44
+               ("dpTarget corruption": $40,000 stale against a $600,000 price,
+               i.e. 6.67%) byte-identical to its frozen baseline — the symmetric
+               rule created a Conv 6.7% tier there and changed a frozen capture;
+             • anything STRICTLY inside 1 point of a generated standard tier is
+               skipped, so 5% / 5.5% / 20% behave identically to before and no
+               duplicate tier is created. The comparison is `< 1`, not `<= 1`,
+               deliberately: dpMatches()'s own tolerance is exactly 1 point
+               (1% of price, on dollars) and is decided in floating point, so a
+               `<= 1` exclusion left a DEAD ZONE at precisely 1 point — 6%, 19%
+               and 4%-with-FTHB generated no custom tier AND failed to match
+               the neighbouring standard tier, yielding nothing at all. At
+               exactly 1 point both tiers may now appear, which is the same
+               behaviour 21% has always had with Conv 20%;
+             • the floor is the conventional minimum — 3% for a first-time buyer,
+               5% otherwise — so a custom tier can never bypass the FTHB gate
+               that guards Conv 3%.
+           FHA and VA are untouched. */
         if(i.dpTarget){
           const customPct = i.dpTarget.isPct ? i.dpTarget.pct
             : (i.price>0 ? i.dpTarget.dollar/i.price*100 : null);
-          if(customPct && customPct > 20.5){
+          const minConv = i.fthb ? 3 : 5;
+          const stdTiers = i.fthb ? [3,5,10,20] : [5,10,20];
+          const nearStandard = customPct != null && stdTiers.some(t => Math.abs(t-customPct) < 1);
+          const authoredPct = !!i.dpTarget.isPct;
+          if(customPct && (customPct > 20.5 ||
+                           (authoredPct && customPct >= minConv && !nearStandard))){
             const pctLabel = Number.isInteger(customPct) ? customPct : customPct.toFixed(1);
             a.push({dp: customPct, name: 'Conv '+pctLabel+'%', custom:true});
           }
@@ -1064,6 +1483,10 @@ const Engine = (function(){
    ===================================================================== */
 const $ = id => document.getElementById(id);
 const money = n => (n<0?'-$':'$')+Math.abs(Math.round(n)).toLocaleString('en-US');
+/* Two-decimal money, for figures that are reconciled line-by-line against a
+   lender quote (taxes, insurance, P&I). Rounding these to whole dollars makes
+   a $582.26 escrow read as $582 and looks like a discrepancy that isn't one. */
+const money2 = n => (n<0?'-$':'$')+Math.abs(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
 const num = el => { const v=(typeof el==='string'?$(el):el).value.replace(/[^0-9.\-]/g,''); return parseFloat(v)||0; };
 const rawBlank = el => (typeof el==='string'?$(el):el).value.replace(/[^0-9.\-]/g,'')==='';
 // Live comma formatting for a whole-dollar input: strip to digits, insert commas,
@@ -1088,7 +1511,12 @@ let gapSel = 'pay';
 // Explicit unit choice for the dual-input fields ($ or %). The toggle is
 // authoritative — the value is interpreted per the selected unit, not guessed
 // from whether it is under 100.
-const unitState = { dp:'pct', tax:'pct' };
+/* $/MO is the default property-tax mode for a NEW session: it is the unit a
+   lender quote reports an escrow in, which is what makes a side-by-side
+   reconciliation immediate. A SAVED buyer restores its own authored unit
+   verbatim — this is initial UI state only, and the canonical model is
+   unchanged (a percentage, or an annual dollar amount). */
+const unitState = { dp:'pct', tax:'dollarMo' };
 // $ / % unit for the Offer Strategy seller-concession field (% of the offer price).
 const offerConcUnit = { v:'dollar' };
 
@@ -1138,6 +1566,244 @@ const A_CONST = {
   pmi:Engine.PMI
 };
 
+/* =====================================================================
+   SOLVER — REQUIRED DOWN PAYMENT FOR A TARGET PAYMENT      (Phase 4, N-1)
+   =====================================================================
+   "The house is $461,000 and the buyer wants to keep the payment at
+    $3,000. How much does the buyer need to put down?"
+
+   Every pre-existing solver in this file holds the down payment FIXED and
+   solves for something else — price (priceToHitTarget, dtiPrice),
+   concession dollars (concessionToCloseGap), or additional buydown
+   (additionalForPayment). None of them can answer the question above.
+   This one solves the down-payment axis.
+
+   HOW IT WORKS, AND WHY IT IS SAFE
+   --------------------------------
+   It does NOT re-derive mortgage mathematics. Every probe calls
+   Engine.computeScenario() — the same protected function the rest of the
+   tool calculates from — and reads .piti off the result. That is the same
+   pattern pathOutcome() and evalStructure() already use. Inverting the
+   k / b coefficients out of maxPriceForScenario() would be faster and is
+   deliberately NOT done: it would create a second implementation of the
+   PITI assembly that could drift from the first. See BSE-Project-Status
+   §4.5.
+
+   MONOTONICITY (why bisection is valid)
+   -------------------------------------
+   At a fixed price, raising the down payment:
+     • lowers the loan, so P&I falls;
+     • lowers the LTV, so the PMI band improves or MI disappears entirely;
+     • leaves taxes, HOI, HOA, CDD and flood untouched.
+   PITI is therefore monotonically non-increasing in the down payment. It
+   is not SMOOTH — it steps down at the 95 / 90 / 85 / 80 LTV boundaries —
+   but bisection for "the least down payment meeting a ceiling" is valid on
+   a monotone step function. The answer is then rounded UP to the nearest
+   $100, which can only lower the payment further, and re-verified.
+
+   THE FLOOR
+   ---------
+   At 100% down the loan is zero, so PITI collapses to escrow alone. If
+   escrow exceeds the target, NO down payment reaches it and the honest
+   answer is "unreachable on this property," not a silly number. That case
+   returns feasible:false with the floor, so the UI can say why.
+
+   Nothing here mutates the engine, the assumption set, or any input.
+   ===================================================================== */
+
+/* Round the reported answer up to a number an advisor would actually say. */
+const DP_SOLVE_STEP = 100;
+
+/* Lowest down payment each program will accept for this buyer. */
+function dpProgramMinimum(inp, progId){
+  if(progId === 'va')  return 0;
+  if(progId === 'fha') return inp.score >= 580 ? 3.5 : 10;
+  return inp.fthb ? 3 : 5;                      // conventional
+}
+
+/* Price-independent program gating, mirroring Engine.programEliminations(). */
+function dpProgramEligibility(inp, progId){
+  if(progId === 'conv' && inp.score < 620)
+    return { eligible:false, reason:'Credit ' + inp.score + ' is below the 620 conventional minimum' };
+  if(progId === 'fha' && inp.score < 500)
+    return { eligible:false, reason:'Credit ' + inp.score + ' is below the 500 FHA minimum' };
+  if(progId === 'va' && !inp.vaOn)
+    return { eligible:false, reason:'VA eligibility not indicated' };
+  return { eligible:true, reason:null };
+}
+
+/* One probe. The ONLY place this solver touches mortgage math, and it does
+   so by calling the protected engine rather than reproducing it. */
+function dpScenarioAt(inp, progId, price, dpPct){
+  const prog = Engine.PROGRAMS[progId];
+  const probe = Object.assign({}, inp, { shopping:false, price:price, dpTarget:null });
+  const label = Number.isInteger(dpPct) ? String(dpPct) : dpPct.toFixed(1);
+  return Engine.computeScenario(probe, A_CONST, prog,
+                                { dp:dpPct, name:prog.label + ' ' + label + '%' }, price);
+}
+
+/* Solve one program. Returns a fully-populated result including whether the
+   buyer's funds actually reach it and whether the result still qualifies. */
+function requiredDownForProgram(inp, progId, price, target){
+  const elig = dpProgramEligibility(inp, progId);
+  const minDp = dpProgramMinimum(inp, progId);
+  const out = {
+    id: progId, label: Engine.PROGRAMS[progId].label,
+    eligible: elig.eligible, ineligibleReason: elig.reason,
+    minDpPct: minDp, atMinimum:false, feasible:false
+  };
+  if(!elig.eligible) return out;
+
+  // 1 · Does the buyer already clear the target at the program minimum?
+  const sMin = dpScenarioAt(inp, progId, price, minDp);
+  if(sMin.piti <= target + 0.005){
+    out.atMinimum = true;
+    return Object.assign(out, dpDescribe(inp, sMin, price, target, minDp, true));
+  }
+
+  // 2 · Is the target reachable at all? At 100% down PITI is escrow alone.
+  const sMax = dpScenarioAt(inp, progId, price, 100);
+  if(sMax.piti > target + 0.005){
+    out.feasible = false;
+    out.floorPITI = sMax.piti;
+    out.floorNote = 'Escrow alone is ' + money(sMax.piti) + '/mo — above the ' +
+                    money(target) + ' target. No down payment reaches it on this property.';
+    return out;
+  }
+
+  // 3 · Bisect. piti(lo) > target, piti(hi) <= target throughout.
+  let lo = minDp, hi = 100;
+  for(let i = 0; i < 60; i++){
+    const mid = (lo + hi) / 2;
+    if(dpScenarioAt(inp, progId, price, mid).piti > target + 0.005) lo = mid; else hi = mid;
+  }
+
+  // 4 · Round the DOLLAR amount up to the nearest $100 and re-verify. Rounding
+  //     up can only reduce the payment, so this cannot break the constraint —
+  //     the loop is a guard, not an algorithm.
+  let dollar = Math.min(price, Math.ceil(hi / 100 * price / DP_SOLVE_STEP) * DP_SOLVE_STEP);
+  let s = dpScenarioAt(inp, progId, price, dollar / price * 100);
+  let guard = 0;
+  while(s.piti > target + 0.005 && dollar < price && guard++ < 200){
+    dollar = Math.min(price, dollar + DP_SOLVE_STEP);
+    s = dpScenarioAt(inp, progId, price, dollar / price * 100);
+  }
+  if(s.piti > target + 0.005){        // should be unreachable; never lie if it happens
+    out.feasible = false;
+    out.floorPITI = s.piti;
+    out.floorNote = 'Solver could not reach the target within this program.';
+    return out;
+  }
+
+  out.feasible = true;
+  return Object.assign(out, dpDescribe(inp, s, price, target, dollar / price * 100, false));
+}
+
+/* Shared description of a solved scenario: cash, qualification, limits, and
+   the "one step further" boundary where mortgage insurance changes. */
+function dpDescribe(inp, s, price, target, dpPct, atMin){
+  const dpDollar = s.down;
+  const backLimit = s.ratios.back;
+  const limit = s.id === 'fha' ? A_CONST.fhaLimit : (s.id === 'conv' ? A_CONST.confLimit : Infinity);
+  const d = {
+    feasible: true,
+    dpPct: dpPct, dpDollar: dpDollar, ltv: s.ltv,
+    piti: s.piti, pi: s.pi, monthlyMI: s.monthlyMI, escrow: s.escrow,
+    rate: s.rate, headroom: target - s.piti,
+    closing: s.closing, cashToClose: s.cashToClose,
+    cashRemaining: inp.funds - s.cashToClose,
+    fundsSufficient: s.cashToClose <= inp.funds + 0.5,
+    cashGap: Math.max(0, s.cashToClose - inp.funds),
+    back: s.back, backLimit: backLimit, dtiOk: s.back <= backLimit + 0.05,
+    front: s.front, frontLimit: s.ratios.front, frontFlag: s.front > s.ratios.front + 0.05,
+    overLoanLimit: s.baseLoan > limit + 0.5, loanLimit: limit,
+    concLimitPct: s.concLimitPct, concLimit: s.concLimit,
+    scenario: s, boundary: null
+  };
+
+  /* The one-step-further fact an advisor actually uses. Conventional: 20% down
+     removes PMI entirely. FHA: 10% down converts life-of-loan MIP into MIP that
+     drops at month 132. VA has no monthly MI, so there is nothing to show. */
+  let bDp = null, bNote = null;
+  if(s.id === 'conv' && dpPct < 20 && s.monthlyMI > 0){
+    bDp = 20; bNote = 'PMI drops off entirely at 20% down.';
+  } else if(s.id === 'fha' && dpPct < 10){
+    bDp = 10; bNote = 'At 10% down FHA MIP ends at month 132 instead of running for the life of the loan.';
+  }
+  if(bDp !== null){
+    const sb = dpScenarioAt(inp, s.id, price, bDp);
+    d.boundary = {
+      dpPct: bDp, dpDollar: sb.down, piti: sb.piti,
+      extraCash: sb.down - dpDollar, monthlySaving: s.piti - sb.piti,
+      cashToClose: sb.cashToClose, withinFunds: sb.cashToClose <= inp.funds + 0.5,
+      note: bNote
+    };
+  }
+  d.atMinimum = atMin;
+  return d;
+}
+
+/* ---------- the entry point ----------
+   requiredDownForPayment(inp, price, target)
+     → { price, target, feasible, escrowFloor, programs[], recommended, notes[] }
+   `recommended` is the eligible program that reaches the target for the LEAST
+   cash to close — the literal answer to "how much does he need to put down."
+   When nothing fits the buyer's funds, it is the one with the smallest gap, so
+   the UI can state the shortfall instead of showing nothing. */
+function requiredDownForPayment(inp, price, target){
+  const out = { price:price, target:target, feasible:false, programs:[], recommended:null, notes:[] };
+  if(!(price > 0))  { out.error = 'A property price is required.';  return out; }
+  if(!(target > 0)) { out.error = 'A target payment is required.'; return out; }
+
+  // Escrow floor is program-independent: taxes + HOI + HOA + CDD + flood.
+  const floorS = dpScenarioAt(inp, 'conv', price, 100);
+  out.escrowFloor = floorS.escrow;
+  if(floorS.escrow > target + 0.005){
+    out.notes.push('Escrow alone on this property is ' + money(floorS.escrow) +
+                   '/mo, which is already above the ' + money(target) +
+                   ' target. No down payment can reach it.');
+  }
+
+  ['conv','fha','va'].forEach(function(id){
+    out.programs.push(requiredDownForProgram(inp, id, price, target));
+  });
+
+  const reachable = out.programs.filter(function(p){ return p.feasible; });
+  out.feasible = reachable.length > 0;
+
+  if(reachable.length){
+    const affordable = reachable.filter(function(p){ return p.fundsSufficient && p.dtiOk && !p.overLoanLimit; });
+    const pool = affordable.length ? affordable : reachable;
+    out.recommended = pool.slice().sort(function(a, b){
+      return a.cashToClose - b.cashToClose;
+    })[0];
+    if(!affordable.length){
+      out.recommended = reachable.slice().sort(function(a, b){ return a.cashGap - b.cashGap; })[0];
+    }
+  }
+
+  /* Advisory notes the advisor would otherwise have to work out by hand. */
+  const rec = out.recommended;
+  if(rec && rec.dpPct > 20.5 && inp.score < 620){
+    out.notes.push('A down payment above 20% requires conventional financing, and credit ' +
+                   inp.score + ' is below the 620 minimum — FHA remains the only eligible program ' +
+                   'regardless of down payment.');
+  }
+  if(rec && !rec.fundsSufficient){
+    out.notes.push('Cash to close of ' + money(rec.cashToClose) + ' exceeds available funds of ' +
+                   money(inp.funds) + ' by ' + money(rec.cashGap) + '.');
+  }
+  if(rec && rec.overLoanLimit){
+    out.notes.push('The loan at this structure exceeds the applicable limit of ' +
+                   money(rec.loanLimit) + '.');
+  }
+  if(rec && !rec.dtiOk){
+    out.notes.push('Back-end DTI is ' + rec.back.toFixed(1) + '% against a ' + rec.backLimit +
+                   '% limit — the payment target is met but the file does not qualify as structured.');
+  }
+  return out;
+}
+
 /* ---------- gather inputs ----------
    Gate B.5: gatherInputs() is now a thin resolver over the canonical model.
    The DOM-reading implementation below is retained ONLY so the cutover can be
@@ -1157,36 +1823,48 @@ function updateInlineHints(inp){
   $('priceSub').textContent = inp.shopping ? 'Shopping Range Mode' : '';
   $('priceSub').className = 'sub info';
   $('ccSub').textContent = (!inp.shopping && inp.ccOverride>0) ? '$ override in use' : (inp.shopping?'% used (shopping)':'% of loan');
-  // Property tax dual-input sub-label — show %, annual $, and monthly together when a price is present
+  // Property tax sub-label — states the active assumption (Phase 4 §7)
   const taxSub=$('taxSub');
   const havePrice = !inp.shopping && inp.price>0;
   taxSub.className='sub info';
+  /* §7 — communicate the assumption; do not warn about it. A fixed monthly tax
+     is a legitimate assumption, and in Shopping Range it is often the RIGHT one
+     because it is what the Arive quote shows. */
   if(inp.taxIsDollar){
-    // Dollar amount is a fixed monthly escrow — works in both modes
-    if(havePrice){
-      const pct=(inp.taxRaw/inp.price*100);
-      taxSub.textContent = money(inp.taxRaw)+'/yr = '+money(inp.taxMonthly)+'/mo ('+pct.toFixed(1)+'%)';
+    const perMo = money2(inp.taxMonthly), perYr = money2(inp.taxRaw);
+    const scale = ' — fixed at every price';
+    if(unitState.tax==='dollarMo'){
+      taxSub.textContent = perMo+'/mo = '+perYr+'/yr'+scale+
+        (havePrice ? ' ('+(inp.taxRaw/inp.price*100).toFixed(2)+'% of this price)' : '');
     } else {
-      taxSub.textContent = money(inp.taxRaw)+'/yr = '+money(inp.taxMonthly)+'/mo (fixed escrow)';
+      taxSub.textContent = perYr+'/yr = '+perMo+'/mo'+scale+
+        (havePrice ? ' ('+(inp.taxRaw/inp.price*100).toFixed(2)+'% of this price)' : '');
     }
   } else if(inp.taxRate>15){
-    // Implausible as a rate — almost certainly a dollar amount entered on the % setting
-    taxSub.className='sub';   // amber
-    taxSub.textContent = '⚠ '+inp.taxRate+'% is not a valid tax rate — did you mean '+money(inp.taxRaw)+'/yr? Switch the toggle to $.';
+    taxSub.className='sub';   // amber — implausible as a rate
+    taxSub.textContent = '\u26a0 '+inp.taxRate+'% is not a valid tax rate — switch to $/MO or $/YR to enter '+money(inp.taxRaw)+'.';
   } else if(havePrice){
     const annual=inp.price*inp.taxRate/100;
-    taxSub.textContent = inp.taxRate+'% = '+money(annual)+'/yr = '+money(annual/12)+'/mo';
+    taxSub.textContent = inp.taxRate+'% of price = '+money2(annual)+'/yr = '+money2(annual/12)+'/mo';
   } else {
-    taxSub.textContent = inp.taxRate+'% of price — enter a list price for $/yr (Shopping Mode)';
+    taxSub.textContent = inp.taxRate+'% of purchase price — scales with price';
   }
   // Down-payment target: show both $ and % when derivable
+  /* §7 — state the authored assumption. In Shopping Range there is no price to
+     convert against and none is needed: dollars stay dollars, percents stay
+     percents. The resolved percentage appears as supporting information in the
+     answer layer, where a solved price exists to quote it against. */
   const dpSub=$('dpTargetSub');
   if(inp.dpTarget){
     const price = inp.shopping ? 0 : inp.price;
     if(inp.dpTarget.isPct){
-      dpSub.textContent = price>0 ? inp.dpTarget.pct+'% = '+money(inp.dpTarget.pct/100*price) : inp.dpTarget.pct+'% (enter price for $)';
+      dpSub.textContent = price>0
+        ? inp.dpTarget.pct+'% = '+money(inp.dpTarget.pct/100*price)
+        : inp.dpTarget.pct+'% of purchase price — scales with price';
     } else {
-      dpSub.textContent = price>0 ? money(inp.dpTarget.dollar)+' = '+(inp.dpTarget.dollar/price*100).toFixed(1)+'%' : money(inp.dpTarget.dollar)+' (enter price for %)';
+      dpSub.textContent = price>0
+        ? money(inp.dpTarget.dollar)+' = '+(inp.dpTarget.dollar/price*100).toFixed(1)+'% of this price'
+        : money(inp.dpTarget.dollar)+' — fixed at every price';
     }
   } else dpSub.textContent='';
   // N/A confirmation — PRESENTATION ONLY (C-4b, Gate B.5).
@@ -1455,6 +2133,2169 @@ function elimHTML(elim){
   elim.forEach(e=>{ h+='<li>❌ <b>'+e.name+'</b> — '+e.reason+'</li>'; });
   h+='</ul></div>';
   return h;
+}
+
+/* =====================================================================
+   PHASE 4 — ANSWER LAYER
+   =====================================================================
+   Two jobs, one screen each:
+     JOB 1  What should this buyer shop for?
+     JOB 2  They found a house — how do we accomplish their goal?
+
+   Everything below this layer (Sections 1 and 2) is unchanged and becomes
+   supporting detail. This layer READS engine output; it never computes a
+   mortgage number of its own. Every figure here comes from
+   Engine.run() / Engine.computeScenario() / maxPriceForScenario() via
+   buyingPowerCardsHTML(), or from requiredDownForPayment().
+
+   Why the existing render targets are not touched: the permanent
+   regression suite freezes the rendered text of snapBody, cardsBody,
+   gsPanel, negMount, propFull and coPanels as change-detectors. Rewriting
+   them would fail that suite for presentation reasons, which would bury a
+   real numerical regression in noise. The answer layer is therefore
+   ADDITIVE — new containers, above the old ones.
+   ===================================================================== */
+
+/* Details-open state survives re-render (recalc rebuilds the body). */
+const answerUi = { why:false, lever:false, whatif:false, rate:false,
+                   seller:false, prate:false, alt:false };
+
+/* §12 · Accepted / Contract. NOT immutable and NOT an Arive handoff — it marks
+   the current working structure and preserves round history. Every field stays
+   editable. Persists as property_scenario.status = 'under_contract' plus
+   is_accepted_property. */
+let propertyAccepted = false;
+function markDirty(){
+  if (window.BSEPersistence && window.BSEPersistence.scheduleSave) window.BSEPersistence.scheduleSave();
+}
+
+/* ---------- consolidated binding-constraint calculation ----------
+   Part 1 of the Phase 4 audit found TWO independent binding-constraint
+   calculations that can disagree: maxPriceForScenario()'s per-scenario
+   `binding`, and constraintLineHTML()'s cross-program version which
+   suppresses cash whenever cash is not already below comfort.
+
+   This is the single presentation-layer answer, and it is the one the
+   advisor reads. It does NOT alter maxPriceForScenario() — the protected
+   solver is untouched and still produces `binding` for Section 1.
+
+   Candidate ceilings use the SAME `why` strings the existing
+   strategyActionsFor() / powerBadge() helpers switch on, so those two
+   revived functions keep working without modification. */
+function powerCeilings(inp, C, bp){
+  const cands = [];
+  const push = (why, price, sub) => {
+    if (isFinite(price) && price > 0) cands.push({ why:why, price:price, sub:sub });
+  };
+  /* §5 — all three cards must use the SAME authored down-payment assumption.
+     In dollar mode the cash and loan-limit ceilings were solved with the
+     authored dollars held fixed and are carried on the scenarios; using
+     buyingPowerCardsHTML()'s percentage-derived versions here would make one
+     card describe a different down payment from the other two. */
+  const dollarMode = isDollarDownShopping(inp) && bp && bp.length;
+  const maxOf = k => bp.reduce((m, s) => Math.max(m, isFinite(s[k]) ? s[k] : 0), 0);
+  const cashCeil  = dollarMode ? maxOf('cashPrice')  : C.cashPrice;
+  const limitCeil = dollarMode ? maxOf('limitPrice') : C.loanLimitCeil;
+  const dpLabel = dollarMode ? money(inp.dpTarget.dollar) + ' down' : C.lowDp.name + ' down';
+
+  push('Comfort Payment', C.highestComfort, 'at ' + money(inp.target) + '/mo comfort payment');
+  push('DTI', C.highestQual, 'at ' + ((C.qualTop.ratios && C.qualTop.ratios.back) || 45) + '% back-end DTI');
+  push('Cash to Close', cashCeil, money(inp.funds) + ' available with ' + dpLabel);
+  push(C.lowDp.id === 'fha' ? 'FHA Loan Limit' : 'Conforming Loan Limit', limitCeil, 'program loan ceiling');
+  cands.sort((a, b) => a.price - b.price);
+  return {
+    list: cands,
+    /* Exposed so the CARD and the CONSTRAINT DECISION read the same number.
+       Previously powerSnapshot() passed buyingPowerCardsHTML()'s
+       percentage-derived cashPrice to the card while this function used the
+       authored-dollar ceiling to decide what controls — two different figures
+       for one headline. */
+    cashCeil: cashCeil,
+    limitCeil: limitCeil,
+    controlling: cands[0] || null,
+    /* `secondary` is the SECOND-lowest ceiling — the price the buyer reaches
+       once the controlling constraint is cleared. Part 1 found that
+       strategyActionsFor() destructures a `secondary` no caller ever supplied,
+       which is why it renders NaN. Both places it is used ("a gift of $X more
+       reaches $secondary", "eliminating $X/mo of debt raises qualifying to
+       $secondary") mean exactly this. That is the defect, fixed. */
+    secondary: cands[1] ? cands[1].price : (cands[0] ? cands[0].price : 0)
+  };
+}
+
+/* =====================================================================
+   SHOPPING RANGE — AUTHORED-MODE SOLVER
+   =====================================================================
+   THE PRINCIPLE: an authored input stays authored. Shopping Range is an
+   inverse mortgage calculator — the same arithmetic Arive runs forward,
+   run backwards to answer "what price produces this payment?" — and it
+   must never quietly reinterpret an assumption while solving.
+
+     DOLLAR MODE   price unknown · down payment = the authored dollars at
+                   EVERY price probe · loan = price − authored dollars
+     PERCENT MODE  price unknown · down payment = authored % × price ·
+                   loan = price − that amount
+
+   WHY A SEPARATE SOLVER IS NEEDED FOR DOLLAR MODE
+   Engine.maxPriceForScenario() is closed-form and assumes the down payment
+   is a FIXED FRACTION of price: its `k` term is PITI per $1 of price with
+   dpFrac constant. That assumption is exactly right in percent mode and
+   exactly wrong in dollar mode, where the down payment does not scale.
+   The earlier attempt worked around it by solving a preliminary price,
+   converting $150,000 into a percentage at that price, and then solving
+   every ceiling with the percentage. That is the defect: it silently
+   replaced the authored assumption, and the three buying-power cards each
+   ended up describing a slightly different down payment.
+
+   HOW THIS SOLVER WORKS
+   Percent mode is untouched — it still runs Engine.run() and the protected
+   closed-form solver. Dollar mode bisects on PRICE, and at every probe
+   calls Engine.computeScenario() with the down payment expressed as
+   (authored dollars ÷ that probe's price). The dollars are therefore held
+   constant and the percentage is whatever it has to be. No mortgage
+   mathematics is re-derived here; every number comes back from the
+   protected engine.
+
+   MONOTONICITY (why bisection is valid) — at a fixed dollar down payment,
+   raising the price raises the loan, so P&I rises; raises the LTV, so
+   mortgage insurance rises or steps up; and raises closing costs, so cash
+   to close rises. Every ceiling metric is monotonically non-decreasing in
+   price, which is what bisection needs.
+
+   CLOSING COSTS: probes are built with `shopping:false` so a price exists,
+   but with `ccOverride:0` so closing costs resolve as a PERCENTAGE of the
+   loan — which is what Shopping Range does. A dollar override belongs to a
+   specific property, not to a range.
+   ===================================================================== */
+
+/* True when the buyer authored a dollar down payment and no list price. */
+function isDollarDownShopping(inp){
+  return !!(inp.shopping && inp.dpTarget && !inp.dpTarget.isPct && inp.dpTarget.dollar > 0);
+}
+
+/* One probe at a candidate price, holding the authored dollars fixed. */
+function sdProbe(inp, progId, price, dollarDown){
+  const pct = Math.min(100, dollarDown / price * 100);
+  const t = Object.assign({}, inp, { shopping:false, price:price, dpTarget:null, ccOverride:0 });
+  return Engine.computeScenario(t, A_CONST, Engine.PROGRAMS[progId], { dp:pct, name:'probe' }, price);
+}
+
+/* Largest price at which `metric` is still within `limit`, dollars held fixed.
+   Returns 0 when even the floor (100% down, price == the down payment) breaches
+   the limit — an honest "no price works" rather than a manufactured number. */
+function sdSolveCeiling(inp, progId, D, metric, limit){
+  if (!(limit > 0)) return 0;
+  const at = P => metric(sdProbe(inp, progId, P, D), P);
+  const floor = Math.max(D, 1);
+  if (at(floor) > limit) return 0;
+
+  let hi = Math.max(floor * 2, floor + 100000), guard = 0;
+  while (at(hi) <= limit && guard++ < 60) hi *= 1.5;
+  if (guard >= 60) return hi;                       // unbounded within sane range
+
+  let lo = floor;
+  for (let i = 0; i < 60; i++) {
+    const mid = (lo + hi) / 2;
+    if (at(mid) > limit) hi = mid; else lo = mid;
+  }
+  return lo;
+}
+
+/* Program minimum down payment, as a percentage. */
+function sdProgramMinPct(inp, progId){
+  if (progId === 'va')  return 0;
+  if (progId === 'fha') return inp.score >= 580 ? 3.5 : 10;
+  return inp.fthb ? 3 : 5;
+}
+
+/* The dollar-mode replacement for Engine.run() in Shopping Range. Returns the
+   same shape — {scenarios, eliminated, dpDimmed} — so every downstream renderer,
+   including Section 1 and the Recommendation Engine, works unchanged. */
+function fixedDollarShoppingRun(inp, onlyId){
+  const D = inp.dpTarget.dollar;
+  const scenarios = [], eliminated = [], dpDimmed = [];
+  if (!inp.vaOn) eliminated.push({ name:'VA 0%', reason:'VA eligibility not indicated' });
+
+  ['conv','fha','va'].forEach(function(id){
+    /* `onlyId` is a PERFORMANCE restriction, not a behaviour change: each
+       program's ceilings are solved independently of the others, so solving one
+       returns exactly the scenario solving three would have. Rate Impact reads
+       only the reference program and runs seven of these per keystroke, so
+       skipping the other two removes about two thirds of the work. Omitting
+       `onlyId` behaves identically to before. */
+    if (onlyId && id !== onlyId) return;
+    const prog = Engine.PROGRAMS[id];
+    const famLabel = prog.label;
+
+    /* Price-independent eligibility, mirroring Engine.run(). */
+    if (id === 'conv' && inp.score < 620) {
+      eliminated.push({ name:famLabel, reason:'Credit ' + inp.score + ' below 620 conventional minimum' });
+      return;
+    }
+    if (id === 'fha' && inp.score < 500) {
+      eliminated.push({ name:famLabel, reason:'Credit ' + inp.score + ' below 500 FHA minimum' });
+      return;
+    }
+    if (id === 'va' && !inp.vaOn) return;
+
+    /* The buyer cannot put down more than they have. */
+    if (D > inp.funds + 0.5) {
+      eliminated.push({ name:famLabel,
+        reason:'Preferred down payment of ' + money(D) + ' exceeds available funds of ' + money(inp.funds) });
+      return;
+    }
+
+    const limit = id === 'fha' ? A_CONST.fhaLimit : (id === 'conv' ? A_CONST.confLimit : Infinity);
+
+    const comfortPrice = sdSolveCeiling(inp, id, D, s => s.piti, inp.target);
+    const qualPrice = inp.income > 0
+      ? sdSolveCeiling(inp, id, D, s => (s.piti + inp.debts) / inp.income * 100, prog.ratios.back)
+      : comfortPrice;
+    const cashPrice = sdSolveCeiling(inp, id, D, s => s.cashToClose, inp.funds);
+    const limitPrice = isFinite(limit) ? limit + D : Infinity;   // loan = price − D ≤ limit
+
+    const cands = [
+      { p:comfortPrice, why:'Comfort Payment' },
+      { p:qualPrice,    why:'Back-end DTI' },
+      { p:cashPrice,    why:'Cash to Close' },
+      { p:limitPrice,   why:id === 'fha' ? 'FHA Loan Limit' : 'Conforming Loan Limit' }
+    ].filter(c => isFinite(c.p) && c.p > 0);
+    if (!cands.length) {
+      eliminated.push({ name:famLabel, reason:'No affordable price with ' + money(D) + ' down at these inputs' });
+      return;
+    }
+    let best = cands[0];
+    cands.forEach(c => { if (c.p < best.p) best = c; });
+    const maxPrice = Math.max(0, best.p);
+    if (!(maxPrice > D)) {
+      eliminated.push({ name:famLabel, reason:'No affordable price with ' + money(D) + ' down at these inputs' });
+      return;
+    }
+
+    /* The percentage the authored dollars work out to AT this ceiling. It is a
+       RESULT, never an input — it is shown as supporting information only. */
+    const dpAtMax = D / maxPrice * 100;
+    const minPct = sdProgramMinPct(inp, id);
+    if (dpAtMax < minPct - 0.0001) {
+      dpDimmed.push({ id:id, name:famLabel, dp:dpAtMax,
+        dpNote:money(D) + ' is ' + dpAtMax.toFixed(1) + '% at ' + money(maxPrice) +
+               ' — below the ' + minPct + '% ' + famLabel + ' minimum' });
+      return;
+    }
+    /* The engine's own convention: above 20% down, conventional only. */
+    if (dpAtMax > 20.5 && id !== 'conv') {
+      dpDimmed.push({ id:id, name:famLabel, dp:dpAtMax,
+        dpNote:money(D) + ' is ' + dpAtMax.toFixed(1) + '% at ' + money(maxPrice) +
+               ' — above 20%, where conventional is the only structure modelled' });
+      return;
+    }
+
+    const t = Object.assign({}, inp, { shopping:false, price:maxPrice, dpTarget:null, ccOverride:0 });
+    const label = famLabel + ' · ' + money(D) + ' down';
+    const s = Engine.computeScenario(t, A_CONST, prog, { dp:dpAtMax, name:label }, maxPrice);
+    s.maxPrice = maxPrice;
+    s.binding = best.why;
+    s.comfortPrice = comfortPrice;
+    s.qualPrice = qualPrice;
+    /* Carried so the buying-power cards read the DOLLAR-MODE ceilings rather
+       than re-deriving them from a percentage (requirement §5). */
+    s.cashPrice = cashPrice;
+    s.limitPrice = limitPrice;
+    s.dpAuthoredDollars = D;
+    s.frontFlag = s.front > prog.ratios.front + 0.05;
+    s.requiresGift = (inp.gift > 0) && (s.cashToClose > inp.ownFunds + 0.5) && (s.cashToClose <= inp.funds + 0.5);
+    scenarios.push(s);
+  });
+
+  return { scenarios:scenarios, eliminated:eliminated, dpDimmed:dpDimmed };
+}
+
+/* The single entry point every renderer uses. Percent mode and specific-price
+   mode go straight to the protected engine, untouched. */
+function engineRun(inp, onlyId){
+  return isDollarDownShopping(inp) ? fixedDollarShoppingRun(inp, onlyId) : Engine.run(inp, A_CONST);
+}
+
+/* Kept as the name the rest of the file and the test suites use. There is no
+   longer any transformation: the authored input IS the engine input. */
+function resolvedInputs(){ return gatherInputs(); }
+
+/* Buyer-profile scenario set: the engine run as if shopping, so the figures
+   describe the BUYER and never move when a list price is typed. Identical to
+   what renderSnapshot() does for its two primary cards. */
+function buyerProfileSet(inp){
+  /* No transformation: the authored down payment is carried through exactly as
+     entered, and engineRun() picks the solver that matches its authored mode. */
+  const t = Object.assign({}, inp, { shopping:true, price:0 });
+  const bp = engineRun(t).scenarios;
+  return { inp:t, bp:bp };
+}
+
+/* One complete purchasing-power picture for a given input set. Returns null
+   when nothing is eligible at all. */
+function powerSnapshot(inp){
+  const s = buyerProfileSet(inp);
+  if (!s.bp.length) return null;
+  const C = buyingPowerCardsHTML(s.inp, s.bp);
+  const P = powerCeilings(s.inp, C, s.bp);
+  if (!P.controlling) return null;
+  return { inp:s.inp, bp:s.bp, C:C, P:P,
+           comfort:C.highestComfort, qual:C.highestQual,
+           /* P.cashCeil, not C.cashPrice: in authored-dollar mode the down payment
+              does not scale with price, so only closing costs grow — and the
+              percentage-derived figure would answer a question the buyer never
+              asked. Same value the binding-constraint logic uses. */
+           cash:P.cashCeil,
+           shopTo:P.controlling.price, controlling:P.controlling };
+}
+
+/* ---------- persistent buyer goal bar ---------- */
+const PRIORITY_LABEL = {
+  balanced:'Balanced', payment:'Lowest payment', cash:'Lowest cash to close',
+  power:'Maximum purchasing power', reserves:'Preserve reserves', custom:'Custom'
+};
+function renderGoalBar(inp){
+  const bar = $('goalBar');
+  if (!bar) return;
+  const nameEl = document.getElementById('bseBuyerName');
+  const who = (nameEl && nameEl.value.trim()) ? nameEl.value.trim() : 'Unsaved buyer';
+  /* Echo the AUTHORED mode, verbatim. Dollars stay dollars, percents stay
+     percents — the bar is the running statement of what was actually entered. */
+  const t = inp.dpTarget;
+  const dp = !t ? 'lowest eligible'
+    : (t.isPct ? (Number.isInteger(t.pct) ? t.pct : t.pct.toFixed(1)) + '%'
+               : money(t.dollar));
+  const item = (k, v, cls) =>
+    '<span class="gb-item' + (cls ? ' ' + cls : '') + '"><span class="gb-k">' + k +
+    '</span><span class="gb-v">' + v + '</span></span>';
+  let h = '<span class="gb-who">' + esc(who) + '</span>';
+  h += item('Goal', PRIORITY_LABEL[inp.priority] || inp.priority, 'goal');
+  h += item('Target payment', money(inp.target) + '/mo');
+  h += item('Preferred down', dp);
+  h += item('Available funds', money(inp.funds));
+  h += '<span class="gb-mode ' + (inp.shopping ? 'shop' : 'prop') + '">' +
+       (inp.shopping ? 'Shopping range' : 'Property strategy') + '</span>';
+  bar.innerHTML = h;
+}
+
+/* Minimal HTML escape — buyer names are user input and land in innerHTML. */
+function esc(s){
+  return String(s).replace(/[&<>"']/g, c =>
+    ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
+}
+
+/* ---------- JOB 1 — SHOPPING RANGE ---------- */
+function job1HTML(inp){
+  const snap = powerSnapshot(inp);
+  if (!snap) return job1EmptyHTML(inp);
+  const C = snap.C, P = snap.P, ctrl = snap.controlling;
+  const isCtrl = why => ctrl.why === why;
+
+  /* --- the three figures --- */
+  const cashKnown = isFinite(snap.cash);
+  const dpDesc = isDollarDownShopping(inp) ? money(inp.dpTarget.dollar) + ' down'
+               : (inp.dpTarget && inp.dpTarget.isPct
+                    ? (Number.isInteger(inp.dpTarget.pct) ? inp.dpTarget.pct : inp.dpTarget.pct.toFixed(1)) + '% down'
+                    : C.lowDp.name + ' down');
+  const cashSub = !cashKnown ? 'no cash constraint at these inputs'
+    : (isCtrl('Cash to Close')
+        ? money(inp.funds) + ' available with ' + dpDesc + ' — <b>this is the limit</b>'
+        : money(inp.funds) + ' available with ' + dpDesc + ' — not the limiting factor');
+
+  let h = '<div class="pw3">';
+  h += pwCard('comfort', 'Comfort Shopping Max', snap.comfort,
+              'What they should shop for at ' + money(inp.target) + '/mo', isCtrl('Comfort Payment'));
+  h += pwCard('qual', 'Maximum Purchasing Power', snap.qual,
+              'What they could qualify for at ' + ((C.qualTop.ratios && C.qualTop.ratios.back) || 45) +
+              '% back-end DTI', isCtrl('DTI'));
+  h += pwCard('cash', 'Cash-Limited Buying Power', cashKnown ? snap.cash : null,
+              cashSub, isCtrl('Cash to Close'));
+  h += '</div>';
+
+  /* --- the sentence Doug says out loud --- */
+  h += '<div class="shopline"><span class="sl-k">Shop up to</span>' +
+       '<span class="sl-v">' + money(snap.shopTo) + '</span>' +
+       '<span class="sl-why">' + controllingSentence(inp, snap) + '</span></div>';
+
+  /* --- a missing property tax materially overstates every figure above ---
+     Not a warning about a legitimate assumption (those were removed): this is a
+     REQUIRED assumption that is absent. On the verified profile a zero tax
+     inflates Comfort Shopping Max from $484,259 to $573,991 — about $90,000 —
+     and nothing else on screen would reveal it. */
+  if (!(inp.taxMonthly > 0) && !(inp.taxRate > 0)) {
+    h += '<div class="missingnote"><span>\u26a0\ufe0f</span><span><b>Property tax has not been entered.</b> ' +
+         'Every figure above assumes zero property tax and is therefore overstated — often by ' +
+         'tens of thousands of dollars of purchase price. Enter the monthly escrow, the annual ' +
+         'amount, or a percentage of price.</span></div>';
+  }
+
+  /* --- the authored down payment, restated at the solved price ---
+     §1 allows the resolved percentage as SUPPORTING INFORMATION. It is a
+     result of the solve, never an input to it. */
+  if (inp.dpTarget && snap.shopTo > 0) {
+    const t = inp.dpTarget;
+    h += '<div class="dpline">' + (t.isPct
+      ? '<b>' + (Number.isInteger(t.pct) ? t.pct : t.pct.toFixed(1)) + '% down</b> — ' +
+        money(t.pct / 100 * snap.shopTo) + ' at ' + money(snap.shopTo) +
+        ', and it scales with the price.'
+      : '<b>' + money(t.dollar) + ' down</b> — that is ' + (t.dollar / snap.shopTo * 100).toFixed(1) +
+        '% at ' + money(snap.shopTo) + '. The dollar amount is what is held fixed; the percentage ' +
+        'is just what it works out to here.') + '</div>';
+  }
+
+  /* --- the other direction of the same conversation --- */
+  h += whatIfHTML(inp, snap);
+
+  /* --- why, and what moves it (revived strategy layer) --- */
+  h += whyBoxHTML(inp, snap);
+
+  /* --- rate impact --- */
+  h += rateImpactHTML(inp, snap);
+
+  /* --- debt payoff lever --- */
+  h += debtLeverHTML(inp, snap);
+  return h;
+}
+
+/* No eligible scenario. Say WHY, accurately.
+   The old wording — "every program is eliminated" — was wrong in the most
+   common case: the tiers were DIMMED by the buyer's own down-payment filter,
+   not eliminated, which is why the only elimination on screen was the
+   permanent "VA 0% — VA eligibility not indicated". Never blame elimination
+   for a filter. */
+function job1EmptyHTML(inp){
+  const s = buyerProfileSet(inp);
+  const res = engineRun(s.inp);
+  const dimmed = res.dpDimmed || [];
+  const elim = (res.eliminated || []).filter(e =>
+    !/VA eligibility not indicated|First-time homebuyer required/i.test(e.reason || ''));
+  const box = (t, b) => '<div class="ans-block warn"><div class="ab-k">' + t + '</div>' +
+                        '<div class="ab-s" style="margin-top:5px">' + b + '</div></div>';
+
+  /* Dimmed by the down-payment filter. */
+  if (dimmed.length && !res.scenarios.length) {
+    const names = dimmed.map(d => d.name).join(', ');
+    return box('No structure matches the preferred down payment',
+      'Every eligible program was filtered out by the down-payment preference, not eliminated. ' +
+      '<b>' + names + '</b> all qualify for this buyer — they simply require a different amount down ' +
+      'than the ' + (inp.dpTarget
+        ? (inp.dpTarget.isPct ? inp.dpTarget.pct + '%' : money(inp.dpTarget.dollar))
+        : 'preferred') + ' entered.<br><br>Clear the down-payment field to see the full range.');
+  }
+
+  /* Genuinely eliminated. */
+  if (elim.length) {
+    return box('No eligible loan program',
+      'Every program is eliminated on eligibility grounds:<ul style="margin:6px 0 0 16px;padding:0">' +
+      elim.map(e => '<li><b>' + e.name + '</b> — ' + e.reason + '</li>').join('') + '</ul>');
+  }
+  return box('No eligible loan scenario at these inputs',
+    'See <b>Reason for Elimination</b> in the Qualification Snapshot below.');
+}
+
+function pwCard(cls, label, value, sub, controls){
+  const v = (value === null || !isFinite(value)) ? '—' : money(value);
+  return '<div class="pw ' + cls + (controls ? ' controls' : '') + (value === null ? ' na' : '') + '">' +
+         (controls ? '<span class="pw-tag">controlling</span>' : '') +
+         '<div class="pw-k">' + label + '</div>' +
+         '<div class="pw-v">' + v + '</div>' +
+         '<div class="pw-s">' + sub + '</div></div>';
+}
+
+/* One plain sentence naming what is actually controlling and why. */
+function controllingSentence(inp, snap){
+  const c = snap.controlling, second = snap.P.list[1];
+  const gapTxt = second ? ' The next ceiling up is ' + money(second.price) + ' (' +
+                 (second.why === 'DTI' ? 'qualifying income' :
+                  second.why === 'Comfort Payment' ? 'comfort payment' :
+                  second.why === 'Cash to Close' ? 'available cash' : 'loan limit') + ').' : '';
+  if (c.why === 'Comfort Payment')
+    return '<b>Their comfort payment is the limit</b> — they qualify for more (' + money(snap.qual) +
+           ') but ' + money(inp.target) + '/mo is what they said they want to pay.' + gapTxt;
+  if (c.why === 'DTI')
+    return '<b>Qualifying income is the limit</b> — the ' + money(inp.target) +
+           '/mo comfort payment would support ' + money(snap.comfort) +
+           ', but debt-to-income caps them here first.' + gapTxt;
+  if (c.why === 'Cash to Close')
+    return '<b>Available cash is the limit</b> — income and comfort payment both support more, ' +
+           'but ' + money(inp.funds) + ' only reaches this price at ' + snap.C.lowDp.name + ' down.' + gapTxt;
+  return '<b>' + c.why + ' is the limit</b> — the loan needed above this price exceeds the program ceiling.' + gapTxt;
+}
+
+/* The constraint explanation + ordered next moves. This REVIVES
+   strategyActionsFor() / strategyActionsList() / strategyOkCard() / powerBadge(),
+   which Part 1 found defined but never called anywhere in the application. The
+   `secondary` value they need is now supplied by powerCeilings(). */
+function whyBoxHTML(inp, snap){
+  const C = snap.C, ctrl = snap.controlling;
+  const best = Engine.pickBestOverall(snap.bp.slice(), snap.inp);
+  const ctx = {
+    inp: snap.inp, viable: snap.bp, best: best,
+    lowDp: C.lowDp, qualTop: C.qualTop, cashPrice: C.cashPrice,
+    secondary: snap.P.secondary, highestComfort: C.highestComfort
+  };
+  const acts = strategyActionsFor(ctrl.why, ctx);
+  let body = powerBadge(ctrl.why);
+  body += acts.length
+    ? strategyActionsList(acts)
+    : strategyOkCard('No blocking constraint to work around at these inputs.');
+  return '<details class="whybox" id="whyBox"' + (answerUi.why ? ' open' : '') + '>' +
+         '<summary>Why this number — and what moves it</summary>' +
+         '<div class="why-b">' + body + '</div></details>';
+}
+
+/* =====================================================================
+   JOB 1 — "WHAT IF THEY WANT TO SPEND MORE?"
+   =====================================================================
+   The inverse of the Shopping Range answer, for the other half of the
+   same buyer conversation:
+
+     Shopping Range  down payment + comfort payment -> what price?
+     This what-if    desired price + comfort payment -> what down payment?
+
+   It reuses requiredDownForPayment() — the Fernando solver — unchanged.
+   There is no second solver and no new mortgage mathematics: the solver
+   probes Engine.computeScenario() on every iteration exactly as it does
+   in Job 2.
+
+   Deliberately NOT here: concessions, buydowns, price reductions,
+   negotiation, counteroffers, offer structure. Those need a real
+   property and belong to Job 2. This is a conversation lever, kept
+   visually subordinate to the three buying-power cards.
+
+   CLOSING COSTS: the probe input zeroes `ccOverride` so closing costs
+   resolve as a percentage of the loan, matching what the three Shopping
+   Range cards do. A dollar override describes one specific property, not
+   a hypothetical price.
+   ===================================================================== */
+let whatIfPrice = 0;
+
+function whatIfInputs(inp){
+  /* Same assumptions as the cards above — rate, taxes, insurance, HOA, CDD,
+     flood, MI, closing-cost %, credit, income, debts, funds, eligibility. */
+  return Object.assign({}, inp, { ccOverride: 0 });
+}
+
+function whatIfHTML(inp, snap){
+  const note = whatIfPrice > 0 ? money(whatIfPrice) : 'enter a price';
+  return '<details class="lever whatif" id="whatIfBox"' + (answerUi.whatif ? ' open' : '') + '>' +
+         '<summary>How much down to stay at ' + money(inp.target) + '/mo? ' +
+         '<span class="lv-note">— ' + note + '</span></summary>' +
+         '<div class="lever-b">' +
+           '<div class="wi-row">' +
+             '<label class="wi-lab" for="whatIfPrice">Desired purchase price</label>' +
+             '<span class="ia dollar wi-ia"><input id="whatIfPrice" type="text" inputmode="numeric" ' +
+               'placeholder="500,000" value="' + (whatIfPrice > 0 ? Math.round(whatIfPrice).toLocaleString('en-US') : '') + '"></span>' +
+             '<span class="wi-target">at the ' + money(inp.target) + '/mo comfort payment already entered</span>' +
+           '</div>' +
+           '<div id="whatIfOut">' + whatIfOutHTML(inp, snap) + '</div>' +
+         '</div></details>';
+}
+
+function whatIfOutHTML(inp, snap){
+  if (!(whatIfPrice > 0))
+    return '<div class="answer-empty">Enter a price to see what it would take to keep the payment at ' +
+           money(inp.target) + '/mo.</div>';
+
+  const sol = requiredDownForPayment(whatIfInputs(inp), whatIfPrice, inp.target);
+  if (sol.error) return '<div class="answer-empty">' + sol.error + '</div>';
+
+  /* Context against the answer above — is this a stretch or not? */
+  let ctx = '';
+  if (snap && snap.shopTo > 0) {
+    const d = whatIfPrice - snap.shopTo;
+    ctx = '<div class="wi-ctx">' + money(whatIfPrice) + ' is ' +
+          (Math.abs(d) < 500 ? 'right at' : (d > 0 ? money(d) + ' above' : money(-d) + ' below')) +
+          ' the ' + money(snap.shopTo) + ' they should shop to.</div>';
+  }
+
+  if (!sol.feasible) {
+    return ctx + '<div class="wi-head bad"><div class="wi-k">Not achievable at any down payment</div>' +
+      '<div class="wi-s">Taxes, insurance and escrow on a ' + money(whatIfPrice) + ' property come to ' +
+      money(sol.escrowFloor) + '/mo on their own — already above the ' + money(inp.target) +
+      ' target before any principal or interest. The target or the price has to move.</div></div>';
+  }
+
+  const r = sol.recommended;
+  const fundsOk = r.fundsSufficient, qualOk = r.dtiOk && !r.overLoanLimit && r.eligible;
+
+  /* THE ANSWER — first, largest, alone. */
+  let h = ctx + '<div class="wi-head ' + (fundsOk && qualOk ? 'good' : 'warn') + '">' +
+    '<div class="wi-k">Required down payment</div>' +
+    '<div class="wi-v">' + money(r.dpDollar) + '<span class="wi-pct">' + r.dpPct.toFixed(1) + '% down</span></div>' +
+    (r.atMinimum
+      ? '<div class="wi-s">That is the ' + r.label + ' minimum — at ' + money(whatIfPrice) +
+        ' the payment already lands at ' + money(r.piti) + '/mo, under the ' + money(inp.target) + ' target.</div>'
+      : '<div class="wi-s">' + r.label + ' at ' + r.rate.toFixed(3) + '% — payment ' + money(r.piti) + '/mo' +
+        (r.monthlyMI > 0 ? ', including ' + money(r.monthlyMI) + ' mortgage insurance.' : ', no monthly mortgage insurance.') +
+        '</div>') +
+    '</div>';
+
+  /* Supporting figures. Cash to close is kept visually next to the down payment
+     precisely because they are not the same number. */
+  h += '<div class="wi-rows">';
+  h += wiRow('Loan amount', money(whatIfPrice - r.dpDollar), '');
+  h += wiRow('Estimated PITI', money(r.piti) + '/mo',
+             r.piti <= inp.target + 0.5 ? 'at or under the ' + money(inp.target) + ' target'
+                                        : money(r.piti - inp.target) + '/mo over target');
+  h += wiRow('Estimated cash to close', money(r.cashToClose),
+             money(r.dpDollar) + ' down + ' + money(r.closing) + ' estimated closing costs');
+  h += wiRow('Available funds', money(inp.funds), '');
+  h += fundsOk
+     ? wiRow('Left in reserve', '<b class="v-ok">' + money(r.cashRemaining) + '</b>', 'after down payment and closing')
+     : wiRow('Additional cash needed', '<b class="v-bad">' + money(r.cashGap) + '</b>',
+             'cash to close exceeds available funds');
+  h += '</div>';
+
+  /* Three independent checks — hitting the payment is not the same as qualifying,
+     and qualifying is not the same as having the money. */
+  h += '<div class="wi-checks">';
+  h += wiCheck(r.piti <= inp.target + 0.5, 'Payment target achieved',
+        money(r.piti) + '/mo against a ' + money(inp.target) + ' target');
+  h += wiCheck(qualOk, 'Qualification achieved',
+        !r.eligible ? (r.ineligibleReason || 'program not available')
+        : r.overLoanLimit ? 'loan exceeds the ' + money(r.loanLimit) + ' program limit'
+        : !r.dtiOk ? 'back-end DTI ' + r.back.toFixed(1) + '% exceeds the ' + r.backLimit + '% limit'
+        : 'back-end DTI ' + r.back.toFixed(1) + '% against a ' + r.backLimit + '% limit');
+  h += wiCheck(fundsOk, 'Available funds sufficient',
+        fundsOk ? money(r.cashToClose) + ' to close against ' + money(inp.funds) + ' available'
+                : 'short ' + money(r.cashGap) + ' after closing costs');
+  h += '</div>';
+
+  /* How this compares with what they said they wanted to put down. */
+  if (inp.dpTarget && !inp.dpTarget.isPct && inp.dpTarget.dollar > 0 && !r.atMinimum) {
+    const diff = r.dpDollar - inp.dpTarget.dollar;
+    if (Math.abs(diff) > 500)
+      h += '<div class="wi-ctx">' + (diff > 0
+        ? 'That is ' + money(diff) + ' more than the ' + money(inp.dpTarget.dollar) + ' they planned to put down.'
+        : money(-diff) + ' less than the ' + money(inp.dpTarget.dollar) + ' they planned to put down.') + '</div>';
+  }
+
+  /* Other programs that also reach the target, stated in one line. */
+  const others = sol.programs.filter(p => p.feasible && p !== r);
+  if (others.length)
+    h += '<div class="wi-ctx">Also reaches ' + money(inp.target) + '/mo: ' +
+         others.map(p => '<b>' + p.label + '</b> at ' + money(p.dpDollar) + ' down (' +
+                    money(p.cashToClose) + ' to close)').join(' · ') + '</div>';
+  return h;
+}
+
+function wiRow(k, v, s){
+  return '<div class="wi-r"><span class="wi-rk">' + k + '</span><span class="wi-rv">' + v + '</span>' +
+         '<span class="wi-rs">' + (s || '') + '</span></div>';
+}
+function wiCheck(ok, label, detail){
+  return '<div class="wi-chk ' + (ok ? 'ok' : 'no') + '"><span class="wi-ci">' + (ok ? '✓' : '✗') + '</span>' +
+         '<span class="wi-cl">' + label + '</span><span class="wi-cd">' + detail + '</span></div>';
+}
+
+/* Re-render only the answer, so typing never loses focus. */
+function refreshWhatIf(){
+  const out = $('whatIfOut');
+  if (!out) return;
+  const inp = resolvedInputs();
+  out.innerHTML = whatIfOutHTML(inp, powerSnapshot(inp));
+  const box = $('whatIfBox');
+  if (box) {
+    const n = box.querySelector('.lv-note');
+    if (n) n.textContent = '— ' + (whatIfPrice > 0 ? money(whatIfPrice) : 'enter a price');
+  }
+}
+
+/* =====================================================================
+   JOB 1 — RATE IMPACT
+   =====================================================================
+   Two questions an advisor gets constantly while a buyer is shopping:
+
+     PAYMENT IMPACT         same home, same down payment — what does a
+                            rate move do to the monthly payment?
+     SHOPPING POWER IMPACT  keep the comfort payment where it is — what
+                            does the same move do to the shopping range?
+
+   NOT a rate-pricing tool, and NOT a program comparison. It answers rate
+   sensitivity for the structure Job 1 is already recommending.
+
+   THE REFERENCE STRUCTURE (verified before implementation)
+   Job 1's Comfort Shopping Max is `max(comfortPrice)` across the
+   buyer-profile scenario set produced by engineRun() — see
+   buyingPowerCardsHTML(). The scenario that OWNS that maximum is the
+   reference here, and the reference price is that scenario's own
+   `maxPrice`, which the engine has already reduced to the lowest of its
+   comfort / DTI / cash / loan-limit ceilings. So the reference is a price
+   the buyer can actually reach, and the down payment at that price is
+   exactly what they authored.
+
+   Only `rates[refProgram]` changes between rows. Price, authored down
+   payment, program, term, taxes, insurance, HOA, CDD, flood and every
+   other assumption are held constant; mortgage insurance recalculates
+   naturally from the unchanged structure, as it should.
+
+   SANDBOXED. Nothing here writes to the rate inputs, the canonical model,
+   or saved state. The custom rate lives in a module variable and is
+   discarded with the session.
+
+   PERFORMANCE. Every row runs a full Shopping Range solve, so the whole
+   table is computed ONLY while the section is open — see renderAnswerLayer.
+   ===================================================================== */
+const RATE_DELTAS = [-0.500, -0.250, -0.125, 0, 0.125, 0.250, 0.500];
+let rateCustom = null;      // sandboxed hypothetical; never written back
+let rateCustomRaw = '';     // the characters actually typed, so a rebuild restores them
+let rateTableOpen = false;
+
+/* Rate display: up to four decimals, trailing zeros trimmed, but never fewer
+   than three so the table stays aligned. 6.5 -> 6.500 · 6.625 -> 6.625 ·
+   6.8125 -> 6.8125. The stored value is rounded to four decimals on entry so
+   what is displayed and what is calculated are always the same number. */
+function riRate(r){
+  let t = r.toFixed(4).replace(/0+$/, '');
+  if (t.charAt(t.length - 1) === '.') t = t.slice(0, -1);
+  const dot = t.indexOf('.');
+  if (dot < 0) return t + '.000';
+  const dec = t.length - dot - 1;
+  return dec < 3 ? t + new Array(3 - dec + 1).join('0') : t;
+}
+
+/* The scenario Job 1's Comfort Shopping Max belongs to. */
+function rateReference(snap){
+  if (!snap || !snap.bp || !snap.bp.length) return null;
+  const owner = snap.bp.reduce(function(m, x){
+    return (x.comfortPrice || 0) > (m.comfortPrice || 0) ? x : m;
+  }, snap.bp[0]);
+  return { id: owner.id, label: owner.label, name: owner.name,
+           price: owner.maxPrice, dp: owner.dp, down: owner.down,
+           rate: owner.rate, piti: owner.piti };
+}
+
+/* One rate row. Reuses the protected engine for the payment and the same
+   Shopping Range dispatcher that produces the verified Job 1 figures. */
+function rateRow(inp, ref, rate){
+  const bumped = Object.assign({}, inp, {
+    rates: Object.assign({}, inp.rates, (function(o){ o[ref.id] = rate; return o; })({}))
+  });
+
+  /* PAYMENT — same home, same down payment, only the rate moved. */
+  const t = Object.assign({}, bumped, { shopping:false, price:ref.price, dpTarget:null, ccOverride:0 });
+  const pay = Engine.computeScenario(t, A_CONST, Engine.PROGRAMS[ref.id],
+                                     { dp:ref.dp, name:ref.name }, ref.price);
+
+  /* SHOPPING POWER — same authored assumptions, only the rate moved.
+     Restricted to the reference program: this is rate sensitivity, not a
+     program comparison (§8). */
+  const shop = engineRun(Object.assign({}, bumped, { shopping:true, price:0 }), ref.id);
+  const s = (shop.scenarios || []).filter(function(x){ return x.id === ref.id; })[0] || null;
+
+  return {
+    rate: rate,
+    piti: pay.piti, monthlyMI: pay.monthlyMI, down: pay.down,
+    comfortPrice: s ? s.comfortPrice : null,
+    ceiling:      s ? s.maxPrice     : null,
+    binding:      s ? s.binding      : null,
+    qualPrice:    s ? s.qualPrice    : null,
+    cashPrice:    s ? s.cashPrice    : null,
+    eligible: !!s
+  };
+}
+
+/* Base row plus every automatic delta, plus the custom rate when set. */
+function rateScenarios(inp, ref){
+  const base = rateRow(inp, ref, ref.rate);
+  const rows = RATE_DELTAS.map(function(d){
+    return d === 0 ? Object.assign({ delta:0, isBase:true }, base)
+                   : Object.assign({ delta:d, isBase:false }, rateRow(inp, ref, ref.rate + d));
+  });
+  let custom = null;
+  if (rateCustom !== null && rateCustom > 0 && Math.abs(rateCustom - ref.rate) > 1e-9) {
+    custom = Object.assign({ delta: rateCustom - ref.rate, isBase:false, isCustom:true },
+                           rateRow(inp, ref, rateCustom));
+  }
+  return { base:base, rows:rows, custom:custom };
+}
+
+function rateImpactHTML(inp, snap){
+  const ref = rateReference(snap);
+  const note = ref ? ref.rate.toFixed(3) + '% ' + ref.label : 'no eligible structure';
+  let inner;
+  if (!ref) {
+    inner = '<div class="answer-empty">No eligible structure to test a rate change against.</div>';
+  } else if (!answerUi.rate) {
+    /* Not open — do not run seven Shopping Range solves for nothing. */
+    inner = '<div class="answer-empty">Expand to see what a rate change does to the payment and the shopping range.</div>';
+  } else {
+    /* Results and control are SEPARATE elements: only #rateResults is rebuilt
+       while typing, so the input keeps focus and its literal text. */
+    inner = '<div id="rateResults">' + rateImpactBody(inp, ref) + '</div>' +
+            rateCustomControlHTML(inp, ref);
+  }
+  return '<details class="lever rate" id="rateBox"' + (answerUi.rate ? ' open' : '') + '>' +
+         '<summary>What would a rate change mean? <span class="lv-note">— base ' + note + '</span></summary>' +
+         '<div class="lever-b" id="rateOut">' + inner + '</div></details>';
+}
+
+function rateImpactBody(inp, ref){
+  const R = rateScenarios(inp, ref);
+  const up = R.rows.filter(function(r){ return Math.abs(r.delta - 0.250) < 1e-9; })[0];
+  const dn = R.rows.filter(function(r){ return Math.abs(r.delta + 0.250) < 1e-9; })[0];
+
+  let h = '<div class="ri-ref">Reference structure: <b>' + ref.label + '</b> at <b>' + money(ref.price) +
+          '</b> with <b>' + money(ref.down) + '</b> down (' + ref.dp.toFixed(1) + '%) · base rate <b>' +
+          riRate(ref.rate) + '%</b>. Only the rate changes below.</div>';
+
+  /* ---- the answer, first ---- */
+  h += '<div class="ri-sum">';
+  h += riSumCard('If rates rise 0.25%', up, R.base, ref, 'up');
+  h += riSumCard('If rates fall 0.25%', dn, R.base, ref, 'down');
+  h += '</div>';
+
+  /* ---- the table, behind one click ---- */
+  h += '<details class="ri-tbl" id="rateTable"' + (rateTableOpen ? ' open' : '') + '>' +
+       '<summary>View rate scenarios</summary><div class="ri-tbl-b">';
+  h += '<table class="ri-t"><thead><tr><th>Rate</th><th>Payment<br><span>same home</span></th>' +
+       '<th>vs now</th><th>Shop up to<br><span>at ' + money(inp.target) + '/mo</span></th>' +
+       '<th>vs now</th><th>Controlling</th></tr></thead><tbody>';
+  R.rows.forEach(function(r){ h += riRow(r, R.base); });
+  if (R.custom) h += riRow(R.custom, R.base);
+  h += '</tbody></table>';
+
+  /* Any row where another constraint bites before the payment ceiling (§9). */
+  const capped = R.rows.concat(R.custom ? [R.custom] : []).filter(function(r){
+    return r.eligible && r.ceiling !== null && r.comfortPrice !== null && r.ceiling < r.comfortPrice - 1;
+  });
+  if (capped.length) {
+    h += '<div class="ri-flag"><span>&#9888;&#65039;</span><span>On ' +
+         (capped.length === 1 ? 'one rate' : capped.length + ' of these rates') +
+         ' the payment would support more than the buyer can actually purchase — ' +
+         'another constraint binds first. The <b>Shop up to</b> column already reflects the real ' +
+         'ceiling, and the <b>Controlling</b> column names what caps it.</span></div>';
+  }
+
+  h += '</div></details>';
+  return h;
+}
+
+/* The custom-rate control is rendered ONCE, OUTSIDE the region
+   refreshRateImpact() rebuilds.
+
+   THE DEFECT THIS FIXES: the control used to live inside that region, so every
+   keystroke destroyed and recreated the input element — focus was lost after the
+   first character and the field was repopulated from the PARSED NUMBER, so a
+   typed "6." came back as "6" and the decimal point vanished. Typing 6.8125 was
+   impossible. Same separation the debt lever and the what-if price field already
+   use. The value shown is the raw typed text, never a reformatted number. */
+function rateCustomControlHTML(inp, ref){
+  let result = '';
+  if (rateCustom !== null && Math.abs(rateCustom - ref.rate) > 1e-9) {
+    const row = rateRow(inp, ref, rateCustom);
+    if (row.eligible) {
+      const basePiti = ref.piti;
+      const dPay = row.piti - basePiti;
+      result = '<span class="ri-cres">at <b>' + riRate(rateCustom) + '%</b> the payment is <b>' +
+               money(row.piti) + '/mo</b> (' + (dPay > 0 ? '+' : '\u2212') + money(Math.abs(dPay)) +
+               ') and they shop to <b>' + money(row.ceiling) + '</b></span>';
+    }
+  }
+  return '<div class="ri-custom"><label class="ri-clab" for="rateCustomIn">Custom rate</label>' +
+         '<span class="ia pct ri-cia"><input id="rateCustomIn" type="text" inputmode="decimal" ' +
+         'autocomplete="off" placeholder="6.8125" value="' + esc(rateCustomRaw) + '"></span>' +
+         '<span class="ri-cnote">analysis only \u2014 never changes the buyer\u2019s rate</span>' +
+         result + '</div>';
+}
+
+function riSumCard(title, row, base, ref, dir){
+  if (!row || !row.eligible)
+    return '<div class="ri-card"><div class="ri-k">' + title + '</div>' +
+           '<div class="ri-s">No eligible structure at that rate.</div></div>';
+  const dPay = row.piti - base.piti;
+  const dShop = (row.ceiling !== null && base.ceiling !== null) ? row.ceiling - base.ceiling : null;
+  const sign = n => (n > 0 ? '+' : n < 0 ? '\u2212' : '');
+  let h = '<div class="ri-card ' + dir + '">' +
+    '<div class="ri-k">' + title + ' <span class="ri-r">to ' + riRate(row.rate) + '%</span></div>' +
+    '<div class="ri-line"><span class="ri-v">' + sign(dPay) + money(Math.abs(dPay)) + '/mo</span>' +
+      '<span class="ri-l">on the same home</span></div>';
+  if (dShop !== null) {
+    h += '<div class="ri-line"><span class="ri-v">' + sign(dShop) + money(Math.abs(dShop)) + '</span>' +
+         '<span class="ri-l">buying power at the same payment</span></div>';
+  }
+  return h + '</div>';
+}
+
+function riRow(r, base){
+  const cls = r.isBase ? ' class="base"' : (r.isCustom ? ' class="custom"' : '');
+  if (!r.eligible)
+    return '<tr' + cls + '><td class="ri-rate">' + riRate(r.rate) + '%</td>' +
+           '<td colspan="5" class="ri-none">no eligible structure at this rate</td></tr>';
+  const dPay = r.piti - base.piti;
+  const dShop = (r.ceiling !== null && base.ceiling !== null) ? r.ceiling - base.ceiling : null;
+  /* `good` inverts the colour: a bigger PAYMENT is bad, a bigger BUYING POWER is
+     good. Without this, gaining $17,850 of buying power rendered red. */
+  const d = (n, good) => {
+    if (r.isBase) return '<span class="ri-cur">CURRENT</span>';
+    if (n === null) return '\u2014';
+    if (Math.abs(n) < 0.5) return '<span class="ri-flat">no change</span>';
+    const favourable = good ? n > 0 : n < 0;
+    return '<span class="' + (favourable ? 'ri-dn' : 'ri-up') + '">' + (n > 0 ? '+' : '\u2212') +
+           money(Math.abs(n)) + '</span>';
+  };
+  return '<tr' + cls + '>' +
+    '<td class="ri-rate">' + riRate(r.rate) + '%' + (r.isCustom ? ' <span class="ri-tag">custom</span>' : '') + '</td>' +
+    '<td class="ri-num">' + money(r.piti) + '</td>' +
+    '<td class="ri-num">' + d(dPay) + '</td>' +
+    '<td class="ri-num">' + (r.ceiling !== null ? money(r.ceiling) : '\u2014') + '</td>' +
+    '<td class="ri-num">' + d(dShop, true) + '</td>' +
+    '<td class="ri-bind">' + (r.binding || '\u2014') + '</td></tr>';
+}
+
+/* Re-render only the Rate Impact body, so the custom-rate field keeps focus. */
+/* Rebuild the RESULTS only. The custom-rate input is deliberately not touched,
+   which is what makes typing a four-decimal rate possible. */
+function refreshRateImpact(){
+  const results = $('rateResults');
+  const inp = resolvedInputs();
+  const snap = powerSnapshot(inp);
+  const ref = rateReference(snap);
+
+  if (!results) {
+    /* No results container yet — the section was closed or has no reference.
+       Fall back to a full render of the body. */
+    const out = $('rateOut');
+    if (!out) return;
+    out.innerHTML = ref
+      ? (answerUi.rate ? '<div id="rateResults">' + rateImpactBody(inp, ref) + '</div>' +
+                         rateCustomControlHTML(inp, ref)
+                       : '<div class="answer-empty">Expand to see what a rate change does to the payment and the shopping range.</div>')
+      : '<div class="answer-empty">No eligible structure to test a rate change against.</div>';
+    return;
+  }
+  if (!ref) { results.innerHTML = '<div class="answer-empty">No eligible structure to test a rate change against.</div>'; return; }
+  results.innerHTML = rateImpactBody(inp, ref);
+
+  /* Update the one-line custom result without replacing the input. */
+  const host = $('rateCustomIn') ? $('rateCustomIn').closest('.ri-custom') : null;
+  if (host) {
+    const old = host.querySelector('.ri-cres');
+    if (old) old.remove();
+    if (rateCustom !== null && Math.abs(rateCustom - ref.rate) > 1e-9) {
+      const row = rateRow(inp, ref, rateCustom);
+      if (row.eligible) {
+        const dPay = row.piti - ref.piti;
+        const span = document.createElement('span');
+        span.className = 'ri-cres';
+        span.innerHTML = 'at <b>' + riRate(rateCustom) + '%</b> the payment is <b>' + money(row.piti) +
+          '/mo</b> (' + (dPay > 0 ? '+' : '\u2212') + money(Math.abs(dPay)) + ') and they shop to <b>' +
+          money(row.ceiling) + '</b>';
+        host.appendChild(span);
+      }
+    }
+  }
+}
+
+/* ---------- DEBT PAYOFF LEVER (N-3) ----------
+   Session-scoped itemisation. `buyer_profile.monthly_debts` remains the single
+   persisted authority for the engine and is NOT redefined: this list is a
+   what-if lever layered on top of it, so no schema change, no migration and no
+   RLS change is involved. Persisting the itemisation is a small follow-up
+   (one buyer-owned table) and is deliberately out of this phase.
+
+   The model is honest in both directions. Paying a debt at closing frees
+   monthly DTI capacity AND consumes cash, and cash is itself a purchasing-power
+   ceiling. Purchasing power can therefore go DOWN. It is shown when it does. */
+let debtList = [];
+let debtTiming = 'at_closing';
+let debtSeq = 0;
+
+function debtParse(v){ const n = parseFloat(String(v).replace(/[^0-9.]/g, '')); return isFinite(n) ? n : 0; }
+
+function debtSelected(){ return debtList.filter(d => d.on && (d.monthly > 0 || d.balance > 0)); }
+
+/* Build a modified input set. The engine is a pure function of its inputs, so a
+   payoff scenario is a DIFFERENT INPUT — never a different engine. */
+function debtAdjustedInputs(inp, sel, timing){
+  const monthly = sel.reduce((s, d) => s + (d.monthly || 0), 0);
+  const balance = sel.reduce((s, d) => s + (d.balance || 0), 0);
+  const cashOut = timing === 'at_closing' ? balance : 0;
+  const t = Object.assign({}, inp, {
+    debts: Math.max(0, inp.debts - monthly),
+    funds: Math.max(0, inp.funds - cashOut),
+    ownFunds: Math.max(0, inp.ownFunds - cashOut)
+  });
+  return { inputs:t, monthlyFreed:monthly, balancePaid:balance, cashOut:cashOut };
+}
+
+function debtPayoffImpact(inp, sel, timing){
+  const before = powerSnapshot(inp);
+  const adj = debtAdjustedInputs(inp, sel, timing);
+  const after = powerSnapshot(adj.inputs);
+  return { before:before, after:after, monthlyFreed:adj.monthlyFreed,
+           balancePaid:adj.balancePaid, cashOut:adj.cashOut, timing:timing };
+}
+
+function debtLeverHTML(inp, snap){
+  const sel = debtSelected();
+  const note = sel.length
+    ? sel.length + ' selected · ' + money(sel.reduce((s, d) => s + d.monthly, 0)) + '/mo'
+    : 'model paying off a car, card or loan';
+  return '<details class="lever" id="debtLever"' + (answerUi.lever ? ' open' : '') + '>' +
+         '<summary>Debt payoff lever <span class="lv-note">— ' + note + '</span></summary>' +
+         '<div class="lever-b">' +
+           '<div class="debt-head"><span></span><span>Debt</span><span>Payment /mo</span><span>Balance</span><span></span></div>' +
+           '<div id="debtRows">' + debtRowsHTML() + '</div>' +
+           '<button type="button" class="debt-add" id="debtAdd">+ Add a debt</button>' +
+           '<div class="debt-timing">' +
+             '<label><input type="radio" name="debtTiming" value="at_closing"' +
+               (debtTiming === 'at_closing' ? ' checked' : '') + '> Paid at closing <span style="color:var(--sub);font-weight:600">(uses buyer cash)</span></label>' +
+             '<label><input type="radio" name="debtTiming" value="before_closing"' +
+               (debtTiming === 'before_closing' ? ' checked' : '') + '> Paid before closing <span style="color:var(--sub);font-weight:600">(cash already spent)</span></label>' +
+           '</div>' +
+           '<div id="debtOut">' + debtOutHTML(inp) + '</div>' +
+         '</div></details>';
+}
+
+function debtRowsHTML(){
+  if (!debtList.length) {
+    return '<div class="answer-empty" style="padding:2px 0 6px">No debts itemised. ' +
+           'Total monthly debt of ' + money(debtParse(($('debts') || {}).value || 0)) +
+           ' is still used for DTI — adding rows here only models paying specific ones off.</div>';
+  }
+  return debtList.map(d =>
+    '<div class="debt-row" data-id="' + d.id + '">' +
+      '<input type="checkbox" data-f="on"' + (d.on ? ' checked' : '') + ' title="include in payoff">' +
+      '<input type="text" data-f="label" value="' + esc(d.label) + '" placeholder="Car loan">' +
+      '<input type="text" data-f="monthly" inputmode="numeric" value="' + (d.monthly || '') + '" placeholder="450">' +
+      '<input type="text" data-f="balance" inputmode="numeric" value="' + (d.balance || '') + '" placeholder="18,000">' +
+      '<button type="button" class="dr-x" data-f="del" title="remove">×</button>' +
+    '</div>').join('');
+}
+
+function debtOutHTML(inp){
+  const sel = debtSelected();
+  if (!sel.length) {
+    return '<div class="answer-empty">Tick a debt to see what paying it off does to purchasing power.</div>';
+  }
+  const r = debtPayoffImpact(inp, sel, debtTiming);
+  if (!r.before || !r.after) {
+    return '<div class="answer-empty">Not enough eligible scenarios to compare before and after.</div>';
+  }
+  const dShop = r.after.shopTo - r.before.shopTo;
+  const dQual = r.after.qual - r.before.qual;
+  const dCash = r.after.cash - r.before.cash;
+
+  const cell = (k, before, after, delta, invert) => {
+    const cls = Math.abs(delta) < 500 ? 'flat' : ((delta > 0) === !invert ? 'up' : 'down');
+    const sign = delta > 0 ? '+' : '';
+    return '<div class="dpo"><div class="k">' + k + '</div>' +
+           '<div class="before">was ' + (isFinite(before) ? money(before) : '—') + '</div>' +
+           '<div class="after">' + (isFinite(after) ? money(after) : '—') + '</div>' +
+           '<div class="delta ' + cls + '">' + (Math.abs(delta) < 500 ? 'no material change'
+             : sign + money(delta)) + '</div></div>';
+  };
+
+  let h = '<div class="dpo-grid">';
+  h += cell('Shop up to', r.before.shopTo, r.after.shopTo, dShop);
+  h += cell('Max qualifying', r.before.qual, r.after.qual, dQual);
+  h += cell('Cash-limited', r.before.cash, r.after.cash, dCash);
+  h += '</div>';
+
+  /* The verdict. It is allowed to say "do not do this." */
+  let vc, vt;
+  const freed = money(r.monthlyFreed) + '/mo';
+  if (dShop > 500) {
+    vc = 'good';
+    vt = 'Paying off ' + freed + ' in debt raises what this buyer should shop for by <b>' +
+         money(dShop) + '</b>, to <b>' + money(r.after.shopTo) + '</b>.' +
+         (r.cashOut > 0 ? ' That is after spending ' + money(r.cashOut) + ' of their cash at closing.' : '');
+  } else if (dShop < -500) {
+    vc = 'bad';
+    vt = '<b>Do not pay this off at closing.</b> Freeing ' + freed +
+         ' of debt improves qualifying, but spending ' + money(r.cashOut) +
+         ' of cash drops what they can actually buy by <b>' + money(Math.abs(dShop)) +
+         '</b>, to ' + money(r.after.shopTo) + '. Cash becomes the binding constraint.' +
+         (debtTiming === 'at_closing' ? ' Paying it off <i>before</i> closing from other funds avoids this.' : '');
+  } else {
+    vc = 'mixed';
+    vt = 'Paying off ' + freed + ' in debt does not materially change what this buyer should shop for' +
+         (r.cashOut > 0 ? ' — the qualifying gain and the ' + money(r.cashOut) + ' of cash spent roughly cancel out.' : '.') +
+         ' Max qualifying moves ' + (dQual >= 0 ? '+' : '') + money(dQual) + '.';
+  }
+  h += '<div class="dpo-verdict ' + vc + '">' + vt + '</div>';
+
+  /* Constraint identity is often the real story. */
+  if (r.before.controlling.why !== r.after.controlling.why) {
+    h += '<div class="dpo-flag"><span>↔</span><span>The binding constraint changes from <b>' +
+         r.before.controlling.why + '</b> to <b>' + r.after.controlling.why + '</b>.</span></div>';
+  }
+  h += '<div class="dpo-flag"><span>⚠️</span><span>This models the <b>mathematical</b> impact only. ' +
+       'Whether a specific debt may be excluded from DTI — and whether it must be paid at or before ' +
+       'closing, closed as well as paid, or documented a particular way — is a lender guideline and AUS ' +
+       'question that varies by program. Verify before relying on it.</span></div>';
+  return h;
+}
+
+/* ---------- JOB 2 — PROPERTY STRATEGY ----------
+   Answer the buyer's actual question first. Do not open with a wall of
+   program comparisons — those are below, unchanged, in Section 2. */
+
+/* --- N-2 · binding constraint AT PROPERTY LEVEL ---
+   deriveBinding() answers a DIFFERENT question — which ceiling caps the
+   buyer's achievable price — and is left exactly as it is for Section 1.
+   This classifies what is stopping THIS buyer on THIS house. It computes
+   nothing: every fact it reads was already produced by Engine.run(). */
+function bindingAtProperty(inp, res, ref){
+  const viable = res.scenarios || [];
+  const elim = res.eliminated || [];
+
+  if (!viable.length) {
+    /* Two eliminations are ALWAYS present for an ordinary buyer and say nothing
+       about this property: run() pushes "VA eligibility not indicated" whenever
+       the VA toggle is off, and "First-time homebuyer required" whenever the
+       buyer is not a first-time buyer. Classifying on the raw reason list
+       therefore reports "program limitation" for very nearly every case, which
+       is how this was caught. Drop the structural noise first. */
+    const real = elim.filter(e => !/VA eligibility not indicated|First-time homebuyer required/i.test(e.reason || ''));
+    const reasons = real.map(e => e.reason || '').join(' || ');
+
+    /* Rank by the SMALLEST change that unblocks something. A program blocked
+       only for cash is a cash problem, not a program problem — even when some
+       other program is simultaneously over its loan limit. */
+    if (/short by/i.test(reasons))
+      return { kind:'cash', label:'Cash to close',
+               detail:'Available funds do not cover the down payment plus closing costs on any eligible structure.' };
+    if (/DTI/i.test(reasons))
+      return { kind:'qualification', label:'Qualification (DTI)',
+               detail:'Back-end debt-to-income exceeds the program limit at this price.' };
+    if (/below \d+ (conventional|FHA)|Exceeds (FHA county|conforming)/i.test(reasons))
+      return { kind:'program', label:'Program limitation',
+               detail:'Credit or loan-limit eligibility rules out every program before price is considered.' };
+    return { kind:'program', label:'Program limitation',
+             detail:'No structure is eligible at this price. See Reason for Elimination below.' };
+  }
+  if (!ref) return { kind:'none', label:'No blocking constraint', detail:'' };
+
+  if (ref.cashToClose > inp.funds + 0.5)
+    return { kind:'cash', label:'Cash to close', magnitude: ref.cashToClose - inp.funds,
+             detail:'Cash to close is ' + money(ref.cashToClose) + ' against ' + money(inp.funds) + ' available.' };
+  if (ref.back > ref.ratios.back + 0.05)
+    return { kind:'qualification', label:'Qualification (DTI)', magnitude: ref.back - ref.ratios.back,
+             detail:'Back-end DTI is ' + ref.back.toFixed(1) + '% against a ' + ref.ratios.back + '% limit.' };
+  if (ref.piti > inp.target + 0.5)
+    return { kind:'payment', label:'Comfort payment', magnitude: ref.piti - inp.target,
+             detail:'Payment is ' + money(ref.piti - inp.target) + '/mo above the ' + money(inp.target) + ' target.' };
+  return { kind:'none', label:'No blocking constraint',
+           detail:'The buyer qualifies, the cash works, and the payment is at or under target.' };
+}
+
+/* Three tests, evaluated INDEPENDENTLY. A comfort-payment miss is never
+   allowed to read as "cannot buy this house" — the buyer may qualify
+   comfortably and simply be $30/mo over what they said they wanted. */
+function propertyFitHTML(inp, ref, res, refLabel){
+  if (!ref) {
+    return '<div class="fit3">' + fitCard('Qualification', 'bad', 'No eligible structure',
+      'Every program is eliminated at this price — see below.') + '</div>';
+  }
+  const head = refLabel
+    ? '<div class="fit-head">Evaluated at <b>' + refLabel + '</b></div>' : '';
+  const qualOk = ref.back <= ref.ratios.back + 0.05;
+  const cashOk = ref.cashToClose <= inp.funds + 0.5;
+  const payDiff = ref.piti - inp.target;
+  const payOk = payDiff <= 0.5;
+
+  let h = '<div class="fit3">';
+  h += fitCard('Qualification', qualOk ? 'ok' : 'bad',
+        qualOk ? 'Qualifies' : 'Does not qualify as structured',
+        'Back-end DTI ' + ref.back.toFixed(1) + '% against the ' + ref.ratios.back + '% ' +
+        ref.label + ' limit.' + (ref.frontFlag ? ' Housing ratio ' + ref.front.toFixed(1) +
+        '% runs above the ' + ref.ratios.front + '% guideline — advisory only.' : ''));
+  h += fitCard('Comfort payment', payOk ? 'ok' : 'warn',
+        payOk ? 'At or under target' : money(payDiff) + '/mo above comfort target',
+        money(ref.piti) + '/mo against a ' + money(inp.target) + ' target.' +
+        (payOk ? '' : ' This is a preference, not a qualification limit.'));
+  h += fitCard('Cash', cashOk ? 'ok' : 'bad',
+        cashOk ? 'Covered' : 'Short by ' + money(ref.cashToClose - inp.funds),
+        money(ref.cashToClose) + ' to close against ' + money(inp.funds) + ' available' +
+        (cashOk ? ', leaving ' + money(inp.funds - ref.cashToClose) + '.' : '.'));
+  h += '</div>';
+  return head + h;
+}
+function fitCard(k, state, verdict, detail){
+  const ic = state === 'ok' ? '✅' : (state === 'warn' ? '⚠️' : '❌');
+  return '<div class="fit fit-' + state + '"><div class="fit-k">' + k + '</div>' +
+         '<div class="fit-v">' + ic + ' ' + verdict + '</div>' +
+         '<div class="fit-s">' + detail + '</div></div>';
+}
+
+/* answerPaymentTarget() was superseded by job2PaymentAnswerHTML() +
+   goalStatusHTML() + job2PaymentSentence() in the answer-first redesign.
+   It is removed rather than left uncalled — Phase 4 already found four
+   functions defined and called from nowhere, one of which was broken. */
+
+/* The goal line itself is emitted by job2HTML — these produce the ANSWER only. */
+function answerMinimiseCash(inp, res, ref){
+  let h = '';
+  const viable = (res.scenarios || []).slice().sort((a, b) => a.cashToClose - b.cashToClose);
+  if (!viable.length) return h + '<div class="answer-empty">No eligible structure at this price — see the constraint below.</div>';
+  const lo = viable[0];
+  h += '<div class="ans-block good"><div class="ab-k">Lowest cash to close on this property</div>' +
+       '<div class="ab-v">' + money(lo.cashToClose) + '<span class="ab-pct">' + lo.name + '</span></div>' +
+       '<div class="ab-s">' + money(lo.down) + ' down + ' + money(lo.closing) + ' closing costs · payment ' +
+       money(lo.piti) + '/mo' + (lo.piti > inp.target + 0.5
+         ? ' — ' + money(lo.piti - inp.target) + '/mo above the comfort target'
+         : ' — at or under the comfort target') + '.</div>' +
+       '<div class="ab-rows">' +
+       abRow('Available funds', money(inp.funds), '') +
+       abRow('Left after closing', money(inp.funds - lo.cashToClose),
+             lo.cashToClose <= inp.funds + 0.5 ? 'in reserve' : 'shortfall') +
+       '</div>';
+  if (lo.concLimit > 0)
+    h += '<div class="ab-note"><span>↓</span><span>A seller concession applied to closing costs cuts this ' +
+         'dollar for dollar, up to ' + money(Math.min(lo.closing, lo.concLimit)) + ' on ' + lo.name + '.</span></div>';
+  h += '</div>';
+  return h;
+}
+
+function answerMaxPrice(inp, res, ref){
+  let h = '';
+  const snap = powerSnapshot(inp);
+  if (!snap) return h + '<div class="answer-empty">No eligible structure at these inputs.</div>';
+  const head = snap.qual - inp.price;
+  h += '<div class="ans-block ' + (head >= 0 ? 'good' : 'warn') + '">' +
+       '<div class="ab-k">Maximum qualifying price for this buyer</div>' +
+       '<div class="ab-v">' + money(snap.qual) + '</div>' +
+       '<div class="ab-s">This property is ' + money(inp.price) + ' — ' +
+       (head >= 0 ? money(head) + ' of qualifying headroom remains.'
+                  : money(-head) + ' <b>above</b> what they qualify for as structured.') + '</div>' +
+       '<div class="ab-rows">' +
+       abRow('Cash-limited ceiling', isFinite(snap.cash) ? money(snap.cash) : '—',
+             isFinite(snap.cash) && snap.cash < snap.qual ? 'cash binds before qualifying does' : 'not limiting') +
+       abRow('Comfort ceiling', money(snap.comfort), 'at ' + money(inp.target) + '/mo') +
+       '</div></div>';
+  return h;
+}
+
+function abRow(k, v, s){
+  return '<div class="ab-row"><span class="abr-k">' + k + '</span><span class="abr-v">' + v + '</span>' +
+         '<span class="abr-s">' + (s || '') + '</span></div>';
+}
+
+/* Strategies, shown ONLY when something is blocking the goal, and only the
+   ones relevant to that constraint. Every figure comes from a function that
+   already existed and was already exercised by the Gap Solver. */
+function propertyStrategiesHTML(inp, res, ref, bind){
+  if (bind.kind === 'none') return '';
+  const acts = [];
+  const viable = res.scenarios || [];
+
+  if (bind.kind === 'payment' && ref) {
+    const gap = ref.piti - inp.target;
+    const need = concessionToCloseGap(inp, ref, gap);
+    if (need && !need.capped)
+      acts.push('<b>Seller concession to a rate buydown</b> — ' + money(need.dollars) + ' buys ' +
+                need.points.toFixed(2) + ' points, taking the rate to ' + need.newRate.toFixed(3) +
+                '% and the payment to ' + money(need.reachedPITI) + '/mo. Break-even month ' +
+                need.breakeven + ' against a ' + (inp.stayYears * 12) + '-month planned stay.');
+    else if (need)
+      acts.push('<b>Seller concession is not enough alone</b> — even the full allowable ' +
+                money(ref.concLimit) + ' only reaches ' + money(need.reachedPITI) + '/mo.');
+    const sol = requiredDownForPayment(inp, inp.price, inp.target);
+    if (sol.feasible && sol.recommended && !sol.recommended.atMinimum) {
+      const extra = sol.recommended.dpDollar - ref.down;
+      if (extra > 0)
+        acts.push('<b>Additional down payment</b> — ' + money(extra) + ' more down (' +
+                  money(sol.recommended.dpDollar) + ' total) puts the payment at ' +
+                  money(sol.recommended.piti) + '/mo.');
+    }
+    /* A solved price at or below zero is not a strategy. Both solvers can return
+       one when the target is unreachable at any price, and the unguarded version
+       printed "$749,404 off (to $0)". */
+    const pr = priceToHitTarget(inp, ref);
+    if (pr.reduction > 500 && pr.price > 0)
+      acts.push('<b>Price reduction</b> — ' + money(pr.reduction) + ' off (to ' + money(pr.price) +
+                ') reaches the comfort payment with no concession.');
+    const alt = viable.filter(s => s.id !== ref.id && s.piti < ref.piti).sort((a, b) => a.piti - b.piti)[0];
+    if (alt)
+      acts.push('<b>Program switch</b> — ' + alt.name + ' runs ' + money(ref.piti - alt.piti) +
+                '/mo lower at ' + money(alt.piti) + '/mo' + (alt.piti <= inp.target ? ', clearing the target on its own' : '') + '.');
+    if (inp.debts > 0)
+      acts.push('<b>Debt payoff</b> — paying off monthly debt does not lower this payment, but it ' +
+                'creates qualifying room. Use <b>Debt payoff at this property</b> below to test the ' +
+                'DTI gain against the cash it costs.');
+  }
+
+  if (bind.kind === 'cash') {
+    const r = ref || viable[0];
+    if (r) {
+      acts.push('<b>Seller concession to closing costs</b> — reduces cash dollar for dollar, up to ' +
+                money(Math.min(r.closing, r.concLimit)) + ' on ' + r.name + ' (' + r.concLimitPct + '% cap).');
+      const lower = viable.filter(s => s.dp < r.dp).sort((a, b) => a.dp - b.dp)[0];
+      if (lower)
+        acts.push('<b>Lower down payment</b> — ' + lower.name + ' needs ' + money(lower.cashToClose) + ' to close.');
+      acts.push('<b>Gift funds</b> — ' + money(Math.max(0, r.cashToClose - inp.funds)) +
+                ' closes the gap outright. A gift letter is required.');
+    }
+    if (inp.fthb && inp.score >= 640)
+      acts.push('<b>Down-payment assistance</b> — first-time buyer at ' + inp.score +
+                ' credit may qualify for Hometown Heroes or similar. Verify separately.');
+  }
+
+  if (bind.kind === 'qualification' && ref) {
+    const debtCut = Math.max(0, (ref.piti + inp.debts) - ref.ratios.back / 100 * inp.income);
+    if (debtCut > 0 && debtCut <= inp.debts + 0.5)
+      acts.push('<b>Debt payoff</b> — eliminating ' + money(debtCut) + '/mo brings back-end DTI to ' +
+                ref.ratios.back + '% and opens ' + ref.name + '. Model the cash cost with the payoff lever.');
+    else if (inp.debts > 0)
+      acts.push('<b>Debt payoff alone is not enough</b> — even removing all ' + money(inp.debts) +
+                ' of monthly debt leaves the housing payment itself too high.');
+    const incNeed = Math.max(0, (ref.piti + inp.debts) / (ref.ratios.back / 100) - inp.income);
+    if (incNeed > 0)
+      acts.push('<b>Co-borrower</b> — ' + money(incNeed) + '/mo additional gross income resolves it at this payment.');
+    const dp = dtiPrice(inp, ref);
+    if (dp.reduction > 500 && dp.price > 0)
+      acts.push('<b>Price reduction</b> — ' + money(dp.reduction) + ' off (to ' + money(dp.price) +
+                ') brings the file inside the ' + ref.ratios.back + '% threshold.');
+    else if (dp.price <= 0)
+      acts.push('<b>Price reduction does not resolve this</b> — the debt load alone exceeds the ' +
+                ref.ratios.back + '% back-end threshold at any purchase price.');
+    const alt = viable.filter(s => s.id !== ref.id && s.back <= s.ratios.back).sort((a, b) => a.back - b.back)[0];
+    if (alt)
+      acts.push('<b>Program switch</b> — ' + alt.name + ' has a ' + alt.ratios.back +
+                '% back-end threshold and qualifies at ' + alt.back.toFixed(1) + '%.');
+  }
+
+  if (bind.kind === 'program') {
+    (res.eliminated || []).slice(0, 6).forEach(e =>
+      acts.push('<b>' + e.name + '</b> — ' + e.reason + '.'));
+    acts.push('Resolve an eligibility gate above before structure can help.');
+  }
+
+  if (!acts.length) return '';
+  return '<div class="strat-block"><div class="sb-h">What moves it — ' + bind.label.toLowerCase() + '</div>' +
+         strategyActionsList(acts) + '</div>';
+}
+
+/* =====================================================================
+   JOB 2 · PROPERTY STRATEGY — ANSWER-FIRST LAYER
+   =====================================================================
+   PROPERTY → BUYER GOAL → ANSWER → STRATEGY IF NEEDED.
+
+   Everything below is PRESENTATION. Every figure is obtained by calling a
+   function that already existed and is already under regression:
+
+     requiredDownForPayment()  the down-payment solver (probes computeScenario)
+     Engine.computeScenario()  via dpScenarioAt() for a rate probe
+     engineRun()               the Shopping/Property dispatcher
+     debtAdjustedInputs()      the debt-payoff input transform
+     analyzeNegotiation()      the negotiation engine (pickBestOverall /
+                               optimalConcAlloc / financing-cost analysis)
+     concessionToCloseGap()    the rate/concession gap solver
+     priceToHitTarget(), dtiPrice()
+     bindingAtProperty()       the property-level constraint classifier
+
+   NO mortgage mathematics is reimplemented here. The only arithmetic added
+   is subtraction of two figures the engine already produced, and resolving
+   an AUTHORED down-payment preference into dollars at a known price.
+   ===================================================================== */
+
+/* The buyer's goal, expressed from buyer_priority. There is deliberately no
+   parallel buyer_goal concept — §3. `balanced` and `payment` both resolve to
+   the payment target, which is what job2HTML already did. */
+function job2Goal(inp){
+  if (inp.priority === 'cash')  return { key:'cash',    label:'Minimise cash to close' };
+  if (inp.priority === 'power') return { key:'power',   label:'Maximum purchase price within qualification' };
+  return { key:'payment', label:'Keep total PITI at or under ' + money(inp.target) + '/mo' };
+}
+
+/* The buyer's PLANNED down payment in dollars at this price, resolved from the
+   authored preference. Arithmetic on an authored input — not mortgage math.
+   Returns null when nothing was authored. */
+function plannedDownAt(inp, price){
+  const t = inp.dpTarget;
+  if (!t || !(price > 0)) return null;
+  const d = t.isPct ? t.pct / 100 * price : t.dollar;
+  return d > 0 ? d : null;
+}
+
+/* FEASIBILITY OF THE PAYMENT GOAL — read straight off the solver.
+   Three independent tests. Reaching the payment is not qualifying, and
+   qualifying is not having the money (test cases B and C). */
+function paymentGoalStatus(inp, sol){
+  if (!sol || sol.error)  return { state:'unknown', note: sol && sol.error };
+  if (!sol.feasible)      return { state:'hard', why:'payment', floor: sol.escrowFloor };
+  const r = sol.recommended;
+  const payOk   = r.piti <= inp.target + 0.5;
+  const qualOk  = r.dtiOk && !r.overLoanLimit && r.eligible;
+  const fundsOk = r.fundsSufficient;
+  return {
+    state: (payOk && qualOk && fundsOk) ? 'yes' : 'no',
+    payOk: payOk, qualOk: qualOk, fundsOk: fundsOk, r: r,
+    alreadyUnder: !!r.atMinimum,
+    why: !payOk ? 'payment' : (!qualOk ? 'qualification' : (!fundsOk ? 'cash' : 'none'))
+  };
+}
+
+/* §6 · WHY THE GOAL DOES NOT WORK, classified from the solver rather than from
+   the default structure. bindingAtProperty() answers "what is stopping this
+   buyer on this house as structured"; this answers "what is stopping the GOAL",
+   which is a different question the moment the goal needs a different structure.
+   bindingAtProperty() is unchanged and still governs when there is no payment
+   goal or when the goal is already met. Vocabulary is identical so the strategy
+   router and the CSS need no new cases. */
+function goalConstraint(inp, st){
+  const r = st.r;
+  if (st.state === 'hard')
+    return { kind:'payment', label:'Payment', magnitude: st.floor - inp.target,
+             detail:'Escrow alone is ' + money(st.floor) + '/mo against a ' + money(inp.target) +
+                    ' target. No down payment reaches it on this property.' };
+  if (!st.payOk)
+    return { kind:'payment', label:'Payment', magnitude: r.piti - inp.target,
+             detail:'No eligible structure reaches ' + money(inp.target) + '/mo on this property.' };
+  if (!st.qualOk)
+    return { kind:'qualification', label:'Qualification (DTI)',
+             magnitude: r.back - r.backLimit,
+             detail: !r.eligible ? (r.ineligibleReason || 'The program is not available.')
+                     : r.overLoanLimit ? 'The loan at the goal structure exceeds the ' +
+                                         money(r.loanLimit) + ' program limit.'
+                     : 'Back-end DTI at the goal structure is ' + r.back.toFixed(1) +
+                       '% against a ' + r.backLimit + '% limit.' };
+  return { kind:'cash', label:'Cash to close', magnitude: r.cashGap,
+           detail:'The payment target is reached at ' + money(r.dpDollar) + ' down, but that needs ' +
+                  money(r.cashToClose) + ' to close against ' + money(inp.funds) +
+                  ' available — short ' + money(r.cashGap) + '.' };
+}
+
+/* The banner. It is the first thing on the screen and it commits to a verdict. */
+function goalStatusHTML(cls, verdict, sentence){
+  return '<div class="goalstat ' + cls + '"><div class="gs-v">' +
+         (cls === 'yes' ? '✅' : (cls === 'hard' ? '❌' : '⚠️')) + ' ' + verdict + '</div>' +
+         '<div class="gs-s">' + sentence + '</div></div>';
+}
+
+/* THE ANSWER for a payment goal, in the order Doug reads it out loud.
+   Deliberately shares the .wi-* presentation vocabulary with Job 1's what-if
+   block — it is the same question asked about a specific house. */
+function job2PaymentAnswerHTML(inp, sol, st){
+  const r = st.r;
+  const planned = plannedDownAt(inp, inp.price);
+  const additional = planned === null ? null : Math.max(0, r.dpDollar - planned);
+  const cls = st.state === 'yes' ? 'good' : 'warn';
+
+  let h = '<div class="wi-head ' + cls + '">' +
+    '<div class="wi-k">Required down payment</div>' +
+    '<div class="wi-v">' + money(r.dpDollar) +
+      '<span class="wi-pct">' + r.dpPct.toFixed(1) + '% down</span></div>';
+
+  /* The sentence, which also carries the phrase the advisor says. */
+  h += '<div class="wi-s">' + (st.alreadyUnder
+    ? 'To hit ' + money(inp.target) + '/mo, the buyer needs down no more than the ' + r.label +
+      ' minimum of ' + money(r.dpDollar) + ' — the payment already lands at ' + money(r.piti) +
+      '/mo, ' + money(Math.max(0, inp.target - r.piti)) + '/mo under target. ' +
+      '<b>No additional down payment is required.</b>'
+    : 'To hit ' + money(inp.target) + '/mo, the buyer needs down ' + money(r.dpDollar) +
+      ' — ' + r.dpPct.toFixed(1) + '% of the price. ' + r.label + ' at ' + r.rate.toFixed(3) + '%' +
+      (r.monthlyMI > 0 ? ', including ' + money(r.monthlyMI) + ' monthly mortgage insurance.'
+                       : ', with no monthly mortgage insurance.')) + '</div>';
+  h += '</div>';
+
+  h += '<div class="wi-rows">';
+  if (planned !== null) {
+    h += wiRow('Planned down', money(planned),
+               inp.dpTarget.isPct
+                 ? (Number.isInteger(inp.dpTarget.pct) ? inp.dpTarget.pct : inp.dpTarget.pct.toFixed(1)) +
+                   '% of ' + money(inp.price) + ' as authored'
+                 : 'authored as a fixed dollar amount');
+    h += (additional > 0.5)
+       ? wiRow('Additional needed', '<b class="v-bad">' + money(additional) + '</b>',
+               'more than the buyer planned to put down')
+       : wiRow('Additional needed', '<b class="v-ok">$0</b>',
+               'the planned down payment already reaches the target');
+  }
+  h += wiRow('Estimated PITI', money(r.piti) + '/mo',
+             r.piti <= inp.target + 0.5 ? 'at or under the ' + money(inp.target) + ' target'
+                                        : money(r.piti - inp.target) + '/mo over target');
+  h += wiRow('Estimated cash to close', money(r.cashToClose),
+             money(r.dpDollar) + ' down + ' + money(r.closing) + ' estimated closing costs');
+  h += wiRow('Available funds', money(inp.funds), '');
+  h += st.fundsOk
+     ? wiRow('Reserve after close', '<b class="v-ok">' + money(r.cashRemaining) + '</b>',
+             'left after down payment and closing costs')
+     : wiRow('Additional cash needed', '<b class="v-bad">' + money(r.cashGap) + '</b>',
+             'cash to close exceeds available funds');
+  h += '</div>';
+
+  h += '<div class="wi-checks">';
+  h += wiCheck(st.payOk, 'Payment target achieved',
+        money(r.piti) + '/mo against a ' + money(inp.target) + ' target');
+  h += wiCheck(st.qualOk, 'Qualification achieved',
+        !r.eligible ? (r.ineligibleReason || 'program not available')
+        : r.overLoanLimit ? 'loan exceeds the ' + money(r.loanLimit) + ' program limit'
+        : !r.dtiOk ? 'back-end DTI ' + r.back.toFixed(1) + '% exceeds the ' + r.backLimit + '% limit'
+        : 'back-end DTI ' + r.back.toFixed(1) + '% against a ' + r.backLimit + '% limit');
+  h += wiCheck(st.fundsOk, 'Available funds sufficient',
+        st.fundsOk ? money(r.cashToClose) + ' to close against ' + money(inp.funds) + ' available'
+                   : 'short ' + money(r.cashGap) + ' after closing costs');
+  h += '</div>';
+
+  /* The one-step-further boundary — 20% conventional, 10% FHA. */
+  if (r.boundary) {
+    const b = r.boundary;
+    h += '<div class="wi-ctx">↑ ' + money(b.dpDollar) + ' down (' + b.dpPct + '%) is only ' +
+         money(b.extraCash) + ' more and drops the payment a further ' + money(b.monthlySaving) +
+         '/mo — ' + b.note + '</div>';
+  }
+  sol.notes.forEach(function(n){
+    h += '<div class="wi-ctx">⚠️ ' + n + '</div>';
+  });
+  /* Other programs that also reach the target, in one line. */
+  const others = sol.programs.filter(function(p){ return p.feasible && p !== r; });
+  if (others.length)
+    h += '<div class="wi-ctx">Also reaches ' + money(inp.target) + '/mo: ' +
+         others.map(function(p){ return '<b>' + p.label + '</b> at ' + money(p.dpDollar) +
+                    ' down (' + money(p.cashToClose) + ' to close)'; }).join(' · ') + '</div>';
+  return h;
+}
+
+/* One plain-English sentence that answers the question and stops.
+   §5 — "That may be the entire conversation I need." */
+function job2PaymentSentence(inp, st){
+  const r = st.r;
+  if (st.state === 'hard')
+    return 'Taxes, insurance and escrow on this property come to <b>' + money(st.floor) +
+           '/mo</b> on their own — already above the ' + money(inp.target) +
+           ' target before a dollar of principal or interest. No down payment reaches it; ' +
+           'the target or the property has to move.';
+  if (st.state === 'yes')
+    return 'This property can be kept at <b>' + money(inp.target) + '/mo</b> with <b>' +
+           money(r.dpDollar) + '</b> down' + (st.alreadyUnder ? ' — the program minimum' : '') +
+           '. The buyer has sufficient funds and would retain approximately <b>' +
+           money(r.cashRemaining) + '</b> after closing.';
+  if (!st.payOk)
+    return 'The payment target is not reached by any eligible structure on this property.';
+  if (!st.qualOk)
+    return 'The payment target <b>is</b> reachable at ' + money(r.dpDollar) + ' down, but the file does ' +
+           'not qualify as structured — ' +
+           (!r.eligible ? (r.ineligibleReason || 'the program is not available')
+            : r.overLoanLimit ? 'the loan exceeds the ' + money(r.loanLimit) + ' program limit'
+            : 'back-end DTI is ' + r.back.toFixed(1) + '% against a ' + r.backLimit + '% limit') +
+           '. This is not an achievable goal until qualification clears.';
+  return 'The payment target is achievable <b>mathematically</b> — ' + money(r.dpDollar) +
+         ' down puts it at ' + money(r.piti) + '/mo — but the buyer does not have the cash to execute it. ' +
+         'Cash to close is <b>' + money(r.cashToClose) + '</b> against <b>' + money(inp.funds) +
+         '</b> available, short <b>' + money(r.cashGap) + '</b>.';
+}
+
+/* ---- DEBT PAYOFF AT A SPECIFIC PROPERTY -----------------------------
+   §7. Same arithmetic as the Shopping Range lever (debtAdjustedInputs), asked
+   against THIS house: does paying this off make this property work? Both DTI
+   and cash are weighed, and the answer is allowed to be "do not do this." */
+function propertyGoalSnapshot(inp){
+  const res = engineRun(inp);
+  const goal = job2Goal(inp);
+  if (goal.key !== 'payment') {
+    const viable = (res.scenarios || []).slice();
+    const ref = viable.length ? priorityScenario(viable, inp) : null;
+    return { goal:goal, res:res, ref:ref, st:null,
+             achievable: !!(ref && ref.cashToClose <= inp.funds + 0.5 && ref.back <= ref.ratios.back + 0.05),
+             cashToClose: ref ? ref.cashToClose : null,
+             piti: ref ? ref.piti : null,
+             back: ref ? ref.back : null,
+             reserve: ref ? inp.funds - ref.cashToClose : null };
+  }
+  const sol = requiredDownForPayment(inp, inp.price, inp.target);
+  const st = paymentGoalStatus(inp, sol);
+  const r = st.r || null;
+  return { goal:goal, res:res, sol:sol, st:st, achievable: st.state === 'yes',
+           cashToClose: r ? r.cashToClose : null, piti: r ? r.piti : null,
+           back: r ? r.back : null, backLimit: r ? r.backLimit : null,
+           dpDollar: r ? r.dpDollar : null,
+           reserve: r ? r.cashRemaining : null };
+}
+
+function propDebtLeverHTML(inp){
+  const sel = debtSelected();
+  const note = sel.length
+    ? sel.length + ' selected · ' + money(sel.reduce(function(s, d){ return s + d.monthly; }, 0)) + '/mo'
+    : 'would paying a debt off make this property work?';
+  return '<details class="lever j2debt" id="debtLever"' + (answerUi.lever ? ' open' : '') + '>' +
+         '<summary>Debt payoff at this property <span class="lv-note">— ' + note + '</span></summary>' +
+         '<div class="lever-b">' +
+           '<div class="debt-head"><span></span><span>Debt</span><span>Payment /mo</span><span>Balance</span><span></span></div>' +
+           '<div id="debtRows">' + debtRowsHTML() + '</div>' +
+           '<button type="button" class="debt-add" id="debtAdd">+ Add a debt</button>' +
+           '<div class="debt-timing">' +
+             '<label><input type="radio" name="debtTiming" value="at_closing"' +
+               (debtTiming === 'at_closing' ? ' checked' : '') + '> Paid at closing <span style="color:var(--sub);font-weight:600">(uses buyer cash)</span></label>' +
+             '<label><input type="radio" name="debtTiming" value="before_closing"' +
+               (debtTiming === 'before_closing' ? ' checked' : '') + '> Paid before closing <span style="color:var(--sub);font-weight:600">(cash already spent)</span></label>' +
+           '</div>' +
+           '<div id="debtOut">' + propDebtOutHTML(inp) + '</div>' +
+         '</div></details>';
+}
+
+function propDebtOutHTML(inp){
+  const sel = debtSelected();
+  if (!sel.length)
+    return '<div class="answer-empty">Tick a debt to see whether paying it off makes ' +
+           money(inp.price) + ' work for this buyer.</div>';
+
+  const adj    = debtAdjustedInputs(inp, sel, debtTiming);
+  const before = propertyGoalSnapshot(inp);
+  const after  = propertyGoalSnapshot(adj.inputs);
+
+  const cell = function(k, b, a, better){
+    const flat = (b === null || a === null) ? true : Math.abs(a - b) < 1;
+    const cls = flat ? 'flat' : (better ? 'up' : 'down');
+    return '<div class="dpo"><div class="k">' + k + '</div>' +
+           '<div class="before">was ' + (b === null ? '—' : money(b)) + '</div>' +
+           '<div class="after">' + (a === null ? '—' : money(a)) + '</div>' +
+           '<div class="delta ' + cls + '">' +
+             (flat ? 'no material change' : (a - b > 0 ? '+' : '') + money(a - b)) + '</div></div>';
+  };
+
+  let h = '<div class="dpo-grid">';
+  h += cell('Cash to close', before.cashToClose, after.cashToClose,
+            after.cashToClose !== null && before.cashToClose !== null && after.cashToClose < before.cashToClose);
+  h += cell('Reserve after close', before.reserve, after.reserve,
+            after.reserve !== null && before.reserve !== null && after.reserve > before.reserve);
+  h += cell('Payment', before.piti, after.piti,
+            after.piti !== null && before.piti !== null && after.piti < before.piti);
+  h += '</div>';
+
+  /* DTI is the whole point of a payoff, so it is stated in its own words. */
+  if (before.back !== null && after.back !== null) {
+    h += '<div class="dpo-flag"><span>↔</span><span>Back-end DTI at the goal structure moves from <b>' +
+         before.back.toFixed(1) + '%</b> to <b>' + after.back.toFixed(1) + '%</b>' +
+         (before.backLimit ? ' against a ' + before.backLimit + '% limit' : '') + '.</span></div>';
+  }
+
+  /* THE VERDICT — DTI improvement alone is never enough. §7. */
+  const freed = money(adj.monthlyFreed) + '/mo';
+  const cashWorse = (after.reserve !== null && before.reserve !== null)
+                    ? (after.reserve < before.reserve - 1) : (adj.cashOut > 0);
+  let vc, vt;
+  if (!before.achievable && after.achievable) {
+    vc = 'good';
+    vt = '<b>Yes — this makes the property work.</b> Paying off ' + freed + ' of debt' +
+         (adj.cashOut > 0 ? ', spending ' + money(adj.cashOut) + ' of cash at closing,' : '') +
+         ' takes the goal from not achievable to achievable at ' + money(inp.price) + '.';
+  } else if (before.achievable && !after.achievable) {
+    vc = 'bad';
+    vt = '<b>Do not pay this off' + (debtTiming === 'at_closing' ? ' at closing' : '') + '.</b> The goal is ' +
+         'already achievable as structured, and ' +
+         (adj.cashOut > 0 ? 'spending ' + money(adj.cashOut) + ' of cash breaks it.'
+                          : 'this structure no longer reaches it.') +
+         (debtTiming === 'at_closing' ? ' Paying it off <i>before</i> closing from other funds avoids this.' : '');
+  } else if (!before.achievable && !after.achievable) {
+    vc = 'mixed';
+    vt = 'Paying off ' + freed + ' of debt is <b>not enough on its own</b> — the goal is still not achievable ' +
+         'at ' + money(inp.price) + '. ' +
+         (before.st && after.st && before.st.why !== after.st.why
+            ? 'It does change what is blocking it, from <b>' + before.st.why + '</b> to <b>' + after.st.why + '</b>.'
+            : (before.st ? 'The blocking constraint is still <b>' + before.st.why + '</b>.' : ''));
+  } else if (cashWorse && debtTiming === 'at_closing') {
+    vc = 'mixed';
+    vt = 'The goal is achievable either way. Paying off ' + freed + ' of debt at closing improves qualifying ' +
+         'but consumes ' + money(adj.cashOut) + ' of cash, cutting the reserve after close from <b>' +
+         money(before.reserve) + '</b> to <b>' + money(after.reserve) + '</b>. ' +
+         '<b>There is no goal reason to do it at closing</b> — pay it before closing, or not at all, unless a ' +
+         'lender guideline requires it.';
+  } else {
+    vc = 'good';
+    vt = 'The goal is achievable either way. Paying off ' + freed + ' of debt frees qualifying room ' +
+         'without costing the structure' +
+         (after.reserve !== null && before.reserve !== null && after.reserve > before.reserve + 1
+            ? ' — reserve after close improves to <b>' + money(after.reserve) + '</b>.' : '.');
+  }
+  h += '<div class="dpo-verdict ' + vc + '">' + vt + '</div>';
+
+  h += '<div class="dpo-flag"><span>⚠️</span><span>Arithmetic only. <b>Verify debt treatment with lender ' +
+       'guidelines/AUS</b> — whether a specific debt may be excluded from DTI, and whether it must be paid ' +
+       'at or before closing, closed as well as paid, or documented a particular way, varies by program. ' +
+       'No AUS or lender-specific exclusion rule is simulated here.</span></div>';
+  return h;
+}
+
+/* ---- NEGOTIABLE SELLER VALUE, GOAL-FIRST ----------------------------
+   §8. The negotiation engine is NOT rebuilt. analyzeNegotiation() has already
+   scored price reduction / concession / split across every eligible program
+   using pickBestOverall(), optimalConcAlloc() and the financing-cost analysis.
+   This states its answer in terms of the buyer's goal and nothing else. */
+function job2SellerValueHTML(inp, neg){
+  /* Negotiable seller value is the requested price adjustment PLUS any explicit
+     seller concession — the same `negRoom + sc` the negotiation engine deploys in
+     pathOutcome(). Gating on `neg.room` alone hid the whole panel whenever the
+     offer was written at list with a concession attached, which is the most
+     common structure of all. */
+  if (!neg || !neg.recommended) return '';
+  const sellerValue = (inp.negotiatingRoom || 0) + Math.max(0, inp.sellerConcession || 0);
+  if (!(sellerValue > 0)) return '';
+  const goal = job2Goal(inp);
+  const P = neg.paths, rec = neg.recommendedPathKey;
+  const metricFor = function(o){
+    if (goal.key === 'cash')  return { v: money(o.cashToClose),  s: 'cash to close' };
+    if (goal.key === 'power') return { v: money(o.price),        s: 'contract price' };
+    return { v: money(o.piti) + '/mo', s: 'payment' };
+  };
+  /* With no requested price adjustment the three paths are the same arithmetic —
+     only the concession deploys — so showing three identical rows is noise. */
+  const single = !(neg.room > 0);
+  const order = single ? [['concession','Seller concession']]
+                       : [['concession','Rate buydown / concession'],
+                          ['reduction','Price reduction'],
+                          ['split','Split allocation']];
+
+  let h = '<div class="j2-best">';
+  order.forEach(function(pair){
+    const o = P[pair[0]];
+    if (!o) return;
+    const m = metricFor(o);
+    const bits = [];
+    if (goal.key !== 'payment') bits.push('payment ' + money(o.piti) + '/mo');
+    if (goal.key !== 'cash')    bits.push('cash ' + money(o.cashToClose));
+    bits.push(FAM_NAME[o.id] || o.id);
+    if ((o.unused || 0) > 1)    bits.push(money(o.unused) + ' unused');
+    h += '<div class="j2-bl' + (pair[0] === rec ? ' win' : '') + '">' +
+         '<span class="jb-k">' + pair[1] + (pair[0] === rec && !single ? ' ★' : '') + '</span>' +
+         '<span class="jb-v">' + m.v + '</span>' +
+         '<span class="jb-s">' + m.s + ' · ' + bits.join(' · ') + '</span></div>';
+  });
+  h += '</div>';
+
+  h += '<div class="j2-rec"><b>Recommendation.</b> ' +
+       offerActionSentence(inp, neg, rec, neg.paths[rec], neg.headline) +
+       ((neg.paths[rec].unused || 0) > 1
+          ? ' <b>' + money(neg.paths[rec].unused) + ' of the requested adjustment cannot be used on this ' +
+            'structure</b> — unused negotiation value.' : '') +
+       ' The buyer\'s stated goal — <b>' + goal.label + '</b> — is what ranks these paths. ' +
+       'These figures are the negotiation engine\'s own best structure for each path, which is not ' +
+       'necessarily the structure the answer above proposes.</div>';
+  h += '<div class="ns-f">Full three-way comparison, financing-cost analysis and unused negotiation value ' +
+       'are in <b>Section 2b</b> below, unchanged.</div>';
+
+  return '<details class="lever j2seller" id="j2SellerBox"' + (answerUi.seller ? ' open' : '') + '>' +
+         '<summary>Best use of the ' + money(sellerValue) + ' negotiable seller value ' +
+         '<span class="lv-note">— ' + (PATH_NAME[rec] || 'compare') + ' wins on this goal</span></summary>' +
+         '<div class="lever-b">' + h + '</div></details>';
+}
+
+/* ---- RATE INTELLIGENCE AT A SPECIFIC PROPERTY -----------------------
+   §10. NOT another Rate Impact calculator. Two questions only:
+     "what rate would make this property work?"   → concessionToCloseGap()
+     "what would a different rate do here?"       → dpScenarioAt() at this
+                                                    price with rates[] bumped
+   Job 1's Rate Impact is untouched, including its reference structure. */
+function propRateAt(inp, progId, price, dpPct, rate){
+  const bumped = Object.assign({}, inp, {
+    rates: Object.assign({}, inp.rates, (function(o){ o[progId] = rate; return o; })({}))
+  });
+  return dpScenarioAt(bumped, progId, price, dpPct);
+}
+
+function job2RateBody(inp, ref){
+  const base = ref.rate;
+  const gap  = ref.piti - inp.target;
+  let solved = null;
+  if (gap > 0.5) {
+    const need = concessionToCloseGap(inp, ref, gap);
+    if (need) solved = need;
+  }
+
+  let h = '<div class="ri-ref">Reference structure: <b>' + ref.name + '</b> at <b>' + money(inp.price) +
+          '</b>, ' + money(ref.down) + ' down, base rate <b>' + base.toFixed(3) + '%</b>. ' +
+          'Only the rate moves — price, down payment, program and every escrow assumption are held.</div>';
+
+  if (solved) {
+    h += '<div class="j2-rec"><b>What rate would make this property work?</b> ' +
+         '<b>' + solved.newRate.toFixed(3) + '%</b> puts the payment at <b>' + money(solved.reachedPITI) +
+         '/mo</b> against the ' + money(inp.target) + ' target — ' +
+         (base - solved.newRate).toFixed(3) + '% below the ' + base.toFixed(3) + '% assumed. ' +
+         'Bought with points that is ' + money(solved.dollars) + ' (' + solved.points.toFixed(2) + ' points)' +
+         (solved.capped ? ', which exceeds the ' + money(ref.concLimit) + ' concession cap on this structure.'
+                        : ', within the ' + money(ref.concLimit) + ' concession cap.') + '</div>';
+  } else {
+    h += '<div class="j2-rec"><b>The payment already clears the target at the assumed rate.</b> ' +
+         'The table below is sensitivity, not a requirement.</div>';
+  }
+
+  h += '<table class="j2-rt"><thead><tr><th>Rate</th><th>Payment</th><th>vs. base</th>' +
+       '<th>vs. ' + money(inp.target) + ' target</th></tr></thead><tbody>';
+  RATE_DELTAS.forEach(function(d){
+    const rate = base + d;
+    if (rate <= 0) return;
+    const s = propRateAt(inp, ref.id, inp.price, ref.dp, rate);
+    const dPay = s.piti - ref.piti;
+    const vsT  = s.piti - inp.target;
+    h += '<tr' + (d === 0 ? ' class="base"' : '') + '>' +
+         '<td>' + riRate(rate) + '%' + (d === 0 ? ' (base)' : '') + '</td>' +
+         '<td>' + money(s.piti) + '/mo</td>' +
+         '<td class="' + (dPay < -0.5 ? 'good' : (dPay > 0.5 ? 'bad' : '')) + '">' +
+           (Math.abs(dPay) < 0.5 ? '—' : (dPay > 0 ? '+' : '−') + money(Math.abs(dPay))) + '</td>' +
+         '<td class="' + (vsT <= 0.5 ? 'good' : 'bad') + '">' +
+           (vsT <= 0.5 ? money(-vsT) + ' under' : money(vsT) + ' over') + '</td></tr>';
+  });
+  h += '</tbody></table>';
+  h += '<div class="dpo-flag"><span>ℹ️</span><span>Illustrative rates only. Not a rate quote, not a lock, ' +
+       'and not a commitment to lend.</span></div>';
+
+  return h;
+}
+
+/* The reference structure the property rate table is measured against, captured
+   when Job 2 renders so the lever can be refreshed on its own. Rebuilding the
+   whole answer body from inside a `toggle` handler detaches the element that
+   fired the event, which made every following click on the answer layer flaky. */
+let propRateRef = null;
+function job2RateHTML(inp, ref){
+  if (!ref) { propRateRef = null; return ''; }
+  propRateRef = ref;
+  return '<details class="lever j2rate" id="j2RateBox"' + (answerUi.prate ? ' open' : '') + '>' +
+         '<summary>What rate would make this property work? ' +
+         '<span class="lv-note">— base ' + ref.rate.toFixed(3) + '% ' + ref.label + '</span></summary>' +
+         '<div class="lever-b" id="j2RateOut">' + (answerUi.prate ? job2RateBody(inp, ref) :
+           '<div class="answer-empty">Expand to solve the rate that reaches the target and see the sensitivity table.</div>') +
+         '</div></details>';
+}
+function refreshPropRate(){
+  const out = $('j2RateOut');
+  if (!out || !propRateRef) return;
+  out.innerHTML = answerUi.prate ? job2RateBody(resolvedInputs(), propRateRef)
+    : '<div class="answer-empty">Expand to solve the rate that reaches the target and see the sensitivity table.</div>';
+}
+/* Update the bar in place. Replacing the element would detach the checkbox that
+   is still dispatching the change event. */
+function refreshAcceptBar(){
+  const bar = $('acceptBar');
+  if (!bar) return;
+  bar.classList.toggle('on', propertyAccepted);
+  const l = bar.querySelector('.ac-l'), s2 = bar.querySelector('.ac-s');
+  if (l)  l.textContent = acceptLabel();
+  if (s2) s2.innerHTML = acceptNote();
+}
+
+/* ---- ACCEPTED / CONTRACT ----
+   §12. Verified safe before implementation: the negotiation-round delete guard
+   `bse_round_delete_guard` is a BEFORE DELETE … FOR EACH ROW trigger, so a
+   zero-row surplus delete never fires it, and the surplus delete is now skipped
+   outright while the scenario is not a draft. Both halves are pinned by
+   persistence-db.test.js (D12b/D12d/D12e) and persistence-client.test.js. */
+function acceptLabel(){
+  return propertyAccepted ? 'Accepted — this is the current working structure'
+                          : 'Mark this structure as accepted';
+}
+function acceptNote(){
+  return propertyAccepted
+    ? 'Round history is preserved and every field stays editable. A round that has already been ' +
+      'presented can no longer be withdrawn — that is the soft-delete rule, not a lock on this screen.'
+    : 'Marks the accepted structure and preserves negotiation history. It does not freeze anything ' +
+      'and does not hand off to Arive.';
+}
+function acceptBarHTML(){
+  return '<div class="acceptbar' + (propertyAccepted ? ' on' : '') + '" id="acceptBar">' +
+         '<label><input type="checkbox" id="acceptToggle"' + (propertyAccepted ? ' checked' : '') + '> ' +
+         '<span class="ac-l">' + acceptLabel() + '</span></label>' +
+         '<span class="ac-s">' + acceptNote() + '</span></div>';
+}
+
+/* ---- ALTERNATIVE PROGRAM, one line ---- */
+function job2AltProgramHTML(inp, res, ref){
+  const viable = (res.scenarios || []).filter(function(s){ return !ref || s.name !== ref.name; });
+  if (!viable.length) return '';
+  const rows = viable.slice().sort(function(a, b){ return a.piti - b.piti; }).slice(0, 4);
+  let h = '<div class="j2-best">';
+  rows.forEach(function(s){
+    h += '<div class="j2-bl"><span class="jb-k">' + s.name + '</span>' +
+         '<span class="jb-v">' + money(s.piti) + '/mo</span>' +
+         '<span class="jb-s">' + money(s.cashToClose) + ' to close · DTI ' + s.back.toFixed(1) +
+         '% · ' + (s.piti <= inp.target + 0.5 ? 'at or under target' :
+                   money(s.piti - inp.target) + '/mo over target') +
+         (s.cashToClose > inp.funds + 0.5 ? ' · short ' + money(s.cashToClose - inp.funds) + ' in cash' : '') +
+         '</span></div>';
+  });
+  h += '</div>';
+  return '<details class="lever" id="j2AltBox"' + (answerUi.alt ? ' open' : '') + '>' +
+         '<summary>Every other eligible structure on this property ' +
+         '<span class="lv-note">— ' + rows.length + ' alternative' + (rows.length === 1 ? '' : 's') +
+         '</span></summary><div class="lever-b">' + h + '</div></details>';
+}
+
+function job2HTML(inp, res, neg){
+  const viable = (res.scenarios || []).slice();
+
+  /* The DEFAULT structure — what this buyer gets at this price if nothing
+     changes. This is what Section 2's Recommendation Engine leads with. */
+  let defaultRef = viable.length ? priorityScenario(viable, inp) : null;
+  if (!defaultRef && offerActive(inp)) defaultRef = refAtListIgnoringCash(inp);
+
+  /* The ANSWER structure — the one that actually accomplishes the goal. For a
+     payment goal that is the solved down payment, which is usually NOT the
+     default. Fit and binding constraint are then evaluated against the SAME
+     structure the answer proposes, so the screen can never show "feasible" and
+     "$606/mo over target" side by side without saying they describe different
+     structures. */
+  const goalObj = job2Goal(inp);
+  const goal = goalObj.key;
+  let ansHTML, fitRef = null, fitLabel = null, sol = null, st = null, statusHTML = '';
+
+  if (goal === 'cash') {
+    ansHTML = answerMinimiseCash(inp, res, defaultRef);
+    const lo = viable.slice().sort((a, b) => a.cashToClose - b.cashToClose)[0];
+    if (lo) { fitRef = lo; fitLabel = lo.name + ' — the lowest-cash structure'; }
+    if (lo) {
+      const ok = lo.cashToClose <= inp.funds + 0.5 && lo.back <= lo.ratios.back + 0.05;
+      statusHTML = goalStatusHTML(ok ? 'yes' : 'no',
+        ok ? 'Goal achievable' : 'Goal not achievable with current structure',
+        ok ? 'The lowest cash to close on this property is <b>' + money(lo.cashToClose) +
+             '</b> on ' + lo.name + ', leaving <b>' + money(inp.funds - lo.cashToClose) +
+             '</b> after closing.'
+           : 'Even the lowest-cash structure on this property (' + lo.name + ') needs <b>' +
+             money(lo.cashToClose) + '</b> to close against <b>' + money(inp.funds) + '</b> available.');
+    } else {
+      statusHTML = goalStatusHTML('hard', 'Goal not achievable with current structure',
+        'No eligible structure exists at this price — see the constraint below.');
+    }
+  } else if (goal === 'power') {
+    ansHTML = answerMaxPrice(inp, res, defaultRef);
+    const snap = powerSnapshot(inp);
+    const ok = !!snap && snap.qual >= inp.price;
+    statusHTML = goalStatusHTML(ok ? 'yes' : 'no',
+      ok ? 'Goal achievable' : 'Goal not achievable with current structure',
+      !snap ? 'No eligible structure exists at these inputs.'
+        : ok ? 'This buyer qualifies up to <b>' + money(snap.qual) + '</b>, so ' + money(inp.price) +
+               ' sits <b>' + money(snap.qual - inp.price) + '</b> inside qualification.'
+             : 'This property is <b>' + money(inp.price - snap.qual) + '</b> above the <b>' +
+               money(snap.qual) + '</b> this buyer qualifies for as structured.');
+  } else {
+    sol = requiredDownForPayment(inp, inp.price, inp.target);
+    st  = paymentGoalStatus(inp, sol);
+    if (st.state === 'unknown') {
+      ansHTML = '<div class="answer-empty">' + (st.note || 'A property price and target payment are required.') + '</div>';
+      statusHTML = '';
+    } else if (st.state === 'hard') {
+      ansHTML = '';
+      statusHTML = goalStatusHTML('hard', 'Goal not achievable with current structure',
+                                  job2PaymentSentence(inp, st));
+    } else {
+      ansHTML = job2PaymentAnswerHTML(inp, sol, st);
+      statusHTML = goalStatusHTML(st.state === 'yes' ? 'yes' : 'no',
+        st.state === 'yes'
+          ? (st.alreadyUnder ? 'Goal already achieved' : 'Goal achievable')
+          : 'Goal not achievable with current structure',
+        job2PaymentSentence(inp, st));
+      const r = sol.recommended;
+      if (r && r.scenario && st.state === 'yes') {
+        fitRef = r.scenario;
+        fitLabel = r.label + ' at ' + r.dpPct.toFixed(1) + '% down — the structure that hits the goal';
+      }
+    }
+  }
+  if (!fitRef) {
+    fitRef = defaultRef;
+    fitLabel = defaultRef ? defaultRef.name + ' — the default structure at this price' : null;
+  }
+  /* Never report "no eligible structure" when the solver found one. If nothing
+     is viable at the authored down payment but the goal structure exists, the
+     fit block describes THAT — with whichever of its three tests is failing. */
+  if (!fitRef && st && st.r && st.r.scenario) {
+    fitRef = st.r.scenario;
+    fitLabel = st.r.label + ' at ' + st.r.dpPct.toFixed(1) +
+               '% down — the structure that reaches the payment target';
+  }
+
+  /* Which constraint, and which structure the strategies are measured against.
+     When a payment goal is not achievable the blocking constraint belongs to the
+     GOAL structure, not to the default one — otherwise the screen can say
+     "achievable mathematically, short on cash" in the banner and "comfort
+     payment" as the binding constraint, which are two different stories. */
+  let bind, stratRef = fitRef;
+  if (goal === 'payment' && st && st.state !== 'yes' && st.state !== 'unknown') {
+    bind = goalConstraint(inp, st);
+    if (st.r && st.r.scenario) stratRef = st.r.scenario;
+  } else {
+    bind = bindingAtProperty(inp, res, fitRef);
+  }
+  const ref = fitRef;
+
+  /* ---------- 1 · PROPERTY → GOAL → VERDICT → ANSWER ---------- */
+  let h = '<div class="prop-head"><span class="ph-k">Property</span>' +
+          '<span class="ph-v">' + money(inp.price) + '</span></div>';
+
+  h += '<div class="ans-goal"><span class="ag-k">Goal</span>' +
+       '<span class="ag-v">' + (goal === 'payment'
+         ? 'Keep the payment at or under ' + money(inp.target) + '/mo (total PITI)'
+         : goalObj.label) + '</span></div>';
+
+  h += statusHTML;
+  h += ansHTML;
+  h += propertyFitHTML(inp, ref, res, fitLabel);
+
+  /* When the answer structure differs from the default, state the tradeoff in
+     one line. This is the actual conversation: hit the payment, or keep cash. */
+  /* Only when the two structures materially differ. A name-only difference —
+     "Conv 5%" against "Conventional at 5.0% down" — is the same structure and
+     produced a tradeoff line reading "$0 less". */
+  const dPay0 = defaultRef && fitRef ? defaultRef.piti - fitRef.piti : 0;
+  const dCash0 = defaultRef && fitRef ? fitRef.cashToClose - defaultRef.cashToClose : 0;
+  if (defaultRef && fitRef && (Math.abs(dCash0) > 500 || Math.abs(dPay0) > 5)) {
+    const dPay = dPay0, dCash = dCash0;
+    h += '<div class="tradeoff"><span class="to-k">Tradeoff</span><span class="to-b">' +
+         'If the buyer would rather keep cash, <b>' + defaultRef.name + '</b> needs only <b>' +
+         money(defaultRef.cashToClose) + '</b> to close — ' + money(Math.abs(dCash)) + ' less — but the payment is <b>' +
+         money(defaultRef.piti) + '/mo</b>' +
+         (defaultRef.piti > inp.target + 0.5
+            ? ', ' + money(defaultRef.piti - inp.target) + '/mo above the ' + money(inp.target) + ' target.'
+            : ', still at or under target.') +
+         (dPay > 0.5 ? ' The goal structure buys ' + money(dPay) + '/mo of payment for ' +
+                       money(Math.abs(dCash)) + ' of cash.' : '') +
+         '</span></div>';
+  }
+
+  /* ---------- 2 · WHY IT DOES NOT WORK, when it does not ----------
+     Constraint classification per §6, including "goal already achieved /
+     optimisation only". Strategies appear ONLY for the constraint that is
+     actually blocking, never the full catalogue. */
+  if (bind.kind !== 'none') {
+    h += '<div class="bindline"><span class="bl-k">Binding constraint</span>' +
+         '<span class="bl-v bl-' + bind.kind + '">' + bind.label + '</span>' +
+         '<span class="bl-s">' + bind.detail + '</span></div>';
+    h += propertyStrategiesHTML(inp, res, stratRef, bind);
+  } else {
+    h += '<div class="bindline ok"><span class="bl-k">Binding constraint</span>' +
+         '<span class="bl-v bl-none">None</span>' +
+         '<span class="bl-s">' + bind.detail +
+         ' Goal already achieved — anything below is optimisation only, not a problem to solve.</span></div>';
+  }
+
+  /* ---------- 3 · HOW ELSE COULD WE STRUCTURE IT? ----------
+     §13. Secondary. Every item is a collapsed lever so a successful answer is
+     never buried under strategy. Order per §13: seller value, debt payoff,
+     alternative program, rate analysis, negotiation intelligence. */
+  let alt = '';
+  alt += job2SellerValueHTML(inp, neg);
+  alt += propDebtLeverHTML(inp);
+  alt += job2AltProgramHTML(inp, res, ref);
+  alt += job2RateHTML(inp, ref);
+
+  /* The existing negotiation summary sentence and the pointer to the untouched
+     three-way comparison in Section 2b. */
+  if (neg && neg.recommended) {
+    const rec = neg.recommended;
+    const sellerValue = (inp.negotiatingRoom || 0) + Math.max(0, inp.sellerConcession || 0);
+    alt += '<div class="negsum"><div class="ns-h">Negotiable seller value — ' + money(sellerValue) +
+         (neg.room > 0 && sellerValue > neg.room
+            ? ' <span style="font-weight:600;text-transform:none;letter-spacing:0">(' + money(neg.room) +
+              ' requested adjustment + ' + money(sellerValue - neg.room) + ' seller concession)</span>'
+            : '') + '</div>' +
+         '<div class="ns-b">' + offerActionSentence(inp, neg, neg.recommendedPathKey, rec, neg.headline) +
+         (rec.unused > 1 ? ' <b>' + money(rec.unused) + ' of the requested adjustment cannot be used on this structure.</b>' : '') +
+         '</div><div class="ns-f">Full comparison of price reduction vs concession vs split is in ' +
+         '<b>Section 2b</b> below.</div></div>';
+  }
+  if (alt) h += '<div class="j2-alt"><div class="ja-h">How else could we structure it?</div>' + alt + '</div>';
+
+  h += acceptBarHTML();
+  return h;
+}
+
+/* ---------- render + wiring ---------- */
+function renderAnswerLayer(inp, res, neg){
+  renderGoalBar(inp);
+  const head = $('answerHead'), body = $('answerBody');
+  if (!head || !body) return;
+  if (inp.shopping) {
+    head.innerHTML = '<span class="job">JOB 1</span><span class="aq" id="answerQ">What should this buyer shop for?</span>';
+    body.innerHTML = job1HTML(inp);
+  } else {
+    head.innerHTML = '<span class="job">JOB 2</span><span class="aq" id="answerQ">How do we accomplish this buyer’s goal on this property?</span>';
+    body.innerHTML = job2HTML(inp, res, neg);
+  }
+}
+
+/* Delegated handlers — attached once. The answer body is rebuilt on every
+   recalc, so per-element listeners would leak. */
+function attachAnswerLayer(){
+  const body = $('answerBody');
+  if (!body) return;
+
+  body.addEventListener('toggle', e => {
+    if (e.target.id === 'whyBox')    answerUi.why = e.target.open;
+    if (e.target.id === 'debtLever') answerUi.lever = e.target.open;
+    if (e.target.id === 'whatIfBox') answerUi.whatif = e.target.open;
+    if (e.target.id === 'rateBox')   { answerUi.rate = e.target.open; refreshRateImpact(); }
+    if (e.target.id === 'rateTable')   rateTableOpen = e.target.open;
+    /* Job 2 levers. The property rate table runs an engine probe per row, so it
+       is only computed while open — same rule as Job 1's Rate Impact. */
+    if (e.target.id === 'j2SellerBox') answerUi.seller = e.target.open;
+    if (e.target.id === 'j2AltBox')    answerUi.alt = e.target.open;
+    if (e.target.id === 'j2RateBox')   { answerUi.prate = e.target.open; refreshPropRate(); }
+  }, true);
+
+  body.addEventListener('click', e => {
+    if (e.target.id === 'debtAdd') {
+      debtList.push({ id: ++debtSeq, label:'', monthly:0, balance:0, on:true });
+      refreshDebtRows();
+      const rows = $('debtRows');
+      if (rows) { const last = rows.querySelector('.debt-row:last-child input[data-f="label"]'); if (last) last.focus(); }
+      return;
+    }
+    if (e.target.dataset && e.target.dataset.f === 'del') {
+      const row = e.target.closest('.debt-row');
+      if (row) { debtList = debtList.filter(d => String(d.id) !== row.dataset.id); refreshDebtRows(); }
+    }
+  });
+
+  const onEdit = e => {
+    const t = e.target;
+    if (t.id === 'rateCustomIn') {
+      /* Keep the characters as typed — "6." must stay "6." while the next digit
+         is on its way. Only the PARSED value is normalised, and it is rounded to
+         four decimals so the figure displayed and the figure calculated are
+         always the same number. The field itself is never rewritten here. */
+      rateCustomRaw = t.value;
+      const v = parseFloat(String(t.value).replace(/[^0-9.]/g, ''));
+      rateCustom = (isFinite(v) && v > 0) ? Math.round(v * 10000) / 10000 : null;
+      refreshRateImpact();
+      return;
+    }
+    if (t.id === 'whatIfPrice') {
+      if (e.type === 'input') liveComma(t);
+      whatIfPrice = debtParse(t.value);
+      refreshWhatIf();
+      return;
+    }
+    if (t.id === 'acceptToggle') { propertyAccepted = t.checked; refreshAcceptBar(); markDirty(); return; }
+    if (t.name === 'debtTiming') { debtTiming = t.value; refreshDebtOut(); return; }
+    const row = t.closest && t.closest('.debt-row');
+    if (!row) return;
+    const d = debtList.find(x => String(x.id) === row.dataset.id);
+    if (!d) return;
+    const f = t.dataset.f;
+    if (f === 'on') d.on = t.checked;
+    else if (f === 'label') d.label = t.value;
+    else if (f === 'monthly') d.monthly = debtParse(t.value);
+    else if (f === 'balance') d.balance = debtParse(t.value);
+    refreshDebtOut();
+  };
+  body.addEventListener('input', onEdit);
+  body.addEventListener('change', onEdit);
+}
+
+/* Re-render only the piece that changed, so typing never loses focus. */
+function refreshDebtOut(){
+  const out = $('debtOut');
+  const inp = gatherInputs();
+  /* One lever, two questions. In Shopping Range it answers "what does this do to
+     purchasing power"; at a specific property it answers "does this make THIS
+     house work". Same debtList, same debtTiming, same debtAdjustedInputs(). */
+  const propertyMode = !inp.shopping && inp.price > 0;
+  if (out) out.innerHTML = propertyMode ? propDebtOutHTML(inp) : debtOutHTML(inp);
+  const lev = $('debtLever');
+  if (lev) {
+    const s = lev.querySelector('.lv-note'), sel = debtSelected();
+    if (s) s.textContent = '— ' + (sel.length
+      ? sel.length + ' selected · ' + money(sel.reduce((a, d) => a + d.monthly, 0)) + '/mo'
+      : (propertyMode ? 'would paying a debt off make this property work?'
+                      : 'model paying off a car, card or loan'));
+  }
+}
+function refreshDebtRows(){
+  const rows = $('debtRows');
+  if (rows) rows.innerHTML = debtRowsHTML();
+  refreshDebtOut();
 }
 
 /* =====================================================================
@@ -2352,8 +5193,12 @@ function renderChangeLog(){
    MAIN RECALC
    ===================================================================== */
 function recalc(){
-  const inp=gatherInputs();
-  const res=Engine.run(inp, A_CONST);
+  /* Phase 4: engineRun() dispatches on the AUTHORED down-payment mode. Percent
+     mode and specific-price mode go straight to the protected Engine.run();
+     Shopping Range with authored dollars uses the fixed-dollar solver, which
+     holds those dollars constant at every price probe. No input is transformed. */
+  const inp=resolvedInputs();
+  const res=engineRun(inp);
 
   // Negotiation analysis (specific mode only). Determines the applied path, which
   // in turn sets the concession amount deployed on the cards and the split total.
@@ -2388,6 +5233,7 @@ function recalc(){
   renderGapSolver(inp, res);
   recalcCounter();         // Counter Offer Analyzer reads the current buyer profile
   renderPropertyStrategy(inp, neg);   // gate Section 2 + mount negotiation panel
+  renderAnswerLayer(inp, res, neg);   // Phase 4 — the primary decision output
   logChanges();
 }
 
@@ -2739,10 +5585,24 @@ function attachConcessionHandlers(){
 }
 
 /* ---------- collapsible sections ---------- */
+/* A clipped section is still in the DOM, so its inputs would otherwise remain
+   tabbable. `inert` removes them from the tab order and from hit-testing
+   without affecting rendering — which is what keeps the render captures valid. */
+function syncSectionInert(){
+  document.querySelectorAll('.section').forEach(function(el){
+    const body = el.querySelector('.sec-body');
+    if(!body) return;
+    if(el.classList.contains('collapsed')) body.setAttribute('inert','');
+    else body.removeAttribute('inert');
+  });
+}
 function attachSections(){
   document.querySelectorAll('.sec-head').forEach(h=>{
-    h.addEventListener('click',()=>{ $(h.dataset.sec).classList.toggle('collapsed'); });
+    h.addEventListener('click',()=>{ $(h.dataset.sec).classList.toggle('collapsed'); syncSectionInert(); });
   });
+  /* Sections 1 and 2 ship collapsed, so apply inert at load — not only on the
+     first click. Without this the clipped Section 2 inputs stay tabbable. */
+  syncSectionInert();
 }
 /* ---------- gap solver buttons ---------- */
 function attachGapButtons(){
@@ -2771,7 +5631,7 @@ function attachGapButtons(){
    ===================================================================== */
 const canonUnit = {
   dp:          { field:'dpTarget',    value:null, unit:'pct',    shown:null },
-  tax:         { field:'taxRate',     value:null, unit:'pct',    shown:null },
+  tax:         { field:'taxRate',     value:null, unit:'dollarMo', shown:null },
   offerConc:   { field:'offerConc',   value:null, unit:'dollar', shown:null },
   counterConc: { field:'counterConc', value:null, unit:'dollar', shown:null }
 };
@@ -2804,10 +5664,18 @@ function canonWrite(key, text){
 function canonConvert(key, target, basis){
   const c = canonUnit[key];
   const raw = parseFloat(String(c.value==null?'':c.value).replace(/[^0-9.\-]/g,'')) || 0;
-  if(!(raw>0) || !(basis>0)) return null;
+  if(!(raw>0)) return null;
   if(c.unit===target) return c.value;                 // exact canonical restore
+  /* $/YR <-> $/MO need no basis: they are two displays of the SAME authored
+     annual amount, which is why a monthly tax entry does not require a price
+     and does not scale with one. Handled before the basis guard. */
+  if(c.unit==='dollar'   && target==='dollarMo') return (Math.round(raw/12*100)/100).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+  if(c.unit==='dollarMo' && target==='dollar')   return Math.round(raw*12).toLocaleString('en-US');
+  if(!(basis>0)) return null;
   if(c.unit==='pct' && target==='dollar') return Math.round(raw/100*basis).toLocaleString('en-US');
   if(c.unit==='dollar' && target==='pct') return String(+(raw/basis*100).toFixed(key==='tax'?3:2));
+  if(c.unit==='pct' && target==='dollarMo') return (Math.round(raw/100*basis/12*100)/100).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+  if(c.unit==='dollarMo' && target==='pct') return String(+(raw*12/basis*100).toFixed(key==='tax'?3:2));
   return null;
 }
 // Set a canonical pair directly. No conversion. Used by applyState.
@@ -2826,6 +5694,13 @@ function captureState(){
   CANON_KEYS.forEach(canonSync);
   const fields = {};
   document.querySelectorAll('input,select').forEach(el=>{
+    /* Phase 4: the answer layer contains ANALYSIS-ONLY inputs — the desired
+       purchase price, the debt-payoff rows, the hypothetical rate. They are
+       what-if scratch, not buyer assumptions, and must never be captured into
+       the canonical presentation payload or autosaved as though the buyer had
+       authored them. This enumeration is generic, so without the exclusion a
+       hypothetical 9.99% rate would persist alongside the real one. */
+    if(el.closest && el.closest('#answerLayer')) return;
     if(el.type==='radio'){ if(el.checked && el.name) fields['name:'+el.name] = { value: el.value }; return; }
     if(!el.id) return;
     if(el.type==='checkbox') fields[el.id] = { checked: el.checked };
@@ -2974,7 +5849,7 @@ const BSEModel = (function(){
     return v > 0 ? { monthly: v, status: 'known' } : { monthly: null, status: 'unknown' };
   }
   const costValue = f => (f && f.status === 'known' && f.monthly != null) ? f.monthly : 0;
-  const UNIT = { pct: 'percent', dollar: 'amount' };
+  const UNIT = { pct: 'percent', dollar: 'amount', dollarMo: 'amount' };
   const UNIT_BACK = { percent: 'pct', amount: 'dollar' };
 
   /* ---------- §4 Buyer Profile ---------- */
@@ -3004,8 +5879,15 @@ const BSEModel = (function(){
   /* ---------- §5 Shopping Plan ---------- */
   function captureShoppingPlan(){
     const hoa = costField('hoa','hoaNA'), cdd = costField('cdd','cddNA'), flood = costField('flood','floodNA');
-    const taxUnit = UNIT[unitState.tax];
-    const taxRaw  = blank('taxRate') ? null : num('taxRate');
+    /* §2 — the canonical economic value is unchanged: a percentage, or an
+       ANNUAL dollar amount. `$/MO` is a third DISPLAY of that annual amount,
+       not a third stored unit, so no schema change and no new enum value is
+       introduced. Entering $582.26/mo stores $6,987.12/yr and resolves back to
+       exactly $582.26/mo at every price. */
+    const taxDisplayUnit = unitState.tax;
+    const taxUnit = UNIT[taxDisplayUnit];
+    const taxShown = blank('taxRate') ? null : num('taxRate');
+    const taxRaw = (taxShown != null && taxDisplayUnit === 'dollarMo') ? taxShown * 12 : taxShown;
     return {
       plan_label: 'Original Plan', is_active: true,
       target_payment: num('target'),
@@ -3090,7 +5972,13 @@ const BSEModel = (function(){
       assumption_set_version: ASSUMPTION_SET.version_label,
       assumption_overrides: null,
       engine_version: BSE_ENGINE_VERSION,
-      status: 'draft', is_accepted_property: false
+      /* §12 — Accepted marks the current working structure. It is NOT immutable:
+         nothing else in capture or save changes, and every field stays editable.
+         The only consequence is that the database refuses to hard-delete a round
+         that has already been presented (bse_round_delete_guard), which is why
+         save() no longer issues the surplus-round delete outside 'draft'. */
+      status: propertyAccepted ? 'under_contract' : 'draft',
+      is_accepted_property: !!propertyAccepted
     };
   }
 
@@ -3304,6 +6192,8 @@ const BSEModel = (function(){
     if(ui.gap_tab) gapSel = ui.gap_tab;
     if(typeof ui.manual_split_open === 'boolean') concSplit.auto = !ui.manual_split_open;
     if(Array.isArray(ui.collapsed_sections)){
+      /* after restoring collapse state, re-apply inert */
+      setTimeout(syncSectionInert, 0);
       document.querySelectorAll('.section').forEach(function(el){
         if(el.id) el.classList.toggle('collapsed', ui.collapsed_sections.indexOf(el.id) >= 0);
       });
@@ -3369,7 +6259,7 @@ function renderUnitToggles(){
   [['dp','dpUnitTg','dpIa'],['tax','taxUnitTg','taxIa']].forEach(([w,id,ia])=>{
     $(id).querySelectorAll('button').forEach(b=> b.classList.toggle('active', b.dataset.u===unitState[w]));
     // show the matching $ or % symbol inside the field
-    $(ia).className = 'ia '+(unitState[w]==='dollar'?'dollar':'pct');
+    $(ia).className = 'ia '+(unitState[w]==='pct'?'pct':'dollar');   // 'dollar' and 'dollarMo' both show $
   });
 }
 function setUnit(which, unit){
@@ -3712,12 +6602,19 @@ const BSEPersistence = (function(){
           if(error) throw error;
         }
         /* Only rounds the buyer has actually withdrawn are removed, and only
-           the surplus ones. If the scenario is no longer a draft the database
-           refuses, and that refusal is surfaced rather than swallowed. */
-        const highest = rows.negotiation_rounds.reduce((m, r) => Math.max(m, r.round_number), 0);
-        const { error: delErr } = await client.from('negotiation_round')
-          .delete().eq('property_scenario_id', rows.property_scenario.id).gt('round_number', highest);
-        if(delErr) throw delErr;
+           the surplus ones — and only while the scenario is still a draft.
+           bse_round_delete_guard is a BEFORE DELETE … FOR EACH ROW trigger, so
+           the ordinary zero-row case never fires it (pinned as D12d). Once the
+           scenario is accepted it CAN match a row — clearing a counter price
+           that was already saved — and the guard would then reject the statement
+           and fail every later autosave. A presented round is not withdrawable
+           by design (D12e), so the correct behaviour is not to ask. */
+        if(rows.property_scenario.status === 'draft'){
+          const highest = rows.negotiation_rounds.reduce((m, r) => Math.max(m, r.round_number), 0);
+          const { error: delErr } = await client.from('negotiation_round')
+            .delete().eq('property_scenario_id', rows.property_scenario.id).gt('round_number', highest);
+          if(delErr) throw delErr;
+        }
         return true;
       },
       async load(buyerProfileId){
@@ -3892,6 +6789,10 @@ const BSEPersistence = (function(){
     // The presentation payload is rebuilt from the AUTHORED values, never from
     // stored display strings, so the canonical (value, unit) pairs govern.
     const model = deserializeRows(rows, presentationFrom(rows), null);
+    /* §12 — Accepted is scenario state, not a DOM field, so it is restored here
+       rather than through the presentation payload. Restored BEFORE apply() so
+       the first render after a load already reflects it. */
+    propertyAccepted = !!(rows.property_scenario && rows.property_scenario.is_accepted_property);
     BSEModel.apply(model);                 // canonical restore; no unit handler fires
     const recomputed = BSEModel.buildResultSummary();   // recompute always wins
 
@@ -4307,6 +7208,7 @@ window.BSEPersistence = BSEPersistence;
 function init(){
   attachFormatting();
   attachSections();
+  attachAnswerLayer();          // Phase 4 — delegated handlers for the answer layer
   attachGapButtons();
   attachConcessionHandlers();
   attachUnitToggles();

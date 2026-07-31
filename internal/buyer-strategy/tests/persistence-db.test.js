@@ -440,6 +440,55 @@ const CASES = [
     'delete from negotiation_round where property_scenario_id=$1 and round_number > 1', [D12.scId],
     /may only be deleted while the parent scenario is draft/);
 
+  /* ---------- D12f the ACCEPTED-SCENARIO autosave path ----------
+     Job 2 §12. D12d shows the surplus delete is harmless while both rounds
+     stand. The dangerous case is the one D12e describes from the other side:
+     the officer marks the scenario accepted and then CLEARS the counter price.
+     Capture then emits one round, `highest` drops to 1, and the surplus delete
+     would match round 2 — a real row on a non-draft scenario — so the guard
+     fires and every subsequent autosave throws.
+
+     The transport therefore skips the surplus delete entirely unless the
+     scenario is still a draft. This asserts that the skip is what makes the
+     accepted autosave survive, and that removing the skip would break it. */
+  let d12fErr = null, d12fRows = null;
+  try {
+    d12fRows = await asUser(db, USER_A, async () => {
+      const status = (await db.query('select status from property_scenario where id=$1', [D12.scId]))
+                       .rows[0].status;
+      for (const price of [489500, 490000]) {
+        await db.query(upsertRound({ round_number: 1, actor: 'buyer', price: price,
+                                     concession_value: 8000, concession_unit: 'amount',
+                                     negotiation_mode: 'split' }));
+        /* The shipped rule: only a draft scenario issues the surplus delete. */
+        if (status === 'draft') {
+          await db.query('delete from negotiation_round where property_scenario_id=$1 and round_number > $2',
+            [D12.scId, 1]);
+        }
+      }
+      return (await db.query('select round_number, actor, price from negotiation_round where property_scenario_id=$1 order by round_number',
+        [D12.scId])).rows;
+    });
+  } catch (e) { d12fErr = e.message; }
+  check('D12f autosave of an ACCEPTED scenario survives a cleared counter price, because the surplus delete is skipped outside draft',
+    d12fErr === null && d12fRows && d12fRows.length === 2 &&
+    parseFloat(d12fRows[0].price) === 490000,
+    d12fErr || JSON.stringify(d12fRows));
+  check('D12f …and the presented counter round is preserved rather than withdrawn',
+    d12fRows && d12fRows.length === 2 && d12fRows[1].actor === 'seller',
+    JSON.stringify(d12fRows));
+
+  /* And the mutation proof: WITHOUT the skip, the same sequence fails. */
+  await expectViolation('D12f mutation proof — issuing the surplus delete on an accepted scenario is exactly what the guard rejects',
+    'delete from negotiation_round where property_scenario_id=$1 and round_number > $2', [D12.scId, 1],
+    /may only be deleted while the parent scenario is draft/);
+
+  /* The application must actually contain that guard, not just the test. */
+  check('D12f the transport confines the surplus-round delete to draft scenarios',
+    /if\(rows\.property_scenario\.status === 'draft'\)\s*\{[\s\S]{0,400}?\.delete\(\)\.eq\('property_scenario_id'/
+      .test(fs.readFileSync(APP, 'utf8')),
+    'the surplus delete in save() is not guarded on status === draft');
+
   /* ---------- D13 the ANONYMOUS pre-authentication surface ----------
      The first live sign-in attempt failed because the client read
      program_assumption_set at boot. That table is granted to `authenticated`

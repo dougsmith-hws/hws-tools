@@ -35,7 +35,17 @@ function check(name, ok, detail) {
 /* ---------- in-page helpers (serialized into the browser) ---------- */
 const PAGE_HELPERS = `
 window.__set = function(sc){
-  var f = sc.fields || {};
+  /* This suite is DIFFERENTIAL: it drives the pre-Phase-3 baseline file and the
+     file under test and compares them. Any input it does not set explicitly is
+     inherited from each file's own markup defaults — so the moment those
+     defaults diverge, every case fails for a reason that has nothing to do with
+     the behaviour under test. That happened when the property-tax field's
+     default value was blanked (a stale 1.20 sitting in a $/MO field would
+     have meant one dollar twenty per month). PITI assumptions are pinned here, matching
+     the values the baseline file shipped with, and a case may still override
+     any of them. This pins the test's INTENT, not its outcome. */
+  var PINNED = { taxRate:'1.20', hoi:'150', hoa:'0', cdd:'0', flood:'0' };
+  var f = Object.assign({}, PINNED, sc.fields || {});
   Object.keys(f).forEach(function(id){
     var el = document.getElementById(id); if(!el) return;
     if(el.type==='checkbox') el.checked = !!f[id]; else el.value = f[id];
@@ -44,9 +54,14 @@ window.__set = function(sc){
     document.querySelectorAll('input[name="negMode"]').forEach(function(r){ r.checked = (r.value===sc.negMode); });
   }
   // Units are assigned directly on BOTH files so the economic inputs are identical.
+  // The DEFAULTS are pinned explicitly rather than inherited from the application:
+  // a case that means "1.20 percent" must say so, or it silently re-interprets
+  // itself when the application's default display unit changes (as it did when
+  // $/MO became the default property-tax mode). The baseline file and the file
+  // under test are set identically either way, so this pins intent, not outcome.
   var u = sc.units || {};
-  if(u.dp) unitState.dp = u.dp;
-  if(u.tax) unitState.tax = u.tax;
+  unitState.dp  = u.dp  || 'pct';
+  unitState.tax = u.tax || 'pct';
   if(u.offerConc) offerConcUnit.v = u.offerConc;
   if(u.counterConc) counterUnit.v = u.counterConc;
   renderUnitToggles();
