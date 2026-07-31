@@ -696,6 +696,24 @@
     .goalbar .gb-v{font-size:12px}
     .pw .pw-v{font-size:23px}
   }
+/* ---- WP-1 Florida tax panel ---- */
+.flbox{margin-top:10px;border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:#fbfdff}
+.flbox.hide{display:none}
+.fl-on{display:flex;align-items:center;gap:7px;font-size:13px;font-weight:600;cursor:pointer;margin:2px 0 4px}
+.fl-on input{margin:0}
+.fl-hint{font-weight:400;color:var(--sub);font-size:11.5px}
+.fl-body{display:none;padding:4px 0 0 2px}
+.fl-body.on{display:block}
+.fl-out{margin-top:8px}
+.fl-t{width:100%;border-collapse:collapse;font-size:12.5px}
+.fl-t td{padding:4px 6px;border-bottom:1px solid var(--line)}
+.fl-t td:last-child{text-align:right;font-variant-numeric:tabular-nums}
+.fl-t tr.fl-tot td{font-weight:800;border-bottom:none}
+.fl-y1{color:#0f172a}
+.fl-y2{color:#166534}
+.fl-note{font-size:11.5px;color:var(--sub);margin-top:5px;line-height:1.45}
+.fl-warn{font-size:11.5px;color:#b45309;margin-top:5px}
+
 </style>
 </head>
 <body>
@@ -779,6 +797,38 @@
         <div class="fld pitirow"><label>CDD /mo <label class="na"><input type="checkbox" id="cddNA" checked>N/A</label></label><div class="ia dollar"><input id="cdd" type="text" inputmode="numeric" value="0"></div><div class="sub" id="cddSub"></div></div>
         <div class="fld pitirow"><label>Flood ins. /mo <label class="na"><input type="checkbox" id="floodNA" checked>N/A</label></label><div class="ia dollar"><input id="flood" type="text" inputmode="numeric" value="0"></div><div class="sub" id="floodSub"></div></div>
       </div>
+
+      <!-- ===== WP-1 · FLORIDA TAX, HOMESTEAD & SAVE OUR HOMES PORTABILITY =====
+           Property mode only. Derives the Year 1 (reassessed, no exemptions)
+           and Year 2 (homestead + portability) tax figures from authored
+           inputs. Year 1 is what the payment engine uses. Year 2 is shown
+           alongside it and never replaces it. -->
+      <div class="flbox" id="flBox">
+        <label class="fl-on"><input type="checkbox" id="flTaxOn"> <b>Estimate Florida taxes</b> <span class="fl-hint">millage + homestead + portability</span></label>
+        <div class="fl-body" id="flBody">
+          <div class="igrid">
+            <div class="fld"><label>Millage rate <span class="na">mills</span></label>
+              <div class="ia"><input id="flMillage" type="text" inputmode="decimal" placeholder="e.g. 18.2300"></div>
+              <div class="sub" id="flMillageSub">County property appraiser &rarr; this parcel &rarr; total millage. Do not estimate.</div></div>
+            <div class="fld"><label>Non-ad-valorem $/yr</label>
+              <div class="ia dollar"><input id="flNonAdVal" type="text" inputmode="numeric" placeholder="0"></div>
+              <div class="sub">Solid waste, stormwater, CDD assessments billed on the tax bill.</div></div>
+          </div>
+          <label class="fl-on"><input type="checkbox" id="flHomestead"> Buyer will file homestead <span class="fl-hint">own &amp; occupy by Jan 1, file by Mar 1</span></label>
+          <div class="fl-body" id="flPortBody">
+            <div class="igrid">
+              <div class="fld"><label>Prior FL homestead &mdash; market value</label>
+                <div class="ia dollar"><input id="flPriorMkt" type="text" inputmode="numeric" placeholder="blank = no portability"></div>
+                <div class="sub">Just/market value of the home they are leaving.</div></div>
+              <div class="fld"><label>Prior FL homestead &mdash; assessed value</label>
+                <div class="ia dollar"><input id="flPriorAssessed" type="text" inputmode="numeric" placeholder="blank = no portability"></div>
+                <div class="sub">Assessed (SOH-capped) value on the same parcel.</div></div>
+            </div>
+          </div>
+          <div class="fl-out" id="flTaxOut"></div>
+        </div>
+      </div>
+
     </div>
 
   </div>
@@ -1567,6 +1617,113 @@ const A_CONST = {
 };
 
 /* =====================================================================
+   WP-1 — FLORIDA PROPERTY TAX, HOMESTEAD AND SAVE OUR HOMES PORTABILITY
+   =====================================================================
+   Pure functions. They live OUTSIDE the protected calculation engine
+   (Engine, lines ~915-1479) and never modify it. Their only route into
+   the engine is the annual dollar figure handed to BSEModel.toInputs()
+   as tax_annual_amount, which computeScenario() already accepts as
+   taxMonthly + taxFixed. No engine signature changes.
+
+   TWO FIGURES, DELIBERATELY DISTINCT
+     Year 1  assessed = purchase price (reassessment on sale), NO exemptions.
+             The buyer cannot hold homestead in the year of purchase: they
+             must own and occupy on 1 January and file by 1 March. This is
+             the conservative figure and it is what the payment engine uses.
+     Year 2  assessed = purchase price less any transferred Save Our Homes
+             benefit, then less the homestead exemptions. Presentation only.
+             It NEVER replaces Year 1 (WP-1 decision 2).
+
+   PORTABILITY — the proportional downsizing rule is implemented.
+     Upsizing / equal  (new market >= prior market):
+         benefit = prior market - prior assessed
+     Downsizing        (new market <  prior market):
+         benefit = (new market / prior market) x (prior market - prior assessed)
+     Both capped at $500,000 (s.193.155(8), F.S.), and never more than the
+     new market value.
+
+   HOMESTEAD EXEMPTION — both tiers, correctly.
+     First  $25,000 of assessed value: exempt from ALL levies.
+     Second $25,000 (assessed between $50,000 and $75,000): exempt from
+     NON-SCHOOL levies only.
+     A single blended millage cannot express a school/non-school split, so
+     the taxable base is the average of the two. The residual error is
+     12,500 x (m_nonschool - m_school) / 1000 dollars a year and is
+     disclosed on screen rather than hidden.
+
+   NOT IN SCOPE (WP-1): the Save Our Homes 3% annual cap beyond year 2, the
+   non-homestead 10% cap, senior/veteran/widow exemptions, and any county
+   lookup or external integration.
+   ===================================================================== */
+const FL_TAX = {
+  PORT_CAP: 500000,
+  HX_FIRST: 25000,
+  HX_SECOND_FLOOR: 50000,
+  HX_SECOND_CEIL: 75000
+};
+
+/* Transferable Save Our Homes benefit, with the proportional downsizing rule. */
+function flPortabilityBenefit(priorMarket, priorAssessed, newMarket){
+  const pm = +priorMarket || 0, pa = +priorAssessed || 0, nm = +newMarket || 0;
+  if(!(pm > 0) || !(nm > 0)) return { benefit:0, proportional:false, rawBenefit:0, capped:false };
+  const raw = Math.max(0, pm - pa);
+  if(raw <= 0) return { benefit:0, proportional:false, rawBenefit:0, capped:false };
+  const proportional = nm < pm;
+  let benefit = proportional ? (nm / pm) * raw : raw;
+  const capped = benefit > FL_TAX.PORT_CAP;
+  benefit = Math.min(benefit, FL_TAX.PORT_CAP, nm);
+  return { benefit:benefit, proportional:proportional, rawBenefit:raw, capped:capped };
+}
+
+/* Taxable value after both homestead tiers, blended across school/non-school. */
+function flHomesteadTaxable(assessed){
+  const a = Math.max(0, +assessed || 0);
+  const school = Math.max(0, a - FL_TAX.HX_FIRST);
+  const second = Math.min(FL_TAX.HX_SECOND_FLOOR / 2,
+                          Math.max(0, a - FL_TAX.HX_SECOND_FLOOR));
+  const nonSchool = Math.max(0, school - second);
+  return { school:school, nonSchool:nonSchool, blended:(school + nonSchool) / 2,
+           secondExemption:second };
+}
+
+/* Full Year 1 / Year 2 estimate. Returns null when it cannot be computed. */
+function flTaxEstimate(o){
+  const price = +o.price || 0, mills = +o.millage || 0;
+  if(!(price > 0) || !(mills > 0)) return null;
+  const nonAd = Math.max(0, +o.nonAdValorem || 0);
+  const rate = mills / 1000;
+
+  const y1Assessed = price;                       // reassessed on sale
+  const y1Taxable  = price;                       // no exemptions in year 1
+  const y1AdVal    = y1Taxable * rate;
+  const y1Annual   = y1AdVal + nonAd;
+
+  const port = o.homestead
+    ? flPortabilityBenefit(o.priorMarketValue, o.priorAssessedValue, price)
+    : { benefit:0, proportional:false, rawBenefit:0, capped:false };
+
+  const y2Assessed = Math.max(0, price - port.benefit);
+  const hx = o.homestead ? flHomesteadTaxable(y2Assessed)
+                         : { school:y2Assessed, nonSchool:y2Assessed,
+                             blended:y2Assessed, secondExemption:0 };
+  const y2Taxable = hx.blended;
+  const y2AdVal   = y2Taxable * rate;
+  const y2Annual  = y2AdVal + nonAd;
+
+  return {
+    millage: mills, nonAdValorem: nonAd, homestead: !!o.homestead,
+    year1: { assessed:y1Assessed, taxable:y1Taxable, adValorem:y1AdVal,
+             annual:y1Annual, monthly:y1Annual/12, basis:'projected_reassessed' },
+    year2: { assessed:y2Assessed, taxable:y2Taxable, adValorem:y2AdVal,
+             annual:y2Annual, monthly:y2Annual/12, basis:'stabilized_homestead',
+             schoolTaxable:hx.school, nonSchoolTaxable:hx.nonSchool },
+    portability: port,
+    annualSaving: y1Annual - y2Annual,
+    monthlySaving: (y1Annual - y2Annual) / 12
+  };
+}
+
+/* =====================================================================
    SOLVER — REQUIRED DOWN PAYMENT FOR A TARGET PAYMENT      (Phase 4, N-1)
    =====================================================================
    "The house is $461,000 and the buyer wants to keep the payment at
@@ -1815,6 +1972,64 @@ function gatherInputs(){
   return BSEModel.toInputs(BSEModel.capture());
 }
 
+/* ---------- WP-1 · Florida tax panel rendering ----------
+   Shows the derivation, both years, and every assumption it made. It states
+   the assumption rather than warning about it, and it never picks a winner. */
+function renderFlPanel(inp){
+  const box = $('flBox'); if(!box) return;
+  // Property mode only — a millage estimate needs a price and a parcel.
+  box.classList.toggle('hide', !!inp.shopping);
+  const on = $('flTaxOn').checked;
+  $('flBody').classList.toggle('on', on);
+  $('flPortBody').classList.toggle('on', on && $('flHomestead').checked);
+
+  const out = $('flTaxOut');
+  if(!on){ out.innerHTML=''; return; }
+
+  const fl = BSEModel.flTaxNow();
+  if(!fl || !fl.active){
+    out.innerHTML = '<div class="fl-warn">\u26a0 Enter a purchase price and a millage rate to estimate.</div>';
+    return;
+  }
+  const i = fl.inputs || {};
+  const hs = !!i.homestead_intent;
+  const port = fl.portabilityBenefit || 0;
+
+  let h = '<table class="fl-t">';
+  h += '<tr><td>Assessed at purchase <span class="fl-hint">reassessed to price</span></td><td>'+money(inp.price)+'</td></tr>';
+  if(hs && port>0){
+    h += '<tr><td>Less Save Our Homes portability'+(fl.portabilityProportional
+          ? ' <span class="fl-hint">proportional \u2014 downsizing</span>' : '')+
+         '</td><td>\u2212'+money(port)+'</td></tr>';
+  }
+  h += '<tr class="fl-tot"><td class="fl-y1"><b>Year 1 taxes</b> <span class="fl-hint">no exemptions yet</span></td>'+
+       '<td class="fl-y1"><b>'+money2(fl.year1Monthly)+'/mo</b> \u00b7 '+money(fl.year1Annual)+'/yr</td></tr>';
+  h += '<tr class="fl-tot"><td class="fl-y2"><b>Year 2 projected</b> <span class="fl-hint">'+
+       (hs ? 'homestead filed' : 'no homestead')+'</span></td>'+
+       '<td class="fl-y2"><b>'+money2(fl.year2Monthly)+'/mo</b> \u00b7 '+money(fl.year2Annual)+'/yr</td></tr>';
+  if(Math.abs(fl.monthlySaving) >= 0.005){
+    h += '<tr class="fl-tot"><td class="fl-y2">Projected change from Year 2</td>'+
+         '<td class="fl-y2">\u2212'+money2(fl.monthlySaving)+'/mo</td></tr>';
+  }
+  h += '</table>';
+
+  h += '<div class="fl-note"><b>Year 1 is what the payment above uses.</b> '+
+       'The buyer cannot hold homestead in the year of purchase \u2014 they must own and '+
+       'occupy on 1 January and file by 1 March, so the exemption and any portability '+
+       'benefit first appear on the following year\u2019s bill.</div>';
+  h += '<div class="fl-note">Assumptions: assessed value equals the purchase price; a single '+
+       'blended millage of '+(i.millage||0).toFixed(4)+' mills'+
+       ((i.non_ad_valorem_annual>0) ? ' plus '+money(i.non_ad_valorem_annual)+'/yr non-ad-valorem' : '')+
+       '. The second $25,000 exemption applies to non-school levies only; with one blended '+
+       'millage the taxable base is the average of the two, which is exact only when school '+
+       'and non-school millage are equal. Save Our Homes growth beyond Year 2 is not projected.</div>';
+  if(fl.portabilityProportional){
+    h += '<div class="fl-warn">\u26a0 Downsizing \u2014 the buyer is purchasing below the prior '+
+         'home\u2019s market value, so the transferred benefit is prorated, not transferred in full.</div>';
+  }
+  out.innerHTML = h;
+}
+
 /* ---------- inline input hints ---------- */
 function updateInlineHints(inp){
   $('totalFunds').value = Math.round(inp.funds).toLocaleString('en-US');
@@ -1830,7 +2045,11 @@ function updateInlineHints(inp){
   /* §7 — communicate the assumption; do not warn about it. A fixed monthly tax
      is a legitimate assumption, and in Shopping Range it is often the RIGHT one
      because it is what the Arive quote shows. */
-  if(inp.taxIsDollar){
+  const flNow = BSEModel.flTaxNow();
+  if(flNow && flNow.active){
+    taxSub.textContent = 'Florida estimate in use \u2014 Year 1 ' + money2(flNow.year1Monthly) +
+      '/mo, Year 2 projected ' + money2(flNow.year2Monthly) + '/mo. The field below is ignored.';
+  } else if(inp.taxIsDollar){
     const perMo = money2(inp.taxMonthly), perYr = money2(inp.taxRaw);
     const scale = ' — fixed at every price';
     if(unitState.tax==='dollarMo'){
@@ -3575,6 +3794,17 @@ function job2PaymentAnswerHTML(inp, sol, st){
   const additional = planned === null ? null : Math.max(0, r.dpDollar - planned);
   const cls = st.state === 'yes' ? 'good' : 'warn';
 
+  /* WP-1 — when the Florida estimate is active, name both years so the advisor
+     can explain the change. Year 1 is the payment quoted everywhere above; Year 2
+     is projection only and never substitutes for it. */
+  const flJ2 = BSEModel.flTaxNow();
+  const flNote = (flJ2 && flJ2.active && Math.abs(flJ2.monthlySaving) >= 0.005)
+    ? '<div class="wi-s"><b>Taxes:</b> Year 1 ' + money2(flJ2.year1Monthly) + '/mo is in this payment. ' +
+      'From Year 2, once homestead' + (flJ2.portabilityBenefit > 0 ? ' and portability' : '') +
+      ' apply, the projection is ' + money2(flJ2.year2Monthly) + '/mo \u2014 about ' +
+      money2(flJ2.monthlySaving) + '/mo lower.</div>'
+    : '';
+
   let h = '<div class="wi-head ' + cls + '">' +
     '<div class="wi-k">Required down payment</div>' +
     '<div class="wi-v">' + money(r.dpDollar) +
@@ -3590,6 +3820,7 @@ function job2PaymentAnswerHTML(inp, sol, st){
       ' — ' + r.dpPct.toFixed(1) + '% of the price. ' + r.label + ' at ' + r.rate.toFixed(3) + '%' +
       (r.monthlyMI > 0 ? ', including ' + money(r.monthlyMI) + ' monthly mortgage insurance.'
                        : ', with no monthly mortgage insurance.')) + '</div>';
+  h += flNote;
   h += '</div>';
 
   h += '<div class="wi-rows">';
@@ -5217,6 +5448,7 @@ function recalc(){
   appliedConcTotal = inp.appliedConcession || 0;
 
   updateInlineHints(inp);
+  renderFlPanel(inp);        // WP-1 — Florida tax derivation panel
   // Concession allocation. By default it follows the buyer priority directly
   // (payment → rate buydown; cash / balanced / power → closing costs). Doug can
   // override via "Adjust split manually"; while manual (auto=false) his split is
@@ -5869,9 +6101,14 @@ const BSEModel = (function(){
       // authored without a schema change. Program defaults are NOT stored here.
       dti_override_enabled: false, dti_override_front: null,
       dti_override_back: null, dti_override_source: null,
-      // buyer-level FL fields (§4) — carried, never calculated with in Gate B
-      homestead_intent: null, prior_homestead_market_value: null,
-      prior_homestead_assessed_value: null, portability_eligible: false,
+      // buyer-level FL fields (§4) — ACTIVATED in WP-1. These four columns
+      // already existed and already round-tripped; only the null literals
+      // were standing between them and a calculation.
+      homestead_intent: ($('flHomestead') && $('flHomestead').checked) ? 'will_homestead' : null,
+      prior_homestead_market_value: blank('flPriorMkt') ? null : num('flPriorMkt'),
+      prior_homestead_assessed_value: blank('flPriorAssessed') ? null : num('flPriorAssessed'),
+      portability_eligible: !!($('flHomestead') && $('flHomestead').checked &&
+                               !blank('flPriorMkt') && !blank('flPriorAssessed')),
       status: 'active'
     };
   }
@@ -5931,13 +6168,47 @@ const BSEModel = (function(){
      no surface for authoring a property-level override distinct from the plan,
      so they capture as NULL and resolve() falls through to the plan. The
      mechanism is real and tested; the authoring UI is later-phase work. */
+  /* WP-1 — read the Florida panel. Lives INSIDE BSEModel because blank() is
+     scoped here; the pure calculators above are global and stay testable. */
+  function flReadInputs(){
+    if(!($('flTaxOn') && $('flTaxOn').checked)) return null;
+    if(blank('price')) return null;                 // property mode only
+    return {
+      price: num('price'),
+      millage: blank('flMillage') ? null : num('flMillage'),
+      nonAdValorem: blank('flNonAdVal') ? 0 : num('flNonAdVal'),
+      homestead: !!($('flHomestead') && $('flHomestead').checked),
+      priorMarketValue: blank('flPriorMkt') ? null : num('flPriorMkt'),
+      priorAssessedValue: blank('flPriorAssessed') ? null : num('flPriorAssessed')
+    };
+  }
+
   function capturePropertyScenario(){
+    /* WP-1 — read the FL panel once, derive once. */
+    const flIn = flReadInputs();
+    const flEst = flIn ? flTaxEstimate(flIn) : null;
+    const FL_CAP = {
+      inputs: flEst ? {
+        method:'fl_millage', millage:flIn.millage,
+        non_ad_valorem_annual:flIn.nonAdValorem,
+        homestead_intent: flIn.homestead,
+        prior_homestead_market_value: flIn.priorMarketValue,
+        prior_homestead_assessed_value: flIn.priorAssessedValue
+      } : null,
+      outputs: flEst ? {
+        year1_annual: flEst.year1.annual, year1_taxable: flEst.year1.taxable,
+        year2_annual: flEst.year2.annual, year2_taxable: flEst.year2.taxable,
+        portability_benefit: flEst.portability.benefit,
+        portability_proportional: flEst.portability.proportional,
+        annual_saving: flEst.annualSaving
+      } : null
+    };
     return {
       scenario_label: 'Scenario 1',
       // M-5: explicit, never inferred from a null price downstream
       analysis_mode: blank('price') ? 'shopping' : 'property',
       list_price: blank('price') ? null : num('price'),
-      tax_method: null,
+      tax_method: FL_CAP.inputs ? 'fl_millage' : null,
       hoi_monthly: null,
       hoa_monthly: null, hoa_status: null,
       cdd_monthly: null, cdd_status: null,
@@ -5951,7 +6222,13 @@ const BSEModel = (function(){
       dti_override_enabled: null, dti_override_front: null,
       dti_override_back: null, dti_override_source: null,
       closing_date: null, occupancy_date: null,
-      tax_inputs: null, tax_outputs: null, tax_method_version: null,
+      /* WP-1 — when the FL estimate is active the scenario authors
+         tax_method='fl_millage' and carries its inputs and derived outputs in
+         the jsonb columns that Phase 2 reserved for exactly this. No new
+         column, no competing structure. tax_outputs is a CACHE: it is
+         recomputed on every capture and is never read back as authority. */
+      tax_inputs: FL_CAP.inputs, tax_outputs: FL_CAP.outputs,
+      tax_method_version: FL_CAP.inputs ? 1 : null,
       // Gate B.75 — reconciled with Phase 2 §8. These are first-class Property
       // Scenario state, not temporary holders:
       //   negotiation_mode        the advisor's current strategy for THIS property.
@@ -6071,6 +6348,8 @@ const BSEModel = (function(){
       tax_rate_pct: sc.tax_method !== null ? sc.tax_rate_pct : sp.tax_rate_pct,
       tax_annual_amount: sc.tax_method !== null ? sc.tax_annual_amount : sp.tax_annual_amount,
       tax_input_unit: sc.tax_method !== null ? sc.tax_input_unit : sp.tax_input_unit,
+      // WP-1 — carried so toInputs() can use the derived Year 1 figure.
+      tax_inputs: sc.tax_inputs, tax_outputs: sc.tax_outputs,
       hoi_monthly: pick(sc.hoi_monthly, sp.hoi_monthly, 0),
       hoa: cost('hoa'), cdd: cost('cdd'), flood: cost('flood'),
       rate_conv: pick(sc.rate_conv, sp.rate_conv, A.rates_default.conv),
@@ -6115,6 +6394,9 @@ const BSEModel = (function(){
      The adapter that proves the model is complete: it reproduces the shape
      gatherInputs() returns, from the canonical model alone. gatherInputs()
      itself is unchanged and still drives the live application. */
+  /* WP-1 — presentation-only cache of the derived Florida figures. */
+  let lastFlTax = { active:false };
+
   function toInputs(model){
     const r = resolve(model), bp = model.buyer_profile;
     const shopping = r.analysis_mode === 'shopping';
@@ -6127,8 +6409,18 @@ const BSEModel = (function(){
         : { isPct:false, pct:null, dollar:r.dp_target_value };
     }
 
-    const taxIsDollar = r.tax_input_unit === 'amount';
-    const taxRaw = taxIsDollar ? (r.tax_annual_amount || 0) : (r.tax_rate_pct || 0);
+    /* WP-1 — Florida millage. When the scenario authors tax_method='fl_millage'
+       and a price exists, the YEAR 1 figure (reassessed to the purchase price,
+       no exemptions) becomes the authored annual amount. It reaches the engine
+       through the SAME taxMonthly + taxFixed path the engine already accepts,
+       so no engine signature changes. Year 2 rides along on the inputs object
+       for presentation and NEVER feeds a payment or a qualification. */
+    const flOut = (r.tax_method === 'fl_millage' && !shopping && priceNow > 0)
+                    ? (r.tax_outputs || null) : null;
+
+    const taxIsDollar = flOut ? true : (r.tax_input_unit === 'amount');
+    const taxRaw = flOut ? (flOut.year1_annual || 0)
+                         : (taxIsDollar ? (r.tax_annual_amount || 0) : (r.tax_rate_pct || 0));
     let taxRate, taxMonthly = null, taxFixed = false;
     if(taxIsDollar){
       taxMonthly = taxRaw/12; taxFixed = true;
@@ -6136,6 +6428,20 @@ const BSEModel = (function(){
     } else {
       taxRate = taxRaw;
     }
+
+    /* WP-1 — the derived FL figures, for PRESENTATION ONLY.
+       Deliberately NOT placed on the returned inputs object: that object is a
+       pinned differential surface (tests/m1-canonical-units) and must carry
+       economic inputs only. The engine never reads this. */
+    lastFlTax = flOut ? {
+      active: true,
+      year1Annual: flOut.year1_annual, year1Monthly: flOut.year1_annual/12,
+      year2Annual: flOut.year2_annual, year2Monthly: flOut.year2_annual/12,
+      monthlySaving: (flOut.year1_annual - flOut.year2_annual)/12,
+      portabilityBenefit: flOut.portability_benefit,
+      portabilityProportional: !!flOut.portability_proportional,
+      inputs: r.tax_inputs || null
+    } : { active:false };
 
     const buyerRound = model.negotiation_rounds.filter(function(x){ return x.actor==='buyer'; })[0] || null;
     // The concession comes from the buyer round once one exists, otherwise from the
@@ -6246,6 +6552,7 @@ const BSEModel = (function(){
   }
 
   return { capture: capture, apply: apply, resolve: resolve, toInputs: toInputs,
+    flTaxNow: function(){ return lastFlTax; },   // WP-1 presentation accessor
            resolveDti: resolveDti, assumptionSet: ASSUMPTION_SET,
            buildResultSummary: buildResultSummary, loadWithRecompute: loadWithRecompute,
            RESULT_SUMMARY_AUTHORITATIVE: RESULT_SUMMARY_AUTHORITATIVE,
@@ -7215,7 +7522,8 @@ function init(){
   attachCounterHandlers();
   const SKIP={offerPrice:1, offerConc:1, concBuydown:1, concCosts:1}; // handled explicitly
   // Whole-dollar fields that comma-format live as the user types.
-  const DOLLAR = new Set(['price','ownFunds','gift','target','income','debts','ccOverride','hoi','hoa','cdd','flood']);
+  const DOLLAR = new Set(['price','ownFunds','gift','target','income','debts','ccOverride','hoi','hoa','cdd','flood',
+                          'flNonAdVal','flPriorMkt','flPriorAssessed']);   // WP-1
   // Dual-unit fields: comma-format live only when their $ / % toggle is on $.
   const DOLLAR_UNIT = { dpTarget:'dp', taxRate:'tax' };
   document.querySelectorAll('input,select').forEach(el=>{

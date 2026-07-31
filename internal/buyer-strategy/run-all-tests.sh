@@ -64,6 +64,7 @@ run "job1 what-if (required down)"     node tests/job1-whatif.test.js "$APP"
 run "job1 closeout (presentation)"     node tests/job1-closeout.test.js "$APP"
 run "job1 rate impact"                 node tests/job1-rate-impact.test.js "$APP"
 run "job2 property strategy"           node tests/job2-property-strategy.test.js "$APP"
+run "fl-tax (WP-1 FL/homestead)"       node tests/fl-tax.test.js "$APP"
 if [ -f "$BASELINE" ]; then
   run "m1-canonical-units"            node tests/m1-canonical-units.test.js "$BASELINE" "$APP"
 else
