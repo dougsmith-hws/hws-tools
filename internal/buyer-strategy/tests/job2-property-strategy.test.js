@@ -186,12 +186,22 @@ const scanBad = t => (t.match(BAD) || []);
   ok('Shopping Range still activates when the list price is blank', !!j1, j1);
   ok('Comfort Shopping Max is still $484,259', near(j1.comfort, 484259, 1), j1);
   ok('Maximum Purchasing Power is still $674,670', near(j1.qual, 674670, 1), j1);
-  ok('Cash-Limited Buying Power is still $1,816,667', near(j1.cash, 1816667, 1), j1);
+  /* CLEANUP §5 — the cash ceiling is still COMPUTED at exactly the same figure;
+     it simply stopped being a headline. */
+  ok('the cash ceiling is still computed at $1,816,667', near(j1.cash, 1816667, 1), j1);
   ok('the controlling constraint is still Comfort Payment', j1.controlling === 'Comfort Payment', j1);
   ok('Shop up to is still the comfort figure', near(j1.shopTo, 484259, 1), j1);
   const shopTxt = await body();
-  ok('Job 1 still shows all three cards', /COMFORT SHOPPING MAX/i.test(shopTxt) &&
-     /MAXIMUM PURCHASING POWER/i.test(shopTxt) && /CASH-LIMITED BUYING POWER/i.test(shopTxt));
+  /* CLEANUP §3/§5/§17 — the three live-call figures. This is Doug's own example:
+     $484,259 comfort, $674,670 qualifying, and 32.0% DTI at the comfort price
+     ((3,000 target + 40 debts) / 9,500 income). */
+  ok('Job 1 shows the three live-call figures', /COMFORT PURCHASE PRICE/i.test(shopTxt) &&
+     /MAX QUALIFYING PRICE/i.test(shopTxt) && /DTI AT COMFORT PRICE/i.test(shopTxt), shopTxt.slice(0, 300));
+  ok('DTI at Comfort Price reads 32.0%', /32\.0%/.test(shopTxt), shopTxt.slice(0, 300));
+  ok('Cash-Limited Buying Power is no longer a headline',
+     !/CASH-LIMITED BUYING POWER/i.test(shopTxt), shopTxt.slice(0, 300));
+  ok('the redundant Limiting Factor card is gone when comfort is controlling',
+     !/LIMITING FACTOR/i.test(shopTxt), shopTxt.slice(0, 300));
   ok('Job 1 still shows the required-down what-if', /How much down to stay at \$3,000\/mo\?/i.test(shopTxt));
   ok('Job 1 still shows Rate Impact', /What would a rate change mean\?/i.test(shopTxt));
   ok('Job 1 still shows the debt payoff lever', /Debt payoff lever/i.test(shopTxt));
@@ -412,10 +422,15 @@ const scanBad = t => (t.match(BAD) || []);
   ok('G the requested adjustment is $10,000', near(n.room, 10000, 0.01), n);
   ok('G negotiable seller value counts the concession too', near(n.sellerValue, 20000, 0.01), n);
   ok('G the goal-first panel renders', n.rendered, n);
-  ok('G it names the winning path', new RegExp(n.recommendedPathKey === 'reduction' ? 'Price reduction'
+  ok('G it names the lever the stated priority points at',
+     new RegExp(n.recommendedPathKey === 'reduction' ? 'Price reduction'
         : n.recommendedPathKey === 'concession' ? 'concession' : 'Split', 'i').test(n.text), n.text.slice(0, 400));
-  ok('G it states a recommendation tied to the buyer goal',
-     /Recommendation\.[\s\S]{0,400}stated goal/i.test(n.text), n.text.slice(0, 600));
+  /* LIVE-CALL CLEANUP §15 — the heading is no longer "Recommendation." BSE
+     states where the STATED priority points and stops there; it does not
+     recommend a strategy. */
+  ok('G it states where the stated priority points, not a recommendation',
+     /Where your stated priority points\.[\s\S]{0,400}stated goal/i.test(n.text), n.text.slice(0, 600));
+  ok('G and it does not call itself a recommendation', !/\bRecommendation\./i.test(n.text), n.text.slice(0, 400));
   ok('G with a payment priority the recommendation reasons about payment',
      /Lowest payment|payment/i.test(n.text), n.text.slice(0, 400));
   ok('G all three paths are compared when there is room to allocate',

@@ -85,9 +85,19 @@ window.__set = function(sc){
    never mask a moved NUMBER, because no number is touched. Anything not on
    this list still fails.
 
-     WP-3  "★ Start here"  ->  "Matches your stated priority"
-           The badge stopped being a recommendation and became a statement of
-           which structure the buyer's stated priority points at.
+     WP-3      "★ Start here"  ->  "Matches your stated priority"
+               The badge stopped being a recommendation and became a statement
+               of which structure the buyer's stated priority points at.
+     CLEANUP   " ★" on a table column  ->  REMOVED
+               Same change, applied to the negotiation comparison: the column
+               the stated priority points at carries a small "matches your
+               priority" tag when more than one column is shown, and NO marker
+               at all when there is only one column — a tag on the only column
+               is noise. Both the old star and the new tag are stripped from
+               both sides, so the comparison is of the figures, which is what
+               this differential is for.
+     CLEANUP   "Recommendation."  ->  "Where your stated priority points."
+               BSE stopped recommending a strategy.
    -------------------------------------------------------------------- */
 window.__renames = function(s){
   if(s == null) return s;
@@ -95,10 +105,44 @@ window.__renames = function(s){
     .replace(/★ Start here/gi, 'PRIORITY-MATCH BADGE')
     .replace(/★ START HERE/g,  'PRIORITY-MATCH BADGE')
     .replace(/Matches your stated priority/gi, 'PRIORITY-MATCH BADGE')
-    .replace(/MATCHES YOUR STATED PRIORITY/g,  'PRIORITY-MATCH BADGE');
+    .replace(/MATCHES YOUR STATED PRIORITY/g,  'PRIORITY-MATCH BADGE')
+    .replace(/\\s*★\\s*/g, '')
+    .replace(/\\s*matches your priority\\s*/gi, '')
+    .replace(/Where your stated priority points\./gi, 'PRIORITY-POINTER HEADING')
+    .replace(/Recommendation\./g, 'PRIORITY-POINTER HEADING')
+    .replace(/Engine\u2019s pick:/g, 'PRIORITY POINTER:')
+    .replace(/Your stated priority points at/g, 'PRIORITY POINTER:');
+};
+/* ---- APPROVED BLOCK CHANGES -----------------------------------------
+   The live-call cleanup changed the SHAPE of the Section 1 snapshot by
+   approval: it added "DTI at Comfort Price" and suppressed the "Limiting
+   Factor" card in the normal case where the comfort payment is controlling.
+   Neither can be normalised with a string substitution, so the two blocks are
+   removed BY DOM CLASS, from BOTH files, before the text is read.
+
+   This is narrower than a text filter and cannot hide a moved number: it
+   removes two named elements and nothing else, and every other figure in the
+   panel is still compared byte-for-byte. The removed blocks are covered by
+   their own assertions elsewhere — job2-property-strategy pins the 32.0% DTI
+   figure against Doug's own worked example, and buyer-priority pins that the
+   Limiting Factor card is absent when comfort controls.
+
+     .snap-stat.pp-dti   the added DTI-at-comfort figure
+     .limfac             the suppressed Limiting Factor card
+   -------------------------------------------------------------------- */
+window.__APPROVED_BLOCKS = ['.snap-stat.pp-dti', '.limfac'];
+window.__panelText = function(el){
+  var c = el.cloneNode(true);
+  window.__APPROVED_BLOCKS.forEach(function(sel){
+    c.querySelectorAll(sel).forEach(function(n){ n.remove(); });
+  });
+  /* cloneNode detaches from layout, so innerText is not available on the clone
+     in every engine — textContent with whitespace collapsed is equivalent for a
+     change-detector and is what the original comparison effectively used. */
+  return (c.textContent || '').replace(/\\s+/g,' ').trim();
 };
 window.__fingerprint = function(){
-  var t = function(id){ var e=document.getElementById(id); return e ? window.__renames((e.innerText||'').replace(/\\s+/g,' ').trim()) : null; };
+  var t = function(id){ var e=document.getElementById(id); return e ? window.__renames(window.__panelText(e)) : null; };
   return {
     inputs: JSON.parse(JSON.stringify(gatherInputs())),
     modeBadge: t('modeBadge'),
@@ -246,8 +290,8 @@ async function partA(browser) {
       if (k === 'inputs') continue;
       if (JSON.stringify(fa[k]) !== JSON.stringify(fb[k])) {
         ok = false;
-        detail += '\n          key=' + k + '\n           baseline: ' + JSON.stringify(fa[k]).slice(0, 400) +
-                  '\n            patched: ' + JSON.stringify(fb[k]).slice(0, 400);
+        detail += '\n          key=' + k + '\n           baseline: ' + JSON.stringify(fa[k]) +
+                  '\n            patched: ' + JSON.stringify(fb[k]);
       }
     }
     // gatherInputs(): baseline keys exact, additions declared and inert.

@@ -184,10 +184,13 @@ window.__probe = function(id, price, dpPct){
   console.log('\n--- 2b · all three buying-power figures use the same assumption ---');
   ok('Comfort Shopping Max is present', d.snap && d.snap.comfort > 0, d.snap);
   ok('Maximum Purchasing Power is present', d.snap && d.snap.qual > 0, d.snap);
-  ok('Cash-Limited Buying Power is present', d.snap && isFinite(d.snap.cash) && d.snap.cash > 0, d.snap);
-  for (const [k, label] of [['comfortPrice', 'Comfort Shopping Max'],
-                            ['qualPrice', 'Maximum Purchasing Power'],
-                            ['cashPrice', 'Cash-Limited Buying Power']]) {
+  /* CLEANUP §5 — the cash ceiling is no longer a HEADLINE, but it is still
+     computed and still ranked in the constraint arithmetic, and it must still be
+     solved with the authored dollars held fixed. That is what is asserted here. */
+  ok('the cash ceiling is still computed with the authored dollars', d.snap && isFinite(d.snap.cash) && d.snap.cash > 0, d.snap);
+  for (const [k, label] of [['comfortPrice', 'Comfort Purchase Price'],
+                            ['qualPrice', 'Max Qualifying Price'],
+                            ['cashPrice', 'Cash ceiling (secondary)']]) {
     if (!conv) break;
     const P = conv[k];
     if (!isFinite(P) || P <= 0) continue;
@@ -195,8 +198,10 @@ window.__probe = function(id, price, dpPct){
     ok(label + ' was solved with exactly $150,000 down', near(probe.down, 150000, 0.5),
        { ceiling: P, down: probe.down });
   }
-  ok('the cash card names the authored dollar amount, not a derived percent',
-     /available with \$150,000 down/.test(d.answerBody), d.answerBody.slice(0, 400));
+  /* CLEANUP §10 — the authored dollar figure is restated as supporting
+     information rather than in a cash card that no longer exists. */
+  ok('the authored dollar amount is named, not a derived percent',
+     /\$150,000 down/.test(d.answerBody), d.answerBody.slice(0, 400));
 
   /* ================================================================
      3 · PERCENT MODE IS EQUALLY PRESERVED

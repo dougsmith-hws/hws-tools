@@ -399,7 +399,8 @@ window.__timing = function(n){
   ok('the detailed table is behind one click', /View rate scenarios/i.test(panel));
 
   const answer = await page.evaluate(() => window.__answer());
-  const order = ['COMFORT SHOPPING MAX', 'MAXIMUM PURCHASING POWER', 'CASH-LIMITED BUYING POWER',
+  /* CLEANUP §3/§5 — the third headline is DTI at Comfort Price. */
+  const order = ['COMFORT PURCHASE PRICE', 'MAX QUALIFYING PRICE', 'DTI AT COMFORT PRICE',
                  'SHOP UP TO', 'How much down to stay at', 'What would a rate change mean',
                  'Debt payoff lever'];
   let last = -1, inOrder = true, bad = null;

@@ -303,7 +303,8 @@ window.__roundTripUnit = function(value, unit){
      ================================================================ */
   console.log('\n--- 8 · answer-first order on the primary screen ---');
   const body = await page.evaluate(() => window.__answer());
-  const order = ['COMFORT SHOPPING MAX', 'MAXIMUM PURCHASING POWER', 'CASH-LIMITED BUYING POWER',
+  /* CLEANUP §3/§5 — the third headline is DTI at Comfort Price. */
+  const order = ['COMFORT PURCHASE PRICE', 'MAX QUALIFYING PRICE', 'DTI AT COMFORT PRICE',
                  'SHOP UP TO', 'How much down to stay at', 'Why this number', 'Debt payoff lever'];
   let lastIdx = -1, inOrder = true, offender = null;
   for (const token of order) {

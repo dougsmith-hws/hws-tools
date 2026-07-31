@@ -127,10 +127,14 @@ function scanBad(text) {
   let t = await answerText();
   ok('Job 1 renders when no list price is entered',
      /What should this buyer shop for/.test(await page.evaluate(() => window.__txt('answerHead'))));
-  ok('Comfort Shopping Max is shown', /COMFORT SHOPPING MAX/i.test(t), t.slice(0, 200));
-  ok('Maximum Purchasing Power is shown', /MAXIMUM PURCHASING POWER/i.test(t));
-  ok('Cash-Limited Buying Power is shown — always, not only when it binds',
-     /CASH-LIMITED BUYING POWER/i.test(t));
+  /* LIVE-CALL CLEANUP §3/§5/§17 — the third headline is no longer a theoretical
+     cash ceiling. The primary view answers: where should they shop, what could
+     they qualify for, and how much qualifying room is left. */
+  ok('Comfort Purchase Price is shown', /COMFORT PURCHASE PRICE/i.test(t), t.slice(0, 200));
+  ok('Max Qualifying Price is shown', /MAX QUALIFYING PRICE/i.test(t));
+  ok('DTI at Comfort Price is shown', /DTI AT COMFORT PRICE/i.test(t));
+  ok('Cash-Limited Buying Power is NOT a headline',
+     !/CASH-LIMITED BUYING POWER/i.test(t), t.slice(0, 300));
   ok('a single "shop up to" figure is stated', /SHOP UP TO/i.test(t));
   ok('exactly one figure is flagged controlling',
      (t.match(/controlling/gi) || []).length === 1, (t.match(/controlling/gi) || []).length);

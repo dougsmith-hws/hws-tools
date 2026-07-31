@@ -256,24 +256,27 @@ const BASE = {
        /most cash left after closing/i.test(r.prioritySub), r.prioritySub);
   }
   {
-    const r = await W({ desiredReserves: '900,000' }, 'reserves');
-    ok('C3 a goal nothing can clear still returns an answer rather than nothing',
-       r.pick !== null, r.pick);
-    ok('C3b and the reason admits the goal was not reached',
-       /no eligible option reaches/i.test(r.pick.reason || ''), r.pick.reason);
-    ok('C3c and the floor is reported as NOT applied', r.pick.floorApplied === false, r.pick);
+    /* LIVE-CALL CLEANUP §6 — the authored reserve GOAL left the workflow, so the
+       floor is always the WP-2 default of $500 and every eligible scenario
+       clears it on this buyer. What still matters is that the floor exists, is
+       applied, and cannot leave the advisor with nothing. */
+    const r = await W({}, 'reserves');
+    ok('C3 the floor is applied when scenarios clear it', r.pick.floorApplied === true, r.pick);
+    ok('C3b and an answer is always returned', r.pick !== null, r.pick);
   }
   {
-    /* The point of WP-3: a stated priority is not quietly overridden. */
-    const stated = await W({ desiredReserves: '120,000' }, 'payment');
-    const resv = await W({ desiredReserves: '120,000' }, 'reserves');
-    ok('C4 a STATED payment priority is honoured even when it misses the reserve goal',
-       stated.pick.cashRemaining < 120000, stated.pick);
-    ok('C4b and the card says the goal was missed rather than silently reselecting',
-       /reserve goal/i.test(stated.cards), stated.cards.slice(0, 400));
-    ok('C4c the reserves priority would have chosen differently — the two are distinct',
+    /* The point of WP-3, restated without the retired goal field: a stated
+       priority selects on its own metric and nothing overrides it. */
+    const stated = await W({}, 'payment');
+    const resv = await W({}, 'reserves');
+    ok('C4 a STATED payment priority is honoured even though it leaves less behind',
+       stated.pick.cashRemaining < resv.pick.cashRemaining,
+       { payment: stated.pick.cashRemaining, reserves: resv.pick.cashRemaining });
+    ok('C4b the reserves priority would have chosen differently — the two are distinct',
        stated.pick.name !== resv.pick.name,
        { payment: stated.pick.name, reserves: resv.pick.name });
+    ok('C4c neither is badged as better than the other',
+       !/best/i.test(stated.cards) && !/best/i.test(resv.cards));
   }
 
   /* =================================================================
@@ -362,8 +365,8 @@ const BASE = {
   }
   {
     const src = await page.evaluate(() => document.documentElement.outerHTML);
-    ok('F4 the phrase "Best Overall" survives only in the comment explaining its deletion',
-       (src.match(/Best Overall/g) || []).length <= 2, (src.match(/Best Overall/g) || []).length);
+    ok('F4 the phrase "Best Overall" survives only in the comments explaining its deletion',
+       (src.match(/Best Overall/g) || []).length <= 3, (src.match(/Best Overall/g) || []).length);
   }
 
   /* =================================================================
@@ -404,30 +407,35 @@ const BASE = {
      ================================================================= */
   console.log('\n--- H. A non-binding ceiling is not a headline ---');
   {
-    /* Cash nowhere near binding: strong funds, modest comfort payment. */
+    /* LIVE-CALL CLEANUP §5 — the cash ceiling left the primary view entirely.
+       WP-3 de-emphasised it; the cleanup removed it. What replaced the slot is
+       the figure that answers "how much qualifying room is left". */
     const r = await page.evaluate(([b]) => {
       window.__wp3(Object.assign({}, b, { price: '', ownFunds: '900,000', target: '3,000', income: '9,500' }), 'payment');
       const t = (document.getElementById('answerBody') || { innerText: '' }).innerText.replace(/\s+/g, ' ').trim();
-      return { t, hasNotLimit: !!document.querySelector('.pw.notlimit') };
+      return { t, cards: document.querySelectorAll('.pw3 .pw').length,
+               dti: !!document.querySelector('.pw.dti') };
     }, [BASE]);
-    ok('H1 a cash ceiling far above the shopping range is NOT shown as a headline figure',
-       r.hasNotLimit === true && /Cash-Limited Buying Power Not the limiting factor/i.test(r.t),
+    ok('H1 Cash-Limited Buying Power is not in the primary view at all',
+       !/Cash-Limited Buying Power/i.test(r.t), r.t.slice(0, 400));
+    ok('H2 the third figure is DTI at Comfort Price', r.dti === true && /DTI at Comfort Price/i.test(r.t),
        r.t.slice(0, 400));
-    ok('H2 the number is still available in the sub-line for whoever asks',
-       /reaches \$[0-9,]+, well above where they are shopping/i.test(r.t), r.t.slice(0, 400));
+    ok('H2b there are exactly three primary figures', r.cards === 3, r.cards);
+    ok('H2c no cash shortfall is claimed for a buyer with ample funds',
+       !/Cash shortfall/i.test(r.t), r.t.slice(0, 400));
   }
   {
-    /* Cash genuinely binding: it must still be the headline. */
+    /* CLEANUP §9 — cash reappears only as a genuine shortfall, and only on a
+       specific property. In Shopping Range cash is a ceiling, not a shortfall. */
     const r = await page.evaluate(([b]) => {
-      window.__wp3(Object.assign({}, b, { price: '', ownFunds: '18,000', target: '9,000', income: '25,000' }), 'payment');
+      window.__wp3(Object.assign({}, b, { price: '500,000', ownFunds: '4,000', target: '9,000', income: '25,000' }), 'payment');
       const t = (document.getElementById('answerBody') || { innerText: '' }).innerText.replace(/\s+/g, ' ').trim();
-      return { t, hasNotLimit: !!document.querySelector('.pw.notlimit'),
-               controlling: !!document.querySelector('.pw.cash .pw-tag') };
+      return { t, shortfall: !!document.querySelector('.cashshort') };
     }, [BASE]);
-    ok('H3 when cash IS the limit the figure is still the headline',
-       r.hasNotLimit === false, r.t.slice(0, 300));
-    ok('H3b and it is tagged as controlling', r.controlling === true, r.t.slice(0, 300));
-    ok('H3c and it says so in words', /this is the limit/i.test(r.t), r.t.slice(0, 400));
+    ok('H3 a real cash shortfall surfaces', r.shortfall === true, r.t.slice(0, 400));
+    ok('H3b with the figure named', /Cash shortfall \$[0-9,]+/i.test(r.t), r.t.slice(0, 400));
+    ok('H3c and it is stated as down payment plus estimated closing costs',
+       /down plus \$[0-9,]+ estimated closing costs/i.test(r.t), r.t.slice(0, 500));
   }
 
   ok('Z1 no page errors during the suite', pageErrors.length === 0, pageErrors.join(' | '));

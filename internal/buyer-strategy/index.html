@@ -729,6 +729,26 @@
 .nopriority b{display:block;margin-bottom:3px}
 .pw.notlimit .pw-v{font-size:15px;font-weight:800;color:#166534;letter-spacing:-.1px}
 
+/* ---- CLEANUP: live-call primary view ---- */
+.pw.dti .pw-v{font-size:26px}
+.cashshort{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;background:#fef2f2;border-left:4px solid #dc2626;
+  border-radius:0 8px 8px 0;padding:11px 14px;margin:10px 0 4px}
+.cashshort .cs-k{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:#991b1b}
+.cashshort .cs-v{font-size:20px;font-weight:800;color:#991b1b;font-variant-numeric:tabular-nums}
+.cashshort .cs-s{font-size:11.5px;color:#7f1d1d;flex:1 1 260px;line-height:1.45}
+.rrsolve{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:10px 0}
+.rrsolve .rr{background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:11px 13px}
+.rrsolve .rr.hero{background:#f0f9ff;border-color:#bae6fd}
+.rrsolve .rr.gap{background:#fffbeb;border-color:#fde68a}
+.rrsolve .rr-k{font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:#64748b}
+.rrsolve .rr-v{font-size:20px;font-weight:800;color:#0f172a;line-height:1.15;margin-top:4px;font-variant-numeric:tabular-nums}
+.rrsolve .rr.hero .rr-v{color:#0369a1}
+.rrsolve .rr.gap .rr-v{color:#b45309}
+.rrsolve .rr-s{font-size:10.5px;color:#64748b;margin-top:3px;line-height:1.4}
+.rrnote{font-size:11.5px;color:#475569;line-height:1.5;margin-bottom:8px}
+
+.matchtag{display:block;font-size:8.5px;font-weight:800;text-transform:uppercase;letter-spacing:.4px;color:#0369a1;margin-top:2px}
+
 </style>
 </head>
 <body>
@@ -753,18 +773,17 @@
         <div class="fld"><label>Credit score</label><input id="score" type="number" min="300" max="850" value="740"><div class="sub" id="scoreSub"></div></div>
         <div class="fld"><label>Buyer's own funds</label><div class="ia dollar"><input id="ownFunds" type="text" inputmode="numeric" value="40,000"></div><div class="sub"></div></div>
         <div class="fld"><label>Gift amount</label><div class="ia dollar"><input id="gift" type="text" inputmode="numeric" value="0"></div><div class="sub" id="giftSub"></div></div>
-        <!-- WP-2 — reserves the buyer wants left AFTER closing. A goal, not a
-             derived number: BSE reported cash remaining but could never test it. -->
-        <div class="fld"><label>Desired reserves after closing</label>
-          <div class="ia dollar"><input id="desiredReserves" type="text" inputmode="numeric" placeholder="optional"></div>
-          <div class="sub" id="reservesSub">Blank uses the $500 default floor.</div></div>
+        <!-- CLEANUP §6 — "Desired reserves after closing" was a live-call input
+             nobody used. The figure that matters on the phone is what is LEFT,
+             which BSE already reports on every card. The column survives in the
+             data model for records saved before today; the field does not. -->
         <div class="fld derived"><label>Total available funds</label><div class="ia dollar"><input id="totalFunds" type="text" readonly value="40,000"></div><div class="sub"></div></div>
         <div class="fld wideunit"><label>Down payment (opt.)</label>
           <div class="urow"><span class="ia pct" id="dpIa"><input id="dpTarget" type="text" inputmode="numeric" placeholder="amount"></span><span class="unit-tg" id="dpUnitTg"><button type="button" data-u="pct">%</button><button type="button" data-u="dollar">$</button></span></div>
-          <!-- WP-2 — what the dollar figure MEANS. "I could put up to 200" is
-               usually total out of pocket, not a down payment. Percent mode is
-               unambiguous, so the toggle only applies to dollars. -->
-          <label class="cashmode" id="cashModeWrap"><input type="checkbox" id="cashIsTotal"> that amount is <b>total out of pocket</b>, not the down payment</label>
+          <!-- CLEANUP §6/§10 — the total-out-of-pocket toggle is gone. A dollar
+               figure in this box is the DOWN PAYMENT, full stop, because that is
+               what a buyer says on the phone: "I'm putting $150,000 down." -->
+          <div class="sub" id="dpSub"></div>
           <div class="sub info" id="dpTargetSub"></div></div>
         <div class="fld"><label>Target PITI comfort</label><div class="ia dollar"><input id="target" type="text" inputmode="numeric" value="3,200"></div><div class="sub"></div></div>
         <div class="fld"><label>Qualifying income /mo</label><div class="ia dollar"><input id="income" type="text" inputmode="numeric" value="9,500"></div><div class="sub"></div></div>
@@ -821,10 +840,12 @@
           <div class="urow"><span class="ia pct" id="taxIa"><input id="taxRate" type="text" inputmode="decimal" placeholder="e.g. 582"></span><span class="unit-tg tax3" id="taxUnitTg"><button type="button" data-u="pct">%</button><button type="button" data-u="dollarMo">$/MO</button><button type="button" data-u="dollar">$/YR</button></span></div>
           <div class="sub info" id="taxSub"></div></div>
         <div class="fld pitirow"><label>Home ins. $/mo</label><div class="ia dollar"><input id="hoi" type="text" inputmode="numeric" value="150"></div></div>
-        <!-- WP-2 — two authored cash-to-close components BSE previously omitted.
-             Property mode only; no itemisation, no LOS. -->
-        <div class="fld pitirow"><label>Escrow deposit $</label><div class="ia dollar"><input id="escrowDeposit" type="text" inputmode="numeric" placeholder="0"></div><div class="sub">Prepaids + initial escrow reserve.</div></div>
-        <div class="fld pitirow"><label>Earnest money $</label><div class="ia dollar"><input id="earnestMoney" type="text" inputmode="numeric" placeholder="0"></div><div class="sub">Already paid — credited at closing.</div></div>
+        <!-- CLEANUP §7/§8 — the escrow deposit and the earnest money are gone.
+             Prepaids depend on the closing date, the insurance binder, tax timing
+             and lender setup; earnest money is set by the contract and is usually
+             unknown at pre-approval. Both belong on the Loan Estimate, not in a
+             strategy conversation. BSE's pre-offer cash figure is now simply
+             DOWN PAYMENT + CONSERVATIVE ESTIMATED CLOSING COSTS (§9). -->
         <div class="fld pitirow"><label>HOA /mo <label class="na"><input type="checkbox" id="hoaNA" checked>N/A</label></label><div class="ia dollar"><input id="hoa" type="text" inputmode="numeric" value="0"></div><div class="sub" id="hoaSub"></div></div>
         <div class="fld pitirow"><label>CDD /mo <label class="na"><input type="checkbox" id="cddNA" checked>N/A</label></label><div class="ia dollar"><input id="cdd" type="text" inputmode="numeric" value="0"></div><div class="sub" id="cddSub"></div></div>
         <div class="fld pitirow"><label>Flood ins. /mo <label class="na"><input type="checkbox" id="floodNA" checked>N/A</label></label><div class="ia dollar"><input id="flood" type="text" inputmode="numeric" value="0"></div><div class="sub" id="floodSub"></div></div>
@@ -1649,7 +1670,12 @@ let gapSel = 'pay';
    reconciliation immediate. A SAVED buyer restores its own authored unit
    verbatim — this is initial UI state only, and the canonical model is
    unchanged (a percentage, or an annual dollar amount). */
-const unitState = { dp:'pct', tax:'dollarMo' };
+/* CLEANUP §10 — DOLLARS are the default down-payment mode. Buyers say
+   "I'm putting $150,000 down", not "I'm putting 30% down". Percent remains a
+   full alternate mode and the underlying mathematics is unchanged: the authored
+   figure is carried through exactly as entered, in whichever unit it was
+   entered. Only the DEFAULT moved. */
+const unitState = { dp:'dollar', tax:'dollarMo' };
 // $ / % unit for the Offer Strategy seller-concession field (% of the offer price).
 const offerConcUnit = { v:'dollar' };
 
@@ -1699,47 +1725,10 @@ const A_CONST = {
   pmi:Engine.PMI
 };
 
-/* =====================================================================
-   WP-2 — PREFERRED CASH TO USE -> DOWN PAYMENT
-   =====================================================================
-   "I could put up to 200, but I think 150 gets me there" is almost never a
-   down payment. It is what the buyer is willing to hand over in total, and
-   closing costs come out of it.
-
-   BSE keeps three cash numbers distinct and never conflates them:
-     TOTAL AVAILABLE FUNDS      own funds + gift        what they HAVE
-     PREFERRED CASH TO USE      the dp target           what they WANT to spend
-     DESIRED RESERVES           authored floor          what must be LEFT
-
-   Available funds are NEVER silently converted into a down payment. Only the
-   preferred figure converts, only in dollar mode, and only when the advisor
-   has said it means total out of pocket.
-
-   EARNEST MONEY IS INSIDE THE TOTAL, NOT ON TOP OF IT. A buyer who says "150
-   total" and has already wired a 5,000 deposit has 145,000 left to bring to
-   the table — they have not agreed to spend 155,000. So the total is solved
-   against everything COMMITTED (down + closing), and the deposit is credited
-   afterwards, at cash to close. Solving it the other way would quietly let the
-   buyer put more down than they said, which is the exact failure this work
-   package exists to prevent.
-
-   Closed form. With a percentage closing cost:
-       down + closing(price, down) + escrowDeposit = C
-       down + ccPct/100 * (price - down) + escrowDeposit = C
-     =>  down = (C - price*ccPct/100 - escrowDeposit) / (1 - ccPct/100)
-   With a fixed-dollar override the closing cost does not depend on the loan,
-   so it simply subtracts. Solved, not iterated — no convergence risk.
-   ===================================================================== */
-function resolveDownFromCash(cashTotal, price, inp){
-  const C = Math.max(0, +cashTotal || 0);
-  const escrowDep = Math.max(0, +(inp.escrowDeposit || 0));
-  if(!(price > 0)) return C;
-  const useOverride = !inp.shopping && inp.ccOverride > 0;
-  if(useOverride) return Math.max(0, C - inp.ccOverride - escrowDep);
-  const f = (inp.ccPct || 0)/100;
-  if(f >= 1) return 0;                       // degenerate; do not divide by <=0
-  return Math.max(0, (C - price*f - escrowDep) / (1 - f));
-}
+/* CLEANUP §6/§10 — resolveDownFromCash() lived here. It converted a "total out
+   of pocket" figure into a down payment. The toggle that produced that figure is
+   gone: a dollar amount in the down-payment box is the down payment. One meaning,
+   nothing to mis-set mid-call. */
 
 /* =====================================================================
    WP-1 — FLORIDA PROPERTY TAX, HOMESTEAD AND SAVE OUR HOMES PORTABILITY
@@ -2159,21 +2148,24 @@ function renderFlPanel(inp){
 function updateInlineHints(inp){
   $('totalFunds').value = Math.round(inp.funds).toLocaleString('en-US');
   $('giftSub').textContent = inp.gift>0 ? 'Gift letter required' : '';
-  /* WP-2 — reserves after closing, tested rather than merely reported. */
-  const rsub = $('reservesSub');
-  if(rsub){
-    if(inp.desiredReserves == null){
-      rsub.className = 'sub';
-      rsub.textContent = 'Blank uses the $500 default floor.';
-    } else {
-      rsub.className = 'sub info';
-      rsub.textContent = 'Scenarios leaving less than ' + money(inp.desiredReserves) +
-                         ' after closing are set aside.';
+  /* CLEANUP §10 — the down-payment box defaults to DOLLARS. Show the percentage
+     it works out to, because that is the number the program tiers care about,
+     and show the dollars when a percentage was typed. Supporting information in
+     both directions; the authored figure is never overwritten. */
+  const dpsub = $('dpSub');
+  if(dpsub){
+    const t = inp.dpTarget, pr = inp.price;
+    let msg = '';
+    if(t && pr > 0){
+      msg = t.isPct
+        ? money(t.pct / 100 * pr) + ' at ' + money(pr)
+        : (t.dollar / pr * 100).toFixed(1) + '% of ' + money(pr);
+    } else if(t && !t.isPct){
+      msg = 'held fixed at every price in the range';
     }
+    dpsub.className = 'sub info';
+    dpsub.textContent = msg;
   }
-  /* The total-out-of-pocket toggle is meaningless in percent mode. */
-  const cmw = $('cashModeWrap');
-  if(cmw) cmw.classList.toggle('hide', unitState.dp !== 'dollar');
   /* WP-3 — the priority sub-label states what the current selection changes. */
   const psub = $('prioritySub');
   if(psub){
@@ -2185,8 +2177,7 @@ function updateInlineHints(inp){
       psub.textContent = ({
         payment:  'Selects the lowest total monthly payment.',
         cash:     'Selects the least cash at the closing table.',
-        reserves: 'Selects the most cash left after closing' +
-                  (inp.desiredReserves != null ? ', against the ' + money(inp.desiredReserves) + ' goal.' : '.'),
+        reserves: 'Selects the most cash left after closing.',
         power:    'Selects the highest supportable purchase price.'
       })[inp.priority] || '';
     }
@@ -2366,6 +2357,11 @@ function buyingPowerCardsHTML(inp, bp){
   let h='<div class="snap-primary">';
   h+='<div class="snap-stat pp-comfort"><div class="k">Comfort Purchase Price</div><div class="v">'+money(highestComfort)+'</div><div class="pw-sub">Based on '+money(inp.target)+'/mo target</div></div>';
   h+='<div class="snap-stat pp-qual"><div class="k">Max Qualifying Price</div><div class="v">'+money(highestQual)+'</div><div class="pw-sub">Based on '+backPct+'% back-end DTI</div></div>';
+  /* CLEANUP §3 — the same third figure the answer layer leads with, so the two
+     views never disagree about how much qualifying room exists. */
+  const dtiC = dtiAtComfortPrice(inp);
+  if(dtiC != null)
+    h+='<div class="snap-stat pp-dti"><div class="k">DTI at Comfort Price</div><div class="v">'+dtiC.toFixed(1)+'%</div><div class="pw-sub">Against a '+backPct+'% back-end limit</div></div>';
   h+='</div>';
   return {html:h, highestComfort, highestQual, qualTop, lowDp, cashPrice, loanLimitCeil};
 }
@@ -2379,10 +2375,15 @@ function constraintLineHTML(inp, C){
   if(isFinite(cash) && cash <= comfort+1) cands.push({k:'cash',p:cash});
   cands.sort((a,b)=>a.p-b.p);
   const b=cands[0];
+  /* CLEANUP §4 — the comfort payment being the binding ceiling is the NORMAL
+     case, and the two headline figures already say it: comfort price below
+     qualifying price means comfort is controlling. Repeating it in a large card
+     is clutter. The card now appears only when the constraint is something the
+     advisor would NOT already see — qualifying income, or cash. */
+  if(b.k==='comfort') return '';
   let icon,text;
   if(b.k==='cash'){ icon='💵'; text='<b>Cash to Close</b> — available funds support up to '+money(cash)+' at '+C.lowDp.name+' down'; }
-  else if(b.k==='dti'){ icon='📊'; text='<b>DTI</b> — qualifying income limits purchase price before comfort payment'; }
-  else { icon='🎯'; text='<b>Comfort Payment</b> — payment target is the binding ceiling'; }
+  else { icon='📊'; text='<b>DTI</b> — qualifying income limits purchase price before the comfort payment does'; }
   return '<div class="limfac"><div class="limfac-h">Limiting Factor</div><div class="limfac-b">'+icon+' '+text+'</div></div>';
 }
 
@@ -2651,11 +2652,7 @@ function isDollarDownShopping(inp){
 
 /* One probe at a candidate price, holding the authored dollars fixed. */
 function sdProbe(inp, progId, price, dollarDown){
-  /* WP-2 — in Shopping Range there is no single price, so a "total out of
-     pocket" figure has to be converted to a down payment at EVERY probe. This
-     is the same closed form used in property mode; there is one implementation. */
-  const downAt = inp.cashIsTotal ? resolveDownFromCash(dollarDown, price, inp) : dollarDown;
-  const pct = Math.min(100, downAt / price * 100);
+  const pct = Math.min(100, dollarDown / price * 100);
   const t = Object.assign({}, inp, { shopping:false, price:price, dpTarget:null, ccOverride:0 });
   return Engine.computeScenario(t, A_CONST, Engine.PROGRAMS[progId], { dp:pct, name:'probe' }, price);
 }
@@ -2693,14 +2690,8 @@ function sdProgramMinPct(inp, progId){
    including Section 1 and the Recommendation Engine, works unchanged. */
 function fixedDollarShoppingRun(inp, onlyId){
   const D = inp.dpTarget.dollar;
-  /* WP-2 — ONE meaning for the authored dollars, used everywhere in this
-     function. When the advisor has said the figure is total out of pocket it
-     is not a down payment at any price, so the down payment has to be resolved
-     at each candidate price — exactly as sdProbe() does inside the ceiling
-     search. Without this the ceiling search and the scenario finally built at
-     that ceiling disagreed, and the card showed a cash to close above the
-     figure the buyer had just said was their limit. */
-  const downAt = P => inp.cashIsTotal ? resolveDownFromCash(D, P, inp) : D;
+  /* CLEANUP §10 — the authored dollars ARE the down payment at every price. */
+  const downAt = function(){ return D; };
   const scenarios = [], eliminated = [], dpDimmed = [];
   if (!inp.vaOn) eliminated.push({ name:'VA 0%', reason:'VA eligibility not indicated' });
 
@@ -2730,8 +2721,7 @@ function fixedDollarShoppingRun(inp, onlyId){
        total out of pocket; either way the authored figure leaves their hands. */
     if (D > inp.funds + 0.5) {
       eliminated.push({ name:famLabel,
-        reason:(inp.cashIsTotal ? 'Preferred cash of ' : 'Preferred down payment of ') +
-               money(D) + ' exceeds available funds of ' + money(inp.funds) });
+        reason:'Down payment of ' + money(D) + ' exceeds available funds of ' + money(inp.funds) });
       return;
     }
 
@@ -2782,8 +2772,7 @@ function fixedDollarShoppingRun(inp, onlyId){
     }
 
     const t = Object.assign({}, inp, { shopping:false, price:maxPrice, dpTarget:null, ccOverride:0 });
-    const label = famLabel + ' · ' + money(D) +
-                  (inp.cashIsTotal ? ' total cash' : ' down');
+    const label = famLabel + ' · ' + money(D) + ' down';
     const s = Engine.computeScenario(t, A_CONST, prog, { dp:dpAtMax, name:label }, maxPrice);
     s.maxPrice = maxPrice;
     s.binding = best.why;
@@ -2794,7 +2783,6 @@ function fixedDollarShoppingRun(inp, onlyId){
     s.cashPrice = cashPrice;
     s.limitPrice = limitPrice;
     s.dpAuthoredDollars = downMax;
-    s.cashAuthoredTotal = inp.cashIsTotal ? D : null;
     s.frontFlag = s.front > prog.ratios.front + 0.05;
     s.requiresGift = (inp.gift > 0) && (s.cashToClose > inp.ownFunds + 0.5) && (s.cashToClose <= inp.funds + 0.5);
     scenarios.push(s);
@@ -2855,6 +2843,24 @@ function powerSnapshot(inp){
    and still render; nothing is selected, nothing is flagged, and the interface
    says so. The engine does not pick one to fill the gap.
    ===================================================================== */
+/* =====================================================================
+   CLEANUP §6/§7/§8 — RETAINED-BUT-INERT CASH DETAIL
+   =====================================================================
+   Four WP-2 columns left the workflow: cash_input_mode, desired_reserves,
+   escrow_deposit and earnest_money. They stay in the schema and in the saved
+   record so that no buyer file loses data, and they are carried straight back
+   out on the next save. What they no longer do is REACH THE ENGINE — toInputs()
+   pins all four to their inert values, so the protected engine's WP-2 branches
+   evaluate to zero and cash to close is simply
+
+       DOWN PAYMENT + CONSERVATIVE ESTIMATED CLOSING COSTS
+
+   which is the pre-offer standard. The Loan Estimate produces the real figure
+   once a contract exists; BSE is not trying to reproduce it.
+   ===================================================================== */
+let retainedCash = { cash_input_mode:'down', desired_reserves:null,
+                     escrow_deposit:null, earnest_money:null };
+
 const PRIORITY_VALUES = ['payment', 'cash', 'reserves', 'power'];
 function migratePriority(v){
   if(v === 'balanced') return 'payment';
@@ -2906,42 +2912,30 @@ function job1HTML(inp){
   const C = snap.C, P = snap.P, ctrl = snap.controlling;
   const isCtrl = why => ctrl.why === why;
 
-  /* --- the three figures --- */
-  const cashKnown = isFinite(snap.cash);
+  /* --- the three figures a live call actually uses (§3, §17) --- */
   const dpDesc = isDollarDownShopping(inp) ? money(inp.dpTarget.dollar) + ' down'
                : (inp.dpTarget && inp.dpTarget.isPct
                     ? (Number.isInteger(inp.dpTarget.pct) ? inp.dpTarget.pct : inp.dpTarget.pct.toFixed(1)) + '% down'
                     : C.lowDp.name + ' down');
-  /* WP-3 · LIVE-CALL DESIGN STANDARD — a correct number can still be an
-     unhelpful one. When cash is nowhere near binding, the theoretical
-     cash-limited price is a distraction sitting in the same type size as the
-     two figures Doug actually says out loud, and on a strong-cash buyer it can
-     read in the millions. The useful information in that situation is four
-     words: cash is not the limit. The number is still there, in the sub-line,
-     for the moment someone asks. It is suppressed as a HEADLINE only — never
-     from the constraint arithmetic, which still ranks it in powerCeilings(). */
-  const cashBinds = isCtrl('Cash to Close');
-  const cashNear  = cashKnown && isFinite(snap.shopTo) && snap.shopTo > 0 &&
-                    snap.cash <= snap.shopTo * 1.25;      // within 25% of where they are shopping
-  const cashHeadline = cashBinds || cashNear;
-  const cashSub = !cashKnown ? 'no cash constraint at these inputs'
-    : (cashBinds
-        ? money(inp.funds) + ' available with ' + dpDesc + ' — <b>this is the limit</b>'
-        : cashNear
-          ? money(inp.funds) + ' available with ' + dpDesc + ' — close to binding, worth watching'
-          : money(inp.funds) + ' available with ' + dpDesc + ' reaches ' + money(snap.cash) +
-            ', well above where they are shopping');
+
+  const backLimit = (C.qualTop.ratios && C.qualTop.ratios.back) || 45;
+  const dtiAtComfort = dtiAtComfortPrice(inp);
 
   let h = '<div class="pw3">';
-  h += pwCard('comfort', 'Comfort Shopping Max', snap.comfort,
-              'What they should shop for at ' + money(inp.target) + '/mo', isCtrl('Comfort Payment'));
-  h += pwCard('qual', 'Maximum Purchasing Power', snap.qual,
-              'What they could qualify for at ' + ((C.qualTop.ratios && C.qualTop.ratios.back) || 45) +
-              '% back-end DTI', isCtrl('DTI'));
-  h += cashHeadline
-    ? pwCard('cash', 'Cash-Limited Buying Power', snap.cash, cashSub, cashBinds)
-    : pwCardText('cash notlimit', 'Cash-Limited Buying Power',
-                 cashKnown ? 'Not the limiting factor' : '\u2014', cashSub);
+  h += pwCard('comfort', 'Comfort Purchase Price', snap.comfort,
+              'Based on ' + money(inp.target) + '/mo target', isCtrl('Comfort Payment'));
+  h += pwCard('qual', 'Max Qualifying Price', snap.qual,
+              'Based on ' + backLimit + '% back-end DTI', isCtrl('DTI'));
+  /* CLEANUP §3/§5 — "Cash-Limited Buying Power" is gone from the primary view.
+     A theoretical $1.8m is mathematically valid and useless mid-call. What the
+     third slot answers instead is HOW MUCH QUALIFYING ROOM EXISTS: the actual
+     back-end DTI at the comfort price. Cash reappears only as a shortfall (§9). */
+  h += dtiAtComfort == null
+    ? pwCardText('dti', 'DTI at Comfort Price', '\u2014', 'income has not been entered')
+    : pwCardText('dti', 'DTI at Comfort Price', dtiAtComfort.toFixed(1) + '%',
+                 dtiAtComfort <= backLimit
+                   ? (backLimit - dtiAtComfort).toFixed(1) + ' points of room to the ' + backLimit + '% limit'
+                   : (dtiAtComfort - backLimit).toFixed(1) + ' points ABOVE the ' + backLimit + '% limit');
   h += '</div>';
 
   /* --- the sentence Doug says out loud --- */
@@ -3034,6 +3028,56 @@ function pwCardText(cls, label, text, sub){
          '<div class="pw-v">' + text + '</div>' +
          '<div class="pw-s">' + sub + '</div></div>';
 }
+/* =====================================================================
+   CLEANUP §3 — DTI AT COMFORT PRICE
+   =====================================================================
+   The comfort ceiling is BY DEFINITION the price at which PITI equals the
+   comfort payment. So the back-end ratio there is simply
+
+       (comfort payment + monthly debts) / qualifying income
+
+   No solve, no scenario, no program dependence — it is the same number at
+   every price the comfort payment produces. That is why it is trustworthy to
+   say out loud: it answers "how much qualifying room is left" in one figure.
+   Returns null when there is no income to divide by.
+   ===================================================================== */
+function dtiAtComfortPrice(inp){
+  if(!(inp.income > 0) || !(inp.target > 0)) return null;
+  return (inp.target + (inp.debts || 0)) / inp.income * 100;
+}
+
+/* =====================================================================
+   CLEANUP §9 — CASH SHORTFALL, AND ONLY WHEN THERE IS ONE
+   =====================================================================
+   BSE is not a cash-to-close reconciliation system. The pre-offer standard is
+
+       DOWN PAYMENT + CONSERVATIVE ESTIMATED CLOSING COSTS
+
+   and the only thing worth interrupting a call for is that figure exceeding
+   what the buyer actually has. Sufficiency is not news and gets no space.
+   ===================================================================== */
+function cashShortfallHTML(inp, scenarios){
+  /* PROPERTY MODE ONLY. In Shopping Range cash is a CEILING, not a shortfall —
+     the solver simply stops at a lower price — so there is nothing to warn
+     about. On a specific property the question is real: does what they have
+     cover what this house costs to close? */
+  if(inp.shopping || !(inp.price > 0) || !(inp.funds >= 0)) return '';
+  /* The cheapest way in. When cash is short the engine ELIMINATES every
+     structure, so `scenarios` is empty in exactly the case this warning exists
+     for — fall back to the same cash-blind reference the Gap Solver uses. */
+  const bp = (scenarios && scenarios.length) ? scenarios
+           : (function(){ const r = refAtListIgnoringCash(inp); return r ? [r] : []; })();
+  if(!bp.length) return '';
+  const lowest = bp.reduce(function(m, s){ return s.cashToClose < m.cashToClose ? s : m; }, bp[0]);
+  const short = lowest.cashToClose - inp.funds;
+  if(!(short > 0.5)) return '';
+  return '<div class="cashshort"><span class="cs-k">Cash shortfall</span>' +
+         '<span class="cs-v">' + money(short) + '</span>' +
+         '<span class="cs-s">' + lowest.name + ' needs ' + money(lowest.cashToClose) +
+         ' \u2014 ' + money(lowest.down) + ' down plus ' + money(lowest.closing) +
+         ' estimated closing costs \u2014 against ' + money(inp.funds) + ' available.</span></div>';
+}
+
 function pwCard(cls, label, value, sub, controls){
   const v = (value === null || !isFinite(value)) ? '—' : money(value);
   return '<div class="pw ' + cls + (controls ? ' controls' : '') + (value === null ? ' na' : '') + '">' +
@@ -4047,16 +4091,6 @@ function job2PaymentAnswerHTML(inp, sol, st){
       (r.monthlyMI > 0 ? ', including ' + money(r.monthlyMI) + ' monthly mortgage insurance.'
                        : ', with no monthly mortgage insurance.')) + '</div>';
   h += flNote;
-  /* WP-2 — when the preferred figure was total out of pocket, say so, and show
-     what it resolved to. The advisor should never have to guess which it was. */
-  if (inp.cashIsTotal && inp.cashAuthoredTotal != null && inp.dpTarget) {
-    h += '<div class="wi-s"><b>Cash:</b> ' + money(inp.cashAuthoredTotal) +
-         ' was entered as total out of pocket, which is ' + money(inp.dpTarget.dollar) +
-         ' down at this price once closing costs' +
-         (inp.escrowDeposit > 0 ? ' and the escrow deposit' : '') +
-         ' come out' + (inp.earnestMoney > 0 ? ', with the ' + money(inp.earnestMoney) +
-         ' earnest money credited back' : '') + '.</div>';
-  }
   h += '</div>';
 
   h += '<div class="wi-rows">';
@@ -4316,14 +4350,17 @@ function job2SellerValueHTML(inp, neg){
     if (goal.key !== 'cash')    bits.push('cash ' + money(o.cashToClose));
     bits.push(FAM_NAME[o.id] || o.id);
     if ((o.unused || 0) > 1)    bits.push(money(o.unused) + ' unused');
+    /* CLEANUP §15 — the star is gone. The lever the STATED priority points at is
+       still highlighted, because that is a fact about the priority the advisor
+       chose; it is not crowned as the best strategy. */
     h += '<div class="j2-bl' + (pair[0] === rec ? ' win' : '') + '">' +
-         '<span class="jb-k">' + pair[1] + (pair[0] === rec && !single ? ' ★' : '') + '</span>' +
+         '<span class="jb-k">' + pair[1] + '</span>' +
          '<span class="jb-v">' + m.v + '</span>' +
          '<span class="jb-s">' + m.s + ' · ' + bits.join(' · ') + '</span></div>';
   });
   h += '</div>';
 
-  h += '<div class="j2-rec"><b>Recommendation.</b> ' +
+  h += '<div class="j2-rec"><b>Where your stated priority points.</b> ' +
        offerActionSentence(inp, neg, rec, neg.paths[rec], neg.headline) +
        ((neg.paths[rec].unused || 0) > 1
           ? ' <b>' + money(neg.paths[rec].unused) + ' of the requested adjustment cannot be used on this ' +
@@ -4346,6 +4383,138 @@ function job2SellerValueHTML(inp, neg){
      "what would a different rate do here?"       → dpScenarioAt() at this
                                                     price with rates[] bumped
    Job 1's Rate Impact is untouched, including its reference structure. */
+/* =====================================================================
+   CLEANUP §13/§14 — REQUIRED RATE TO REACH THE COMFORT PAYMENT
+   =====================================================================
+   The complement of the required-down solver, and the other half of the Stage 2
+   conversation:
+
+     required down   "how much more would they have to put down?"
+     required rate   "what rate would make THIS property work at the down
+                      payment they already have in mind?"
+
+   THIS IS STAGE 2, NOT STAGE 3. It structures the offer — could a seller
+   concession fund a permanent buydown that reaches this rate? would more down
+   solve it instead? Those are conversations, and BSE does not pick between
+   them. Stage 3 is a different question asked after acceptance: given the
+   pricing actually available, which option does the buyer want?
+
+   HOW IT SOLVES. Every non-P&I component of the payment is held: the taxes, the
+   insurance, the HOA, the CDD, the flood, and the mortgage insurance, which
+   depends on LTV and not on the note rate. So the rate only has to satisfy
+
+       P&I(rate) = comfort payment - (everything else in the payment)
+
+   Bisection on the rate through the REAL engine, so the loan amount, the
+   financed funding fee and the MI treatment stay exactly what computeScenario
+   produced. No parallel payment model, no re-implemented amortisation.
+
+   Returns null when there is nothing to solve. `reachable:false` means the
+   escrow floor alone already exceeds the comfort payment — no rate on earth
+   reaches it, and saying so is the useful answer.
+   ===================================================================== */
+function requiredRateForPayment(inp, s, target){
+  if(!s || !(target > 0) || !(s.loanAmount > 0)) return null;
+
+  const current = s.piti;
+  const gap = current - target;
+  const nonPI = s.piti - s.pi;                    // taxes + fixed escrow + MI
+  const targetPI = target - nonPI;
+
+  if(!(targetPI > 0)){
+    return { reachable:false, currentRate:s.rate, currentPayment:current,
+             comfortPayment:target, paymentGap:gap, requiredRate:null, rateGap:null,
+             floor:nonPI, structure:s.name };
+  }
+  /* Already there: the honest answer is the rate they already have. */
+  if(gap <= 0.5){
+    return { reachable:true, alreadyThere:true, currentRate:s.rate, currentPayment:current,
+             comfortPayment:target, paymentGap:gap, requiredRate:s.rate, rateGap:0,
+             floor:nonPI, structure:s.name };
+  }
+
+  /* Bisect the rate. P&I is strictly increasing in the rate, so the bracket is
+     [0, current rate] whenever the payment is above target. 0% is the floor:
+     principal alone. If even that is too much, the payment cannot be reached by
+     rate at this price and down payment. */
+  const piAt = r => Engine.pmt(r, 360, s.loanAmount);
+  if(piAt(0) > targetPI){
+    return { reachable:false, currentRate:s.rate, currentPayment:current,
+             comfortPayment:target, paymentGap:gap, requiredRate:null, rateGap:null,
+             floor:nonPI + piAt(0), principalOnly:true, structure:s.name };
+  }
+  let lo = 0, hi = s.rate;
+  for(let k = 0; k < 80; k++){
+    const mid = (lo + hi) / 2;
+    if(piAt(mid) > targetPI) hi = mid; else lo = mid;
+  }
+  const solved = (lo + hi) / 2;
+  return { reachable:true, alreadyThere:false, currentRate:s.rate, currentPayment:current,
+           comfortPayment:target, paymentGap:gap,
+           requiredRate:solved, rateGap:s.rate - solved,
+           reachedPayment:nonPI + piAt(solved),
+           floor:nonPI, structure:s.name, loanAmount:s.loanAmount, monthlyMI:s.monthlyMI };
+}
+
+/* The Stage 2 primary block. Six figures, no recommendation. */
+function requiredRateHTML(inp, s){
+  const r = requiredRateForPayment(inp, s, inp.target);
+  if(!r) return '';
+  const cell = (cls, k, v, sub) =>
+    '<div class="rr ' + cls + '"><div class="rr-k">' + k + '</div><div class="rr-v">' + v +
+    '</div>' + (sub ? '<div class="rr-s">' + sub + '</div>' : '') + '</div>';
+
+  let h = '<div class="rrnote">At <b>' + money(inp.price) + '</b> with <b>' + money(s.down) +
+          '</b> down on ' + s.name + ', holding taxes, insurance' +
+          (s.monthlyMI > 0 ? ', mortgage insurance' : '') +
+          ' and every other recurring cost exactly as entered — only the rate moves.</div>';
+
+  if(!r.reachable){
+    h += '<div class="rrsolve">' +
+      cell('', 'Current payment', money(r.currentPayment) + '/mo', s.name) +
+      cell('', 'Comfort payment', money(r.comfortPayment) + '/mo', '') +
+      cell('gap', 'Payment gap', '+' + money(r.paymentGap) + '/mo', 'above comfort') +
+      '</div>';
+    h += '<div class="rrnote"><b>No rate reaches ' + money(inp.target) + '/mo at this structure.</b> ' +
+         (r.principalOnly
+           ? 'Even at 0% the principal alone, plus ' + money(r.floor - Engine.pmt(0, 360, s.loanAmount)) +
+             ' of taxes, insurance and other recurring costs, comes to ' + money(r.floor) + '/mo.'
+           : 'Taxes, insurance and the other recurring costs alone are ' + money(r.floor) +
+             '/mo, which is already at or above the comfort payment.') +
+         ' The levers here are price, down payment or the property itself \u2014 not the rate.</div>';
+    return h;
+  }
+  if(r.alreadyThere){
+    h += '<div class="rrsolve">' +
+      cell('hero', 'Current rate', r.currentRate.toFixed(3) + '%', 'as entered') +
+      cell('', 'Current payment', money(r.currentPayment) + '/mo', s.name) +
+      cell('', 'Comfort payment', money(r.comfortPayment) + '/mo',
+           money(Math.abs(r.paymentGap)) + '/mo of room') +
+      '</div>';
+    h += '<div class="rrnote">The payment already sits at or under the comfort payment at the ' +
+         'rate entered. No rate is required to make this property work.</div>';
+    return h;
+  }
+
+  h += '<div class="rrsolve">' +
+    cell('hero', 'Rate needed to reach ' + money(inp.target), r.requiredRate.toFixed(3) + '%',
+         'at ' + money(s.down) + ' down on this property') +
+    cell('', 'Current rate', r.currentRate.toFixed(3) + '%', 'as entered') +
+    cell('gap', 'Rate gap', '\u2212' + r.rateGap.toFixed(3) + '%', 'below the rate entered') +
+    '</div>';
+  h += '<div class="rrsolve">' +
+    cell('', 'Current payment', money(r.currentPayment) + '/mo', s.name) +
+    cell('', 'Comfort payment', money(r.comfortPayment) + '/mo', '') +
+    cell('gap', 'Payment gap', '+' + money(r.paymentGap) + '/mo', 'above comfort') +
+    '</div>';
+  h += '<div class="rrnote">This is a Stage 2 structuring figure, not a rate quote and not a ' +
+       'Stage 3 selection. It is the rate at which this property reaches the comfort payment ' +
+       'with the down payment already contemplated \u2014 useful for asking whether a seller ' +
+       'concession could fund a buydown that far, or whether additional down payment is the ' +
+       'better conversation. <b>BSE does not choose between them.</b></div>';
+  return h;
+}
+
 function propRateAt(inp, progId, price, dpPct, rate){
   const bumped = Object.assign({}, inp, {
     rates: Object.assign({}, inp.rates, (function(o){ o[progId] = rate; return o; })({}))
@@ -4519,9 +4688,8 @@ function job2HTML(inp, res, neg){
     if (lo) { fitRef = lo; fitLabel = lo.name + (resvGoal ? ' — leaves the most in reserve' : ' — the lowest-cash structure'); }
     if (lo) {
       const left = inp.funds - lo.cashToClose;
-      const want = inp.desiredReserves;
-      const ok = lo.cashToClose <= inp.funds + 0.5 && lo.back <= lo.ratios.back + 0.05 &&
-                 (!resvGoal || want == null || left >= want);
+      const want = null;                      // CLEANUP §6 — no authored reserve goal
+      const ok = lo.cashToClose <= inp.funds + 0.5 && lo.back <= lo.ratios.back + 0.05;
       statusHTML = goalStatusHTML(ok ? 'yes' : 'no',
         ok ? 'Goal achievable' : 'Goal not achievable with current structure',
         !resvGoal
@@ -4614,7 +4782,19 @@ function job2HTML(inp, res, neg){
          : goalObj.label) + '</span></div>';
 
   h += statusHTML;
+  /* CLEANUP §9 — the one cash message worth interrupting a call for. */
+  h += cashShortfallHTML(inp, viable);
   h += ansHTML;
+  /* CLEANUP §13/§18 — the second half of the Stage 2 answer, in the primary
+     view rather than behind a disclosure: how much MORE down (above), and what
+     RATE would do it instead (here). Both are levers; neither is a
+     recommendation. Only shown when a payment gap actually exists — a property
+     already at or under the comfort payment does not need either. */
+  if (defaultRef && !inp.shopping && inp.price > 0 && inp.target > 0 &&
+      defaultRef.piti > inp.target + 0.5) {
+    h += '<div class="ans-block"><div class="ab-k">Rate that would reach the comfort payment</div>' +
+         requiredRateHTML(inp, defaultRef) + '</div>';
+  }
   h += propertyFitHTML(inp, ref, res, fitLabel);
 
   /* When the answer structure differs from the default, state the tradeoff in
@@ -5028,7 +5208,11 @@ function negotiationPanelHTML(inp, neg){
   const allCols=[['reduction','Price Reduction'],['concession','Seller Concession'],['split','Split ('+money(neg.room/2)+' / '+money(neg.room/2)+')']];
   const cols = (inp.negotiationMode==='compare') ? allCols : allCols.filter(c=>c[0]===rec);
   const gapTxt=o=>{ const c=o.gap<=0.5?'gap-ok':(o.gap<=100?'gap-amber':'gap-red'); return '<span class="'+c+'">'+(o.gap>0?'+':'')+money(o.gap)+'/mo</span>'; };
-  let t='<table class="neg-tbl"><thead><tr><th></th>'+cols.map(c=>'<th'+(c[0]===rec?' class="win"':'')+'>'+c[1]+(c[0]===rec?' ★':'')+'</th>').join('')+'</tr></thead><tbody>';
+  /* CLEANUP §2/§15 — the comparison stays; the crown does not. The column the
+     STATED priority points at is marked "matches your priority", which is a
+     statement about the priority the advisor selected, not a declaration that
+     this is the best strategy. BSE exposes the tradeoff; Doug runs the call. */
+  let t='<table class="neg-tbl"><thead><tr><th></th>'+cols.map(c=>'<th'+(c[0]===rec?' class="win"':'')+'>'+c[1]+(c[0]===rec&&cols.length>1?'<span class="matchtag">matches your priority</span>':'')+'</th>').join('')+'</tr></thead><tbody>';
   const row=(label,fn)=>{ t+='<tr><td>'+label+'</td>'+cols.map(c=>{ const o=P[c[0]]; return '<td'+(c[0]===rec?' class="win"':'')+'>'+(o?fn(o):'—')+'</td>'; }).join('')+'</tr>'; };
   row('Best loan type', o=>o.name);
   row('Effective purchase price', o=>money(o.price));
@@ -5044,7 +5228,11 @@ function negotiationPanelHTML(inp, neg){
   // ---- actionable offer sentence: what to write, then the buyer benefit ----
   let sentence = offerActionSentence(inp, neg, rec, recO, H);
   if(forced && neg.recommendedPathKey && neg.recommendedPathKey!==rec){
-    sentence += ' <span style="font-weight:600;color:var(--sub)">(Engine’s pick: '+PATH_NAME[neg.recommendedPathKey]+'.)</span>';
+    /* CLEANUP §15 — not "the engine's pick". A statement of which lever the
+       stated priority points at, so the advisor can see they have overridden it
+       deliberately rather than by accident. */
+    sentence += ' <span style="font-weight:600;color:var(--sub)">(Your stated priority points at '+
+                PATH_NAME[neg.recommendedPathKey]+'.)</span>';
   }
   return '<div class="neg-panel">'+hl+t+'<div class="neg-rec">'+sentence+'</div></div>';
 }
@@ -5133,17 +5321,12 @@ function dpDimmedCardHTML(s, inp){
   h+='<div class="gaprow '+gapCls+'">'+(gap>0?'+':'')+money(gap)+'/mo vs target</div>';
   h+='<div class="metrics">';
   h+='<div class="k">Cash to close</div><div class="v">'+money(s.cashToClose)+'</div>';
-  /* WP-2 — when the buyer has authored a reserve goal, test the scenario
-     against THAT number instead of the generic $1,000 notice. Un-authored
-     behaviour is unchanged. */
-  const wantResv = (inp.desiredReserves != null) ? inp.desiredReserves : null;
-  const resvCls = wantResv == null ? '' : (s.cashRemaining >= wantResv ? ' resv-ok' : ' resv-short');
-  h+='<div class="k">Cash remaining</div><div class="v '+(s.cashRemaining<0?'gap-red':resvCls)+'">'+money(s.cashRemaining)+'</div>';
+  h+='<div class="k">Cash remaining</div><div class="v '+(s.cashRemaining<0?'gap-red':'')+'">'+money(s.cashRemaining)+'</div>';
   h+='</div>';
-  if(wantResv != null){
-    if(s.cashRemaining < wantResv)
-      h+='<div class="reservewarn">⚠ Leaves '+money(s.cashRemaining)+' — short of the '+money(wantResv)+' reserve goal by '+money(wantResv-s.cashRemaining)+'</div>';
-  } else if(s.cashRemaining < 1000) h+='<div class="reservewarn">⚠ Reserves below $1,000 after closing</div>';
+  /* CLEANUP §9 — a genuine shortfall still surfaces; a reserve GOAL no longer
+     exists to test against. */
+  if(s.cashRemaining < 0) h+='<div class="reservewarn">⚠ '+money(-s.cashRemaining)+' short of the cash required to close</div>';
+  else if(s.cashRemaining < 1000) h+='<div class="reservewarn">⚠ Reserves below $1,000 after closing</div>';
   h+='<div class="dpnote">'+s.dpNote+'</div>';
   h+='</div>';
   return h;
@@ -5244,15 +5427,12 @@ function familyCardHTML(c, inp, best){
   // Cash to close — post-concession primary with the pre-concession as a sub-label.
   h+='<div class="k">Cash to close</div><div class="v">'+money(dCash)+((post && Math.abs(dCash-s.cashToClose)>=1)?mini(subPrefix+': '+money(s.cashToClose)):'')+'</div>';
   // Cash remaining — post-concession.
-  /* WP-3 — the reserve goal is tested on the card the advisor is actually
-     looking at, not only on the Section 1 snapshot. A stated priority is never
-     overridden by the goal; the card just says when the two disagree. */
-  const wantR = inp.desiredReserves;
-  const rCls = wantR == null ? '' : (dCashRem >= wantR ? 'resv-ok' : 'resv-short');
-  h+='<div class="k">Cash remaining</div><div class="v '+(dCashRem<0?'gap-red':rCls)+'">'+money(dCashRem)+((post && Math.abs(dCashRem-s.cashRemaining)>=1)?mini(subPrefix+': '+money(s.cashRemaining)):'')+'</div>';
-  if(wantR != null && dCashRem < wantR)
+  h+='<div class="k">Cash remaining</div><div class="v '+(dCashRem<0?'gap-red':'')+'">'+money(dCashRem)+((post && Math.abs(dCashRem-s.cashRemaining)>=1)?mini(subPrefix+': '+money(s.cashRemaining)):'')+'</div>';
+  /* CLEANUP §9 — the only cash message that earns space on a card is a real
+     shortfall. */
+  if(dCashRem < 0)
     h+='<div class="k"></div><div class="v"><span class="sub-mini" style="color:#991b1b;font-weight:700">'+
-       money(wantR-dCashRem)+' short of the '+money(wantR)+' reserve goal</span></div>';
+       money(-dCashRem)+' short of the cash required to close</span></div>';
   if(s.monthlyMI>0){
     let mi = s.miMode==='fha' ? (s.mipLife?'life of loan':'drops mo '+s.mipDropMonth) : (s.cancelMonth?'drops mo '+s.cancelMonth:'—');
     h+='<div class="k">MI ('+money(s.monthlyMI)+')</div><div class="v" style="font-size:11px">'+mi+'</div>';
@@ -5481,17 +5661,14 @@ function gsPayment(inp, res, best){
   // preservation rule programCards() applies: a higher down-payment tier (e.g. Conv
   // 10% / 20%) is only surfaced when the buyer has STATED 'payment' AND the extra down
   // is recovered within 36 months of the saving. Never otherwise.
-  let altCands = res.scenarios.filter(s=>s.id!==best.id && s.piti<best.piti);
-  if(!inp.dpTarget && altCands.length){
-    const lowDp = res.scenarios.reduce((m,s)=>s.dp<m.dp?s:m, res.scenarios[0]);
-    altCands = altCands.filter(s=>{
-      if(s.dp <= lowDp.dp) return true;
-      if(inp.priority !== 'payment') return false;
-      const extraCash = (s.dp - lowDp.dp)/100 * s.price;
-      const paymentSavings = lowDp.piti - s.piti;
-      return paymentSavings > 150 && extraCash/paymentSavings < 36;
-    });
-  }
+  /* CLEANUP §2/§15 — this held the LAST copy of the retired Best Overall
+     cash-preservation rule: a higher down-payment tier was withheld from the
+     advisor unless the priority was 'payment' and the extra down was recovered
+     inside 36 months. Withholding an option is the engine deciding. Every
+     eligible alternative with a lower payment is now offered, and the extra
+     cash it costs is stated beside it so the tradeoff is visible rather than
+     pre-judged. */
+  const altCands = res.scenarios.filter(s=>s.id!==best.id && s.piti<best.piti);
   const alt = altCands.sort((a,b)=>a.piti-b.piti)[0];
   if(alt) h+=sol('③','Alternative program: <b>'+alt.name+'</b> runs '+money(best.piti-alt.piti)+'/mo lower at '+money(alt.piti)+'/mo without any concession'+(alt.piti<=inp.target?' — clears the target on its own':'')+'.');
   // price reduction to hit comfort with no concession
@@ -5588,8 +5765,8 @@ function concessionVsPrice(inp, best, gap, opts){
 
   const redHead = active ? 'Price Reduction (offer '+money(prPrice)+')' : 'Price Reduction';
   let h='<h4>Concession vs. price reduction <span style="font-weight:600;text-transform:none;color:var(--sub)">('+splitLabel+')</span></h4><table class="cmp"><thead><tr><th></th>'+
-        '<th class="'+(concWins?'win':'')+'">Seller Concession'+(concWins?' ★':'')+'</th>'+
-        '<th class="'+(!concWins?'win':'')+'">'+redHead+(!concWins?' ★':'')+'</th></tr></thead><tbody>';
+        '<th class="'+(concWins?'win':'')+'">Seller Concession'+(concWins?'<span class="matchtag">matches your priority</span>':'')+'</th>'+
+        '<th class="'+(!concWins?'win':'')+'">'+redHead+(!concWins?'<span class="matchtag">matches your priority</span>':'')+'</th></tr></thead><tbody>';
   const row=(k,cVal,pVal)=>{ h+='<tr><td>'+k+'</td><td class="'+(concWins?'win':'')+'">'+cVal+'</td><td class="'+(!concWins?'win':'')+'">'+pVal+'</td></tr>'; };
   row('Price', money(concPrice), money(prPrice));
   row('Rate', conc.newRate.toFixed(3)+'%'+(conc.buydown>0?' ('+conc.points.toFixed(2)+'pt)':''), prScn.rate.toFixed(3)+'%');
@@ -6408,13 +6585,16 @@ const BSEModel = (function(){
       credit_score: blank('score') ? null : num('score'),
       own_funds: num('ownFunds'),
       gift_funds: num('gift'),
-      /* WP-2 — three cash concepts, kept distinct.
-           own_funds + gift_funds  TOTAL AVAILABLE FUNDS
-           dp_target_value         PREFERRED CASH TO USE (plan-level)
-           desired_reserves        DESIRED RESERVES AFTER CLOSING
-         Available funds are never silently treated as the down payment. */
-      cash_input_mode: ($('cashIsTotal') && $('cashIsTotal').checked) ? 'total' : 'down',
-      desired_reserves: blank('desiredReserves') ? null : num('desiredReserves'),
+      /* Two cash concepts now, which is what a live call needs:
+           own_funds + gift_funds  TOTAL CASH AVAILABLE
+           dp_target_value         THE DOWN PAYMENT BEING CONSIDERED
+         Available funds are still never treated as the down payment.
+
+         CLEANUP §6 — cash_input_mode and desired_reserves are RETAINED, not
+         authored. Whatever a record carried is carried back out unchanged, so no
+         history is destroyed; nothing in the workflow can set them any more. */
+      cash_input_mode: retainedCash.cash_input_mode || 'down',
+      desired_reserves: retainedCash.desired_reserves,
       is_first_time_buyer: $('tgFthb').checked,
       va_eligible: $('tgVa').checked,
       va_use: $('tgVa').checked ? $('vaUse').value : null,
@@ -6540,10 +6720,9 @@ const BSEModel = (function(){
       rate_conv: null, rate_fha: null, rate_va: null,
       closing_cost_pct: null,
       closing_cost_override_amount: blank('ccOverride') ? null : num('ccOverride'),
-      // WP-2 — authored cash-to-close components. Blank inherits nothing and
-      // resolves to zero; an explicit 0 is an authored zero.
-      escrow_deposit: blank('escrowDeposit') ? null : num('escrowDeposit'),
-      earnest_money:  blank('earnestMoney')  ? null : num('earnestMoney'),
+      // CLEANUP §7/§8 — retained from the loaded record, never authored here.
+      escrow_deposit: retainedCash.escrow_deposit,
+      earnest_money:  retainedCash.earnest_money,
       target_payment: null,
       dp_target_value: null, dp_target_unit: null,
       planned_stay_years: null, buyer_priority: null,
@@ -6731,10 +6910,13 @@ const BSEModel = (function(){
     const shopping = r.analysis_mode === 'shopping';
     const priceNow = shopping ? 0 : (r.list_price || 0);
 
-    /* WP-2 — authored cash-to-close components, zero when unauthored. */
-    const escrowDeposit = shopping ? 0 : (r.escrow_deposit || 0);
-    const earnestMoney  = shopping ? 0 : (r.earnest_money  || 0);
-    const cashIsTotal   = bp.cash_input_mode === 'total';
+    /* CLEANUP §7/§8/§9 — pinned inert. A record may still CARRY an escrow
+       deposit or an earnest-money figure from before today; neither reaches the
+       engine any more. Cash to close is down payment + estimated closing costs,
+       and nothing else. */
+    const escrowDeposit = 0;
+    const earnestMoney  = 0;
+    const cashIsTotal   = false;
 
     let dpTarget = null;
     /* WP-2 — the figure the ADVISOR typed, before any conversion, carried for
@@ -6744,23 +6926,11 @@ const BSEModel = (function(){
        rule that kept flTax off this object in WP-1. */
     let cashAuthoredTotal = null;
     if(r.dp_target_value != null && r.dp_target_value > 0){
-      if(r.dp_target_unit === 'percent'){
-        dpTarget = { isPct:true, pct:r.dp_target_value, dollar:null };
-      } else {
-        /* Dollar mode. When the advisor has said the figure is total out of
-           pocket, convert it to a down payment at THIS price. In Shopping Range
-           there is no price to convert against, so the raw figure is carried and
-           the fixed-dollar solver converts at each price probe instead. */
-        const raw = r.dp_target_value;
-        const asDown = (cashIsTotal && priceNow > 0)
-          ? resolveDownFromCash(raw, priceNow,
-              { shopping:shopping, ccPct: r.closing_cost_pct,
-                ccOverride: r.closing_cost_override_amount || 0,
-                escrowDeposit: escrowDeposit, earnestMoney: earnestMoney })
-          : raw;
-        dpTarget = { isPct:false, pct:null, dollar:asDown };
-        if(cashIsTotal) cashAuthoredTotal = raw;
-      }
+      /* CLEANUP §10 — a dollar figure IS the down payment. No conversion, no
+         second meaning, no toggle to get wrong on a call. */
+      dpTarget = (r.dp_target_unit === 'percent')
+        ? { isPct:true,  pct:r.dp_target_value, dollar:null }
+        : { isPct:false, pct:null, dollar:r.dp_target_value };
     }
 
     /* WP-1 — Florida millage. When the scenario authors tax_method='fl_millage'
@@ -6819,8 +6989,8 @@ const BSEModel = (function(){
       // hard-coded inside the retired pickBestOverall, so unauthored behaviour is unchanged.
       escrowDeposit: escrowDeposit, earnestMoney: earnestMoney,
       cashIsTotal: cashIsTotal, cashAuthoredTotal: cashAuthoredTotal,
-      desiredReserves: bp.desired_reserves,
-      reserveFloor: (bp.desired_reserves != null ? bp.desired_reserves : 500),
+      desiredReserves: null,
+      reserveFloor: 500,
       taxIsDollar: taxIsDollar, taxRaw: taxRaw,
       price: shopping ? 0 : (r.list_price || 0),
       score: Math.max(300, Math.min(850, Math.round(bp.credit_score || 0))),
@@ -7507,14 +7677,14 @@ const BSEPersistence = (function(){
     const fields = {
       price: str(sc.list_price), score: str(rows.buyer_profile.credit_score),
       ownFunds: str(rows.buyer_profile.own_funds), gift: str(rows.buyer_profile.gift_funds),
-      desiredReserves: str(rows.buyer_profile.desired_reserves),                              // WP-2
+      // CLEANUP §6 — retained values are cached for the next save, not rendered.
       /* WP-1 defect fix — these four were captured, serialised and deserialised
          but never written back to the DOM on load, so a reloaded buyer lost the
          Florida inputs while tax_method still said fl_millage. */
       flMillage: str(ti.millage), flNonAdVal: str(ti.non_ad_valorem_annual),
       flPriorMkt: str(rows.buyer_profile.prior_homestead_market_value),
       flPriorAssessed: str(rows.buyer_profile.prior_homestead_assessed_value),
-      escrowDeposit: str(sc.escrow_deposit), earnestMoney: str(sc.earnest_money),             // WP-2
+
       dpTarget: str(dpValue), target: str(s.target_payment),
       income: str(rows.buyer_profile.qualifying_income_monthly),
       debts: str(rows.buyer_profile.monthly_debts), stay: str(s.planned_stay_years),
@@ -7545,7 +7715,12 @@ const BSEPersistence = (function(){
     out.fields.cddNA   = { checked: (sc.cdd_status || s.cdd_status) === 'confirmed_none' };
     out.fields.floodNA = { checked: (sc.flood_status || s.flood_status) === 'confirmed_none' };
     out.fields.tgFthb  = { checked: !!rows.buyer_profile.is_first_time_buyer };
-    out.fields.cashIsTotal = { checked: rows.buyer_profile.cash_input_mode === 'total' };   // WP-2
+    /* CLEANUP §6/§7/§8 — the four retired columns are cached here so the next
+       save writes them back exactly as they were found. */
+    retainedCash = { cash_input_mode: rows.buyer_profile.cash_input_mode || 'down',
+                     desired_reserves: rows.buyer_profile.desired_reserves,
+                     escrow_deposit: sc.escrow_deposit,
+                     earnest_money: sc.earnest_money };
     out.fields.flTaxOn     = { checked: sc.tax_method === 'fl_millage' };                   // WP-1
     out.fields.flHomestead = { checked: !!rows.buyer_profile.homestead_intent };            // WP-1
     out.fields.tgVa    = { checked: !!rows.buyer_profile.va_eligible };
@@ -7904,7 +8079,7 @@ function init(){
   // Whole-dollar fields that comma-format live as the user types.
   const DOLLAR = new Set(['price','ownFunds','gift','target','income','debts','ccOverride','hoi','hoa','cdd','flood',
                           'flNonAdVal','flPriorMkt','flPriorAssessed',        // WP-1
-                          'desiredReserves','escrowDeposit','earnestMoney']);          // WP-2
+                          ]);
   // Dual-unit fields: comma-format live only when their $ / % toggle is on $.
   const DOLLAR_UNIT = { dpTarget:'dp', taxRate:'tax' };
   document.querySelectorAll('input,select').forEach(el=>{

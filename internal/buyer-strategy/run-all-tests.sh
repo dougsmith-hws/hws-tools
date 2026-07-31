@@ -67,6 +67,7 @@ run "job2 property strategy"           node tests/job2-property-strategy.test.js
 run "fl-tax (WP-1 FL/homestead)"       node tests/fl-tax.test.js "$APP"
 run "cash-model (WP-2 cash/CTC)"       node tests/cash-model.test.js "$APP"
 run "buyer-priority (WP-3)"            node tests/buyer-priority.test.js "$APP"
+run "live-call cleanup"                node tests/live-call.test.js "$APP"
 if [ -f "$BASELINE" ]; then
   run "m1-canonical-units"            node tests/m1-canonical-units.test.js "$BASELINE" "$APP"
 else

@@ -1,42 +1,38 @@
 /* =====================================================================
-   WP-2 — CASH MODEL AND CASH-TO-CLOSE TRUTH
+   CASH MODEL — the live-call standard
    =====================================================================
-   WHAT THIS SUITE PROTECTS
+   WP-2 built a cash model with four authored components: a total-out-of-pocket
+   toggle, a desired-reserve floor, an escrow deposit and earnest money. The
+   live-call cleanup removed all four from the workflow, because none of them is
+   knowable — or discussed — during a pre-approval or pre-offer conversation.
+   Earnest money is set by the contract. Prepaids depend on the closing date,
+   the insurance binder, tax timing and lender setup. Both belong on the Loan
+   Estimate, which is produced after the property is under contract.
 
-     • THREE CASH CONCEPTS STAY DISTINCT and never collapse into each other:
-         TOTAL AVAILABLE FUNDS   own funds + gift      what the buyer HAS
-         PREFERRED CASH TO USE   the dp target         what they WANT to spend
-         DESIRED RESERVES        authored floor        what must be LEFT
-       Available funds are NEVER silently converted into a down payment. This
-       is the single most important assertion in the suite (Group E).
+   WHAT THIS SUITE NOW PROTECTS
 
-     • "I could put up to 200, but I think 150 gets me there" is a TOTAL, not a
-       down payment. When the advisor says so, the figure converts through one
-       closed-form implementation, and the resulting cash to close comes back
-       to the authored total EXACTLY (Group B).
+     • TWO cash numbers, which is what the conversation needs (Group A):
+         TOTAL CASH AVAILABLE     own funds + gift    what they HAVE
+         DOWN PAYMENT CONSIDERED  the dp target       what they intend to use
+       Available funds are still NEVER silently converted into a down payment.
 
-     • Cash to close now includes the escrow deposit — the prepaids and initial
-       escrow reserve BSE previously omitted entirely — and credits earnest
-       money already paid. The displayed CLOSING figure stays a true cost; the
-       earnest credit is netted at cash to close, not hidden inside the cost
-       (Group C).
+     • The pre-offer cash standard (Group B):
+         CASH TO CLOSE = DOWN PAYMENT + CONSERVATIVE ESTIMATED CLOSING COSTS
+       No escrow deposit, no earnest-money credit, no LE reconciliation.
 
-     • The cash CEILING inverts the cash-to-close the engine actually computes.
-       Before WP-2 the ceiling always re-derived from ccPct and silently ignored
-       a fixed-dollar override, so the ceiling and the scenario disagreed
-       (Group D).
+     • Dollars are the DEFAULT down-payment mode, and a dollar figure means the
+       down payment — one meaning, nothing to mis-set mid-call. Percent remains
+       a full alternate mode (Group C).
 
-     • The reserve floor is authored, and defaults to the $500 that used to be
-       hard-coded inside pickBestOverall, so an un-authored buyer is scored
-       exactly as before (Group F).
+     • A genuine shortfall surfaces; sufficiency does not (Group D).
 
-     • Everything WP-2 adds is INERT until authored, and the escrow deposit and
-       earnest money are PROPERTY MODE ONLY — Shopping Range has no single
-       property to pay costs on (Group H).
+     • The four retired fields are gone from the workflow and CANNOT be required
+       to answer a Stage 1 or Stage 2 question (Group E).
 
-   PINNED CASE — Fernando Montilla, 27-28 July 2026 calls:
-     $200,000 available · "150 is what I want to use" · $5,000 earnest money
-     already paid on a $499,900 contract.
+     • Nothing saved before today is destroyed: the four columns survive in the
+       data model and round-trip untouched (Group F).
+
+   PINNED CASE — Fernando Montilla: $499,900, $200,000 available, $150,000 down.
 
    Usage:  node tests/cash-model.test.js index.html
    ===================================================================== */
@@ -56,15 +52,12 @@ function ok(label, cond, detail) {
 }
 const near = (a, b, eps) => Math.abs(a - b) <= (eps === undefined ? 0.01 : eps);
 
-/* A deliberately ordinary buyer. Income and debts are set clear of the DTI
-   limit so that nothing below is accidentally a DTI test. */
 const BASE = {
   price: '500,000', score: '760', ownFunds: '200,000', gift: '0',
   dpTarget: '', target: '4,500', income: '18,000', debts: '0',
   stay: '7', priority: 'payment', rateConv: '6.750', rateFha: '6.250',
   rateVa: '6.125', ccPct: '3', ccOverride: '', taxRate: '1.20',
   hoi: '150', hoa: '0', cdd: '0', flood: '0',
-  desiredReserves: '', escrowDeposit: '', earnestMoney: '',
   offerPrice: '', offerConc: '0', counterPrice: '', counterConc: '0', counterLoan: 'auto'
 };
 
@@ -76,493 +69,242 @@ const BASE = {
   await page.goto('file://' + path.resolve(appPath));
   await page.waitForFunction(() => typeof window.recalc === 'function');
 
+  /* Read the SHIPPED default before anything has run. */
+  const shippedDpUnit = await page.evaluate(() => unitState.dp);
+
   console.log('\n=========================================================');
-  console.log('  WP-2 — CASH MODEL / CASH TO CLOSE');
+  console.log('  CASH MODEL — LIVE-CALL STANDARD');
   console.log('  app under test: ' + appPath);
   console.log('=========================================================\n');
 
   await page.evaluate(() => {
-    /* Drive the real UI, read the real engine. Nothing is stubbed. */
-    window.__cash = function (fields, opts) {
-      opts = opts || {};
+    window.__cash = function (fields, dpUnit) {
       Object.keys(fields).forEach(id => { const e = document.getElementById(id); if (e) e.value = fields[id]; });
       ['hoaNA', 'cddNA', 'floodNA'].forEach(i => { const e = document.getElementById(i); if (e) e.checked = true; });
       ['tgFthb', 'tgVa', 'vaExempt'].forEach(i => { const e = document.getElementById(i); if (e) e.checked = false; });
-      document.getElementById('cashIsTotal').checked = !!opts.cashIsTotal;
-      unitState.dp = opts.dpUnit || 'dollar';
+      if (dpUnit) unitState.dp = dpUnit;
       unitState.tax = 'pct';
       renderUnitToggles(); recalc();
       const inp = gatherInputs();
-      /* engineRun() is the dispatcher the application itself renders from: it
-         routes an authored-dollar Shopping Range to the fixed-dollar solver and
-         everything else to Engine.run(). Reading through it means this suite
-         tests what the advisor actually sees. */
       const out = engineRun(inp);
-      const s = out.scenarios[0];
+      const txt = id => { const e = document.getElementById(id); return e ? (e.innerText || '').replace(/\s+/g, ' ').trim() : ''; };
       return {
         inp: JSON.parse(JSON.stringify(inp)),
-        best: out.best ? { dp: out.best.dp, down: out.best.down, cashToClose: out.best.cashToClose,
-                           cashRemaining: out.best.cashRemaining, name: out.best.name } : null,
-        s: s ? { dp: s.dp, down: s.down, closing: s.closing, cashToClose: s.cashToClose,
-                 cashRemaining: s.cashRemaining, maxPrice: s.maxPrice, piti: s.piti, name: s.name } : null,
-        scenarios: out.scenarios.map(x => ({ name: x.name, dp: x.dp, down: x.down, closing: x.closing,
-                                             cashToClose: x.cashToClose, cashRemaining: x.cashRemaining,
-                                             maxPrice: x.maxPrice })),
-        snap: (document.getElementById('snapBody').innerText || '').replace(/\s+/g, ' ').trim(),
-        cards: (document.getElementById('cardsBody').innerText || '').replace(/\s+/g, ' ').trim(),
-        reservesSub: (document.getElementById('reservesSub').innerText || '').trim(),
-        cashModeHidden: document.getElementById('cashModeWrap').classList.contains('hide')
+        scenarios: out.scenarios.map(s => ({ name: s.name, dp: s.dp, down: s.down, closing: s.closing,
+                                             cashToClose: s.cashToClose, cashRemaining: s.cashRemaining,
+                                             maxPrice: s.maxPrice, piti: s.piti })),
+        answer: txt('answerBody'), dpSub: txt('dpSub'),
+        shortfall: !!document.querySelector('.cashshort')
       };
-    };
-    /* Engine-level probe: take the real resolved inputs, override only the
-       cash components, and re-run. Used where the UI cannot express the case
-       (e.g. an escrow deposit alongside a Shopping-Range ceiling). */
-    window.__engineWith = function (fields, over, opts) {
-      window.__cash(fields, opts || {});
-      const inp = Object.assign(JSON.parse(JSON.stringify(gatherInputs())), over);
-      const out = engineRun(inp);
-      const s = out.scenarios[0];
-      /* WP-3 — pickBestOverall was deleted. Selection now runs through
-         priorityPick, which needs a STATED priority; these probes state one. */
-      const bestS = out.scenarios.length ? Engine.priorityPick(out.scenarios.slice(), inp) : null;
-      return {
-        s: { dp: s.dp, down: s.down, closing: s.closing, cashToClose: s.cashToClose,
-             cashRemaining: s.cashRemaining, maxPrice: s.maxPrice },
-        best: bestS ? { dp: bestS.dp, cashRemaining: bestS.cashRemaining, name: bestS.name } : null,
-        all: out.scenarios.map(x => ({ dp: x.dp, cashRemaining: x.cashRemaining, cashToClose: x.cashToClose }))
-      };
-    };
-    /* Reserve-floor probe. The scenario set comes from a real engine run; the
-       pick is then made with an explicit priority and floor.
-       WP-3 changed where the floor bites: it is a constraint on the RESERVES
-       priority, not a veto applied over the top of whatever the advisor asked
-       for. A buyer who states "lowest payment" gets the lowest payment even if
-       it misses their reserve goal — and the card says so. That is the whole
-       point of retiring Best Overall. */
-    window.__pick = function (fields, floor, priority) {
-      window.__cash(fields, { dpUnit: 'pct' });
-      const inp = gatherInputs();
-      const scen = engineRun(inp).scenarios;
-      const t = Object.assign({}, inp, { priority: priority || 'reserves', reserveFloor: floor });
-      const b = Engine.priorityPick(scen.slice(), t);
-      return { pick: b ? { dp: b.dp, name: b.name, rem: b.cashRemaining,
-                           floorApplied: b._floorApplied, reason: b._reason } : null,
-               set: scen.map(x => ({ dp: x.dp, rem: Math.round(x.cashRemaining) })) };
     };
   });
 
-  const F = (over, opts) => page.evaluate(([b, o, p]) => window.__cash(Object.assign({}, b, o), p),
-                                          [BASE, over || {}, opts || {}]);
-  const E = (over, eng, opts) => page.evaluate(([b, o, ov, p]) => window.__engineWith(Object.assign({}, b, o), ov, p),
-                                               [BASE, over || {}, eng || {}, opts || {}]);
+  const F = (over, dpUnit) => page.evaluate(([b, o, u]) => window.__cash(Object.assign({}, b, o), u),
+                                            [BASE, over || {}, dpUnit || null]);
 
   /* =================================================================
-     GROUP A — the three cash concepts are distinct
+     GROUP A — two cash numbers, and they stay apart
      ================================================================= */
-  console.log('--- A. Three cash concepts stay distinct ---');
+  console.log('--- A. Total cash available vs. the down payment considered ---');
   {
     const r = await F({ ownFunds: '200,000', gift: '25,000', dpTarget: '' });
-    ok('A1 total available funds = own funds + gift', near(r.inp.funds, 225000, 0.5), r.inp.funds);
-    ok('A1b available funds are NOT the down payment', r.s.down !== 225000 && r.s.down < 225000,
-       'down=' + r.s.down);
-    ok('A1c preferred cash unauthored leaves dpTarget null', r.inp.dpTarget === null, r.inp.dpTarget);
+    ok('A1 total cash available = own funds + gift', near(r.inp.funds, 225000, 0.5), r.inp.funds);
+    ok('A2 available funds are NOT the down payment',
+       r.scenarios.every(s => s.down < 225000 * 0.9),
+       r.scenarios.map(s => s.name + ':' + Math.round(s.down)).join(' '));
+    ok('A3 with nothing authored the down-payment target stays null',
+       r.inp.dpTarget === null, r.inp.dpTarget);
   }
   {
-    const r = await F({ dpTarget: '150,000' }, { cashIsTotal: false });
-    ok('A2 $ target with the toggle OFF still means DOWN PAYMENT',
-       r.inp.dpTarget && near(r.inp.dpTarget.dollar, 150000, 0.5), r.inp.dpTarget);
-    ok('A2b no authored total is recorded when the toggle is off',
-       r.inp.cashIsTotal === false && r.inp.cashAuthoredTotal === null,
-       { t: r.inp.cashIsTotal, a: r.inp.cashAuthoredTotal });
-  }
-  {
-    const r = await F({ dpTarget: '150,000' }, { cashIsTotal: true });
-    ok('A3 toggle ON converts the total to a smaller DOWN PAYMENT',
-       r.inp.dpTarget.dollar < 150000, r.inp.dpTarget);
-    ok('A3b the authored total is preserved verbatim for presentation',
-       near(r.inp.cashAuthoredTotal, 150000, 0.5), r.inp.cashAuthoredTotal);
-    ok('A3c the authored total never becomes the engine down payment',
-       !near(r.inp.dpTarget.dollar, 150000, 1), r.inp.dpTarget.dollar);
-  }
-  {
-    const blankR = await F({ desiredReserves: '' });
-    const authR = await F({ desiredReserves: '50,000' });
-    ok('A4 desired reserves unauthored resolves to null', blankR.inp.desiredReserves === null, blankR.inp.desiredReserves);
-    ok('A4b desired reserves authored resolves to the figure', near(authR.inp.desiredReserves, 50000, 0.5), authR.inp.desiredReserves);
-    ok('A4c desired reserves is a THIRD number, not funds and not the target',
-       authR.inp.desiredReserves !== authR.inp.funds, { r: authR.inp.desiredReserves, f: authR.inp.funds });
-  }
-
-  /* =================================================================
-     GROUP B — the converter is exact: total in, total back out
-     ================================================================= */
-  console.log('\n--- B. Preferred cash to use converts exactly ---');
-  {
-    const r = await F({ price: '500,000', dpTarget: '150,000', ccPct: '3' }, { cashIsTotal: true });
-    const sc = r.scenarios.find(x => near(x.down, r.inp.dpTarget.dollar, 2)) || r.s;
-    ok('B1 percentage closing: cash to close returns to the authored total',
-       near(sc.cashToClose, 150000, 1), { ctc: sc.cashToClose, down: sc.down, closing: sc.closing });
-  }
-  {
-    const r = await F({ price: '500,000', dpTarget: '150,000', ccPct: '3', escrowDeposit: '4,000' }, { cashIsTotal: true });
-    const sc = r.scenarios.find(x => near(x.down, r.inp.dpTarget.dollar, 2)) || r.s;
-    ok('B2 with an escrow deposit the total is still hit exactly',
-       near(sc.cashToClose, 150000, 1), { ctc: sc.cashToClose, down: sc.down, closing: sc.closing });
-    ok('B2b the escrow deposit pushed the down payment DOWN, not the total up',
-       r.inp.dpTarget.dollar < 150000 * 0.98, r.inp.dpTarget.dollar);
-  }
-  {
-    const r = await F({ price: '500,000', dpTarget: '150,000', ccPct: '3', earnestMoney: '5,000' }, { cashIsTotal: true });
-    const sc = r.scenarios.find(x => near(x.down, r.inp.dpTarget.dollar, 2)) || r.s;
-    ok('B3 earnest money already paid is credited inside the total',
-       near(sc.cashToClose, 145000, 1), { ctc: sc.cashToClose, note: 'total 150,000 less the 5,000 already paid' });
-    ok('B3b down + closing still equals the full 150,000 committed',
-       near(sc.down + sc.closing, 150000, 1), { down: sc.down, closing: sc.closing });
-  }
-  {
-    const r = await F({ price: '500,000', dpTarget: '150,000', ccPct: '3', ccOverride: '12,500' }, { cashIsTotal: true });
-    const sc = r.scenarios.find(x => near(x.down, r.inp.dpTarget.dollar, 2)) || r.s;
-    ok('B4 fixed-dollar closing override: total hit exactly',
-       near(sc.cashToClose, 150000, 1), { ctc: sc.cashToClose, down: sc.down, closing: sc.closing });
-    ok('B4b the override, not the percentage, set the closing cost',
-       near(sc.closing, 12500, 1), sc.closing);
-    ok('B4c the converted down payment is total less the fixed override',
-       near(r.inp.dpTarget.dollar, 137500, 1), r.inp.dpTarget.dollar);
-  }
-  {
-    /* Degenerate guards: the closed form must never divide by zero or go
-       negative, and must never hand the engine a negative down payment. */
-    const r = await F({ price: '500,000', dpTarget: '2,000', ccPct: '3' }, { cashIsTotal: true });
-    ok('B5 a total smaller than the closing cost floors at zero down, never negative',
-       r.inp.dpTarget.dollar >= 0, r.inp.dpTarget.dollar);
-    const r2 = await F({ price: '', dpTarget: '150,000', ccPct: '3' }, { cashIsTotal: true });
-    ok('B5b Shopping Range carries the raw figure (no price to convert against)',
-       near(r2.inp.dpTarget.dollar, 150000, 0.5), r2.inp.dpTarget);
-    ok('B5c Shopping Range still records that the figure is a total',
-       r2.inp.cashIsTotal === true, r2.inp.cashIsTotal);
-  }
-  {
-    /* The Shopping-Range solver must convert at EVERY price probe, so the
-       resulting range is the one the buyer can actually afford. */
-    const SHOP = { price: '', dpTarget: '150,000', ccPct: '3',
-                   score: '788', income: '9,500', debts: '40', target: '3,000' };
-    const total = await F(SHOP, { cashIsTotal: true });
-    const down  = await F(SHOP, { cashIsTotal: false });
-    ok('B6 Shopping Range: a total buys LESS house than the same figure as a down payment',
-       total.s.maxPrice < down.s.maxPrice,
-       { asTotal: total.s.maxPrice, asDown: down.s.maxPrice });
-    ok('B6b Shopping Range: the total is still hit at the top of the range',
-       near(total.s.cashToClose, 150000, 1500),
-       { ctc: total.s.cashToClose, price: total.s.maxPrice });
-  }
-
-  /* =================================================================
-     GROUP C — cash to close tells the truth
-     ================================================================= */
-  console.log('\n--- C. Cash-to-close components ---');
-  {
-    const a = await F({ price: '500,000', dpTarget: '20', escrowDeposit: '' }, { dpUnit: 'pct' });
-    const b = await F({ price: '500,000', dpTarget: '20', escrowDeposit: '6,000' }, { dpUnit: 'pct' });
-    const sa = a.scenarios.find(x => x.dp === 20), sb = b.scenarios.find(x => x.dp === 20);
-    ok('C1 the escrow deposit raises cash to close by exactly its amount',
-       sa && sb && near(sb.cashToClose - sa.cashToClose, 6000, 1),
-       { before: sa && sa.cashToClose, after: sb && sb.cashToClose });
-    ok('C1b it is a real COST, so it also raises the displayed closing figure',
-       sa && sb && near(sb.closing - sa.closing, 6000, 1),
-       { before: sa && sa.closing, after: sb && sb.closing });
-    ok('C1c the down payment is untouched by it',
-       sa && sb && near(sa.down, sb.down, 1), { a: sa && sa.down, b: sb && sb.down });
-  }
-  {
-    const a = await F({ price: '500,000', dpTarget: '20', earnestMoney: '' }, { dpUnit: 'pct' });
-    const b = await F({ price: '500,000', dpTarget: '20', earnestMoney: '5,000' }, { dpUnit: 'pct' });
-    const sa = a.scenarios.find(x => x.dp === 20), sb = b.scenarios.find(x => x.dp === 20);
-    ok('C2 earnest money lowers cash to close by exactly its amount',
-       sa && sb && near(sa.cashToClose - sb.cashToClose, 5000, 1),
-       { before: sa && sa.cashToClose, after: sb && sb.cashToClose });
-    ok('C2b it is a CREDIT, not a discount — the closing cost is unchanged',
-       sa && sb && near(sa.closing, sb.closing, 1), { a: sa && sa.closing, b: sb && sb.closing });
-    ok('C2c cash remaining rises by the credited amount',
-       sa && sb && near(sb.cashRemaining - sa.cashRemaining, 5000, 1),
-       { a: sa && sa.cashRemaining, b: sb && sb.cashRemaining });
-  }
-  {
-    const r = await F({ price: '500,000', dpTarget: '20', earnestMoney: '400,000' }, { dpUnit: 'pct' });
-    const s = r.scenarios.find(x => x.dp === 20);
-    ok('C3 an absurd deposit floors cash to close at zero, never negative',
-       s && s.cashToClose >= 0, s && s.cashToClose);
-  }
-  {
-    const a = await F({ price: '500,000', dpTarget: '20' }, { dpUnit: 'pct' });
-    const b = await F({ price: '500,000', dpTarget: '20', escrowDeposit: '6,000', earnestMoney: '6,000' }, { dpUnit: 'pct' });
-    const sa = a.scenarios.find(x => x.dp === 20), sb = b.scenarios.find(x => x.dp === 20);
-    ok('C4 an equal deposit and credit net to no change in cash to close',
-       sa && sb && near(sa.cashToClose, sb.cashToClose, 1), { a: sa && sa.cashToClose, b: sb && sb.cashToClose });
-    ok('C4b but the CLOSING cost is still higher — the two are not the same thing',
-       sa && sb && near(sb.closing - sa.closing, 6000, 1), { a: sa && sa.closing, b: sb && sb.closing });
-  }
-
-  /* =================================================================
-     GROUP D — the cash ceiling inverts cash to close
-     ================================================================= */
-  console.log('\n--- D. The cash ceiling agrees with the scenario ---');
-  {
-    const r = await F({ price: '', ownFunds: '40,000', gift: '0', dpTarget: '', target: '9,000', income: '25,000' });
-    const cashLtd = r.scenarios.filter(x => x.cashToClose > 39000);
-    ok('D1 a cash-limited range spends the funds without exceeding them',
-       r.scenarios.every(x => x.cashToClose <= 40000 + 500),
-       r.scenarios.map(x => x.dp + '% ' + Math.round(x.cashToClose)).join(' | '));
-    ok('D1b the ceiling is actually binding (it did not simply give up)',
-       cashLtd.length > 0, r.scenarios.map(x => Math.round(x.cashToClose)).join(','));
-  }
-  {
-    /* The ceiling must move with the fixed components. Driven at engine level:
-       Shopping Range zeroes these by design, so this is the only way to prove
-       the ceiling formula itself is right. */
-    const base = await E({ price: '', ownFunds: '40,000', target: '9,000', income: '25,000' }, {});
-    const esc  = await E({ price: '', ownFunds: '40,000', target: '9,000', income: '25,000' }, { escrowDeposit: 6000 });
-    const emd  = await E({ price: '', ownFunds: '40,000', target: '9,000', income: '25,000' }, { earnestMoney: 6000 });
-    ok('D2 an escrow deposit lowers the affordable range', esc.s.maxPrice < base.s.maxPrice,
-       { base: base.s.maxPrice, withEscrow: esc.s.maxPrice });
-    ok('D2b earnest money already paid raises it', emd.s.maxPrice > base.s.maxPrice,
-       { base: base.s.maxPrice, withEmd: emd.s.maxPrice });
-    ok('D2c the ceiling still respects the funds with an escrow deposit present',
-       esc.s.cashToClose <= 40000 + 500, esc.s.cashToClose);
-    ok('D2d and with an earnest-money credit present',
-       emd.s.cashToClose <= 40000 + 500, emd.s.cashToClose);
-  }
-  {
-    /* Pre-WP-2 the ceiling always re-derived from ccPct, so a fixed-dollar
-       override was silently ignored. Property mode with an override present. */
-    const r = await E({ price: '', ownFunds: '40,000', target: '9,000', income: '25,000' },
-                      { shopping: false, price: 300000, ccOverride: 15000 });
-    ok('D3 a fixed-dollar closing override is honoured by the ceiling, not re-derived',
-       near(r.s.closing, 15000, 1), r.s.closing);
-  }
-
-  /* =================================================================
-     GROUP E — available funds are NEVER auto-converted
-     ================================================================= */
-  console.log('\n--- E. Available cash is never silently spent ---');
-  {
-    const r = await F({ price: '500,000', ownFunds: '200,000', dpTarget: '' });
-    ok('E1 with no preferred figure the engine does not spend the funds',
-       r.s.down < 200000 * 0.9, { down: r.s.down, funds: r.inp.funds });
-    ok('E1b a large reserve is left over', r.s.cashRemaining > 0, r.s.cashRemaining);
-    ok('E1c the funds figure itself is unchanged by anything WP-2 added',
+    const r = await F({ dpTarget: '150,000' }, 'dollar');
+    ok('A4 an authored dollar figure IS the down payment — no second meaning',
+       r.inp.dpTarget && r.inp.dpTarget.isPct === false && near(r.inp.dpTarget.dollar, 150000, 0.5),
+       r.inp.dpTarget);
+    ok('A5 and it does not consume the rest of the available funds',
        near(r.inp.funds, 200000, 0.5), r.inp.funds);
   }
-  {
-    const off = await F({ price: '500,000', dpTarget: '20' }, { dpUnit: 'pct', cashIsTotal: false });
-    const on  = await F({ price: '500,000', dpTarget: '20' }, { dpUnit: 'pct', cashIsTotal: true });
-    ok('E2 the toggle is inert in PERCENT mode — a percent is unambiguous',
-       JSON.stringify(off.inp.dpTarget) === JSON.stringify(on.inp.dpTarget),
-       { off: off.inp.dpTarget, on: on.inp.dpTarget });
-    ok('E2b and the toggle is hidden in percent mode', on.cashModeHidden === true, on.cashModeHidden);
-    ok('E2c and shown in dollar mode',
-       (await F({ dpTarget: '150,000' }, { dpUnit: 'dollar' })).cashModeHidden === false);
-  }
-  {
-    const r = await F({ price: '500,000', dpTarget: '' }, { cashIsTotal: true });
-    ok('E3 the toggle with no preferred figure converts nothing',
-       r.inp.dpTarget === null && r.inp.cashAuthoredTotal === null,
-       { dp: r.inp.dpTarget, a: r.inp.cashAuthoredTotal });
-  }
 
   /* =================================================================
-     GROUP F — desired reserves after closing
+     GROUP B — the pre-offer cash standard
      ================================================================= */
-  console.log('\n--- F. Reserves after closing ---');
+  console.log('\n--- B. Cash to close = down payment + conservative closing costs ---');
   {
-    const blank = await F({ desiredReserves: '' });
-    ok('F1 the default floor is the $500 that used to be hard-coded',
-       blank.inp.reserveFloor === 500, blank.inp.reserveFloor);
-    const auth = await F({ desiredReserves: '50,000' });
-    ok('F1b an authored goal becomes the floor', near(auth.inp.reserveFloor, 50000, 0.5), auth.inp.reserveFloor);
+    const r = await F({ price: '500,000', dpTarget: '20', ccPct: '3' }, 'pct');
+    const s = r.scenarios.find(x => x.dp === 20);
+    ok('B1 cash to close is exactly down + closing, with nothing else added',
+       s && near(s.cashToClose, s.down + s.closing, 0.01),
+       s && { down: s.down, closing: s.closing, ctc: s.cashToClose });
+    ok('B1b the closing cost is the conservative percentage of the loan',
+       s && near(s.closing, (500000 - s.down) * 0.03, 0.01), s && s.closing);
+    ok('B1c cash remaining is available funds less cash to close',
+       s && near(s.cashRemaining, r.inp.funds - s.cashToClose, 0.01), s && s.cashRemaining);
   }
   {
-    const CASE = { price: '500,000', ownFunds: '150,000', dpTarget: '', target: '4,500' };
-    const P = (floor, prio) => page.evaluate(([b, o, f, p]) => window.__pick(Object.assign({}, b, o), f, p),
-                                             [BASE, CASE, floor, prio || null]);
-    const lo = await P(500);
-    const hi = await P(50000);
-    const impossible = await P(500000);
-    const payment = await P(50000, 'payment');
-    const best = lo.set.reduce((m, x) => x.rem > m.rem ? x : m, lo.set[0]);
-    ok('F2 the reserves priority selects the scenario leaving the most behind',
-       lo.pick && lo.pick.rem === best.rem, { pick: lo.pick, set: lo.set });
-    ok('F2b with a real goal the pick clears it, and says the floor was applied',
-       hi.pick && hi.pick.rem >= 50000 && hi.pick.floorApplied === true, hi.pick);
-    ok('F2c a goal no scenario can meet still returns an answer, and admits it',
-       impossible.pick !== null && impossible.pick.floorApplied === false &&
-       /no eligible option reaches/.test(impossible.pick.reason || ''),
-       { pick: impossible.pick, set: impossible.set });
-    ok('F2d WP-3 — a STATED payment priority is not overridden by the reserve goal',
-       payment.pick && payment.pick.rem < 50000 && payment.pick.dp !== lo.pick.dp,
-       { statedPayment: payment.pick, reservesWouldPick: lo.pick });
+    const r = await F({ price: '500,000', dpTarget: '20', ccOverride: '12,500' }, 'pct');
+    const s = r.scenarios.find(x => x.dp === 20);
+    ok('B2 a fixed-dollar closing-cost override is honoured', s && near(s.closing, 12500, 0.5), s && s.closing);
+    ok('B2b and cash to close follows it', s && near(s.cashToClose, s.down + 12500, 0.5), s && s.cashToClose);
   }
-  {
-    const blank = await F({ desiredReserves: '' });
-    const auth  = await F({ desiredReserves: '50,000' });
-    ok('F3 the hint states the default when unauthored',
-       /500/.test(blank.reservesSub) && /default/i.test(blank.reservesSub), blank.reservesSub);
-    ok('F3b the hint states the consequence when authored',
-       /50,000/.test(auth.reservesSub), auth.reservesSub);
-  }
-  {
-    /* The scenario card must test against the authored goal, not the generic
-       $1,000 notice, once a goal exists. */
-    const r = await F({ price: '500,000', ownFunds: '150,000', dpTarget: '20', desiredReserves: '120,000' },
-                      { dpUnit: 'pct' });
-    ok('F4 a scenario short of the goal is called out by the goal, not by $1,000',
-       /reserve goal/i.test(r.cards) || /reserve goal/i.test(r.snap), (r.cards || '').slice(0, 300));
-  }
-
-  /* =================================================================
-     GROUP G — persistence round-trip
-     ================================================================= */
-  console.log('\n--- G. Round-trip through capture / serialize / restore ---');
-  {
-    const r = await page.evaluate(() => {
-      window.__cash({ price: '500,000', score: '760', ownFunds: '200,000', gift: '0',
-                      dpTarget: '150,000', target: '4,500', income: '18,000', debts: '0',
-                      stay: '7', priority: 'payment', rateConv: '6.750', ccPct: '3',
-                      taxRate: '1.20', hoi: '150', hoa: '0', cdd: '0', flood: '0',
-                      desiredReserves: '55,000', escrowDeposit: '7,250', earnestMoney: '5,000' },
-                    { cashIsTotal: true });
-      const model = BSEModel.capture();
-      const rows = BSEPersistence.__serializeRows(model,
-        { owner_user_id:'u', buyer_profile_id:'b', shopping_plan_id:'s', property_id:'p',
-          property_scenario_id:'ps', assumption_set_id:'a', display_name:'WP-2 cash', property_label:'P1' }, null);
-      const back = BSEPersistence.__deserializeRows(rows, BSEPersistence.__presentationFrom(rows), null);
-      /* Wipe the DOM so the restore below is a real restore, not a no-op. */
-      ['desiredReserves', 'escrowDeposit', 'earnestMoney'].forEach(id => document.getElementById(id).value = '');
-      document.getElementById('cashIsTotal').checked = false;
-      recalc();
-      const wiped = gatherInputs();
-      return {
-        rowsBuyer: { mode: rows.buyer_profile.cash_input_mode, resv: rows.buyer_profile.desired_reserves },
-        rowsScen: { esc: rows.property_scenario.escrow_deposit, emd: rows.property_scenario.earnest_money },
-        backBuyer: { mode: back.buyer_profile.cash_input_mode, resv: back.buyer_profile.desired_reserves },
-        backScen: { esc: back.property_scenario.escrow_deposit, emd: back.property_scenario.earnest_money },
-        wiped: { resv: wiped.desiredReserves, esc: wiped.escrowDeposit, emd: wiped.earnestMoney, tot: wiped.cashIsTotal }
-      };
-    });
-    ok('G1 the four values serialize into their own columns',
-       r.rowsBuyer.mode === 'total' && near(r.rowsBuyer.resv, 55000, 0.5) &&
-       near(r.rowsScen.esc, 7250, 0.5) && near(r.rowsScen.emd, 5000, 0.5),
-       r);
-    ok('G1b and survive deserialization unchanged',
-       r.backBuyer.mode === 'total' && near(r.backBuyer.resv, 55000, 0.5) &&
-       near(r.backScen.esc, 7250, 0.5) && near(r.backScen.emd, 5000, 0.5),
-       r);
-    ok('G1c wiping the DOM really does clear them (the restore below is meaningful)',
-       r.wiped.resv === null && r.wiped.esc === 0 && r.wiped.emd === 0 && r.wiped.tot === false,
-       r.wiped);
-  }
-  {
-    /* WP-1 defect found during WP-2: fields were captured and serialized but
-       never written back to the DOM on load. This pins the fix. */
-    const r = await page.evaluate(() => {
-      window.__cash({ price: '500,000', score: '760', ownFunds: '200,000', gift: '0',
-                      dpTarget: '150,000', target: '4,500', income: '18,000', debts: '0',
-                      stay: '7', priority: 'payment', rateConv: '6.750', ccPct: '3',
-                      taxRate: '1.20', hoi: '150', hoa: '0', cdd: '0', flood: '0',
-                      desiredReserves: '55,000', escrowDeposit: '7,250', earnestMoney: '5,000' },
-                    { cashIsTotal: true });
-      const model = BSEModel.capture();
-      const rows = BSEPersistence.__serializeRows(model,
-        { owner_user_id:'u', buyer_profile_id:'b', shopping_plan_id:'s', property_id:'p',
-          property_scenario_id:'ps', assumption_set_id:'a', display_name:'WP-2 cash', property_label:'P1' }, null);
-      const back = BSEPersistence.__deserializeRows(rows, BSEPersistence.__presentationFrom(rows), null);
-      ['desiredReserves', 'escrowDeposit', 'earnestMoney'].forEach(id => document.getElementById(id).value = '');
-      document.getElementById('cashIsTotal').checked = false;
-      recalc();
-      BSEModel.apply(back);
-      recalc();
-      const v = id => document.getElementById(id).value;
-      const inp = gatherInputs();
-      return { dom: { resv: v('desiredReserves'), esc: v('escrowDeposit'), emd: v('earnestMoney'),
-                      tot: document.getElementById('cashIsTotal').checked },
-               inp: { resv: inp.desiredReserves, esc: inp.escrowDeposit, emd: inp.earnestMoney, tot: inp.cashIsTotal } };
-    });
-    ok('G2 the DOM is actually repopulated on restore (WP-1 restore defect, fixed)',
-       /55,?000/.test(r.dom.resv) && /7,?250/.test(r.dom.esc) && /5,?000/.test(r.dom.emd) && r.dom.tot === true,
-       r.dom);
-    ok('G2b and the restored DOM resolves back to the same engine inputs',
-       near(r.inp.resv, 55000, 0.5) && near(r.inp.esc, 7250, 0.5) &&
-       near(r.inp.emd, 5000, 0.5) && r.inp.tot === true, r.inp);
-  }
-
-  /* =================================================================
-     GROUP H — scope: inert until authored, property mode only
-     ================================================================= */
-  console.log('\n--- H. Scope and inertness ---');
   {
     const r = await F({});
-    ok('H1 unauthored, every WP-2 input is inert',
-       r.inp.escrowDeposit === 0 && r.inp.earnestMoney === 0 &&
-       r.inp.cashIsTotal === false && r.inp.desiredReserves === null &&
-       r.inp.reserveFloor === 500 && r.inp.cashAuthoredTotal === null,
-       { e: r.inp.escrowDeposit, m: r.inp.earnestMoney, t: r.inp.cashIsTotal,
-         d: r.inp.desiredReserves, f: r.inp.reserveFloor, a: r.inp.cashAuthoredTotal });
-  }
-  {
-    const r = await F({ price: '', escrowDeposit: '7,000', earnestMoney: '5,000' });
-    ok('H2 Shopping Range zeroes the escrow deposit — there is no property yet',
-       r.inp.escrowDeposit === 0, r.inp.escrowDeposit);
-    ok('H2b and zeroes earnest money — nothing has been deposited on nothing',
-       r.inp.earnestMoney === 0, r.inp.earnestMoney);
-  }
-  {
-    const zero = await F({ price: '500,000', dpTarget: '20', escrowDeposit: '0' }, { dpUnit: 'pct' });
-    const blank = await F({ price: '500,000', dpTarget: '20', escrowDeposit: '' }, { dpUnit: 'pct' });
-    ok('H3 an explicit 0 and a blank both resolve to zero cost (no inheritance here)',
-       zero.inp.escrowDeposit === 0 && blank.inp.escrowDeposit === 0,
-       { zero: zero.inp.escrowDeposit, blank: blank.inp.escrowDeposit });
-  }
-  {
-    const r = await F({ price: '500,000', desiredReserves: '50,000' });
-    ok('H4 the reserve goal never touches the payment', r.s.piti > 0 && isFinite(r.s.piti), r.s.piti);
-    const r2 = await F({ price: '500,000', desiredReserves: '' });
-    ok('H4b and un-authored it changes no payment at all',
-       near(r.s.piti, r2.s.piti, 0.01), { withGoal: r.s.piti, without: r2.s.piti });
+    ok('B3 no escrow deposit reaches the engine', r.inp.escrowDeposit === 0, r.inp.escrowDeposit);
+    ok('B3b no earnest-money credit reaches the engine', r.inp.earnestMoney === 0, r.inp.earnestMoney);
+    ok('B3c no total-out-of-pocket interpretation is in force', r.inp.cashIsTotal === false, r.inp.cashIsTotal);
+    ok('B3d no reserve goal is in force', r.inp.desiredReserves === null, r.inp.desiredReserves);
+    ok('B3e the reserve floor is the plain $500 default', r.inp.reserveFloor === 500, r.inp.reserveFloor);
   }
 
   /* =================================================================
-     GROUP I — Fernando Montilla acceptance replay
+     GROUP C — dollars are the default, percent still works
      ================================================================= */
-  console.log('\n--- I. Fernando Montilla — cash acceptance case ---');
+  console.log('\n--- C. The down payment is authored in dollars by default ---');
+  ok('C1 the shipped default down-payment mode is DOLLARS', shippedDpUnit === 'dollar', shippedDpUnit);
   {
-    const FERN = {
-      price: '499,900', score: '800', ownFunds: '200,000', gift: '0',
-      dpTarget: '150,000', target: '3,000', income: '15,000', debts: '0',
-      stay: '7', priority: 'payment', rateConv: '6.750', ccPct: '3',
-      taxRate: '1.20', hoi: '250', hoa: '0', cdd: '0', flood: '0',
-      desiredReserves: '', escrowDeposit: '', earnestMoney: '5,000'
-    };
-    const asDown = await page.evaluate(f => window.__cash(f, { cashIsTotal: false }), FERN);
-    const asTotal = await page.evaluate(f => window.__cash(f, { cashIsTotal: true }), FERN);
-    ok('I1 available funds stay at 200,000 and are not spent',
-       near(asTotal.inp.funds, 200000, 0.5), asTotal.inp.funds);
-    ok('I2 read as a DOWN PAYMENT, 150,000 goes down and cash to close exceeds it',
-       near(asDown.inp.dpTarget.dollar, 150000, 0.5) &&
-       asDown.scenarios.some(x => x.cashToClose > 150000),
-       { down: asDown.inp.dpTarget.dollar, ctc: asDown.scenarios.map(x => Math.round(x.cashToClose)).join(',') });
-    ok('I3 read as TOTAL OUT OF POCKET, the down payment drops below 150,000',
-       asTotal.inp.dpTarget.dollar < 150000, asTotal.inp.dpTarget.dollar);
-    {
-      const sc = asTotal.scenarios.find(x => near(x.down, asTotal.inp.dpTarget.dollar, 2));
-      ok('I4 and cash to close lands at 145,000 — the 150,000 committed, less the 5,000 already paid',
-         sc && near(sc.cashToClose, 145000, 1), sc && { ctc: sc.cashToClose, down: sc.down, closing: sc.closing });
-    }
-    ok('I5 the difference between the two readings is material, not cosmetic',
-       Math.abs(asDown.inp.dpTarget.dollar - asTotal.inp.dpTarget.dollar) > 8000,
-       { asDown: asDown.inp.dpTarget.dollar, asTotal: asTotal.inp.dpTarget.dollar });
-    ok('I6 the reading is stated in the presentation, never left to be guessed',
-       /total out of pocket/i.test(asTotal.snap + asTotal.cards) ||
-       asTotal.inp.cashAuthoredTotal === 150000,
-       asTotal.inp.cashAuthoredTotal);
+    const d = await F({ price: '500,000', dpTarget: '150,000' }, 'dollar');
+    ok('C2 a dollar figure resolves to that many dollars of down payment',
+       near(d.inp.dpTarget.dollar, 150000, 0.5), d.inp.dpTarget);
+    ok('C2b and the percentage it works out to is shown as supporting information',
+       /30\.0% of \$500,000/.test(d.dpSub), d.dpSub);
+  }
+  {
+    const p = await F({ price: '500,000', dpTarget: '30' }, 'pct');
+    ok('C3 percent mode still works and still means percent',
+       p.inp.dpTarget.isPct === true && near(p.inp.dpTarget.pct, 30, 0.001), p.inp.dpTarget);
+    ok('C3b and the dollars it works out to are shown', /\$150,000 at \$500,000/.test(p.dpSub), p.dpSub);
+    const d = await F({ price: '500,000', dpTarget: '150,000' }, 'dollar');
+    const sd = d.scenarios.find(x => near(x.down, 150000, 2));
+    const sp = p.scenarios.find(x => near(x.down, 150000, 2));
+    ok('C3c the two modes produce identical economics at the same price',
+       !!sd && !!sp && near(sd.piti, sp.piti, 0.01) && near(sd.cashToClose, sp.cashToClose, 0.01),
+       { dollars: sd, percent: sp });
+  }
+  {
+    /* The mathematics is unchanged: in Shopping Range the authored dollars are
+       held fixed at every price, exactly as before. */
+    const r = await F({ price: '', dpTarget: '150,000', score: '788', income: '9,500',
+                        debts: '40', target: '3,000' }, 'dollar');
+    ok('C4 in Shopping Range an authored dollar figure is held fixed, not scaled',
+       r.scenarios.length > 0 && r.scenarios.every(s => near(s.down, 150000, 1)),
+       r.scenarios.map(s => s.name + ':' + Math.round(s.down)).join(' '));
+  }
+
+  /* =================================================================
+     GROUP D — a shortfall is news; sufficiency is not
+     ================================================================= */
+  console.log('\n--- D. Cash shortfall ---');
+  {
+    const r = await F({ price: '500,000', ownFunds: '4,000', dpTarget: '' }, 'pct');
+    ok('D1 a genuine shortfall surfaces', r.shortfall === true, r.answer.slice(0, 300));
+    ok('D1b with the figure named', /Cash shortfall \$[0-9,]+/i.test(r.answer), r.answer.slice(0, 300));
+    ok('D1c stated as down payment plus estimated closing costs',
+       /down plus \$[0-9,]+ estimated closing costs/i.test(r.answer), r.answer.slice(0, 400));
+  }
+  {
+    const r = await F({ price: '500,000', ownFunds: '200,000', dpTarget: '' }, 'pct');
+    ok('D2 ample funds produce NO cash headline at all', r.shortfall === false, r.answer.slice(0, 300));
+    ok('D2b and nothing claims a shortfall', !/Cash shortfall/i.test(r.answer), r.answer.slice(0, 300));
+  }
+  {
+    const r = await F({ price: '', ownFunds: '4,000', dpTarget: '' }, 'pct');
+    ok('D3 Shopping Range never claims a shortfall — cash is a ceiling there, not a gap',
+       r.shortfall === false, r.answer.slice(0, 300));
+  }
+
+  /* =================================================================
+     GROUP E — the retired inputs are gone and cannot be required
+     ================================================================= */
+  console.log('\n--- E. The retired WP-2 inputs are out of the workflow ---');
+  {
+    const r = await page.evaluate(() => ({
+      desiredReserves: !!document.getElementById('desiredReserves'),
+      cashIsTotal: !!document.getElementById('cashIsTotal'),
+      escrowDeposit: !!document.getElementById('escrowDeposit'),
+      earnestMoney: !!document.getElementById('earnestMoney'),
+      converter: typeof window.resolveDownFromCash
+    }));
+    ok('E1 the "desired reserves after closing" field is gone', r.desiredReserves === false, r);
+    ok('E2 the "total out of pocket" toggle is gone', r.cashIsTotal === false, r);
+    ok('E3 the escrow-deposit field is gone', r.escrowDeposit === false, r);
+    ok('E4 the earnest-money field is gone', r.earnestMoney === false, r);
+    ok('E5 the total-out-of-pocket converter is gone with them', r.converter === 'undefined', r);
+  }
+  {
+    /* The acceptance question: can Stage 1 and Stage 2 be answered WITHOUT any
+       of them? Nothing below authors one, and every figure still resolves. */
+    const r = await page.evaluate(() => {
+      const F = { price: '499,900', score: '800', ownFunds: '200,000', gift: '0',
+                  dpTarget: '150,000', target: '3,000', income: '15,000', debts: '0',
+                  stay: '7', rateConv: '6.750', ccPct: '3', taxRate: '582.26',
+                  hoi: '250', hoa: '0', cdd: '0', flood: '0' };
+      Object.keys(F).forEach(id => { const e = document.getElementById(id); if (e) e.value = F[id]; });
+      ['hoaNA', 'cddNA', 'floodNA'].forEach(i => document.getElementById(i).checked = true);
+      ['tgFthb', 'tgVa', 'vaExempt'].forEach(i => document.getElementById(i).checked = false);
+      document.getElementById('priority').value = 'payment';
+      unitState.dp = 'dollar'; unitState.tax = 'dollarMo';
+      renderUnitToggles(); recalc();
+      const inp = gatherInputs();
+      const s = engineRun(inp).scenarios.find(x => Math.abs(x.down - 150000) < 2) || engineRun(inp).scenarios[0];
+      const sol = requiredDownForPayment(inp, inp.price, inp.target);
+      const rr = requiredRateForPayment(inp, s, inp.target);
+      const shop = (function(){ const t = Object.assign({}, inp, { shopping:true, price:0 });
+                                return powerSnapshot(t); })();
+      return {
+        piti: s.piti, cashToClose: s.cashToClose,
+        requiredDown: sol && sol.recommended ? sol.recommended.dpDollar : null,
+        requiredRate: rr ? rr.requiredRate : null,
+        comfort: shop ? shop.comfort : null, qual: shop ? shop.qual : null,
+        dtiAtComfort: dtiAtComfortPrice(inp)
+      };
+    });
+    ok('E6 Stage 2 payment resolves with none of the retired inputs',
+       near(r.piti, 3101.70, 0.02), r.piti);
+    ok('E7 Stage 2 cash to close resolves — down plus closing only',
+       near(r.cashToClose, 150000 + 0.03 * 349900, 0.5), r.cashToClose);
+    ok('E8 the required-down solver still answers', r.requiredDown > 0, r.requiredDown);
+    ok('E9 the required-rate solver still answers', r.requiredRate > 0 && r.requiredRate < 6.75, r.requiredRate);
+    ok('E10 Stage 1 comfort and qualifying prices still resolve',
+       r.comfort > 0 && r.qual > 0, { comfort: r.comfort, qual: r.qual });
+    ok('E11 DTI at comfort price still resolves', r.dtiAtComfort > 0, r.dtiAtComfort);
+  }
+
+  /* =================================================================
+     GROUP F — nothing saved before today is destroyed
+     ================================================================= */
+  console.log('\n--- F. The retired columns survive in the data model ---');
+  {
+    const r = await page.evaluate(() => {
+      const ctx = { owner_user_id:'u', buyer_profile_id:'b', shopping_plan_id:'s', property_id:'p',
+                    property_scenario_id:'ps', assumption_set_id:'a', display_name:'legacy', property_label:'P1' };
+      /* A record written by the WP-2 build, with all four values populated. */
+      const rows0 = BSEPersistence.__serializeRows(BSEModel.capture(), ctx, null);
+      rows0.buyer_profile.cash_input_mode = 'total';
+      rows0.buyer_profile.desired_reserves = 55000;
+      rows0.property_scenario.escrow_deposit = 7250;
+      rows0.property_scenario.earnest_money = 5000;
+      const back = BSEPersistence.__deserializeRows(rows0, BSEPersistence.__presentationFrom(rows0), null);
+      BSEModel.apply(back);
+      recalc();
+      const inp = gatherInputs();
+      /* Save again, unmodified, and see what is written out. */
+      const rows1 = BSEPersistence.__serializeRows(BSEModel.capture(), ctx, null);
+      return {
+        deserialized: { mode: back.buyer_profile.cash_input_mode, resv: back.buyer_profile.desired_reserves,
+                        esc: back.property_scenario.escrow_deposit, emd: back.property_scenario.earnest_money },
+        rewritten: { mode: rows1.buyer_profile.cash_input_mode, resv: rows1.buyer_profile.desired_reserves,
+                     esc: rows1.property_scenario.escrow_deposit, emd: rows1.property_scenario.earnest_money },
+        resolved: { esc: inp.escrowDeposit, emd: inp.earnestMoney,
+                    total: inp.cashIsTotal, resv: inp.desiredReserves, floor: inp.reserveFloor }
+      };
+    });
+    ok('F1 a legacy record still deserializes all four values',
+       r.deserialized.mode === 'total' && near(r.deserialized.resv, 55000, 0.5) &&
+       near(r.deserialized.esc, 7250, 0.5) && near(r.deserialized.emd, 5000, 0.5), r.deserialized);
+    ok('F2 and saving again writes them back UNCHANGED — no history is destroyed',
+       r.rewritten.mode === 'total' && near(r.rewritten.resv, 55000, 0.5) &&
+       near(r.rewritten.esc, 7250, 0.5) && near(r.rewritten.emd, 5000, 0.5), r.rewritten);
+    ok('F3 but none of them reaches the engine any more',
+       r.resolved.esc === 0 && r.resolved.emd === 0 && r.resolved.total === false &&
+       r.resolved.resv === null && r.resolved.floor === 500, r.resolved);
   }
 
   ok('Z1 no page errors during the suite', pageErrors.length === 0, pageErrors.join(' | '));
