@@ -607,6 +607,89 @@ const FERN = {
        !/Recommendation Engine/i.test(r.answer), r.answer.slice(0, 300));
   }
 
+  /* =================================================================
+     K — CONDENSING: what is gone, what stayed, and what stayed collapsed
+     ================================================================= */
+  console.log('\n--- K. Condensing pass ---');
+  {
+    const r = await page.evaluate(([b]) => {
+      Object.keys(b).forEach(id => { const e = document.getElementById(id); if (e) e.value = b[id]; });
+      ['hoaNA','cddNA','floodNA'].forEach(i => document.getElementById(i).checked = true);
+      ['tgFthb','tgVa','vaExempt'].forEach(i => document.getElementById(i).checked = false);
+      ['flTaxOn','flHomestead'].forEach(i => document.getElementById(i).checked = false);
+      document.getElementById('priority').value = 'payment';
+      unitState.dp = 'dollar'; unitState.tax = 'dollarMo'; renderUnitToggles(); recalc();
+      whatIfPrice = 499900; refreshWhatIf();
+      const body = document.getElementById('answerBody');
+      const t = (body.innerText || '').replace(/\s+/g, ' ');
+      const idx = tok => t.indexOf(tok);
+      return {
+        t: t,
+        details: Array.from(body.querySelectorAll('details')).map(d => ({ id: d.id, open: d.open })),
+        order: ['COMFORT PURCHASE PRICE','SHOP UP TO','DESIRED PURCHASE PRICE',
+                'Make $499,900 fit','RATE SENSITIVITY ON THIS HOME',
+                'What would a rate change do to the shopping range','Debt payoff lever'].map(idx),
+        /* the calculations the deleted views used are all still callable */
+        fns: ['whyBoxHTML','strategyActionsFor','powerBadge','controllingSentence',
+              'requiredDownForPayment','wiRow','wiCheck'].map(n => typeof window[n]),
+        sec2: !!document.getElementById('sec2')
+      };
+    }, [DOUG]);
+
+    /* §1/§2/§3 — what must remain */
+    ok('K1 the Job 1 primary row remains', /COMFORT PURCHASE PRICE[\s\S]{0,200}MAX QUALIFYING PRICE[\s\S]{0,200}DTI AT COMFORT PRICE/i.test(r.t), r.t.slice(0, 260));
+    ok('K2 SHOP UP TO remains', /SHOP UP TO \$484,259/i.test(r.t), r.t.slice(0, 320));
+    ok('K3 the preferred-down summary remains', /\$150,000 down — that is 31\.0%/i.test(r.t), r.t.slice(0, 700));
+    ok('K4 Desired Purchase Price remains', /DESIRED PURCHASE PRICE/i.test(r.t));
+    ok('K5 the property fit remains, with both levers',
+       /MORE DOWN · RATE HELD AT/i.test(r.t) && /LOWER RATE · DOWN PAYMENT HELD AT/i.test(r.t), r.t.slice(0, 1200));
+    ok('K6 property rate sensitivity remains',
+       /RATE SENSITIVITY ON THIS HOME/i.test(r.t) && /VS CURRENT PAYMENT/i.test(r.t));
+
+    /* §4/§5 — what must be gone */
+    ok('K7 the duplicate Required Down detail block is gone',
+       !/ESTIMATED CASH TO CLOSE/i.test(r.t) && !/LOAN AMOUNT/i.test(r.t) &&
+       !/LEFT IN RESERVE/i.test(r.t) && !/Payment target achieved/i.test(r.t) &&
+       !/Qualification achieved/i.test(r.t) && !/Available funds sufficient/i.test(r.t),
+       r.t.slice(0, 400));
+    ok('K8 and the required down figure survives exactly once, in the fit summary',
+       (r.t.match(/REQUIRED DOWN PAYMENT/gi) || []).length === 1,
+       (r.t.match(/REQUIRED DOWN PAYMENT/gi) || []).length);
+    ok('K9 "Limiting factor — and what moves it" is gone',
+       !/Limiting factor — and what moves it/i.test(r.t) && !/Why this number/i.test(r.t), r.t.slice(0, 400));
+
+    /* §5 preserve the calculations */
+    ok('K10 every calculation behind the deleted views is still defined',
+       r.fns.every(x => x === 'function'), r.fns);
+
+    /* §6/§7 — the secondary levers stay, closed */
+    const byId = id => r.details.filter(d => d.id === id)[0];
+    ok('K11 Shopping Range rate sensitivity remains, collapsed by default',
+       !!byId('rateBox') && byId('rateBox').open === false, r.details);
+    ok('K12 the Debt Payoff Lever remains, collapsed by default',
+       !!byId('debtLever') && byId('debtLever').open === false, r.details);
+    ok('K13 "More rate scenarios" remains, collapsed by default',
+       !!byId('moreRates') && byId('moreRates').open === false, r.details);
+    ok('K14 nothing in the Job 1 view is open by default',
+       r.details.every(d => d.open === false), r.details);
+
+    /* §8 — VA silence held */
+    ok('K15 VA unchecked remains silent',
+       !/VA eligibility not indicated/i.test(r.t) && !/Programs not available/i.test(r.t), r.t.slice(0, 300));
+
+    /* §9 — the flow */
+    ok('K16 the screen reads in the live-call order',
+       r.order.every((v, i) => v >= 0 && (i === 0 || v > r.order[i - 1])), r.order);
+    ok('K17 Property Strategy is immediately downstream', r.sec2 === true, r.sec2);
+  }
+  {
+    /* §11 — the detail did not vanish from the product, only from Job 1. */
+    const r = await L(FERN, {}, 'payment', 'dollar', 'dollarMo');
+    ok('K18 Job 2 still carries the cash and qualification detail',
+       /ESTIMATED CASH TO CLOSE/i.test(r.answer) && /Payment target achieved/i.test(r.answer) &&
+       /Available funds sufficient/i.test(r.answer), r.answer.slice(-800));
+  }
+
   ok('Z1 no page errors during the suite', pageErrors.length === 0, pageErrors.join(' | '));
 
   console.log('\n===============================================');

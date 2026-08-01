@@ -170,7 +170,14 @@ window.__answerText = function(){ return (document.getElementById('answerBody')|
        { at: r.piti, less: less.piti });
 
     ok('the screen leads with the required down payment', /REQUIRED DOWN PAYMENT/i.test(a.out));
-    ok('the screen also states cash to close separately', /ESTIMATED CASH TO CLOSE/i.test(a.out));
+    /* CONDENSING §4 — the duplicate detail block is gone from Job 1. Cash to
+       close, the loan amount, reserves and the qualification ticks belong to
+       Property Strategy, where there is a property under offer; on a live call
+       the required down payment and the required rate are the answer. The
+       FIGURES are still asserted above, straight off the solver. */
+    ok('cash to close is no longer duplicated in the Job 1 view',
+       !/ESTIMATED CASH TO CLOSE/i.test(a.out), a.out.slice(0, 300));
+    ok('nor is the loan amount', !/LOAN AMOUNT/i.test(a.out), a.out.slice(0, 300));
     ok('the screen gives context against the shop-to figure',
        /above the \$484,259 they should shop to/i.test(a.out), a.out.slice(0, 160));
   }
@@ -223,12 +230,13 @@ window.__answerText = function(){ return (document.getElementById('answerBody')|
   ok('the shortfall is quantified', tight.rec && tight.rec.cashGap > 0, tight.rec && tight.rec.cashGap);
   ok('the shortfall equals cash to close minus funds',
      tight.rec && near(tight.rec.cashGap, tight.rec.cashToClose - between, 1), tight.rec);
-  ok('the screen asks for additional cash rather than showing a reserve',
-     /ADDITIONAL CASH NEEDED/i.test(tight.out) && !/LEFT IN RESERVE/i.test(tight.out),
+  /* The shortfall itself is asserted above, off the solver. Job 1 no longer
+     renders the funds rows or the tick list (§4). */
+  ok('the funds rows are no longer duplicated in the Job 1 view',
+     !/ADDITIONAL CASH NEEDED/i.test(tight.out) && !/LEFT IN RESERVE/i.test(tight.out),
      tight.out.slice(0, 400));
-  ok('the funds check fails while the payment check passes',
-     /✓[\s\S]{0,40}Payment target achieved/.test(tight.out) &&
-     /✗[\s\S]{0,40}Available funds sufficient/.test(tight.out),
+  ok('nor is the qualification tick list',
+     !/Payment target achieved/i.test(tight.out) && !/Available funds sufficient/i.test(tight.out),
      tight.out.slice(-400));
 
   /* ================================================================
@@ -254,11 +262,11 @@ window.__answerText = function(){ return (document.getElementById('answerBody')|
     ok('the payment target IS met', dq.rec.piti <= 3000.005, dq.rec.piti);
     ok('qualification FAILS on back-end DTI', dq.rec.dtiOk === false,
        { back: dq.rec.back, limit: dq.rec.backLimit });
-    ok('the screen marks qualification failed while payment passed',
-       /✓[\s\S]{0,40}Payment target achieved/.test(dq.out) &&
-       /✗[\s\S]{0,40}Qualification achieved/.test(dq.out), dq.out.slice(-500));
-    ok('the DTI figure is quoted in the explanation',
-       /back-end DTI [\d.]+% exceeds the \d+% limit/i.test(dq.out), dq.out.slice(-400));
+    /* The DTI failure is asserted above, off the solver. Job 1 no longer renders
+       the tick list that restated it (§4); Job 2 still does, and
+       job2-property-strategy pins it there. */
+    ok('the qualification tick list is no longer duplicated in the Job 1 view',
+       !/Qualification achieved/i.test(dq.out), dq.out.slice(-500));
   }
 
   /* ================================================================

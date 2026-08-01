@@ -307,7 +307,8 @@ window.__roundTripUnit = function(value, unit){
   const body = await page.evaluate(() => window.__answer());
   /* CLEANUP §3/§5 — the third headline is DTI at Comfort Price. */
   const order = ['COMFORT PURCHASE PRICE', 'MAX QUALIFYING PRICE', 'DTI AT COMFORT PRICE',
-                 'SHOP UP TO', 'DESIRED PURCHASE PRICE', 'Limiting factor', 'Debt payoff lever'];
+                 'SHOP UP TO', 'DESIRED PURCHASE PRICE', 'RATE SENSITIVITY ON THIS HOME',
+                 'What would a rate change do to the shopping range', 'Debt payoff lever'];
   let lastIdx = -1, inOrder = true, offender = null;
   for (const token of order) {
     const i = body.indexOf(token);

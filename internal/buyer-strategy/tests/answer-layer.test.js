@@ -203,9 +203,22 @@ function scanBad(text) {
   const cashC = await page.evaluate(() => window.__ceilings());
   ok('a thin-funds buyer is correctly identified as cash-bound',
      cashC && cashC.controlling === 'Cash to Close', cashC && cashC.controlling);
+  /* CONDENSING §5 — the "Limiting factor — and what moves it" disclosure left the
+     VIEW; strategyActionsFor() is untouched and still produces the moves. The
+     assertion now reads the function rather than the panel, which is what it was
+     always really testing. */
+  const cashActs = await page.evaluate(() => {
+    const inp = resolvedInputs(), snap = powerSnapshot(inp);
+    return strategyActionsFor(snap.controlling.why, {
+      inp: snap.inp, viable: snap.bp, best: representativeScenario(snap.bp.slice(), snap.inp),
+      lowDp: snap.C.lowDp, qualTop: snap.C.qualTop, cashPrice: snap.C.cashPrice,
+      secondary: snap.P.secondary, highestComfort: snap.C.highestComfort });
+  });
   ok('the cash branch produces at least one actionable next move',
-     /Seller concession|Lower down payment|Gift funds|Down-payment assistance|Lower list price/i.test(cashTxt),
-     cashTxt.replace(/\s+/g, ' ').slice(0, 300));
+     cashActs.some(a => /Seller concession|Lower down payment|Gift funds|Down-payment assistance|Lower list price/i.test(a)),
+     cashActs);
+  ok('  …and those moves are no longer competing for space in the view',
+     !/Seller concession|Gift funds/i.test(cashTxt), cashTxt.replace(/\s+/g, ' ').slice(0, 200));
   ok('the cash branch renders real dollar figures, not NaN',
      !/NaN/.test(cashTxt) && /\$[\d,]+/.test(cashTxt));
 
@@ -216,9 +229,16 @@ function scanBad(text) {
   const dtiC = await page.evaluate(() => window.__ceilings());
   ok('a low-income high-debt buyer is correctly identified as DTI-bound',
      dtiC && dtiC.controlling === 'DTI', dtiC && dtiC.controlling);
+  const dtiActs = await page.evaluate(() => {
+    const inp = resolvedInputs(), snap = powerSnapshot(inp);
+    return strategyActionsFor(snap.controlling.why, {
+      inp: snap.inp, viable: snap.bp, best: representativeScenario(snap.bp.slice(), snap.inp),
+      lowDp: snap.C.lowDp, qualTop: snap.C.qualTop, cashPrice: snap.C.cashPrice,
+      secondary: snap.P.secondary, highestComfort: snap.C.highestComfort });
+  });
   ok('the DTI branch produces at least one actionable next move',
-     /Eliminate|Reduce monthly debt|co-borrower|Switch to|Lower list price/i.test(dtiTxt),
-     dtiTxt.replace(/\s+/g, ' ').slice(0, 300));
+     dtiActs.some(a => /Eliminate|Reduce monthly debt|co-borrower|Switch to|Lower list price/i.test(a)),
+     dtiActs);
   ok('the DTI branch renders real dollar figures, not NaN',
      !/NaN/.test(dtiTxt) && /\$[\d,]+/.test(dtiTxt));
 

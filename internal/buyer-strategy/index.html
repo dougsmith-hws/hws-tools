@@ -3064,20 +3064,28 @@ function job1HTML(inp){
   /* --- the other direction of the same conversation --- */
   h += whatIfHTML(inp, snap);
 
-  /* REFINEMENT §1 — re-homed from the deleted Qualification Snapshot. An
-     eliminated program is the one piece of that panel a live call genuinely
-     needed, and "see the section below" is no longer an instruction that can be
-     followed. */
-  h += answerElimHTML(inp);
 
-  /* --- why, and what moves it (revived strategy layer) --- */
-  h += whyBoxHTML(inp, snap);
+  /* CONDENSING §5 — "Limiting factor — and what moves it" is gone from the view.
+     It listed: more down, a lower rate, a seller concession toward a buydown, an
+     alternative structure. The first two are now QUANTIFIED in the property fit
+     directly above it, and the last two belong to Property Strategy, where there
+     is a property to negotiate on. A list of levers sitting under a panel that
+     already solved two of them is screen space without information.
+
+     whyBoxHTML(), strategyActionsFor(), powerBadge() and controllingSentence()
+     are all still defined; controllingSentence() still names the constraint in
+     the SHOP UP TO line, which is where it earns its space. */
 
   /* --- rate impact --- */
   h += rateImpactHTML(inp, snap);
 
-  /* --- debt payoff lever --- */
+  /* --- debt payoff lever (collapsed by default) --- */
   h += debtLeverHTML(inp, snap);
+
+  /* CONDENSING §8 — a real elimination is still worth knowing, so it stays; it
+     sits last and closed, where it cannot compete with the property fit. It is
+     silent when nothing legitimately participated and failed. */
+  h += answerElimHTML(inp);
   return h;
 }
 
@@ -3348,72 +3356,32 @@ function whatIfOutHTML(inp, snap){
   const r = sol.recommended;
   const fundsOk = r.fundsSufficient, qualOk = r.dtiOk && !r.overLoanLimit && r.eligible;
 
-  /* CORRECTION §2/§3/§6 — THE ANSWER IS BOTH OPTIONS, side by side, at the
-     desired price: hold the rate and solve the down payment, or hold the down
-     payment and solve the rate. Then, and only then, the rate sensitivity on
-     this same home as conversational context. The detail rows below are
-     supporting figures for the down-payment route. */
-  let h = ctx + fit + sens;
-  h += '<div class="wi-head ' + (fundsOk && qualOk ? 'good' : 'warn') + '">' +
-    '<div class="wi-k">Required down payment</div>' +
-    '<div class="wi-v">' + money(r.dpDollar) + '<span class="wi-pct">' + r.dpPct.toFixed(1) + '% down</span></div>' +
-    (r.atMinimum
-      ? '<div class="wi-s">That is the ' + r.label + ' minimum — at ' + money(whatIfPrice) +
-        ' the payment already lands at ' + money(r.piti) + '/mo, under the ' + money(inp.target) + ' target.</div>'
-      : '<div class="wi-s">' + r.label + ' at ' + r.rate.toFixed(3) + '% — payment ' + money(r.piti) + '/mo' +
-        (r.monthlyMI > 0 ? ', including ' + money(r.monthlyMI) + ' mortgage insurance.' : ', no monthly mortgage insurance.') +
-        '</div>') +
-    '</div>';
+  /* =====================================================================
+     CONDENSING §4 — THE DUPLICATE DETAIL BLOCK IS GONE
+     =====================================================================
+     What used to follow the property fit was a second, larger presentation of
+     the SAME answer: a "Required down payment $165,700" hero, then loan amount,
+     estimated PITI, estimated cash to close, available funds, left in reserve,
+     three green ticks, the additional-down narrative and the alternative FHA
+     result. Every one of those figures either restated the fit summary above or
+     answered a question a live call does not ask at this moment.
 
-  /* Supporting figures. Cash to close is kept visually next to the down payment
-     precisely because they are not the same number. */
-  h += '<div class="wi-rows">';
-  h += wiRow('Loan amount', money(whatIfPrice - r.dpDollar), '');
-  h += wiRow('Estimated PITI', money(r.piti) + '/mo',
-             r.piti <= inp.target + 0.5 ? 'at or under the ' + money(inp.target) + ' target'
-                                        : money(r.piti - inp.target) + '/mo over target');
-  h += wiRow('Estimated cash to close', money(r.cashToClose),
-             money(r.dpDollar) + ' down + ' + money(r.closing) + ' estimated closing costs');
-  h += wiRow('Available funds', money(inp.funds), '');
-  h += fundsOk
-     ? wiRow('Left in reserve', '<b class="v-ok">' + money(r.cashRemaining) + '</b>', 'after down payment and closing')
-     : wiRow('Additional cash needed', '<b class="v-bad">' + money(r.cashGap) + '</b>',
-             'cash to close exceeds available funds');
-  h += '</div>';
+     The fit summary already says it: $165,700 is required, which is $15,700 more
+     than contemplated, and here is the rate that would do it instead. That is
+     the whole live-call answer. The rest is Property Strategy's job, once there
+     is an actual property under offer.
 
-  /* Three independent checks — hitting the payment is not the same as qualifying,
-     and qualifying is not the same as having the money. */
-  h += '<div class="wi-checks">';
-  h += wiCheck(r.piti <= inp.target + 0.5, 'Payment target achieved',
-        money(r.piti) + '/mo against a ' + money(inp.target) + ' target');
-  h += wiCheck(qualOk, 'Qualification achieved',
-        !r.eligible ? (r.ineligibleReason || 'program not available')
-        : r.overLoanLimit ? 'loan exceeds the ' + money(r.loanLimit) + ' program limit'
-        : !r.dtiOk ? 'back-end DTI ' + r.back.toFixed(1) + '% exceeds the ' + r.backLimit + '% limit'
-        : 'back-end DTI ' + r.back.toFixed(1) + '% against a ' + r.backLimit + '% limit');
-  h += wiCheck(fundsOk, 'Available funds sufficient',
-        fundsOk ? money(r.cashToClose) + ' to close against ' + money(inp.funds) + ' available'
-                : 'short ' + money(r.cashGap) + ' after closing costs');
-  h += '</div>';
-
-  /* How this compares with what they said they wanted to put down. */
-  if (inp.dpTarget && !inp.dpTarget.isPct && inp.dpTarget.dollar > 0 && !r.atMinimum) {
-    const diff = r.dpDollar - inp.dpTarget.dollar;
-    if (Math.abs(diff) > 500)
-      h += '<div class="wi-ctx">' + (diff > 0
-        ? 'That is ' + money(diff) + ' more than the ' + money(inp.dpTarget.dollar) + ' they planned to put down.'
-        : money(-diff) + ' less than the ' + money(inp.dpTarget.dollar) + ' they planned to put down.') + '</div>';
-  }
-
-  /* Other programs that also reach the target, stated in one line. */
-  const others = sol.programs.filter(p => p.feasible && p !== r);
-  if (others.length)
-    h += '<div class="wi-ctx">Also reaches ' + money(inp.target) + '/mo: ' +
-         others.map(p => '<b>' + p.label + '</b> at ' + money(p.dpDollar) + ' down (' +
-                    money(p.cashToClose) + ' to close)').join(' · ') + '</div>';
-  return h;
+     requiredDownForPayment() is UNTOUCHED and still runs — the fit summary reads
+     it, Job 2 reads it, and job1-whatif pins 66 assertions against it. Only its
+     duplicate presentation was removed. */
+  return ctx + fit + sens;
 }
 
+/* CONDENSING §4 — wiRow() and wiCheck() are the row and tick helpers the
+   deleted Job 1 detail block used. They are KEPT: job2PaymentAnswerHTML()
+   still builds its supporting rows and qualification checks with them, and
+   deleting a presentation block is not a licence to delete the helpers it
+   happened to sit next to. */
 function wiRow(k, v, s){
   return '<div class="wi-r"><span class="wi-rk">' + k + '</span><span class="wi-rv">' + v + '</span>' +
          '<span class="wi-rs">' + (s || '') + '</span></div>';
@@ -3424,6 +3392,7 @@ function wiCheck(ok, label, detail){
 }
 
 /* Re-render only the answer, so typing never loses focus. */
+
 function refreshWhatIf(){
   const out = $('whatIfOut');
   if (!out) return;
