@@ -792,6 +792,27 @@ table.prt .prt-cur{font-size:9.5px;font-weight:800;text-transform:uppercase;lett
 .dpfit .fitsum{border:none;padding:0;margin-bottom:10px}
 .dpfit .ratesens{border:none;padding:0;margin-bottom:0;border-top:1px solid #e2e8f0;padding-top:11px}
 
+/* ---- buy down vs more down ---- */
+.bdq{border-top:1px solid #e2e8f0;margin-top:11px;padding-top:11px}
+.bdq-h{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.55px;color:#3BB1ED;margin-bottom:7px}
+.bdq-row{display:flex;gap:10px;flex-wrap:wrap}
+.bdq-row label{display:flex;flex-direction:column;gap:3px;font-size:10px;font-weight:700;color:#64748b;flex:1 1 120px}
+.bdq-row .ia input{width:100%}
+.bdq-s{font-size:10.5px;color:#94a3b8;margin-top:6px;line-height:1.45}
+.bdcmp{margin-top:11px}
+.bd-h{font-size:12.5px;font-weight:800;color:#1a2332;margin-bottom:8px}
+.bdgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px}
+.bdcard{border:1px solid #e2e8f0;border-radius:8px;padding:11px 12px;background:#f8fafc}
+.bdcard.diff{background:#f0f9ff;border-color:#bae6fd}
+.bd-t{font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:#64748b;margin-bottom:7px}
+.bd-row{margin-top:7px}.bd-row.lead{margin-top:0}
+.bd-k{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.45px;color:#94a3b8}
+.bd-v{font-size:17px;font-weight:800;color:#0f172a;font-variant-numeric:tabular-nums;line-height:1.2}
+.bd-row.lead .bd-v{font-size:20px}
+.bd-u{font-size:10.5px;font-weight:700;color:#64748b;margin-left:2px}
+.bd-s{font-size:10.5px;color:#64748b;line-height:1.4;margin-top:2px}
+.bd-f{font-size:10.5px;color:#64748b;line-height:1.5;margin-top:9px}
+
 </style>
 </head>
 <body>
@@ -3262,6 +3283,24 @@ function whyBoxHTML(inp, snap){
    ===================================================================== */
 let whatIfPrice = 0;
 
+/* =====================================================================
+   THE RATE-SHEET QUOTE
+   =====================================================================
+   Four numbers, all typed by the advisor from the sheet in front of them:
+
+     bdExtra    the extra dollars on the table ("another $10,000")
+     bdPtsNow   what the rate already entered costs, in points
+     bdRate     a lower rate the sheet quotes
+     bdPts      what that lower rate costs, in points
+
+   All four are required. Any blank and the comparison does not render — there
+   is no default, because a default here would be a price BSE invented.        */
+let buyDown = { extra:0, ptsNow:null, rate:null, pts:null };
+function buyDownReady(){
+  return buyDown.extra > 0 && buyDown.ptsNow != null && buyDown.rate > 0 &&
+         buyDown.pts != null && buyDown.pts > buyDown.ptsNow;
+}
+
 function whatIfInputs(inp){
   /* Same assumptions as the cards above — rate, taxes, insurance, HOA, CDD,
      flood, MI, closing-cost %, credit, income, debts, funds, eligibility. */
@@ -3297,6 +3336,126 @@ function whatIfHTML(inp, snap){
        '</div>';
   h += '<div id="whatIfOut">' + whatIfOutHTML(inp, snap) + '</div>';
   return h + '</div>';
+}
+
+/* The quote row. Rendered inside the property-fit block, below the levers, and
+   only once a desired price exists — there is nothing to compare otherwise. */
+function buyDownInputsHTML(inp){
+  const v = k => (buyDown[k] == null || buyDown[k] === 0) ? '' : String(buyDown[k]);
+  return '<div class="bdq"><div class="bdq-h">If more cash were available \u2014 ' +
+    'enter the quote from your rate sheet</div><div class="bdq-row">' +
+    '<label>Extra cash<span class="ia dollar"><input id="bdExtra" type="text" inputmode="numeric" ' +
+      'placeholder="10,000" value="' + (buyDown.extra > 0 ? Math.round(buyDown.extra).toLocaleString('en-US') : '') + '"></span></label>' +
+    '<label>Points at the current rate<span class="ia pct"><input id="bdPtsNow" type="text" inputmode="decimal" ' +
+      'placeholder="0.000" value="' + v('ptsNow') + '"></span></label>' +
+    '<label>Quoted lower rate<span class="ia pct"><input id="bdRate" type="text" inputmode="decimal" ' +
+      'placeholder="6.375" value="' + v('rate') + '"></span></label>' +
+    '<label>Points at that rate<span class="ia pct"><input id="bdPts" type="text" inputmode="decimal" ' +
+      'placeholder="1.250" value="' + v('pts') + '"></span></label>' +
+    '</div><div class="bdq-s">Transcribed from the sheet. BSE does not price rates and will not ' +
+    'estimate the cost of a point \u2014 leave any box blank and this comparison stays hidden.</div>' +
+    '<div id="bdOut">' + buyDownHTML(inp) + '</div></div>';
+}
+
+/* =====================================================================
+   BUY DOWN vs MORE DOWN — equal dollars, both sides through the engine
+   =====================================================================
+   Two uses of the same money, priced honestly:
+
+     MORE DOWN     the extra dollars are added to the down payment and the
+                   engine recomputes. The loan falls, so mortgage insurance can
+                   change too — computeScenario() handles that, not this code.
+
+     DISCOUNT POINTS  the quoted lower rate costs (bdPts − bdPtsNow) points,
+                   which is that percentage of the LOAN. If the extra dollars
+                   cover it, the engine recomputes at the quoted rate with the
+                   loan unchanged. If they do not, the section says how far
+                   short they fall. It never invents a rate between the quotes.
+
+   The section reports the difference and stops. Which one is "better" depends
+   on how long they keep the loan, whether they will refinance, and what else
+   the cash is for — that is the conversation, not a calculation.              */
+function buyDownHTML(inp){
+  if (!buyDownReady() || !(whatIfPrice > 0)) return '';
+  const ref = desiredPriceRef(inp);
+  if (!ref || !(ref.loanAmount > 0)) return '';
+  const w = desiredPriceInputs(inp);
+  const extra = buyDown.extra;
+
+  /* --- use A: more down --- */
+  const downPct = Math.min(100, (ref.down + extra) / whatIfPrice * 100);
+  let more = null;
+  try { more = dpScenarioAt(w, ref.id, whatIfPrice, downPct); } catch(e){ more = null; }
+
+  /* --- use B: buy the quoted rate --- */
+  const pointsNeeded = buyDown.pts - buyDown.ptsNow;              // points, i.e. % of loan
+  const costToBuy = pointsNeeded / 100 * ref.loanAmount;
+  const reaches = extra >= costToBuy - 0.5;
+  let bought = null;
+  try { bought = propRateAt(w, ref.id, whatIfPrice, ref.dp, buyDown.rate); } catch(e){ bought = null; }
+
+  const row = (k, v, s, cls) =>
+    '<div class="bd-row' + (cls ? ' ' + cls : '') + '"><div class="bd-k">' + k + '</div>' +
+    '<div class="bd-v">' + v + '</div>' + (s ? '<div class="bd-s">' + s + '</div>' : '') + '</div>';
+
+  let h = '<div class="bdcmp"><div class="bd-h">If another ' + money(extra) +
+          ' were available</div><div class="bdgrid">';
+
+  h += '<div class="bdcard"><div class="bd-t">Apply toward down payment</div>' +
+       (more
+         ? row('Payment reduction', money(Math.max(0, ref.piti - more.piti)) + '<span class="bd-u">/mo</span>',
+               'down payment ' + money(ref.down) + ' \u2192 ' + money(ref.down + extra), 'lead') +
+           row('New payment', money(more.piti) + '<span class="bd-u">/mo</span>',
+               more.monthlyMI !== ref.monthlyMI
+                 ? 'mortgage insurance moves to ' + money(more.monthlyMI) + '/mo at the lower loan'
+                 : 'rate unchanged at ' + ref.rate.toFixed(3) + '%')
+         : row('Payment reduction', '\u2014', 'no eligible structure at that down payment', 'lead')) +
+       '</div>';
+
+  h += '<div class="bdcard"><div class="bd-t">Apply toward discount points</div>';
+  if (!reaches) {
+    h += row('Payment reduction', '\u2014',
+             money(extra) + ' does not reach the ' + buyDown.rate.toFixed(3) + '% quote \u2014 ' +
+             pointsNeeded.toFixed(3) + ' points on a ' + money(ref.loanAmount) + ' loan is ' +
+             money(costToBuy) + ', so it is ' + money(costToBuy - extra) + ' short.', 'lead');
+    h += row('New payment', '\u2014', 'the sheet quotes rates, not a curve \u2014 BSE will not ' +
+             'interpolate a rate between quotes.');
+  } else if (bought) {
+    const left = extra - costToBuy;
+    h += row('Payment reduction', money(Math.max(0, ref.piti - bought.piti)) + '<span class="bd-u">/mo</span>',
+             pointsNeeded.toFixed(3) + ' points costs ' + money(costToBuy) + ' on this loan' +
+             (left > 0.5 ? ', leaving ' + money(left) + ' unspent' : ''), 'lead');
+    h += row('New payment', money(bought.piti) + '<span class="bd-u">/mo</span>',
+             'rate ' + ref.rate.toFixed(3) + '% \u2192 ' + buyDown.rate.toFixed(3) +
+             '%, down payment unchanged');
+  }
+  h += '</div>';
+
+  /* --- the difference, stated and left alone --- */
+  h += '<div class="bdcard diff"><div class="bd-t">Difference</div>';
+  if (more && bought && reaches) {
+    const d = bought.piti - more.piti;
+    h += row(Math.abs(d) < 0.5 ? 'The same payment' :
+             (d < 0 ? 'Points reduce it more' : 'More down reduces it more'),
+             money(Math.abs(d)) + '<span class="bd-u">/mo</span>',
+             'between the two uses of the same ' + money(extra), 'lead');
+    h += row('Both against today', money(ref.piti) + '<span class="bd-u">/mo</span>', 'current payment');
+  } else {
+    h += row('Not comparable', '\u2014',
+             reaches ? 'one side has no eligible structure'
+                     : 'the extra cash does not reach the quoted rate, so there is nothing to weigh against it', 'lead');
+  }
+  h += '</div></div>';
+
+  h += '<div class="bd-f">Points are a rate-sheet quote transcribed by the advisor, not a BSE ' +
+       'estimate. Which use is better depends on how long the loan is kept, the likelihood of a ' +
+       'refinance, and what else the cash is for. <b>BSE does not choose.</b></div>';
+  return h + '</div>';
+}
+
+function refreshBuyDown(){
+  const out = $('bdOut');
+  if (out) out.innerHTML = buyDownHTML(resolvedInputs());
 }
 
 /* The structure the buyer is actually contemplating AT THE DESIRED PRICE: their
@@ -3336,6 +3495,10 @@ function whatIfOutHTML(inp, snap){
   const dref = desiredPriceRef(inp);
   const fit  = dref ? propertyFitSummaryHTML(w, dref, sol) : '';
   const sens = dref ? propRateSensitivityHTML(w, dref) : '';
+  /* Fernando's question — "if I have another $10,000, down or into the rate?" —
+     sits between the two levers and the sensitivity table, because it is the
+     natural follow-up to "more down or a lower rate". */
+  const bdq  = dref ? buyDownInputsHTML(inp) : '';
 
   /* Context against the answer above — is this a stretch or not? */
   let ctx = '';
@@ -3347,7 +3510,7 @@ function whatIfOutHTML(inp, snap){
   }
 
   if (!sol.feasible) {
-    return ctx + fit + sens + '<div class="wi-head bad"><div class="wi-k">Not achievable at any down payment</div>' +
+    return ctx + fit + bdq + sens + '<div class="wi-head bad"><div class="wi-k">Not achievable at any down payment</div>' +
       '<div class="wi-s">Taxes, insurance and escrow on a ' + money(whatIfPrice) + ' property come to ' +
       money(sol.escrowFloor) + '/mo on their own — already above the ' + money(inp.target) +
       ' target before any principal or interest. The target or the price has to move.</div></div>';
@@ -3374,7 +3537,7 @@ function whatIfOutHTML(inp, snap){
      requiredDownForPayment() is UNTOUCHED and still runs — the fit summary reads
      it, Job 2 reads it, and job1-whatif pins 66 assertions against it. Only its
      duplicate presentation was removed. */
-  return ctx + fit + sens;
+  return ctx + fit + bdq + sens;
 }
 
 /* CONDENSING §4 — wiRow() and wiCheck() are the row and tick helpers the
@@ -5239,6 +5402,17 @@ function attachAnswerLayer(){
       const v = parseFloat(String(t.value).replace(/[^0-9.]/g, ''));
       rateCustom = (isFinite(v) && v > 0) ? Math.round(v * 10000) / 10000 : null;
       refreshRateImpact();
+      return;
+    }
+    if (t.id === 'bdExtra' || t.id === 'bdPtsNow' || t.id === 'bdRate' || t.id === 'bdPts') {
+      if (t.id === 'bdExtra') { liveComma(t); buyDown.extra = debtParse(t.value); }
+      else {
+        const raw = String(t.value).replace(/[^0-9.]/g, '');
+        const key = t.id === 'bdPtsNow' ? 'ptsNow' : (t.id === 'bdRate' ? 'rate' : 'pts');
+        buyDown[key] = raw === '' ? null : parseFloat(raw);
+        if (isNaN(buyDown[key])) buyDown[key] = null;
+      }
+      refreshBuyDown();
       return;
     }
     if (t.id === 'whatIfPrice') {
